@@ -1,0 +1,506 @@
+{
+  "schemaVersion": 1,
+  "source": "Calc public POST /api/simulations black-box observation",
+  "calcDataVersion": "9163343-11",
+  "tickRate": 30,
+  "scenario": {
+    "characterId": "chr_0004_pelica",
+    "characterLevel": 1,
+    "weaponId": "wpn_funnel_0002",
+    "weaponLevel": 1,
+    "enemyId": "eny_0007_mimicw",
+    "enemyLevel": 1,
+    "criticalMode": "None",
+    "commands": [
+      {
+        "uuid": "pelica",
+        "frame": 0,
+        "commandType": "Attack"
+      },
+      {
+        "uuid": "pelica",
+        "frame": 15,
+        "commandType": "Attack"
+      },
+      {
+        "uuid": "pelica",
+        "frame": 30,
+        "commandType": "Attack"
+      },
+      {
+        "uuid": "pelica",
+        "frame": 45,
+        "commandType": "Attack"
+      },
+      {
+        "uuid": "pelica",
+        "frame": 90,
+        "commandType": "ComboSkill"
+      },
+      {
+        "uuid": "pelica",
+        "frame": 120,
+        "commandType": "NormalSkill"
+      }
+    ]
+  },
+  "commandTrace": [
+    {
+      "$type": "CommandSubmittedTrace",
+      "frame": 0,
+      "commandType": "Attack",
+      "priority": 0,
+      "queueWindowFrames": 30,
+      "targetEntityId": "eny_0007_mimicw",
+      "targetSource": "explicit"
+    },
+    {
+      "$type": "CommandExecutedTrace",
+      "frame": 0,
+      "commandType": "Attack",
+      "skillId": "chr_0004_pelica_attack1",
+      "success": true,
+      "priority": 0,
+      "queueWindowFrames": 30,
+      "targetEntityId": "eny_0007_mimicw",
+      "targetSource": "explicit",
+      "skillSource": "combo-mapping"
+    },
+    {
+      "$type": "CommandSubmittedTrace",
+      "frame": 15,
+      "commandType": "Attack",
+      "priority": 0,
+      "queueWindowFrames": 30,
+      "targetEntityId": "eny_0007_mimicw",
+      "targetSource": "explicit"
+    },
+    {
+      "$type": "CommandExecutedTrace",
+      "frame": 15,
+      "commandType": "Attack",
+      "skillId": "chr_0004_pelica_attack2",
+      "success": true,
+      "priority": 0,
+      "queueWindowFrames": 30,
+      "targetEntityId": "eny_0007_mimicw",
+      "targetSource": "explicit",
+      "skillSource": "combo-mapping"
+    },
+    {
+      "$type": "CommandSubmittedTrace",
+      "frame": 30,
+      "commandType": "Attack",
+      "priority": 0,
+      "queueWindowFrames": 30,
+      "targetEntityId": "eny_0007_mimicw",
+      "targetSource": "explicit"
+    },
+    {
+      "$type": "CommandQueuedTrace",
+      "frame": 30,
+      "commandType": "Attack",
+      "reason": "center-state-block:Attack->Attack",
+      "priority": 0,
+      "queueWindowFrames": 30,
+      "targetEntityId": "eny_0007_mimicw",
+      "targetSource": "explicit"
+    },
+    {
+      "$type": "CommandExecutedTrace",
+      "frame": 33,
+      "commandType": "Attack",
+      "skillId": "chr_0004_pelica_attack3",
+      "success": true,
+      "priority": 0,
+      "queueWindowFrames": 30,
+      "targetEntityId": "eny_0007_mimicw",
+      "targetSource": "explicit",
+      "skillSource": "next-skill-request"
+    },
+    {
+      "$type": "CommandSubmittedTrace",
+      "frame": 45,
+      "commandType": "Attack",
+      "priority": 0,
+      "queueWindowFrames": 30,
+      "targetEntityId": "eny_0007_mimicw",
+      "targetSource": "explicit"
+    },
+    {
+      "$type": "CommandQueuedTrace",
+      "frame": 45,
+      "commandType": "Attack",
+      "reason": "center-state-block:Attack->Attack",
+      "priority": 0,
+      "queueWindowFrames": 30,
+      "targetEntityId": "eny_0007_mimicw",
+      "targetSource": "explicit"
+    },
+    {
+      "$type": "CommandExecutedTrace",
+      "frame": 59,
+      "commandType": "Attack",
+      "skillId": "chr_0004_pelica_attack4",
+      "success": true,
+      "priority": 0,
+      "queueWindowFrames": 30,
+      "targetEntityId": "eny_0007_mimicw",
+      "targetSource": "explicit",
+      "skillSource": "combo-mapping"
+    },
+    {
+      "$type": "CommandSubmittedTrace",
+      "frame": 90,
+      "commandType": "ComboSkill",
+      "priority": 0,
+      "queueWindowFrames": 30,
+      "targetEntityId": "eny_0007_mimicw",
+      "targetSource": "explicit"
+    },
+    {
+      "$type": "CommandExecutedTrace",
+      "frame": 90,
+      "commandType": "ComboSkill",
+      "skillId": "chr_0004_pelica_combo_skill",
+      "success": true,
+      "priority": 0,
+      "queueWindowFrames": 30,
+      "targetEntityId": "eny_0007_mimicw",
+      "targetSource": "explicit",
+      "skillSource": "combo-mapping"
+    },
+    {
+      "$type": "CommandSubmittedTrace",
+      "frame": 120,
+      "commandType": "NormalSkill",
+      "priority": 0,
+      "queueWindowFrames": 30,
+      "targetEntityId": "eny_0007_mimicw",
+      "targetSource": "explicit"
+    },
+    {
+      "$type": "CommandExecutedTrace",
+      "frame": 120,
+      "commandType": "NormalSkill",
+      "skillId": "chr_0004_pelica_normal_skill",
+      "success": true,
+      "priority": 0,
+      "queueWindowFrames": 30,
+      "targetEntityId": "eny_0007_mimicw",
+      "targetSource": "explicit",
+      "skillSource": "combo-mapping"
+    }
+  ],
+  "comboSkillTrace": [
+    {
+      "frame": 86,
+      "stage": "PENDING_CREATED",
+      "skillId": "chr_0004_pelica_combo_skill",
+      "currentSkillId": "chr_0004_pelica_attack4",
+      "currentPriority": 0,
+      "result": true,
+      "reason": "TRIGGERED"
+    },
+    {
+      "frame": 90,
+      "stage": "COMMAND_GATE",
+      "skillId": "chr_0004_pelica_combo_skill",
+      "currentSkillId": "chr_0004_pelica_attack4",
+      "currentPriority": 0,
+      "result": true,
+      "reason": "COMBO_PENDING_READY"
+    },
+    {
+      "frame": 90,
+      "stage": "PENDING_CONSUMED",
+      "skillId": "chr_0004_pelica_combo_skill",
+      "currentSkillId": "chr_0004_pelica_combo_skill",
+      "currentPriority": 5,
+      "result": true,
+      "reason": "CAST_SUCCESS"
+    }
+  ],
+  "centerStateTrace": [
+    {
+      "frame": 0,
+      "from": "Free",
+      "to": "Attack",
+      "reason": "command:Attack"
+    },
+    {
+      "frame": 15,
+      "from": "Attack",
+      "to": "Free",
+      "reason": "skill-end:chr_0004_pelica_attack1:Interrupted"
+    },
+    {
+      "frame": 15,
+      "from": "Free",
+      "to": "Attack",
+      "reason": "skill-start:chr_0004_pelica_attack2"
+    },
+    {
+      "frame": 33,
+      "from": "Attack",
+      "to": "Free",
+      "reason": "skill-end:chr_0004_pelica_attack2:Interrupted"
+    },
+    {
+      "frame": 33,
+      "from": "Free",
+      "to": "Attack",
+      "reason": "skill-start:chr_0004_pelica_attack3"
+    },
+    {
+      "frame": 59,
+      "from": "Attack",
+      "to": "Free",
+      "reason": "skill-end:chr_0004_pelica_attack3:Interrupted"
+    },
+    {
+      "frame": 59,
+      "from": "Free",
+      "to": "Attack",
+      "reason": "skill-start:chr_0004_pelica_attack4"
+    },
+    {
+      "frame": 90,
+      "from": "Attack",
+      "to": "Skill",
+      "reason": "command:ComboSkill"
+    },
+    {
+      "frame": 90,
+      "from": "Skill",
+      "to": "Free",
+      "reason": "skill-end:chr_0004_pelica_attack4:Interrupted"
+    },
+    {
+      "frame": 90,
+      "from": "Free",
+      "to": "Skill",
+      "reason": "skill-start:chr_0004_pelica_combo_skill"
+    },
+    {
+      "frame": 120,
+      "from": "Skill",
+      "to": "Free",
+      "reason": "skill-end:chr_0004_pelica_combo_skill:Interrupted"
+    },
+    {
+      "frame": 120,
+      "from": "Free",
+      "to": "Skill",
+      "reason": "skill-start:chr_0004_pelica_normal_skill"
+    },
+    {
+      "frame": 274,
+      "from": "Skill",
+      "to": "Free",
+      "reason": "skill-end:chr_0004_pelica_normal_skill:Completed"
+    }
+  ],
+  "damageLog": [
+    {
+      "frame": 8,
+      "sourceId": "chr_0004_pelica",
+      "sourceUuid": "pelica",
+      "targetId": "eny_0007_mimicw",
+      "targetUuid": "eny_0007_mimicw",
+      "skillId": "chr_0004_pelica_attack1_projhit",
+      "damageType": "Pulse",
+      "rawDamage": 20.96275,
+      "finalDamage": 10.481375,
+      "poiseDamage": 0,
+      "isCritical": false,
+      "nonCriticalDamage": 10.481375,
+      "criticalDamage": 15.7220625,
+      "expectedDamage": 10.743409374999999,
+      "targetHpBefore": 692,
+      "targetHpAfter": 681.518625,
+      "damageUnitIndex": 0,
+      "damageActionHash": 1817951817,
+      "damageActionTrace": "timeline=0:action=0:frame=0"
+    },
+    {
+      "frame": 24,
+      "sourceId": "chr_0004_pelica",
+      "sourceUuid": "pelica",
+      "targetId": "eny_0007_mimicw",
+      "targetUuid": "eny_0007_mimicw",
+      "skillId": "chr_0004_pelica_attack2_projhit",
+      "damageType": "Pulse",
+      "rawDamage": 12.57765,
+      "finalDamage": 6.288825,
+      "poiseDamage": 0,
+      "isCritical": false,
+      "nonCriticalDamage": 6.288825,
+      "criticalDamage": 9.4332375,
+      "expectedDamage": 6.446045624999999,
+      "targetHpBefore": 681.518625,
+      "targetHpAfter": 675.2298000000001,
+      "damageUnitIndex": 0,
+      "damageActionHash": 1353587244,
+      "damageActionTrace": "timeline=0:action=0:frame=0"
+    },
+    {
+      "frame": 27,
+      "sourceId": "chr_0004_pelica",
+      "sourceUuid": "pelica",
+      "targetId": "eny_0007_mimicw",
+      "targetUuid": "eny_0007_mimicw",
+      "skillId": "chr_0004_pelica_attack2_projhit",
+      "damageType": "Pulse",
+      "rawDamage": 12.57765,
+      "finalDamage": 6.288825,
+      "poiseDamage": 0,
+      "isCritical": false,
+      "nonCriticalDamage": 6.288825,
+      "criticalDamage": 9.4332375,
+      "expectedDamage": 6.446045624999999,
+      "targetHpBefore": 675.2298000000001,
+      "targetHpAfter": 668.9409750000001,
+      "damageUnitIndex": 0,
+      "damageActionHash": 1353587244,
+      "damageActionTrace": "timeline=0:action=0:frame=0"
+    },
+    {
+      "frame": 49,
+      "sourceId": "chr_0004_pelica",
+      "sourceUuid": "pelica",
+      "targetId": "eny_0007_mimicw",
+      "targetUuid": "eny_0007_mimicw",
+      "skillId": "chr_0004_pelica_attack3_projhit",
+      "damageType": "Pulse",
+      "rawDamage": 10.06212,
+      "finalDamage": 5.03106,
+      "poiseDamage": 0,
+      "isCritical": false,
+      "nonCriticalDamage": 5.03106,
+      "criticalDamage": 7.54659,
+      "expectedDamage": 5.1568365,
+      "targetHpBefore": 668.9409750000001,
+      "targetHpAfter": 663.9099150000001,
+      "damageUnitIndex": 0,
+      "damageActionHash": 1194362330,
+      "damageActionTrace": "timeline=0:action=0:frame=0"
+    },
+    {
+      "frame": 52,
+      "sourceId": "chr_0004_pelica",
+      "sourceUuid": "pelica",
+      "targetId": "eny_0007_mimicw",
+      "targetUuid": "eny_0007_mimicw",
+      "skillId": "chr_0004_pelica_attack3_projhit",
+      "damageType": "Pulse",
+      "rawDamage": 10.06212,
+      "finalDamage": 5.03106,
+      "poiseDamage": 0,
+      "isCritical": false,
+      "nonCriticalDamage": 5.03106,
+      "criticalDamage": 7.54659,
+      "expectedDamage": 5.1568365,
+      "targetHpBefore": 663.9099150000001,
+      "targetHpAfter": 658.878855,
+      "damageUnitIndex": 0,
+      "damageActionHash": 1194362330,
+      "damageActionTrace": "timeline=0:action=0:frame=0"
+    },
+    {
+      "frame": 55,
+      "sourceId": "chr_0004_pelica",
+      "sourceUuid": "pelica",
+      "targetId": "eny_0007_mimicw",
+      "targetUuid": "eny_0007_mimicw",
+      "skillId": "chr_0004_pelica_attack3_projhit",
+      "damageType": "Pulse",
+      "rawDamage": 10.06212,
+      "finalDamage": 5.03106,
+      "poiseDamage": 0,
+      "isCritical": false,
+      "nonCriticalDamage": 5.03106,
+      "criticalDamage": 7.54659,
+      "expectedDamage": 5.1568365,
+      "targetHpBefore": 658.878855,
+      "targetHpAfter": 653.847795,
+      "damageUnitIndex": 0,
+      "damageActionHash": 1194362330,
+      "damageActionTrace": "timeline=0:action=0:frame=0"
+    },
+    {
+      "frame": 86,
+      "sourceId": "chr_0004_pelica",
+      "sourceUuid": "pelica",
+      "targetId": "eny_0007_mimicw",
+      "targetUuid": "eny_0007_mimicw",
+      "skillId": "chr_0004_pelica_attack4_projhit",
+      "damageType": "Pulse",
+      "rawDamage": 47.795069999999996,
+      "finalDamage": 23.897534999999998,
+      "poiseDamage": 0,
+      "isCritical": false,
+      "nonCriticalDamage": 23.897534999999998,
+      "criticalDamage": 35.84630249999999,
+      "expectedDamage": 24.494973374999997,
+      "targetHpBefore": 653.847795,
+      "targetHpAfter": 629.9502600000001,
+      "damageUnitIndex": 0,
+      "damageActionHash": 128459736,
+      "damageActionTrace": "timeline=0:action=0:frame=0"
+    },
+    {
+      "frame": 114,
+      "sourceId": "chr_0004_pelica",
+      "sourceUuid": "pelica",
+      "targetId": "eny_0007_mimicw",
+      "targetUuid": "eny_0007_mimicw",
+      "skillId": "chr_0004_pelica_combo_skill_projhit",
+      "damageType": "Pulse",
+      "rawDamage": 67.0808,
+      "finalDamage": 37.565248000000004,
+      "poiseDamage": 0,
+      "isCritical": false,
+      "nonCriticalDamage": 37.565248000000004,
+      "criticalDamage": 56.34787200000001,
+      "expectedDamage": 38.5043792,
+      "targetHpBefore": 629.9502600000001,
+      "targetHpAfter": 592.3850120000001,
+      "damageUnitIndex": 0,
+      "damageActionHash": 2117571644,
+      "damageActionTrace": "timeline=0:action=5:frame=0"
+    },
+    {
+      "frame": 133,
+      "sourceId": "chr_0004_pelica",
+      "sourceUuid": "pelica",
+      "targetId": "eny_0007_mimicw",
+      "targetUuid": "eny_0007_mimicw",
+      "skillId": "chr_0004_pelica_normal_skill",
+      "damageType": "Pulse",
+      "rawDamage": 149.25478,
+      "finalDamage": 83.58267680000002,
+      "poiseDamage": 0,
+      "isCritical": false,
+      "nonCriticalDamage": 83.58267680000002,
+      "criticalDamage": 125.37401520000003,
+      "expectedDamage": 85.67224372000001,
+      "targetHpBefore": 592.3850120000001,
+      "targetHpAfter": 508.8023352000001,
+      "damageUnitIndex": 0,
+      "damageActionHash": 1622362456,
+      "damageActionTrace": "timeline=3:action=3:frame=13"
+    }
+  ],
+  "damageSummary": {
+    "totalDamage": 183.1976648,
+    "totalPoiseDamage": 0,
+    "damageByCharacter": {
+      "pelica": 183.1976648
+    },
+    "damageByType": {
+      "Pulse": 183.1976648
+    }
+  },
+  "durationTicks": 393
+}

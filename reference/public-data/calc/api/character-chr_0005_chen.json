@@ -1,0 +1,4627 @@
+{
+  "data": {
+    "id": "chr_0005_chen",
+    "name": {
+      "id": 3128157701878862300,
+      "text": ""
+    },
+    "rarity": 5,
+    "profession": "GUARD",
+    "weaponType": "Sword",
+    "weaponTypeName": "单手剑",
+    "mainAttrType": "Agi",
+    "subAttrType": "Str",
+    "defaultWeaponId": "wpn_sword_0003",
+    "skills": [
+      {
+        "name": {
+          "id": -3365118837293788700,
+          "text": ""
+        },
+        "desc": {
+          "id": -3539043397109313000,
+          "text": ""
+        },
+        "icon": "icon_combo_skill_chen_01",
+        "groupId": "chr_0005_chen_ComboSkill",
+        "groupType": "ComboSkill",
+        "conditions": [],
+        "skillDetails": [
+          {
+            "skillId": "chr_0005_chen_combo_skill",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_chen_01",
+                "coolDown": 16,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.2,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1125814944683477400,
+                      "text": ""
+                    },
+                    "value": "120%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4763734144899774000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_chen_01",
+                "coolDown": 16,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.32,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 8088672441129238000,
+                      "text": ""
+                    },
+                    "value": "132%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2101514915046985700,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_chen_01",
+                "coolDown": 16,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.44,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3253746257155044400,
+                      "text": ""
+                    },
+                    "value": "144%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3290399270069750300,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_chen_01",
+                "coolDown": 16,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.56,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5203630480962863000,
+                      "text": ""
+                    },
+                    "value": "156%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3134964620137972000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_chen_01",
+                "coolDown": 16,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.68,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7874330387379192000,
+                      "text": ""
+                    },
+                    "value": "168%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 738996326904222700,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_chen_01",
+                "coolDown": 16,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.8,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6455647692959796000,
+                      "text": ""
+                    },
+                    "value": "180%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7184528498144258000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_chen_01",
+                "coolDown": 16,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.92,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1467560726726881000,
+                      "text": ""
+                    },
+                    "value": "192%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8822084799953220000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_chen_01",
+                "coolDown": 16,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 2.04,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8293182148697816000,
+                      "text": ""
+                    },
+                    "value": "204%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4929747627618097000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_chen_01",
+                "coolDown": 16,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 2.16,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4665930244285283000,
+                      "text": ""
+                    },
+                    "value": "216%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -3204981606654832600,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_chen_01",
+                "coolDown": 16,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 2.31,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1759638334600633300,
+                      "text": ""
+                    },
+                    "value": "231%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1826412551133804500,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_chen_01",
+                "coolDown": 16,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 2.49,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5514489065505319000,
+                      "text": ""
+                    },
+                    "value": "249%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 632226637999800000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_chen_01",
+                "coolDown": 15,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 2.7,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4597067516459327500,
+                      "text": ""
+                    },
+                    "value": "270%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5235514477906822000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": {
+          "id": -182520585548279600,
+          "text": ""
+        },
+        "desc": {
+          "id": -8187091374434239000,
+          "text": ""
+        },
+        "icon": "icon_attack_sword",
+        "groupId": "chr_0005_chen_NormalAttack",
+        "groupType": "NormalAttack",
+        "conditions": [],
+        "skillDetails": [
+          {
+            "skillId": "chr_0005_chen_attack1",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.1,
+                  "display_atk_scale": 0.2,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -353108905876808100,
+                      "text": ""
+                    },
+                    "value": "20%"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.11,
+                  "display_atk_scale": 0.22,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6685571816891009000,
+                      "text": ""
+                    },
+                    "value": "22%"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.12,
+                  "display_atk_scale": 0.24,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6014148319850377000,
+                      "text": ""
+                    },
+                    "value": "24%"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.13,
+                  "display_atk_scale": 0.26,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2404591830505785300,
+                      "text": ""
+                    },
+                    "value": "26%"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.14,
+                  "display_atk_scale": 0.28,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2387511457647122000,
+                      "text": ""
+                    },
+                    "value": "28%"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.15,
+                  "display_atk_scale": 0.3,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -830996327363730800,
+                      "text": ""
+                    },
+                    "value": "30%"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.16,
+                  "display_atk_scale": 0.32,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1887102659178971400,
+                      "text": ""
+                    },
+                    "value": "32%"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.17,
+                  "display_atk_scale": 0.34,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8600603118964048000,
+                      "text": ""
+                    },
+                    "value": "34%"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.18,
+                  "display_atk_scale": 0.36,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1296720421175973600,
+                      "text": ""
+                    },
+                    "value": "36%"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.19,
+                  "display_atk_scale": 0.39,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -3130204382394069500,
+                      "text": ""
+                    },
+                    "value": "39%"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.21,
+                  "display_atk_scale": 0.42,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5397376023881747000,
+                      "text": ""
+                    },
+                    "value": "42%"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.23,
+                  "display_atk_scale": 0.45,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6115789788180475000,
+                      "text": ""
+                    },
+                    "value": "45%"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "skillId": "chr_0005_chen_attack2",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.24,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6230552541022842000,
+                      "text": ""
+                    },
+                    "value": "24%"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.26,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2743781391835802600,
+                      "text": ""
+                    },
+                    "value": "26%"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.29,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8535873033778919000,
+                      "text": ""
+                    },
+                    "value": "29%"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.31,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2714066811452477400,
+                      "text": ""
+                    },
+                    "value": "31%"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.34,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 382545962164445440,
+                      "text": ""
+                    },
+                    "value": "34%"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.36,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8918382276166274000,
+                      "text": ""
+                    },
+                    "value": "36%"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.38,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2425977556206898000,
+                      "text": ""
+                    },
+                    "value": "38%"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.41,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7010210344791601000,
+                      "text": ""
+                    },
+                    "value": "41%"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.43,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 979580468590570100,
+                      "text": ""
+                    },
+                    "value": "43%"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.46,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4917402224120210000,
+                      "text": ""
+                    },
+                    "value": "46%"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.5,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7445213342622392,
+                      "text": ""
+                    },
+                    "value": "50%"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.54,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -707378009367479300,
+                      "text": ""
+                    },
+                    "value": "54%"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "skillId": "chr_0005_chen_attack3",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.13,
+                  "display_atk_scale": 0.27,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -278117366996715550,
+                      "text": ""
+                    },
+                    "value": "27%"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.15,
+                  "display_atk_scale": 0.29,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1159524287614921000,
+                      "text": ""
+                    },
+                    "value": "29%"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.16,
+                  "display_atk_scale": 0.32,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4940189912757669000,
+                      "text": ""
+                    },
+                    "value": "32%"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.17,
+                  "display_atk_scale": 0.35,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3725689910370477600,
+                      "text": ""
+                    },
+                    "value": "35%"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.19,
+                  "display_atk_scale": 0.38,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8812052142865180000,
+                      "text": ""
+                    },
+                    "value": "38%"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.2,
+                  "display_atk_scale": 0.4,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7959741772124809000,
+                      "text": ""
+                    },
+                    "value": "40%"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.21,
+                  "display_atk_scale": 0.43,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1964656445580392400,
+                      "text": ""
+                    },
+                    "value": "43%"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.23,
+                  "display_atk_scale": 0.46,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5348617762591599000,
+                      "text": ""
+                    },
+                    "value": "46%"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.24,
+                  "display_atk_scale": 0.48,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3675241551584500700,
+                      "text": ""
+                    },
+                    "value": "48%"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.26,
+                  "display_atk_scale": 0.52,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 8107455895259418000,
+                      "text": ""
+                    },
+                    "value": "52%"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.28,
+                  "display_atk_scale": 0.56,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 302431844299803100,
+                      "text": ""
+                    },
+                    "value": "56%"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.3,
+                  "display_atk_scale": 0.6,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1038156518672146400,
+                      "text": ""
+                    },
+                    "value": "60%"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "skillId": "chr_0005_chen_attack4",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.15,
+                  "display_atk_scale": 0.3,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -19947349012017108,
+                      "text": ""
+                    },
+                    "value": "30%"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.17,
+                  "display_atk_scale": 0.33,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 569966853507345300,
+                      "text": ""
+                    },
+                    "value": "33%"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.18,
+                  "display_atk_scale": 0.36,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 9157431778636944000,
+                      "text": ""
+                    },
+                    "value": "36%"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.2,
+                  "display_atk_scale": 0.39,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 921794473659375700,
+                      "text": ""
+                    },
+                    "value": "39%"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.21,
+                  "display_atk_scale": 0.42,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8401086471930204000,
+                      "text": ""
+                    },
+                    "value": "42%"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.23,
+                  "display_atk_scale": 0.45,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7207356226861243000,
+                      "text": ""
+                    },
+                    "value": "45%"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.24,
+                  "display_atk_scale": 0.48,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2194189016394070500,
+                      "text": ""
+                    },
+                    "value": "48%"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.26,
+                  "display_atk_scale": 0.51,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2174804091001387300,
+                      "text": ""
+                    },
+                    "value": "51%"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.27,
+                  "display_atk_scale": 0.54,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5330162808744290000,
+                      "text": ""
+                    },
+                    "value": "54%"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.29,
+                  "display_atk_scale": 0.58,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8804251291923843000,
+                      "text": ""
+                    },
+                    "value": "58%"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.31,
+                  "display_atk_scale": 0.62,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2702776938617384400,
+                      "text": ""
+                    },
+                    "value": "62%"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.34,
+                  "display_atk_scale": 0.68,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7350433530064680000,
+                      "text": ""
+                    },
+                    "value": "68%"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "skillId": "chr_0005_chen_attack5",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.4,
+                  "poise": 16,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7261018795878942000,
+                      "text": ""
+                    },
+                    "value": "40%"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.44,
+                  "poise": 16,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2673860892794266000,
+                      "text": ""
+                    },
+                    "value": "44%"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.48,
+                  "poise": 16,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7610157703576318000,
+                      "text": ""
+                    },
+                    "value": "48%"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.52,
+                  "poise": 16,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 9147004964696414000,
+                      "text": ""
+                    },
+                    "value": "52%"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.56,
+                  "poise": 16,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7058776534649666000,
+                      "text": ""
+                    },
+                    "value": "56%"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.6,
+                  "poise": 16,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4840490954172757000,
+                      "text": ""
+                    },
+                    "value": "60%"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.64,
+                  "poise": 16,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4211846344586264000,
+                      "text": ""
+                    },
+                    "value": "64%"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.68,
+                  "poise": 16,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -3997747150463944700,
+                      "text": ""
+                    },
+                    "value": "68%"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.72,
+                  "poise": 16,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1633358705456277800,
+                      "text": ""
+                    },
+                    "value": "72%"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.77,
+                  "poise": 16,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5084113244413104000,
+                      "text": ""
+                    },
+                    "value": "77%"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.83,
+                  "poise": 16,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7299451881701580000,
+                      "text": ""
+                    },
+                    "value": "83%"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.9,
+                  "poise": 16,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8822926738060282000,
+                      "text": ""
+                    },
+                    "value": "90%"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "skillId": "chr_0005_chen_power_attack",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 4
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2086902544055558100,
+                      "text": ""
+                    },
+                    "value": "400%"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 4.4
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2307414456241065500,
+                      "text": ""
+                    },
+                    "value": "440%"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 4.8
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2466819718632459000,
+                      "text": ""
+                    },
+                    "value": "480%"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 5.2
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8598376355033823000,
+                      "text": ""
+                    },
+                    "value": "520%"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 5.6
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7343256306183588000,
+                      "text": ""
+                    },
+                    "value": "560%"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 6
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 162949806384452130,
+                      "text": ""
+                    },
+                    "value": "600%"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 6.4
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3897418248960881700,
+                      "text": ""
+                    },
+                    "value": "640%"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 6.8
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -621023306241184900,
+                      "text": ""
+                    },
+                    "value": "680%"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 7.2
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5448482837760861000,
+                      "text": ""
+                    },
+                    "value": "720%"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 7.7
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7488945121815837000,
+                      "text": ""
+                    },
+                    "value": "770%"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 8.3
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8343063141656230000,
+                      "text": ""
+                    },
+                    "value": "830%"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 9
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4807193923196156000,
+                      "text": ""
+                    },
+                    "value": "900%"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "skillId": "chr_0005_chen_plunging_attack_end",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.8,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6026574429804730000,
+                      "text": ""
+                    },
+                    "value": "80%"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.88,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5070616057128651000,
+                      "text": ""
+                    },
+                    "value": "88%"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.96,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4424160256636766700,
+                      "text": ""
+                    },
+                    "value": "96%"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.04,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2610366173178245600,
+                      "text": ""
+                    },
+                    "value": "104%"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.12,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1172576377911816400,
+                      "text": ""
+                    },
+                    "value": "112%"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.2,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7757368193675577000,
+                      "text": ""
+                    },
+                    "value": "120%"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.28,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3471708118870984700,
+                      "text": ""
+                    },
+                    "value": "128%"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.36,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8247215316045723000,
+                      "text": ""
+                    },
+                    "value": "136%"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.44,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2572695147049372700,
+                      "text": ""
+                    },
+                    "value": "144%"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.54,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7774131199535499000,
+                      "text": ""
+                    },
+                    "value": "154%"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.66,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6251351947017745000,
+                      "text": ""
+                    },
+                    "value": "166%"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_sword",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.8,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 8802945315711471000,
+                      "text": ""
+                    },
+                    "value": "180%"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": {
+          "id": 7599423318558857000,
+          "text": ""
+        },
+        "desc": {
+          "id": 3561048200814891500,
+          "text": ""
+        },
+        "icon": "icon_skill_chen_01",
+        "groupId": "chr_0005_chen_NormalSkill",
+        "groupType": "NormalSkill",
+        "conditions": [],
+        "skillDetails": [
+          {
+            "skillId": "chr_0005_chen_normal_skill",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_chen_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.69,
+                  "poise": 10,
+                  "airborne_initial": 1,
+                  "airborne_coefficient": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7428522575526358000,
+                      "text": ""
+                    },
+                    "value": "169%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6230147795081260000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4922432926501028000,
+                      "text": ""
+                    },
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_chen_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.86,
+                  "poise": 10,
+                  "airborne_initial": 1,
+                  "airborne_coefficient": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 306847708542922700,
+                      "text": ""
+                    },
+                    "value": "186%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3335033719598858000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1841400886530842000,
+                      "text": ""
+                    },
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_chen_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 2.03,
+                  "poise": 10,
+                  "airborne_initial": 1,
+                  "airborne_coefficient": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8492369196739636000,
+                      "text": ""
+                    },
+                    "value": "203%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1647278907140323000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2802633477823549000,
+                      "text": ""
+                    },
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_chen_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 2.19,
+                  "poise": 10,
+                  "airborne_initial": 1,
+                  "airborne_coefficient": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5517120434882618000,
+                      "text": ""
+                    },
+                    "value": "219%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5297392087550562000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1273714353542449000,
+                      "text": ""
+                    },
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_chen_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 2.36,
+                  "poise": 10,
+                  "airborne_initial": 1,
+                  "airborne_coefficient": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -766821969400693800,
+                      "text": ""
+                    },
+                    "value": "236%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6676568291848630000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5951947856878557000,
+                      "text": ""
+                    },
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_chen_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 2.53,
+                  "poise": 10,
+                  "airborne_initial": 1.5,
+                  "airborne_coefficient": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 9213851771138208000,
+                      "text": ""
+                    },
+                    "value": "253%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3064959422295343600,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2205128974529483800,
+                      "text": ""
+                    },
+                    "value": "1.5"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_chen_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 2.7,
+                  "poise": 10,
+                  "airborne_initial": 1.5,
+                  "airborne_coefficient": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5417594334062977000,
+                      "text": ""
+                    },
+                    "value": "270%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 416286333394888100,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -920431049015270100,
+                      "text": ""
+                    },
+                    "value": "1.5"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_chen_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 2.87,
+                  "poise": 10,
+                  "airborne_initial": 1.5,
+                  "airborne_coefficient": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 8668822458008311000,
+                      "text": ""
+                    },
+                    "value": "287%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6884562246307042000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2819221911528746000,
+                      "text": ""
+                    },
+                    "value": "1.5"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_chen_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 3.04,
+                  "poise": 10,
+                  "airborne_initial": 2,
+                  "airborne_coefficient": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5656119302149814000,
+                      "text": ""
+                    },
+                    "value": "304%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6445049526813644000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5468346319778627000,
+                      "text": ""
+                    },
+                    "value": "2"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_chen_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 3.25,
+                  "poise": 10,
+                  "airborne_initial": 2,
+                  "airborne_coefficient": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6205890099417494000,
+                      "text": ""
+                    },
+                    "value": "325%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2330336118680174600,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2373850766060116500,
+                      "text": ""
+                    },
+                    "value": "2"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_chen_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 3.5,
+                  "poise": 10,
+                  "airborne_initial": 2,
+                  "airborne_coefficient": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2536018684455816000,
+                      "text": ""
+                    },
+                    "value": "350%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7966984948583628000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3767894695670760400,
+                      "text": ""
+                    },
+                    "value": "2"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_chen_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 3.8,
+                  "poise": 10,
+                  "airborne_initial": 2.5,
+                  "airborne_coefficient": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5614741210665465000,
+                      "text": ""
+                    },
+                    "value": "380%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7381637073926283000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2797648016684950500,
+                      "text": ""
+                    },
+                    "value": "2.5"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": {
+          "id": 3764209886158649000,
+          "text": ""
+        },
+        "desc": {
+          "id": 2496164915121210400,
+          "text": ""
+        },
+        "icon": "icon_ultimate_skill_chen_01",
+        "groupId": "chr_0005_chen_UltimateSkill",
+        "groupType": "UltimateSkill",
+        "conditions": [],
+        "skillDetails": [
+          {
+            "skillId": "chr_0005_chen_ultimate_skill",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_chen_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 70,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale1": 0.36,
+                  "atk_scale2": 4.55,
+                  "poise_start": 15,
+                  "poise_final": 20
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8617865492706645000,
+                      "text": ""
+                    },
+                    "value": "36%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1035728920220805900,
+                      "text": ""
+                    },
+                    "value": "15"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1118501379330796900,
+                      "text": ""
+                    },
+                    "value": "455%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -342422427123798400,
+                      "text": ""
+                    },
+                    "value": "20"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_chen_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 70,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale1": 0.4,
+                  "atk_scale2": 5,
+                  "poise_start": 15,
+                  "poise_final": 20
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3816240634897356000,
+                      "text": ""
+                    },
+                    "value": "40%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7572715814744931000,
+                      "text": ""
+                    },
+                    "value": "15"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7952556245193000000,
+                      "text": ""
+                    },
+                    "value": "500%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3915361778652308500,
+                      "text": ""
+                    },
+                    "value": "20"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_chen_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 70,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale1": 0.43,
+                  "atk_scale2": 5.45,
+                  "poise_start": 15,
+                  "poise_final": 20
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6197411432611634000,
+                      "text": ""
+                    },
+                    "value": "43%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5485944263816756000,
+                      "text": ""
+                    },
+                    "value": "15"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4338307933902104000,
+                      "text": ""
+                    },
+                    "value": "545%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2095500227021778200,
+                      "text": ""
+                    },
+                    "value": "20"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_chen_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 70,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale1": 0.47,
+                  "atk_scale2": 5.91,
+                  "poise_start": 15,
+                  "poise_final": 20
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4047123061973550600,
+                      "text": ""
+                    },
+                    "value": "47%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1553134538017381600,
+                      "text": ""
+                    },
+                    "value": "15"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8710939277611113000,
+                      "text": ""
+                    },
+                    "value": "591%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 8663475460341973000,
+                      "text": ""
+                    },
+                    "value": "20"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_chen_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 70,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale1": 0.5,
+                  "atk_scale2": 6.36,
+                  "poise_start": 15,
+                  "poise_final": 20
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3519653351152110000,
+                      "text": ""
+                    },
+                    "value": "50%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8961815434583774000,
+                      "text": ""
+                    },
+                    "value": "15"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2863884226096113700,
+                      "text": ""
+                    },
+                    "value": "636%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7357270703979863000,
+                      "text": ""
+                    },
+                    "value": "20"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_chen_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 70,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale1": 0.54,
+                  "atk_scale2": 6.82,
+                  "poise_start": 15,
+                  "poise_final": 20
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2548958927287547400,
+                      "text": ""
+                    },
+                    "value": "54%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7170252670911275000,
+                      "text": ""
+                    },
+                    "value": "15"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7484002094195895000,
+                      "text": ""
+                    },
+                    "value": "682%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6461909538620170000,
+                      "text": ""
+                    },
+                    "value": "20"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_chen_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 70,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale1": 0.58,
+                  "atk_scale2": 7.27,
+                  "poise_start": 15,
+                  "poise_final": 20
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2322168423144084000,
+                      "text": ""
+                    },
+                    "value": "58%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6596994644128551000,
+                      "text": ""
+                    },
+                    "value": "15"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5615993497889587000,
+                      "text": ""
+                    },
+                    "value": "727%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7381980384508767000,
+                      "text": ""
+                    },
+                    "value": "20"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_chen_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 70,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale1": 0.61,
+                  "atk_scale2": 7.73,
+                  "poise_start": 15,
+                  "poise_final": 20
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5455016964496089000,
+                      "text": ""
+                    },
+                    "value": "61%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6921843791959411000,
+                      "text": ""
+                    },
+                    "value": "15"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4029311773474155500,
+                      "text": ""
+                    },
+                    "value": "773%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1854694447911340800,
+                      "text": ""
+                    },
+                    "value": "20"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_chen_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 70,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale1": 0.65,
+                  "atk_scale2": 8.18,
+                  "poise_start": 15,
+                  "poise_final": 20
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 615692458119010600,
+                      "text": ""
+                    },
+                    "value": "65%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1894379438900668200,
+                      "text": ""
+                    },
+                    "value": "15"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6301084404373931000,
+                      "text": ""
+                    },
+                    "value": "818%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5122526460103550000,
+                      "text": ""
+                    },
+                    "value": "20"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_chen_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 70,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale1": 0.69,
+                  "atk_scale2": 8.75,
+                  "poise_start": 15,
+                  "poise_final": 20
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2919594229858451000,
+                      "text": ""
+                    },
+                    "value": "69%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6500835415242223000,
+                      "text": ""
+                    },
+                    "value": "15"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6548134463143245000,
+                      "text": ""
+                    },
+                    "value": "875%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 913025599907066800,
+                      "text": ""
+                    },
+                    "value": "20"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_chen_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 70,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale1": 0.75,
+                  "atk_scale2": 9.43,
+                  "poise_start": 15,
+                  "poise_final": 20
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6549596664061057000,
+                      "text": ""
+                    },
+                    "value": "75%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -210665139889364930,
+                      "text": ""
+                    },
+                    "value": "15"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2520817197018162700,
+                      "text": ""
+                    },
+                    "value": "943%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -221523871530986460,
+                      "text": ""
+                    },
+                    "value": "20"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_chen_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 70,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale1": 0.81,
+                  "atk_scale2": 10.23,
+                  "poise_start": 15,
+                  "poise_final": 20
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 9034595338641547000,
+                      "text": ""
+                    },
+                    "value": "81%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7995415331109734,
+                      "text": ""
+                    },
+                    "value": "15"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1724566588805031700,
+                      "text": ""
+                    },
+                    "value": "1023%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1857208553056547800,
+                      "text": ""
+                    },
+                    "value": "20"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "attributeNodes": [
+      {
+        "name": {
+          "id": -6847073591967787000,
+          "text": ""
+        },
+        "desc": {
+          "id": 4354373478570168000,
+          "text": ""
+        },
+        "attributeModifiers": [
+          {
+            "attrType": "Agi",
+            "attrValue": 15,
+            "modifierType": "BaseAddition",
+            "modifyAttributeType": "Specific"
+          }
+        ],
+        "level": 1
+      },
+      {
+        "name": {
+          "id": 3943420367679864300,
+          "text": ""
+        },
+        "desc": {
+          "id": -405916573632265660,
+          "text": ""
+        },
+        "attributeModifiers": [
+          {
+            "attrType": "Agi",
+            "attrValue": 10,
+            "modifierType": "BaseAddition",
+            "modifyAttributeType": "Specific"
+          }
+        ],
+        "level": 2
+      },
+      {
+        "name": {
+          "id": 612796939630472400,
+          "text": ""
+        },
+        "desc": {
+          "id": 3995639562648309000,
+          "text": ""
+        },
+        "attributeModifiers": [
+          {
+            "attrType": "Agi",
+            "attrValue": 15,
+            "modifierType": "BaseAddition",
+            "modifyAttributeType": "Specific"
+          }
+        ],
+        "level": 3
+      },
+      {
+        "name": {
+          "id": 4798918717251795000,
+          "text": ""
+        },
+        "desc": {
+          "id": 7460464931191371000,
+          "text": ""
+        },
+        "attributeModifiers": [
+          {
+            "attrType": "Agi",
+            "attrValue": 20,
+            "modifierType": "BaseAddition",
+            "modifyAttributeType": "Specific"
+          }
+        ],
+        "level": 4
+      }
+    ],
+    "passiveSkillNodes": {
+      "0": [
+        {
+          "name": {
+            "id": -5621153141568664000,
+            "text": ""
+          },
+          "desc": {
+            "id": 3686020396391045000,
+            "text": ""
+          },
+          "descBb": {
+            "atk": 0.04,
+            "duration": 10,
+            "max_stack": 5
+          },
+          "icon": "icon_talent_chen_01",
+          "level": 1
+        },
+        {
+          "name": {
+            "id": 6781604399253791000,
+            "text": ""
+          },
+          "desc": {
+            "id": -354604917328976300,
+            "text": ""
+          },
+          "descBb": {
+            "atk": 0.08,
+            "duration": 10,
+            "max_stack": 5
+          },
+          "icon": "icon_talent_chen_01",
+          "level": 2
+        }
+      ],
+      "1": [
+        {
+          "name": {
+            "id": 8751186883567642000,
+            "text": ""
+          },
+          "desc": {
+            "id": -7374718782071237000,
+            "text": ""
+          },
+          "descBb": {
+            "poise": 5
+          },
+          "icon": "icon_talent_chen_02",
+          "level": 1
+        },
+        {
+          "name": {
+            "id": -3542573276005289000,
+            "text": ""
+          },
+          "desc": {
+            "id": -2644598624510693400,
+            "text": ""
+          },
+          "descBb": {
+            "poise": 10
+          },
+          "icon": "icon_talent_chen_02",
+          "level": 2
+        }
+      ]
+    },
+    "potentials": [
+      {
+        "level": 1,
+        "name": {
+          "id": -7930799848885357000,
+          "text": ""
+        },
+        "desc": {
+          "id": -7509391714976594000,
+          "text": ""
+        },
+        "descBb": {
+          "extra_dmg": 0.2,
+          "hp_remain": 0.5
+        }
+      },
+      {
+        "level": 2,
+        "name": {
+          "id": -5810466873795038000,
+          "text": ""
+        },
+        "desc": {
+          "id": 3237832978966735000,
+          "text": ""
+        },
+        "descBb": {
+          "agi": 15,
+          "physicaldamageincrease": 0.08
+        }
+      },
+      {
+        "level": 3,
+        "name": {
+          "id": -5699116802485700000,
+          "text": ""
+        },
+        "desc": {
+          "id": -8643923245514528000,
+          "text": ""
+        },
+        "descBb": {
+          "atk_scale1": 1.1,
+          "atk_scale2": 1.1,
+          "atk_scale": 1.1
+        }
+      },
+      {
+        "level": 4,
+        "name": {
+          "id": 2423753282271735300,
+          "text": ""
+        },
+        "desc": {
+          "id": 4257791911936203000,
+          "text": ""
+        },
+        "descBb": {
+          "costvalue": 0.85
+        }
+      },
+      {
+        "level": 5,
+        "name": {
+          "id": 6728119509858198000,
+          "text": ""
+        },
+        "desc": {
+          "id": -2068517941803759400,
+          "text": ""
+        },
+        "descBb": {
+          "cooldown": -3,
+          "potential5": 1
+        }
+      }
+    ]
+  }
+}

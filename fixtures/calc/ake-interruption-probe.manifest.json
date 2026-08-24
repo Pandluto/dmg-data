@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "description": "Calc public simulation black-box interruption observations",
+    "simulationUrl": "https://calc.perlica.tech/api/simulations",
+    "authentication": "none"
+  },
+  "recordedAt": "2026-08-24T13:01:29.720Z",
+  "calcDataVersion": "9163343-11",
+  "files": [
+    {
+      "path": "fixtures/calc/ake-interruption-probe.oracle.json",
+      "bytes": 226496,
+      "sha256": "b1a77c98913ed604d0534c9fdc3bb30e0c61aa19c0c9857c8672c9208f7242c2"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "description": "Calc public simulation endpoint black-box poise/execution observations",
+    "url": "https://calc.perlica.tech/api/simulations",
+    "method": "POST",
+    "authentication": "none"
+  },
+  "recordedAt": "2026-08-22T17:05:13.570Z",
+  "calcDataVersion": "9163343-11",
+  "files": [
+    {
+      "path": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+      "bytes": 2112678,
+      "sha256": "d00df550b4a6cd38929aa0635f5224e086d9d783cc95b2c584b6f17f163fdb97"
+    }
+  ]
+}

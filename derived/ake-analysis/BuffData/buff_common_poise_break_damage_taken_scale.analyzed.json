@@ -1,0 +1,269 @@
+{
+  "_meta": {
+    "schemaVersion": 1,
+    "kind": "BuffData",
+    "id": "buff_common_poise_break_damage_taken_scale",
+    "generator": "AKEV3BuffData.analyzeBuff",
+    "generatorWrapper": "scripts/export-ake-analysis.mjs",
+    "generatorWrapperSha256": "571c3da2e52854f78c3fe352b745de6555f5ead1f49c075538396d5185eff692",
+    "akeDatabaseCommit": "1bb9549705eba2601affed4cb8a7ea69ba13b150",
+    "akedataJsonRevision": "2026-08-22T05:51:44.260485+08:00",
+    "inputs": [
+      {
+        "role": "raw",
+        "path": "reference/public-data/akedata/Json/BuffData/buff_common_poise_break_damage_taken_scale.json",
+        "sha256": "1442156e5810066e7480da377d3c46f0019c1539df8b98452df98ead3db2f466"
+      },
+      {
+        "role": "analyzer",
+        "path": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+        "sha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7"
+      }
+    ],
+    "semantics": "research-view-model-not-runtime-state"
+  },
+  "analysis": {
+    "identity": {
+      "id": "buff_common_poise_break_damage_taken_scale",
+      "hasIcon": false,
+      "spritePath": "",
+      "iconPath": "",
+      "iconConfig": {
+        "showInHeadBarCommon": false,
+        "showInHeadBarAttached": false,
+        "showInSquadIcon": false,
+        "onlyShowForMainCharacter": false,
+        "abnormalColorType": "Physical",
+        "iconStyleInSquad": "Default"
+      }
+    },
+    "core": {
+      "lifeType": "Infinity",
+      "duration": {
+        "value": 0.1,
+        "fallbackValue": 0.1,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "triggerInterval": {
+        "value": -1,
+        "fallbackValue": -1,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "waitFirstTriggerInterval": true,
+      "maxTriggerCnt": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "hasAddingCooldown": false,
+      "addingCooldown": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "ignoreCooldownWhenAdding": false,
+      "ignoreTagImmune": false,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "finishOnRepatriate": false
+    },
+    "stacking": {
+      "identifierType": "Id",
+      "stackingType": "Unlimited",
+      "stackingKey": "",
+      "usePriorityKey": false,
+      "priorityKey": "",
+      "negatePriority": false,
+      "priority": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "useMaxStackCntKey": false,
+      "maxStackCntKey": "",
+      "maxStackCnt": {
+        "value": 1,
+        "fallbackValue": 1,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "isNeedStackEffect": false,
+      "stackEffects": []
+    },
+    "dispel": {
+      "canBeDispelled": false,
+      "dispelledLevel": "Default"
+    },
+    "modifiers": {
+      "isConvertedAttribute": false,
+      "attributes": [],
+      "damage": [
+        {
+          "index": 0,
+          "type": "damage",
+          "enableSide": "Defender",
+          "target": "Defender",
+          "condition": {
+            "onlyExecuteWhenSourceIsMainChar": false,
+            "onlyExecuteWhenSourceIsGuard": false,
+            "actionIndices": [],
+            "actionCount": 0
+          },
+          "processors": [
+            {
+              "type": "DamageScaleProcessor",
+              "side": "Defender",
+              "zoneName": "ProdCalcZone",
+              "modifyType": "",
+              "formulaItem": "",
+              "attributeType": "",
+              "value": {
+                "value": 0.3,
+                "fallbackValue": 0,
+                "usesBlackboard": true,
+                "blackboardKey": "dmg_up",
+                "resolved": true,
+                "status": "local-default",
+                "source": "local-default",
+                "dynamic": false
+              },
+              "summaryFields": [
+                {
+                  "key": "addition",
+                  "value": {
+                    "value": 0.3,
+                    "fallbackValue": 0,
+                    "usesBlackboard": true,
+                    "blackboardKey": "dmg_up",
+                    "resolved": true,
+                    "status": "local-default",
+                    "source": "local-default",
+                    "dynamic": false
+                  },
+                  "path": "damageModifier[0].damageProcessors[0].addition"
+                },
+                {
+                  "key": "side",
+                  "value": "Defender",
+                  "path": "damageModifier[0].damageProcessors[0].side"
+                },
+                {
+                  "key": "zoneName",
+                  "value": "ProdCalcZone",
+                  "path": "damageModifier[0].damageProcessors[0].zoneName"
+                }
+              ],
+              "summaryTruncated": false
+            }
+          ]
+        }
+      ],
+      "heal": [],
+      "poise": [],
+      "global": [],
+      "shields": []
+    },
+    "tags": {
+      "apply": [],
+      "extendAfterTrigger": []
+    },
+    "eventGroups": [],
+    "timelineGroups": [],
+    "events": [],
+    "links": [],
+    "blackboard": {
+      "entries": [
+        {
+          "key": "dmg_up",
+          "index": 0,
+          "value": 0.3,
+          "valueDouble": 0.3,
+          "valueStr": "",
+          "isDynamic": false,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 0,
+              "value": 0.3,
+              "isDynamic": false
+            }
+          ]
+        }
+      ],
+      "byKey": {
+        "dmg_up": {
+          "key": "dmg_up",
+          "index": 0,
+          "value": 0.3,
+          "valueDouble": 0.3,
+          "valueStr": "",
+          "isDynamic": false,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 0,
+              "value": 0.3,
+              "isDynamic": false
+            }
+          ]
+        }
+      },
+      "externalByKey": {},
+      "dependencies": [
+        {
+          "path": "damageModifier[0].damageProcessors[0].addition",
+          "key": "dmg_up",
+          "status": "local-default",
+          "resolved": true,
+          "value": 0.3,
+          "fallbackValue": 0,
+          "dynamic": false
+        }
+      ],
+      "localCount": 1,
+      "externalCount": 0
+    },
+    "warnings": [],
+    "stats": {
+      "eventCount": 0,
+      "presentationEventCount": 0,
+      "linkCount": 0,
+      "blackboardDependencyCount": 1,
+      "walkedNodeCount": 30,
+      "traversalStopped": false
+    }
+  }
+}

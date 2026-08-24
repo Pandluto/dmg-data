@@ -1,0 +1,411 @@
+{
+  "_meta": {
+    "schemaVersion": 1,
+    "kind": "BuffData",
+    "id": "buff_common_obtain_ultimate_sp",
+    "generator": "AKEV3BuffData.analyzeBuff",
+    "generatorWrapper": "scripts/export-ake-analysis.mjs",
+    "generatorWrapperSha256": "571c3da2e52854f78c3fe352b745de6555f5ead1f49c075538396d5185eff692",
+    "akeDatabaseCommit": "1bb9549705eba2601affed4cb8a7ea69ba13b150",
+    "akedataJsonRevision": "2026-08-22T05:51:44.260485+08:00",
+    "inputs": [
+      {
+        "role": "raw",
+        "path": "reference/public-data/akedata/Json/BuffData/buff_common_obtain_ultimate_sp.json",
+        "sha256": "d33ec6a06568d46131a9067692ffd076b50ec85b081710e02ff004437558859a"
+      },
+      {
+        "role": "analyzer",
+        "path": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+        "sha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7"
+      }
+    ],
+    "semantics": "research-view-model-not-runtime-state"
+  },
+  "analysis": {
+    "identity": {
+      "id": "buff_common_obtain_ultimate_sp",
+      "hasIcon": false,
+      "spritePath": "",
+      "iconPath": "",
+      "iconConfig": {
+        "showInHeadBarCommon": false,
+        "showInHeadBarAttached": false,
+        "showInSquadIcon": false,
+        "onlyShowForMainCharacter": false,
+        "abnormalColorType": "Physical",
+        "iconStyleInSquad": "Default"
+      }
+    },
+    "core": {
+      "lifeType": "Limited",
+      "duration": {
+        "value": 1,
+        "fallbackValue": 1,
+        "usesBlackboard": false,
+        "blackboardKey": "stun_duration",
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "triggerInterval": {
+        "value": -1,
+        "fallbackValue": -1,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "waitFirstTriggerInterval": true,
+      "maxTriggerCnt": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "hasAddingCooldown": false,
+      "addingCooldown": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "ignoreCooldownWhenAdding": false,
+      "ignoreTagImmune": false,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "finishOnRepatriate": false
+    },
+    "stacking": {
+      "identifierType": "Id",
+      "stackingType": "Unlimited",
+      "stackingKey": "",
+      "usePriorityKey": false,
+      "priorityKey": "",
+      "negatePriority": false,
+      "priority": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "useMaxStackCntKey": false,
+      "maxStackCntKey": "",
+      "maxStackCnt": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "isNeedStackEffect": false,
+      "stackEffects": []
+    },
+    "dispel": {
+      "canBeDispelled": false,
+      "dispelledLevel": "Default"
+    },
+    "modifiers": {
+      "isConvertedAttribute": false,
+      "attributes": [],
+      "damage": [],
+      "heal": [],
+      "poise": [],
+      "global": [],
+      "shields": []
+    },
+    "tags": {
+      "apply": [],
+      "extendAfterTrigger": []
+    },
+    "eventGroups": [
+      {
+        "kind": "buff",
+        "source": "buff-event",
+        "groupIndex": 0,
+        "eventName": "OnBuffStart",
+        "buffEvent": "OnBuffStart",
+        "abilityEvent": null,
+        "igniteType": null,
+        "finishAfterIgnited": false,
+        "wrapperCount": 1,
+        "actionIndices": [
+          0
+        ],
+        "actionCount": 1,
+        "presentationActionCount": 0
+      }
+    ],
+    "timelineGroups": [],
+    "events": [
+      {
+        "index": 0,
+        "type": "ObtainUspInNormalSkill",
+        "rawType": "Beyond.Gameplay.Core.ObtainUspInNormalSkill+Data, Gameplay.Beyond",
+        "category": "resource",
+        "presentation": false,
+        "synthetic": false,
+        "enabled": true,
+        "serverActionIndex": 0,
+        "priorityLevel": "Default",
+        "priorityOffset": 0,
+        "parentEventIndex": null,
+        "relation": "actions",
+        "branchPath": [
+          "actions"
+        ],
+        "source": "buff-event",
+        "eventKind": "buff",
+        "eventName": "OnBuffStart",
+        "abilityEvent": null,
+        "groupIndex": 0,
+        "sequenceIndex": 0,
+        "summaryFields": [
+          {
+            "key": "coefficient",
+            "value": {
+              "value": 1,
+              "fallbackValue": 1,
+              "usesBlackboard": true,
+              "blackboardKey": "ratio",
+              "resolved": true,
+              "status": "local-default",
+              "source": "local-default",
+              "dynamic": false
+            },
+            "path": "buffEventAction[0].actions[0].actionData[0].coefficient"
+          },
+          {
+            "key": "targetSource",
+            "value": "Source",
+            "path": "buffEventAction[0].actions[0].actionData[0].source.targetSource"
+          },
+          {
+            "key": "target",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[0].source.target"
+          },
+          {
+            "key": "selectorOwner",
+            "value": "ActionOwner",
+            "path": "buffEventAction[0].actions[0].actionData[0].source.selectorOwner"
+          },
+          {
+            "key": "centerType",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[0].source.centerType"
+          },
+          {
+            "key": "centerToGround",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].source.centerToGround"
+          },
+          {
+            "key": "enableAdvancedDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].source.enableAdvancedDirection"
+          },
+          {
+            "key": "directionType",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[0].source.advancedDirection.directionType"
+          },
+          {
+            "key": "sourceMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[0].source.advancedDirection.sourceMountPoint"
+          },
+          {
+            "key": "targetMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[0].source.advancedDirection.targetMountPoint"
+          },
+          {
+            "key": "customSourceAndTarget",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].source.advancedDirection.customSourceAndTarget"
+          },
+          {
+            "key": "clampToXZ",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[0].source.advancedDirection.clampToXZ"
+          },
+          {
+            "key": "invertDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].source.advancedDirection.invertDirection"
+          },
+          {
+            "key": "selectorDirection",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[0].source.selectorDirection"
+          }
+        ],
+        "summaryTruncated": false,
+        "details": null,
+        "path": "buffEventAction[0].actions[0].actionData[0]",
+        "startFrame": null,
+        "endFrame": null,
+        "rawEndFrame": null,
+        "openEnded": false,
+        "durationFrames": null
+      }
+    ],
+    "links": [],
+    "blackboard": {
+      "entries": [
+        {
+          "key": "usp_self",
+          "index": 0,
+          "value": 0,
+          "valueDouble": 0,
+          "valueStr": "",
+          "isDynamic": false,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 0,
+              "value": 0,
+              "isDynamic": false
+            }
+          ]
+        },
+        {
+          "key": "usp_everyone",
+          "index": 1,
+          "value": 6.5,
+          "valueDouble": 6.5,
+          "valueStr": "",
+          "isDynamic": false,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 1,
+              "value": 6.5,
+              "isDynamic": false
+            }
+          ]
+        },
+        {
+          "key": "ratio",
+          "index": 2,
+          "value": 1,
+          "valueDouble": 1,
+          "valueStr": "",
+          "isDynamic": false,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 2,
+              "value": 1,
+              "isDynamic": false
+            }
+          ]
+        }
+      ],
+      "byKey": {
+        "usp_self": {
+          "key": "usp_self",
+          "index": 0,
+          "value": 0,
+          "valueDouble": 0,
+          "valueStr": "",
+          "isDynamic": false,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 0,
+              "value": 0,
+              "isDynamic": false
+            }
+          ]
+        },
+        "usp_everyone": {
+          "key": "usp_everyone",
+          "index": 1,
+          "value": 6.5,
+          "valueDouble": 6.5,
+          "valueStr": "",
+          "isDynamic": false,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 1,
+              "value": 6.5,
+              "isDynamic": false
+            }
+          ]
+        },
+        "ratio": {
+          "key": "ratio",
+          "index": 2,
+          "value": 1,
+          "valueDouble": 1,
+          "valueStr": "",
+          "isDynamic": false,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 2,
+              "value": 1,
+              "isDynamic": false
+            }
+          ]
+        }
+      },
+      "externalByKey": {},
+      "dependencies": [
+        {
+          "path": "buffEventAction[0].actions[0].actionData[0].coefficient",
+          "key": "ratio",
+          "status": "local-default",
+          "resolved": true,
+          "value": 1,
+          "fallbackValue": 1,
+          "dynamic": false
+        }
+      ],
+      "localCount": 3,
+      "externalCount": 0
+    },
+    "warnings": [],
+    "stats": {
+      "eventCount": 1,
+      "presentationEventCount": 0,
+      "linkCount": 0,
+      "blackboardDependencyCount": 1,
+      "walkedNodeCount": 37,
+      "traversalStopped": false
+    }
+  }
+}

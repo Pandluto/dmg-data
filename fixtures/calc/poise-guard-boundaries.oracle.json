@@ -1,0 +1,830 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "description": "Current Calc public simulation endpoint poise-guard boundary observations",
+    "url": "https://calc.perlica.tech/api/simulations",
+    "method": "POST",
+    "authentication": "none",
+    "enemyId": "eny_0021_agmelee",
+    "enemySignature": {
+      "maxPoise": 60,
+      "poiseRecTime": 6,
+      "executionDamageScalar": 1,
+      "breakingAttackedAtbObtain": 25
+    },
+    "participants": [
+      {
+        "uuid": "endminm",
+        "id": "chr_0002_endminm",
+        "defaultWeaponId": "wpn_sword_0003"
+      },
+      {
+        "uuid": "endminf",
+        "id": "chr_0003_endminf",
+        "defaultWeaponId": "wpn_sword_0003"
+      },
+      {
+        "uuid": "azrila",
+        "id": "chr_0009_azrila",
+        "defaultWeaponId": "wpn_claym_0010"
+      },
+      {
+        "uuid": "pelica",
+        "id": "chr_0004_pelica",
+        "defaultWeaponId": "wpn_funnel_0002"
+      }
+    ]
+  },
+  "recordedAt": "2026-08-24T04:50:08.677Z",
+  "calcDataVersion": "9163343-11",
+  "tickRate": 30,
+  "cases": [
+    {
+      "id": "minimum-scalar-baseline",
+      "commands": [
+        {
+          "uuid": "endminm",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "endminf",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "azrila",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        }
+      ],
+      "poiseDamageLog": [
+        {
+          "frame": 51,
+          "sourceId": "chr_0002_endminm",
+          "skillId": "chr_0002_endminm_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 93,
+          "sourceId": "chr_0003_endminf",
+          "skillId": "chr_0003_endminf_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 93,
+          "sourceId": "chr_0009_azrila",
+          "skillId": "chr_0009_azrila_ultimate_skill",
+          "poiseDamage": 25
+        }
+      ],
+      "enemyPoise": {
+        "samples": [
+          [
+            1,
+            60,
+            60,
+            0
+          ],
+          [
+            51,
+            35,
+            60,
+            0
+          ],
+          [
+            93,
+            0,
+            60,
+            1
+          ],
+          [
+            280,
+            60,
+            60,
+            0
+          ]
+        ],
+        "guardWindows": [
+          {
+            "startFrame": 280,
+            "endFrame": 370,
+            "durationFrames": 90,
+            "poiseTakenScalar": 0.5999999046325684
+          }
+        ]
+      },
+      "poiseGuardTrace": [
+        {
+          "frame": 280,
+          "stage": "Started",
+          "buffId": "buff_common_poise_guard",
+          "durationTicks": 90
+        },
+        {
+          "frame": 371,
+          "stage": "Ended",
+          "buffId": "buff_common_poise_guard"
+        }
+      ],
+      "durationTicks": 602
+    },
+    {
+      "id": "guard-inside-hit",
+      "commands": [
+        {
+          "uuid": "endminm",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "endminf",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "azrila",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 300,
+          "commandType": "NormalSkill"
+        }
+      ],
+      "poiseDamageLog": [
+        {
+          "frame": 51,
+          "sourceId": "chr_0002_endminm",
+          "skillId": "chr_0002_endminm_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 93,
+          "sourceId": "chr_0003_endminf",
+          "skillId": "chr_0003_endminf_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 93,
+          "sourceId": "chr_0009_azrila",
+          "skillId": "chr_0009_azrila_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 313,
+          "sourceId": "chr_0004_pelica",
+          "skillId": "chr_0004_pelica_normal_skill",
+          "poiseDamage": 5.999999046325684
+        }
+      ],
+      "enemyPoise": {
+        "samples": [
+          [
+            1,
+            60,
+            60,
+            0
+          ],
+          [
+            51,
+            35,
+            60,
+            0
+          ],
+          [
+            93,
+            0,
+            60,
+            1
+          ],
+          [
+            280,
+            60,
+            60,
+            0
+          ],
+          [
+            313,
+            54.000000953674316,
+            60,
+            0
+          ]
+        ],
+        "guardWindows": [
+          {
+            "startFrame": 280,
+            "endFrame": 370,
+            "durationFrames": 90,
+            "poiseTakenScalar": 0.5999999046325684
+          }
+        ]
+      },
+      "poiseGuardTrace": [
+        {
+          "frame": 280,
+          "stage": "Started",
+          "buffId": "buff_common_poise_guard",
+          "durationTicks": 90
+        },
+        {
+          "frame": 371,
+          "stage": "Ended",
+          "buffId": "buff_common_poise_guard"
+        }
+      ],
+      "durationTicks": 753
+    },
+    {
+      "id": "guard-reported-end-frame-hit",
+      "commands": [
+        {
+          "uuid": "endminm",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "endminf",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "azrila",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 357,
+          "commandType": "NormalSkill"
+        }
+      ],
+      "poiseDamageLog": [
+        {
+          "frame": 51,
+          "sourceId": "chr_0002_endminm",
+          "skillId": "chr_0002_endminm_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 93,
+          "sourceId": "chr_0003_endminf",
+          "skillId": "chr_0003_endminf_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 93,
+          "sourceId": "chr_0009_azrila",
+          "skillId": "chr_0009_azrila_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 370,
+          "sourceId": "chr_0004_pelica",
+          "skillId": "chr_0004_pelica_normal_skill",
+          "poiseDamage": 5.999999046325684
+        }
+      ],
+      "enemyPoise": {
+        "samples": [
+          [
+            1,
+            60,
+            60,
+            0
+          ],
+          [
+            51,
+            35,
+            60,
+            0
+          ],
+          [
+            93,
+            0,
+            60,
+            1
+          ],
+          [
+            280,
+            60,
+            60,
+            0
+          ],
+          [
+            370,
+            54.000000953674316,
+            60,
+            0
+          ]
+        ],
+        "guardWindows": [
+          {
+            "startFrame": 280,
+            "endFrame": 370,
+            "durationFrames": 90,
+            "poiseTakenScalar": 0.5999999046325684
+          }
+        ]
+      },
+      "poiseGuardTrace": [
+        {
+          "frame": 280,
+          "stage": "Started",
+          "buffId": "buff_common_poise_guard",
+          "durationTicks": 90
+        },
+        {
+          "frame": 371,
+          "stage": "Ended",
+          "buffId": "buff_common_poise_guard"
+        }
+      ],
+      "durationTicks": 810
+    },
+    {
+      "id": "guard-expiry-event-frame-hit",
+      "commands": [
+        {
+          "uuid": "endminm",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "endminf",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "azrila",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 358,
+          "commandType": "NormalSkill"
+        }
+      ],
+      "poiseDamageLog": [
+        {
+          "frame": 51,
+          "sourceId": "chr_0002_endminm",
+          "skillId": "chr_0002_endminm_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 93,
+          "sourceId": "chr_0003_endminf",
+          "skillId": "chr_0003_endminf_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 93,
+          "sourceId": "chr_0009_azrila",
+          "skillId": "chr_0009_azrila_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 371,
+          "sourceId": "chr_0004_pelica",
+          "skillId": "chr_0004_pelica_normal_skill",
+          "poiseDamage": 5.999999046325684
+        }
+      ],
+      "enemyPoise": {
+        "samples": [
+          [
+            1,
+            60,
+            60,
+            0
+          ],
+          [
+            51,
+            35,
+            60,
+            0
+          ],
+          [
+            93,
+            0,
+            60,
+            1
+          ],
+          [
+            280,
+            60,
+            60,
+            0
+          ],
+          [
+            371,
+            54.000000953674316,
+            60,
+            0
+          ]
+        ],
+        "guardWindows": [
+          {
+            "startFrame": 280,
+            "endFrame": 370,
+            "durationFrames": 90,
+            "poiseTakenScalar": 0.5999999046325684
+          }
+        ]
+      },
+      "poiseGuardTrace": [
+        {
+          "frame": 280,
+          "stage": "Started",
+          "buffId": "buff_common_poise_guard",
+          "durationTicks": 90
+        },
+        {
+          "frame": 371,
+          "stage": "Ended",
+          "buffId": "buff_common_poise_guard"
+        }
+      ],
+      "durationTicks": 811
+    },
+    {
+      "id": "first-post-guard-hit",
+      "commands": [
+        {
+          "uuid": "endminm",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "endminf",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "azrila",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 359,
+          "commandType": "NormalSkill"
+        }
+      ],
+      "poiseDamageLog": [
+        {
+          "frame": 51,
+          "sourceId": "chr_0002_endminm",
+          "skillId": "chr_0002_endminm_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 93,
+          "sourceId": "chr_0003_endminf",
+          "skillId": "chr_0003_endminf_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 93,
+          "sourceId": "chr_0009_azrila",
+          "skillId": "chr_0009_azrila_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 372,
+          "sourceId": "chr_0004_pelica",
+          "skillId": "chr_0004_pelica_normal_skill",
+          "poiseDamage": 10
+        }
+      ],
+      "enemyPoise": {
+        "samples": [
+          [
+            1,
+            60,
+            60,
+            0
+          ],
+          [
+            51,
+            35,
+            60,
+            0
+          ],
+          [
+            93,
+            0,
+            60,
+            1
+          ],
+          [
+            280,
+            60,
+            60,
+            0
+          ],
+          [
+            372,
+            50,
+            60,
+            0
+          ]
+        ],
+        "guardWindows": [
+          {
+            "startFrame": 280,
+            "endFrame": 370,
+            "durationFrames": 90,
+            "poiseTakenScalar": 0.5999999046325684
+          }
+        ]
+      },
+      "poiseGuardTrace": [
+        {
+          "frame": 280,
+          "stage": "Started",
+          "buffId": "buff_common_poise_guard",
+          "durationTicks": 90
+        },
+        {
+          "frame": 371,
+          "stage": "Ended",
+          "buffId": "buff_common_poise_guard"
+        }
+      ],
+      "durationTicks": 812
+    },
+    {
+      "id": "interpolated-scalar-third-ultimate-delayed",
+      "commands": [
+        {
+          "uuid": "endminm",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "endminf",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "azrila",
+          "frame": 105,
+          "commandType": "UltimateSkill"
+        }
+      ],
+      "poiseDamageLog": [
+        {
+          "frame": 51,
+          "sourceId": "chr_0002_endminm",
+          "skillId": "chr_0002_endminm_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 93,
+          "sourceId": "chr_0003_endminf",
+          "skillId": "chr_0003_endminf_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 156,
+          "sourceId": "chr_0009_azrila",
+          "skillId": "chr_0009_azrila_ultimate_skill",
+          "poiseDamage": 25
+        }
+      ],
+      "enemyPoise": {
+        "samples": [
+          [
+            1,
+            60,
+            60,
+            0
+          ],
+          [
+            51,
+            35,
+            60,
+            0
+          ],
+          [
+            93,
+            10,
+            60,
+            0
+          ],
+          [
+            156,
+            0,
+            60,
+            1
+          ],
+          [
+            343,
+            60,
+            60,
+            0
+          ]
+        ],
+        "guardWindows": [
+          {
+            "startFrame": 343,
+            "endFrame": 433,
+            "durationFrames": 90,
+            "poiseTakenScalar": 0.7333330512046814
+          }
+        ]
+      },
+      "poiseGuardTrace": [
+        {
+          "frame": 343,
+          "stage": "Started",
+          "buffId": "buff_common_poise_guard",
+          "durationTicks": 90
+        },
+        {
+          "frame": 434,
+          "stage": "Ended",
+          "buffId": "buff_common_poise_guard"
+        }
+      ],
+      "durationTicks": 673
+    },
+    {
+      "id": "interpolated-scalar-second-ultimate-delayed",
+      "commands": [
+        {
+          "uuid": "endminm",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "endminf",
+          "frame": 105,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "azrila",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        }
+      ],
+      "poiseDamageLog": [
+        {
+          "frame": 51,
+          "sourceId": "chr_0002_endminm",
+          "skillId": "chr_0002_endminm_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 93,
+          "sourceId": "chr_0009_azrila",
+          "skillId": "chr_0009_azrila_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 156,
+          "sourceId": "chr_0003_endminf",
+          "skillId": "chr_0003_endminf_ultimate_skill",
+          "poiseDamage": 25
+        }
+      ],
+      "enemyPoise": {
+        "samples": [
+          [
+            1,
+            60,
+            60,
+            0
+          ],
+          [
+            51,
+            35,
+            60,
+            0
+          ],
+          [
+            93,
+            10,
+            60,
+            0
+          ],
+          [
+            156,
+            0,
+            60,
+            1
+          ],
+          [
+            343,
+            60,
+            60,
+            0
+          ]
+        ],
+        "guardWindows": [
+          {
+            "startFrame": 343,
+            "endFrame": 433,
+            "durationFrames": 90,
+            "poiseTakenScalar": 0.7666664123535156
+          }
+        ]
+      },
+      "poiseGuardTrace": [
+        {
+          "frame": 343,
+          "stage": "Started",
+          "buffId": "buff_common_poise_guard",
+          "durationTicks": 90
+        },
+        {
+          "frame": 434,
+          "stage": "Ended",
+          "buffId": "buff_common_poise_guard"
+        }
+      ],
+      "durationTicks": 661
+    },
+    {
+      "id": "outside-qualification-window",
+      "commands": [
+        {
+          "uuid": "endminm",
+          "frame": 0,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "endminf",
+          "frame": 105,
+          "commandType": "UltimateSkill"
+        },
+        {
+          "uuid": "azrila",
+          "frame": 210,
+          "commandType": "UltimateSkill"
+        }
+      ],
+      "poiseDamageLog": [
+        {
+          "frame": 51,
+          "sourceId": "chr_0002_endminm",
+          "skillId": "chr_0002_endminm_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 156,
+          "sourceId": "chr_0003_endminf",
+          "skillId": "chr_0003_endminf_ultimate_skill",
+          "poiseDamage": 25
+        },
+        {
+          "frame": 261,
+          "sourceId": "chr_0009_azrila",
+          "skillId": "chr_0009_azrila_ultimate_skill",
+          "poiseDamage": 25
+        }
+      ],
+      "enemyPoise": {
+        "samples": [
+          [
+            1,
+            60,
+            60,
+            0
+          ],
+          [
+            51,
+            35,
+            60,
+            0
+          ],
+          [
+            156,
+            10,
+            60,
+            0
+          ],
+          [
+            261,
+            0,
+            60,
+            1
+          ],
+          [
+            448,
+            60,
+            60,
+            0
+          ]
+        ],
+        "guardWindows": []
+      },
+      "poiseGuardTrace": [],
+      "durationTicks": 778
+    }
+  ]
+}

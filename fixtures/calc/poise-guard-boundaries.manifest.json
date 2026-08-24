@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "description": "Current Calc public simulation endpoint poise-guard boundary observations",
+    "url": "https://calc.perlica.tech/api/simulations",
+    "method": "POST",
+    "authentication": "none",
+    "enemyId": "eny_0021_agmelee",
+    "enemySignature": {
+      "maxPoise": 60,
+      "poiseRecTime": 6,
+      "executionDamageScalar": 1,
+      "breakingAttackedAtbObtain": 25
+    },
+    "participants": [
+      {
+        "uuid": "endminm",
+        "id": "chr_0002_endminm",
+        "defaultWeaponId": "wpn_sword_0003"
+      },
+      {
+        "uuid": "endminf",
+        "id": "chr_0003_endminf",
+        "defaultWeaponId": "wpn_sword_0003"
+      },
+      {
+        "uuid": "azrila",
+        "id": "chr_0009_azrila",
+        "defaultWeaponId": "wpn_claym_0010"
+      },
+      {
+        "uuid": "pelica",
+        "id": "chr_0004_pelica",
+        "defaultWeaponId": "wpn_funnel_0002"
+      }
+    ]
+  },
+  "recordedAt": "2026-08-24T04:50:08.677Z",
+  "calcDataVersion": "9163343-11",
+  "files": [
+    {
+      "path": "fixtures/calc/poise-guard-boundaries.oracle.json",
+      "bytes": 17742,
+      "sha256": "b3d7b8be8ba7a8671374653e5857d070e8533df4a82ac93f7fdb4cbf825a3a77"
+    }
+  ]
+}

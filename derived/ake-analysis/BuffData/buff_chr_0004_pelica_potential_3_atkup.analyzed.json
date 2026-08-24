@@ -1,0 +1,285 @@
+{
+  "_meta": {
+    "schemaVersion": 1,
+    "kind": "BuffData",
+    "id": "buff_chr_0004_pelica_potential_3_atkup",
+    "generator": "AKEV3BuffData.analyzeBuff",
+    "generatorWrapper": "scripts/export-ake-analysis.mjs",
+    "generatorWrapperSha256": "571c3da2e52854f78c3fe352b745de6555f5ead1f49c075538396d5185eff692",
+    "akeDatabaseCommit": "1bb9549705eba2601affed4cb8a7ea69ba13b150",
+    "akedataJsonRevision": "2026-08-22T05:51:44.260485+08:00",
+    "inputs": [
+      {
+        "role": "raw",
+        "path": "reference/public-data/akedata/Json/BuffData/buff_chr_0004_pelica_potential_3_atkup.json",
+        "sha256": "db86603273c13a2432731a2c2af42ddffa0be5a0676d59aef1422624667ca0ed"
+      },
+      {
+        "role": "analyzer",
+        "path": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+        "sha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7"
+      }
+    ],
+    "semantics": "research-view-model-not-runtime-state"
+  },
+  "analysis": {
+    "identity": {
+      "id": "buff_chr_0004_pelica_potential_3_atkup",
+      "hasIcon": true,
+      "spritePath": "icon_battle_buff_atk_up",
+      "iconPath": "/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/bufficon/icon_battle_buff_atk_up.png",
+      "iconConfig": {
+        "showInHeadBarCommon": false,
+        "showInHeadBarAttached": false,
+        "showInSquadIcon": true,
+        "onlyShowForMainCharacter": false,
+        "abnormalColorType": "Physical",
+        "iconStyleInSquad": "Default"
+      }
+    },
+    "core": {
+      "lifeType": "Limited",
+      "duration": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": true,
+        "blackboardKey": "atk_duration",
+        "resolved": true,
+        "status": "local-default",
+        "source": "local-default",
+        "dynamic": false
+      },
+      "triggerInterval": {
+        "value": -1,
+        "fallbackValue": -1,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "waitFirstTriggerInterval": true,
+      "maxTriggerCnt": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "hasAddingCooldown": false,
+      "addingCooldown": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "ignoreCooldownWhenAdding": false,
+      "ignoreTagImmune": false,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "finishOnRepatriate": false
+    },
+    "stacking": {
+      "identifierType": "Id",
+      "stackingType": "EnhanceAndRefresh",
+      "stackingKey": "",
+      "usePriorityKey": false,
+      "priorityKey": "",
+      "negatePriority": false,
+      "priority": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "useMaxStackCntKey": false,
+      "maxStackCntKey": "",
+      "maxStackCnt": {
+        "value": 2,
+        "fallbackValue": 2,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "isNeedStackEffect": false,
+      "stackEffects": []
+    },
+    "dispel": {
+      "canBeDispelled": false,
+      "dispelledLevel": "Default"
+    },
+    "modifiers": {
+      "isConvertedAttribute": false,
+      "attributes": [
+        {
+          "index": 0,
+          "type": "attribute",
+          "modifyAttributeType": "Specific",
+          "attributeType": "Atk",
+          "attrType": "Atk",
+          "formulaItem": "BaseMultiplier",
+          "formula": "BaseMultiplier",
+          "param": {
+            "value": 0,
+            "fallbackValue": 0,
+            "usesBlackboard": true,
+            "blackboardKey": "atk_up",
+            "resolved": true,
+            "status": "local-default",
+            "source": "local-default",
+            "dynamic": false
+          },
+          "value": {
+            "value": 0,
+            "fallbackValue": 0,
+            "usesBlackboard": true,
+            "blackboardKey": "atk_up",
+            "resolved": true,
+            "status": "local-default",
+            "source": "local-default",
+            "dynamic": false
+          },
+          "target": ""
+        }
+      ],
+      "damage": [],
+      "heal": [],
+      "poise": [],
+      "global": [],
+      "shields": []
+    },
+    "tags": {
+      "apply": [],
+      "extendAfterTrigger": []
+    },
+    "eventGroups": [],
+    "timelineGroups": [],
+    "events": [],
+    "links": [],
+    "blackboard": {
+      "entries": [
+        {
+          "key": "atk_up",
+          "index": 0,
+          "value": 0,
+          "valueDouble": 0,
+          "valueStr": "",
+          "isDynamic": false,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 0,
+              "value": 0,
+              "isDynamic": false
+            }
+          ]
+        },
+        {
+          "key": "atk_duration",
+          "index": 1,
+          "value": 0,
+          "valueDouble": 0,
+          "valueStr": "",
+          "isDynamic": false,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 1,
+              "value": 0,
+              "isDynamic": false
+            }
+          ]
+        }
+      ],
+      "byKey": {
+        "atk_up": {
+          "key": "atk_up",
+          "index": 0,
+          "value": 0,
+          "valueDouble": 0,
+          "valueStr": "",
+          "isDynamic": false,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 0,
+              "value": 0,
+              "isDynamic": false
+            }
+          ]
+        },
+        "atk_duration": {
+          "key": "atk_duration",
+          "index": 1,
+          "value": 0,
+          "valueDouble": 0,
+          "valueStr": "",
+          "isDynamic": false,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 1,
+              "value": 0,
+              "isDynamic": false
+            }
+          ]
+        }
+      },
+      "externalByKey": {},
+      "dependencies": [
+        {
+          "path": "attributeModifier.attributeModifiers[0].param",
+          "key": "atk_up",
+          "status": "local-default",
+          "resolved": true,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": false
+        },
+        {
+          "path": "duration",
+          "key": "atk_duration",
+          "status": "local-default",
+          "resolved": true,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": false
+        }
+      ],
+      "localCount": 2,
+      "externalCount": 0
+    },
+    "warnings": [],
+    "stats": {
+      "eventCount": 0,
+      "presentationEventCount": 0,
+      "linkCount": 0,
+      "blackboardDependencyCount": 2,
+      "walkedNodeCount": 27,
+      "traversalStopped": false
+    }
+  }
+}

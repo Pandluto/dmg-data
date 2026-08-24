@@ -1,0 +1,707 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "description": "Calc public OpenAPI panel and simulation black-box observations",
+    "simulationUrl": "https://calc.perlica.tech/api/simulations",
+    "panelUrl": "https://calc.perlica.tech/api/openapi/characters/panel",
+    "authentication": "none"
+  },
+  "recordedAt": "2026-08-24T10:01:49.996Z",
+  "calcDataVersion": "9163343-11",
+  "tickRate": 30,
+  "enemyId": "eny_0007_mimicw",
+  "cases": [
+    {
+      "id": "chen-qianyu",
+      "characterId": "chr_0005_chen",
+      "weaponId": "wpn_sword_0003",
+      "level": 1,
+      "panel": {
+        "Atk": 83.07,
+        "MaxUltimateSp": 70
+      },
+      "commands": [
+        {
+          "frame": 0,
+          "commandType": "Attack"
+        },
+        {
+          "frame": 10,
+          "commandType": "Attack"
+        },
+        {
+          "frame": 20,
+          "commandType": "Attack"
+        },
+        {
+          "frame": 30,
+          "commandType": "Attack"
+        },
+        {
+          "frame": 50,
+          "commandType": "Attack"
+        },
+        {
+          "frame": 100,
+          "commandType": "NormalSkill"
+        },
+        {
+          "frame": 260,
+          "commandType": "UltimateSkill"
+        }
+      ],
+      "commandTrace": [
+        {
+          "frame": 0,
+          "commandType": "Attack",
+          "skillId": "chr_0005_chen_attack1",
+          "success": true,
+          "skillSource": "combo-mapping"
+        },
+        {
+          "frame": 14,
+          "commandType": "Attack",
+          "skillId": "chr_0005_chen_attack2",
+          "success": true,
+          "skillSource": "combo-mapping"
+        },
+        {
+          "frame": 24,
+          "commandType": "Attack",
+          "skillId": "chr_0005_chen_attack3",
+          "success": true,
+          "skillSource": "combo-mapping"
+        },
+        {
+          "frame": 42,
+          "commandType": "Attack",
+          "skillId": "chr_0005_chen_attack4",
+          "success": true,
+          "skillSource": "combo-mapping"
+        },
+        {
+          "frame": 63,
+          "commandType": "Attack",
+          "skillId": "chr_0005_chen_attack5",
+          "success": true,
+          "skillSource": "combo-mapping"
+        },
+        {
+          "frame": 100,
+          "commandType": "NormalSkill",
+          "skillId": "chr_0005_chen_normal_skill",
+          "success": true,
+          "skillSource": "combo-mapping"
+        },
+        {
+          "frame": 260,
+          "commandType": "UltimateSkill",
+          "skillId": "chr_0005_chen_ultimate_skill",
+          "success": true,
+          "skillSource": "character-template"
+        }
+      ],
+      "damageLog": [
+        {
+          "frame": 8,
+          "skillId": "chr_0005_chen_attack1",
+          "damageType": "Physical",
+          "rawDamage": 8.307,
+          "finalDamage": 4.1535,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=5:action=0:frame=8"
+        },
+        {
+          "frame": 11,
+          "skillId": "chr_0005_chen_attack1",
+          "damageType": "Physical",
+          "rawDamage": 8.307,
+          "finalDamage": 4.1535,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=6:action=0:frame=11"
+        },
+        {
+          "frame": 21,
+          "skillId": "chr_0005_chen_attack2",
+          "damageType": "Physical",
+          "rawDamage": 19.936799999999998,
+          "finalDamage": 9.968399999999999,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=5:action=0:frame=7"
+        },
+        {
+          "frame": 33,
+          "skillId": "chr_0005_chen_attack3",
+          "damageType": "Physical",
+          "rawDamage": 10.7991,
+          "finalDamage": 5.39955,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=6:action=0:frame=9"
+        },
+        {
+          "frame": 36,
+          "skillId": "chr_0005_chen_attack3",
+          "damageType": "Physical",
+          "rawDamage": 10.7991,
+          "finalDamage": 5.39955,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=7:action=0:frame=12"
+        },
+        {
+          "frame": 46,
+          "skillId": "chr_0005_chen_attack4",
+          "damageType": "Physical",
+          "rawDamage": 12.460499999999998,
+          "finalDamage": 6.230249999999999,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=6:action=0:frame=4"
+        },
+        {
+          "frame": 52,
+          "skillId": "chr_0005_chen_attack4",
+          "damageType": "Physical",
+          "rawDamage": 12.460499999999998,
+          "finalDamage": 6.230249999999999,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=7:action=0:frame=10"
+        },
+        {
+          "frame": 79,
+          "skillId": "chr_0005_chen_attack5",
+          "damageType": "Physical",
+          "rawDamage": 33.228,
+          "finalDamage": 16.614,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=11:action=0:frame=16"
+        },
+        {
+          "frame": 113,
+          "skillId": "chr_0005_chen_normal_skill",
+          "damageType": "Physical",
+          "rawDamage": 140.3883,
+          "finalDamage": 70.19415,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=8:action=3:frame=13"
+        },
+        {
+          "frame": 319,
+          "skillId": "chr_0005_chen_ultimate_skill",
+          "damageType": "Physical",
+          "rawDamage": 29.905199999999997,
+          "finalDamage": 14.952599999999999,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=23:action=1:frame=58"
+        },
+        {
+          "frame": 324,
+          "skillId": "chr_0005_chen_ultimate_skill",
+          "damageType": "Physical",
+          "rawDamage": 29.905199999999997,
+          "finalDamage": 14.952599999999999,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=24:action=0:frame=63"
+        },
+        {
+          "frame": 329,
+          "skillId": "chr_0005_chen_ultimate_skill",
+          "damageType": "Physical",
+          "rawDamage": 29.905199999999997,
+          "finalDamage": 14.952599999999999,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=25:action=0:frame=68"
+        },
+        {
+          "frame": 333,
+          "skillId": "chr_0005_chen_ultimate_skill",
+          "damageType": "Physical",
+          "rawDamage": 29.905199999999997,
+          "finalDamage": 14.952599999999999,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=26:action=0:frame=72"
+        },
+        {
+          "frame": 337,
+          "skillId": "chr_0005_chen_ultimate_skill",
+          "damageType": "Physical",
+          "rawDamage": 29.905199999999997,
+          "finalDamage": 14.952599999999999,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=27:action=0:frame=76"
+        },
+        {
+          "frame": 341,
+          "skillId": "chr_0005_chen_ultimate_skill",
+          "damageType": "Physical",
+          "rawDamage": 29.905199999999997,
+          "finalDamage": 14.952599999999999,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=28:action=0:frame=80"
+        },
+        {
+          "frame": 364,
+          "skillId": "chr_0005_chen_ultimate_skill",
+          "damageType": "Physical",
+          "rawDamage": 377.96849999999995,
+          "finalDamage": 188.98424999999997,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=29:action=1:frame=103"
+        }
+      ],
+      "statusTimeline": [],
+      "damageSummary": {
+        "totalDamage": 407.0429999999999,
+        "totalPoiseDamage": 0,
+        "damageByCharacter": {
+          "chen": 407.0429999999999
+        },
+        "damageByType": {
+          "Physical": 407.0429999999999
+        }
+      },
+      "durationTicks": 650
+    },
+    {
+      "id": "wulfgard",
+      "characterId": "chr_0006_wolfgd",
+      "weaponId": "wpn_pistol_0001",
+      "level": 1,
+      "panel": {
+        "Atk": 82.218,
+        "MaxUltimateSp": 90
+      },
+      "commands": [
+        {
+          "frame": 0,
+          "commandType": "Attack"
+        },
+        {
+          "frame": 10,
+          "commandType": "Attack"
+        },
+        {
+          "frame": 30,
+          "commandType": "Attack"
+        },
+        {
+          "frame": 60,
+          "commandType": "Attack"
+        },
+        {
+          "frame": 140,
+          "commandType": "NormalSkill"
+        },
+        {
+          "frame": 250,
+          "commandType": "UltimateSkill"
+        }
+      ],
+      "commandTrace": [
+        {
+          "frame": 0,
+          "commandType": "Attack",
+          "skillId": "chr_0006_wolfgd_attack1",
+          "success": true,
+          "skillSource": "combo-mapping"
+        },
+        {
+          "frame": 24,
+          "commandType": "Attack",
+          "skillId": "chr_0006_wolfgd_attack2",
+          "success": true,
+          "skillSource": "combo-mapping"
+        },
+        {
+          "frame": 47,
+          "commandType": "Attack",
+          "skillId": "chr_0006_wolfgd_attack3",
+          "success": true,
+          "skillSource": "combo-mapping"
+        },
+        {
+          "frame": 79,
+          "commandType": "Attack",
+          "skillId": "chr_0006_wolfgd_attack4",
+          "success": true,
+          "skillSource": "combo-mapping"
+        },
+        {
+          "frame": 140,
+          "commandType": "NormalSkill",
+          "skillId": "chr_0006_wolfgd_normal_skill",
+          "success": true,
+          "skillSource": "combo-mapping"
+        },
+        {
+          "frame": 250,
+          "commandType": "UltimateSkill",
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "success": true,
+          "skillSource": "character-template"
+        }
+      ],
+      "damageLog": [
+        {
+          "frame": 7,
+          "skillId": "chr_0006_wolfgd_attack1_projhit01",
+          "damageType": "Fire",
+          "rawDamage": 12.3327,
+          "finalDamage": 6.16635,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=0:action=0:frame=0"
+        },
+        {
+          "frame": 14,
+          "skillId": "chr_0006_wolfgd_attack1_projhit",
+          "damageType": "Fire",
+          "rawDamage": 12.3327,
+          "finalDamage": 6.16635,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=0:action=0:frame=0"
+        },
+        {
+          "frame": 34,
+          "skillId": "chr_0006_wolfgd_attack2_projhit",
+          "damageType": "Fire",
+          "rawDamage": 14.79924,
+          "finalDamage": 7.39962,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=0:action=0:frame=0"
+        },
+        {
+          "frame": 40,
+          "skillId": "chr_0006_wolfgd_attack2_projhit",
+          "damageType": "Fire",
+          "rawDamage": 14.79924,
+          "finalDamage": 7.39962,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=0:action=0:frame=0"
+        },
+        {
+          "frame": 59,
+          "skillId": "chr_0006_wolfgd_attack3_projhit",
+          "damageType": "Fire",
+          "rawDamage": 15.62142,
+          "finalDamage": 7.81071,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=0:action=0:frame=0"
+        },
+        {
+          "frame": 65,
+          "skillId": "chr_0006_wolfgd_attack3_projhit",
+          "damageType": "Fire",
+          "rawDamage": 15.62142,
+          "finalDamage": 7.81071,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=0:action=0:frame=0"
+        },
+        {
+          "frame": 71,
+          "skillId": "chr_0006_wolfgd_attack3_projhit",
+          "damageType": "Fire",
+          "rawDamage": 15.62142,
+          "finalDamage": 7.81071,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=0:action=0:frame=0"
+        },
+        {
+          "frame": 102,
+          "skillId": "chr_0006_wolfgd_attack4_projhit",
+          "damageType": "Fire",
+          "rawDamage": 55.908240000000006,
+          "finalDamage": 27.954120000000003,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=0:action=1:frame=0"
+        },
+        {
+          "frame": 146,
+          "skillId": "chr_0006_wolfgd_normal_skill_projhit",
+          "damageType": "Fire",
+          "rawDamage": 27.954120000000003,
+          "finalDamage": 13.977060000000002,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=0:action=1:frame=0"
+        },
+        {
+          "frame": 156,
+          "skillId": "chr_0006_wolfgd_normal_skill_projhit",
+          "damageType": "Fire",
+          "rawDamage": 27.954120000000003,
+          "finalDamage": 13.977060000000002,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=0:action=1:frame=0"
+        },
+        {
+          "frame": 163,
+          "skillId": "chr_0006_wolfgd_normal_skill_projhit_FireSpellInfiction",
+          "damageType": "Fire",
+          "rawDamage": 27.954120000000003,
+          "finalDamage": 13.977060000000002,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=0:action=1:frame=0"
+        },
+        {
+          "frame": 297,
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "damageType": "Fire",
+          "rawDamage": 26.30976,
+          "finalDamage": 13.15488,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=9:action=2:frame=46"
+        },
+        {
+          "frame": 303,
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "damageType": "Fire",
+          "rawDamage": 26.30976,
+          "finalDamage": 13.15488,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=10:action=2:frame=52"
+        },
+        {
+          "frame": 310,
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "damageType": "Fire",
+          "rawDamage": 26.30976,
+          "finalDamage": 13.15488,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=11:action=2:frame=59"
+        },
+        {
+          "frame": 315,
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "damageType": "Fire",
+          "rawDamage": 26.30976,
+          "finalDamage": 13.15488,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=12:action=2:frame=64"
+        },
+        {
+          "frame": 320,
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "damageType": "Fire",
+          "rawDamage": 26.30976,
+          "finalDamage": 13.15488,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "timeline=13:action=2:frame=69"
+        },
+        {
+          "frame": 326,
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "damageType": "Fire",
+          "rawDamage": 19.73232,
+          "finalDamage": 9.86616,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "buff=buff_common_burning_status:buffEvent=OnBuffTrigger:owner=eny_0007_mimicw"
+        },
+        {
+          "frame": 356,
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "damageType": "Fire",
+          "rawDamage": 19.73232,
+          "finalDamage": 9.86616,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "buff=buff_common_burning_status:buffEvent=OnBuffTrigger:owner=eny_0007_mimicw"
+        },
+        {
+          "frame": 386,
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "damageType": "Fire",
+          "rawDamage": 19.73232,
+          "finalDamage": 9.86616,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "buff=buff_common_burning_status:buffEvent=OnBuffTrigger:owner=eny_0007_mimicw"
+        },
+        {
+          "frame": 416,
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "damageType": "Fire",
+          "rawDamage": 19.73232,
+          "finalDamage": 9.86616,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "buff=buff_common_burning_status:buffEvent=OnBuffTrigger:owner=eny_0007_mimicw"
+        },
+        {
+          "frame": 446,
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "damageType": "Fire",
+          "rawDamage": 19.73232,
+          "finalDamage": 9.86616,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "buff=buff_common_burning_status:buffEvent=OnBuffTrigger:owner=eny_0007_mimicw"
+        },
+        {
+          "frame": 476,
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "damageType": "Fire",
+          "rawDamage": 19.73232,
+          "finalDamage": 9.86616,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "buff=buff_common_burning_status:buffEvent=OnBuffTrigger:owner=eny_0007_mimicw"
+        },
+        {
+          "frame": 506,
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "damageType": "Fire",
+          "rawDamage": 19.73232,
+          "finalDamage": 9.86616,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "buff=buff_common_burning_status:buffEvent=OnBuffTrigger:owner=eny_0007_mimicw"
+        },
+        {
+          "frame": 536,
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "damageType": "Fire",
+          "rawDamage": 19.73232,
+          "finalDamage": 9.86616,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "buff=buff_common_burning_status:buffEvent=OnBuffTrigger:owner=eny_0007_mimicw"
+        },
+        {
+          "frame": 566,
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "damageType": "Fire",
+          "rawDamage": 19.73232,
+          "finalDamage": 9.86616,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "buff=buff_common_burning_status:buffEvent=OnBuffTrigger:owner=eny_0007_mimicw"
+        },
+        {
+          "frame": 596,
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "damageType": "Fire",
+          "rawDamage": 19.73232,
+          "finalDamage": 9.86616,
+          "poiseDamage": 0,
+          "damageUnitIndex": 0,
+          "damageActionTrace": "buff=buff_common_burning_status:buffEvent=OnBuffTrigger:owner=eny_0007_mimicw"
+        }
+      ],
+      "statusTimeline": [
+        {
+          "frame": 296,
+          "event": "OnAddedBuff",
+          "ownerId": "eny_0007_mimicw",
+          "targetId": "eny_0007_mimicw",
+          "sourceId": "chr_0006_wolfgd",
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "outputBuffId": "buff_common_fire_triggered_start"
+        },
+        {
+          "frame": 296,
+          "event": "OnAddedBuff",
+          "ownerId": "eny_0007_mimicw",
+          "targetId": "eny_0007_mimicw",
+          "sourceId": "chr_0006_wolfgd",
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "outputBuffId": "buff_common_fire_triggered_fx"
+        },
+        {
+          "frame": 296,
+          "event": "OnAddedBuff",
+          "ownerId": "eny_0007_mimicw",
+          "targetId": "eny_0007_mimicw",
+          "sourceId": "chr_0006_wolfgd",
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "outputBuffId": "buff_common_burning_status"
+        },
+        {
+          "frame": 296,
+          "event": "OnAddedBuff",
+          "ownerId": "eny_0007_mimicw",
+          "targetId": "eny_0007_mimicw",
+          "sourceId": "chr_0006_wolfgd",
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "outputBuffId": "buff_common_fire_fire_burning_triggered"
+        },
+        {
+          "frame": 387,
+          "event": "OnFinishedBuff",
+          "ownerId": "eny_0007_mimicw",
+          "targetId": "eny_0007_mimicw",
+          "sourceId": "chr_0006_wolfgd",
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "outputBuffId": "buff_common_fire_triggered_start"
+        },
+        {
+          "frame": 447,
+          "event": "OnFinishedBuff",
+          "ownerId": "eny_0007_mimicw",
+          "targetId": "eny_0007_mimicw",
+          "sourceId": "chr_0006_wolfgd",
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "outputBuffId": "buff_common_fire_triggered_fx"
+        },
+        {
+          "frame": 597,
+          "event": "OnFinishedBuff",
+          "ownerId": "eny_0007_mimicw",
+          "targetId": "eny_0007_mimicw",
+          "sourceId": "chr_0006_wolfgd",
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "outputBuffId": "buff_common_burning_status"
+        },
+        {
+          "frame": 597,
+          "event": "OnFinishedBuff",
+          "ownerId": "eny_0007_mimicw",
+          "targetId": "eny_0007_mimicw",
+          "sourceId": "chr_0006_wolfgd",
+          "skillId": "chr_0006_wolfgd_ultimate_skill",
+          "outputBuffId": "buff_common_fire_fire_burning_triggered"
+        }
+      ],
+      "damageSummary": {
+        "totalDamage": 284.88536999999997,
+        "totalPoiseDamage": 0,
+        "damageByCharacter": {
+          "wulfgard": 284.88536999999997
+        },
+        "damageByType": {
+          "Fire": 284.88536999999997
+        }
+      },
+      "durationTicks": 672
+    }
+  ]
+}

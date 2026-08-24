@@ -1,0 +1,4323 @@
+{
+  "schemaVersion": 1,
+  "tickRate": 30,
+  "calcDataVersion": "9163343-11",
+  "identity": {
+    "characterId": "chr_0004_pelica",
+    "englishName": "Perlica",
+    "chineseName": "佩丽卡",
+    "defaultWeaponId": "wpn_funnel_0002",
+    "chineseNameEvidence": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md"
+  },
+  "roles": {
+    "normalAttackIds": [
+      "chr_0004_pelica_attack1",
+      "chr_0004_pelica_attack2",
+      "chr_0004_pelica_attack3",
+      "chr_0004_pelica_attack4"
+    ],
+    "heavyAttackId": "chr_0004_pelica_attack4",
+    "breakingAttackId": "chr_0004_pelica_power_attack",
+    "comboSkillId": "chr_0004_pelica_combo_skill",
+    "normalSkillId": "chr_0004_pelica_normal_skill",
+    "ultimateSkillId": "chr_0004_pelica_ultimate_skill"
+  },
+  "character": {
+    "level": 1,
+    "potential": 0,
+    "skillLevel": 1,
+    "weaponId": "wpn_funnel_0002",
+    "weaponLevel": 1,
+    "attack": 83.851,
+    "attackCalculation": {
+      "rawValue": 30,
+      "baseAddition": 29,
+      "baseMultiplier": 1,
+      "baseFinalAddition": 12,
+      "baseFinalMultiplier": 1.181,
+      "addition": 0,
+      "multiplier": 1,
+      "finalAddition": 0,
+      "finalMultiplier": 1,
+      "afterBase": 59,
+      "afterBaseFinal": 83.851,
+      "afterRuntime": 83.851,
+      "value": 83.851
+    },
+    "criticalRate": 0.05,
+    "criticalDamageIncrease": 0.5,
+    "poiseDamageOutputScalar": 1,
+    "initialAtb": 300,
+    "maxAtb": 300,
+    "initialUltimateSp": 80,
+    "maxUltimateSp": 80,
+    "panelSource": "reference/public-data/calc/api/character-panel-chr_0004_pelica-level1.json"
+  },
+  "enemy": {
+    "id": "eny_0007_mimicw",
+    "level": 1,
+    "maxHp": 692,
+    "defense": 100,
+    "pulseResistance": 0,
+    "damageTakenScalar": 1,
+    "weaknessDmgScalar": 1,
+    "shelterDmgScalar": 0,
+    "maxPoise": 160,
+    "poiseRecTime": 7,
+    "poiseDamageTakenScalar": 1,
+    "executionDamageScalar": 1.25,
+    "breakingAttackedAtbObtain": 35,
+    "displayType": 3,
+    "poiseKnotPctList": [],
+    "poiseKnotBuffList": [],
+    "source": "reference/public-data/calc/api/enemy-eny_0007_mimicw-level1.json",
+    "poiseSource": "reference/public-data/akedata/TableCfg/EnemyAttributeTemplateTable.json"
+  },
+  "commands": [
+    {
+      "frame": 0,
+      "commandType": "Attack"
+    },
+    {
+      "frame": 15,
+      "commandType": "Attack"
+    },
+    {
+      "frame": 30,
+      "commandType": "Attack"
+    },
+    {
+      "frame": 45,
+      "commandType": "Attack"
+    },
+    {
+      "frame": 90,
+      "commandType": "ComboSkill"
+    },
+    {
+      "frame": 120,
+      "commandType": "NormalSkill"
+    }
+  ],
+  "combatSetting": {
+    "criticalMode": "None",
+    "commandQueueWindowFrames": 30,
+    "actionIdleExitFightFrames": 120,
+    "simulatePoise": false
+  },
+  "semanticRules": {
+    "comboTriggerRules": [
+      {
+        "id": "pelica.attack4.first-hp-damage",
+        "eventType": "BeforeHpDamage",
+        "selector": {
+          "rootSkillIds": [
+            "chr_0004_pelica_attack4"
+          ],
+          "sourceSkillIds": [
+            "chr_0004_pelica_attack4_projhit"
+          ],
+          "damageAttributeType": "Hp",
+          "occurrence": "first-per-cast"
+        },
+        "effect": {
+          "operation": "CreateComboPending",
+          "comboSkillId": "chr_0004_pelica_combo_skill",
+          "pendingDurationTicks": 180,
+          "ownerBinding": "event-source",
+          "triggerTargetBinding": "event-target",
+          "requireComboOffCooldown": true,
+          "pendingPolicy": "append",
+          "selectionPolicy": "newest",
+          "consumePolicy": "all-for-owner-and-skill"
+        },
+        "confidence": "confirmed-for-fixture",
+        "evidence": [
+          {
+            "type": "black-box-observation",
+            "fixture": "fixtures/calc/pelica-heavy-combo-skill.response.json",
+            "observation": "attack4 HP hit creates pending at frame 86; isolated pending expires at frame 265"
+          },
+          {
+            "type": "black-box-boundary-observation",
+            "fixture": "fixtures/calc/pelica-combo-boundaries.oracle.json",
+            "observation": "same-frame cast succeeds; active interval is [86,265); repeated casts append and newest is selected; cooldown suppresses creation"
+          }
+        ],
+        "notes": "The public SkillData exposes attack4 timing and damage but does not declare the character-specific combo-pending rule. first-per-cast is a conservative selector because this SkillData currently has one HP hit."
+      }
+    ],
+    "resourceRules": {
+      "Atb": {
+        "passiveRecovery": {
+          "ratePerSecond": 8,
+          "quantization": "float32",
+          "firstTickFrame": 1,
+          "resumeDelayTicksAfterSpend": 16
+        },
+        "evidence": [
+          {
+            "type": "public-research",
+            "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+            "observation": "ATB cap is 300 and passive recovery is 8 per second"
+          },
+          {
+            "type": "black-box-boundary-observation",
+            "fixture": "fixtures/calc/pelica-resource-boundaries.oracle.json",
+            "observation": "per-tick value is Math.fround(8/30); spend at T resumes at T+16; an already scheduled recovery at T precedes the spend"
+          }
+        ],
+        "confidence": "confirmed-for-fixtures"
+      },
+      "actions": {
+        "ObtainUspInNormalSkill": {
+          "resourceType": "UltimateSp",
+          "includeEveryone": true,
+          "includeSelf": true,
+          "quantization": "percentage-float32",
+          "evidence": [
+            {
+              "type": "public-data",
+              "path": "reference/public-data/akedata/Json/BuffData/buff_common_obtain_ultimate_sp.json",
+              "observation": "usp_everyone=6.5, usp_self=0, ratio=1"
+            },
+            {
+              "type": "black-box-observation",
+              "fixture": "fixtures/calc/pelica-resource-boundaries.oracle.json",
+              "observation": "normal skill grants 6.499999761581421 USP; Math.fround(6.5/100)*100 reproduces it exactly"
+            }
+          ],
+          "confidence": "confirmed-for-fixtures"
+        }
+      }
+    },
+    "poiseRules": {
+      "damageRule": {
+        "id": "global.poise.damage",
+        "actionType": "PoiseDamageRule",
+        "selector": {
+          "damageAttributeType": "Poise",
+          "calculationType": "DefiniteValueCalculation"
+        },
+        "effect": {
+          "operation": "AccumulatePoise",
+          "baseValuePath": "poiseCalculation.value",
+          "formula": "basePoise * PoiseDamageOutputScalar * PoiseDamageTakenScalar",
+          "capPolicy": "cap-state-but-report-full-hit"
+        },
+        "confidence": "confirmed-for-fixtures",
+        "evidence": [
+          {
+            "type": "public-data",
+            "path": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack4_projhit.json",
+            "observation": "The second DamageUnit is Poise and reads blackboard key poise through DefiniteValueCalculation."
+          },
+          {
+            "type": "black-box-boundary-observation",
+            "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+            "observation": "Pelica reports 15/10/10/20 poise hits; a 60-point target breaks on a 65-point overflow hit."
+          }
+        ]
+      },
+      "templateRule": {
+        "id": "global.enemy.poise-template",
+        "actionType": "EnemyPoiseTemplateRule",
+        "effect": {
+          "operation": "ReadEnemyPoiseTemplate",
+          "maxPoiseAttributeType": 20,
+          "recoverySecondsAttributeType": 21,
+          "executionDamageScalarAttributeType": 27,
+          "executionAtbGainField": "breakingAttackedAtbObtain",
+          "knotPercentagesField": "poiseKnotPctList",
+          "knotBuffIdsField": "poiseKnotBuffList"
+        },
+        "confidence": "confirmed-for-fixtures",
+        "evidence": [
+          {
+            "type": "public-data",
+            "path": "reference/public-data/akedata/TableCfg/EnemyAttributeTemplateTable.json"
+          },
+          {
+            "type": "public-parser",
+            "path": "reference/third-party/akedatabase/plugin/js/v2-enemy.js",
+            "observation": "AKE labels slots 20, 21 and 27 as max poise, poise recovery time and execution scalar."
+          },
+          {
+            "type": "black-box-boundary-observation",
+            "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+            "observation": "Enemy template thresholds, recovery tier, knot and execution ATB refund all affect the public simulator."
+          }
+        ]
+      },
+      "executionRule": {
+        "id": "global.execution.breaking-attack",
+        "actionType": "ExecutionRule",
+        "selector": {
+          "commandType": "BreakingAttack",
+          "calculationType": "BreakingAttackCalculation"
+        },
+        "effect": {
+          "operation": "ConsumeExecutionGateOnHit",
+          "damageScalarSource": "enemy.executionDamageScalar",
+          "atbGainSource": "enemy.breakingAttackedAtbObtain",
+          "gatePolicy": "single-use-per-break-cycle"
+        },
+        "confidence": "confirmed-for-fixtures",
+        "evidence": [
+          {
+            "type": "public-data",
+            "path": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_power_attack.json",
+            "observation": "The HP DamageUnit uses BreakingAttackCalculation."
+          },
+          {
+            "type": "black-box-boundary-observation",
+            "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+            "observation": "Execution is rejected before break, succeeds once, consumes its gate on hit and grants the enemy-template ATB amount."
+          }
+        ]
+      },
+      "breakDamageBuffId": "buff_common_poise_break_damage_taken_scale",
+      "executionGateBuffId": "buff_common_poise_can_be_breaking_attacked",
+      "brokenDamageScale": 1.3,
+      "recoveryTimingModel": "nominal-gameplay-ticks-excludes-presentation-pauses",
+      "rapidBreakPolicy": {
+        "enabled": false
+      },
+      "localClockPauseRules": [
+        {
+          "id": "pelica.attack4-break.enemy-local-pause",
+          "selector": {
+            "trigger": "PoiseBreak",
+            "sourceSkillIds": [
+              "chr_0004_pelica_attack4_projhit"
+            ]
+          },
+          "effect": {
+            "operation": "PauseEnemyLocalClock",
+            "durationTicks": 7
+          },
+          "confidence": "confirmed-for-fixture",
+          "evidence": [
+            {
+              "type": "public-data",
+              "path": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack4_projhit.json",
+              "observation": "The hit has enablePoiseBreakTimeDilation=true and an OnlyTarget HitStopAction with duration=0.3 and curveKey=char_normal_attack."
+            },
+            {
+              "type": "black-box-observation",
+              "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+              "observation": "An attack4 break at frame 426 recovers at 613 instead of nominal 606: 7 effective enemy-local ticks are excluded."
+            }
+          ]
+        },
+        {
+          "id": "pelica.normal-skill-break.enemy-local-pause",
+          "selector": {
+            "trigger": "PoiseBreak",
+            "sourceSkillIds": [
+              "chr_0004_pelica_normal_skill"
+            ]
+          },
+          "effect": {
+            "operation": "PauseEnemyLocalClock",
+            "durationTicks": 11
+          },
+          "confidence": "confirmed-for-fixture",
+          "evidence": [
+            {
+              "type": "public-data",
+              "path": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_normal_skill.json",
+              "observation": "Both HP and Poise damage units enable poise-break time dilation."
+            },
+            {
+              "type": "black-box-observation",
+              "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+              "observation": "A normal-skill overflow break at frame 293 recovers at 484 instead of nominal 473: 11 effective enemy-local ticks are excluded."
+            }
+          ]
+        },
+        {
+          "id": "pelica.normal-skill-on-broken.enemy-local-pause",
+          "selector": {
+            "trigger": "HpDamageWhileBroken",
+            "sourceSkillIds": [
+              "chr_0004_pelica_normal_skill"
+            ]
+          },
+          "effect": {
+            "operation": "PauseEnemyLocalClock",
+            "durationTicks": 4
+          },
+          "confidence": "confirmed-for-fixture",
+          "evidence": [
+            {
+              "type": "black-box-observation",
+              "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+              "observation": "After the 7-tick attack4 break pause, a normal-skill hit during break moves recovery from 613 to 617: 4 additional ticks."
+            }
+          ]
+        },
+        {
+          "id": "pelica.execution-hit.enemy-local-pause",
+          "selector": {
+            "trigger": "ExecutionHit",
+            "sourceSkillIds": [
+              "chr_0004_pelica_power_attack"
+            ]
+          },
+          "effect": {
+            "operation": "PauseEnemyLocalClock",
+            "durationTicks": 7
+          },
+          "confidence": "confirmed-for-fixture",
+          "evidence": [
+            {
+              "type": "public-data",
+              "path": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_power_attack.json",
+              "observation": "The execution hit enables poise-break time dilation and contains a Both-target HitStopAction with duration=0.2 and curveKey=common."
+            },
+            {
+              "type": "black-box-observation",
+              "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+              "observation": "After the 7-tick attack4 break pause, the execution hit moves recovery from 613 to 620: 7 additional ticks."
+            }
+          ]
+        }
+      ],
+      "knotDurationTicksByBuffId": {},
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_common_poise_break_damage_taken_scale.json",
+          "observation": "The break buff adds dmg_up=0.3 in defender ProdCalcZone."
+        },
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+          "observation": "Break creates both buffs; damage becomes 1.3x; nominal six-second recovery is delayed in wall frames by presentation hit pauses."
+        }
+      ]
+    },
+    "spellInflictionBuffs": {
+      "Pulse": "buff_common_energy_shard_attached_pulse"
+    },
+    "skillSettings": {
+      "导电法术伤害提高": {
+        "1": 0.12
+      },
+      "导电持续时间": {
+        "1": 12
+      }
+    },
+    "skillSettingEvidence": [
+      "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+      "fixtures/calc/pelica-heavy-combo-skill.response.json battleEventLog damage operands"
+    ]
+  },
+  "sourcePaths": {
+    "characterTable": "reference/public-data/akedata/TableCfg/CharGrowthTable.json",
+    "skillPatchTable": "reference/public-data/akedata/TableCfg/SkillPatchTable.json",
+    "enemyAttributeTemplateTable": "reference/public-data/akedata/TableCfg/EnemyAttributeTemplateTable.json",
+    "enemyTemplateDisplayInfoTable": "reference/public-data/akedata/TableCfg/EnemyTemplateDisplayInfoTable.json",
+    "enemySnapshot": "reference/public-data/calc/api/enemy-eny_0007_mimicw-level1.json",
+    "semanticMappings": "spec/engine-semantic-mappings.json",
+    "skills": {
+      "chr_0004_pelica_attack1": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack1.json",
+      "chr_0004_pelica_attack2": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack2.json",
+      "chr_0004_pelica_attack3": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack3.json",
+      "chr_0004_pelica_attack4": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack4.json",
+      "chr_0004_pelica_combo_skill": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_combo_skill.json",
+      "chr_0004_pelica_normal_skill": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_normal_skill.json",
+      "chr_0004_pelica_ultimate_skill": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_ultimate_skill.json",
+      "chr_0004_pelica_power_attack": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_power_attack.json",
+      "chr_0004_pelica_attack1_projhit": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack1_projhit.json",
+      "chr_0004_pelica_attack2_projhit": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack2_projhit.json",
+      "chr_0004_pelica_attack3_projhit": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack3_projhit.json",
+      "chr_0004_pelica_attack4_projhit": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack4_projhit.json",
+      "chr_0004_pelica_combo_skill_projhit": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_combo_skill_projhit.json"
+    },
+    "buffs": {
+      "buff_chr_0004_pelica_combo_skill_tutorial_marker": "reference/public-data/akedata/Json/BuffData/buff_chr_0004_pelica_combo_skill_tutorial_marker.json",
+      "buff_common_pulse_pulse_conduct_triggered": "reference/public-data/akedata/Json/BuffData/buff_common_pulse_pulse_conduct_triggered.json",
+      "buff_common_pulse_pulse_conduct_triggered_do": "reference/public-data/akedata/Json/BuffData/buff_common_pulse_pulse_conduct_triggered_do.json",
+      "buff_common_pulse_triggered_start": "reference/public-data/akedata/Json/BuffData/buff_common_pulse_triggered_start.json",
+      "buff_common_pulse_triggered_fx": "reference/public-data/akedata/Json/BuffData/buff_common_pulse_triggered_fx.json",
+      "buff_common_energy_shard_attached_pulse": "reference/public-data/akedata/Json/BuffData/buff_common_energy_shard_attached_pulse.json",
+      "buff_common_obtain_ultimate_sp": "reference/public-data/akedata/Json/BuffData/buff_common_obtain_ultimate_sp.json",
+      "buff_common_damage_immune_ult_skill": "reference/public-data/akedata/Json/BuffData/buff_common_damage_immune_ult_skill.json",
+      "buff_common_poise_break_damage_taken_scale": "reference/public-data/akedata/Json/BuffData/buff_common_poise_break_damage_taken_scale.json",
+      "buff_common_poise_can_be_breaking_attacked": "reference/public-data/akedata/Json/BuffData/buff_common_poise_can_be_breaking_attacked.json",
+      "buff_common_damage_immune_medium": "reference/public-data/akedata/Json/BuffData/buff_common_damage_immune_medium.json",
+      "buff_common_power_attack_disable_cast_skill": "reference/public-data/akedata/Json/BuffData/buff_common_power_attack_disable_cast_skill.json"
+    }
+  },
+  "skills": {
+    "chr_0004_pelica_attack1": {
+      "skillId": "chr_0004_pelica_attack1",
+      "level": 1,
+      "skillSpecification": "CharacterNormalAttack",
+      "durationFrames": 166,
+      "exclusiveFrames": 15,
+      "offsetRecordFrame": 8,
+      "cooldownSeconds": 0,
+      "cooldownTicks": 0,
+      "costType": "UltimateSp",
+      "costValue": 0,
+      "blackboard": {
+        "atk_scale": 0.25,
+        "atb": 0
+      },
+      "blackboardLineage": {
+        "atk_scale": [
+          {
+            "source": "SkillData.default",
+            "value": 0.25
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 0.25
+          }
+        ],
+        "atb": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 0
+          }
+        ]
+      },
+      "patch": {
+        "level": 1,
+        "coolDown": 0,
+        "costType": 0,
+        "costValue": 0
+      },
+      "events": [
+        {
+          "order": 3,
+          "type": "LaunchProjectile",
+          "startFrame": 8,
+          "endFrame": 8,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[3]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_normal_attack1",
+          "childSkillId": "chr_0004_pelica_attack1_projhit",
+          "assignEntityBlackboard": false
+        },
+        {
+          "order": 14,
+          "type": "ComboCacheAction",
+          "startFrame": 5,
+          "endFrame": 27,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[14]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "Attack",
+              "skillId": "chr_0004_pelica_attack2",
+              "cacheEndByAction": true,
+              "overrideCacheTime": false,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        },
+        {
+          "order": 15,
+          "type": "AllowNextSkillAction",
+          "startFrame": 16,
+          "endFrame": 27,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[15]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_attack2"
+          ]
+        }
+      ],
+      "launches": [
+        {
+          "order": 3,
+          "type": "LaunchProjectile",
+          "startFrame": 8,
+          "endFrame": 8,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[3]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_normal_attack1",
+          "childSkillId": "chr_0004_pelica_attack1_projhit",
+          "assignEntityBlackboard": false
+        }
+      ],
+      "damages": [],
+      "createBuffs": [],
+      "spellInflictions": [],
+      "resourceGains": [],
+      "comboMappings": [
+        {
+          "order": 14,
+          "type": "ComboCacheAction",
+          "startFrame": 5,
+          "endFrame": 27,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[14]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "Attack",
+              "skillId": "chr_0004_pelica_attack2",
+              "cacheEndByAction": true,
+              "overrideCacheTime": false,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        }
+      ],
+      "allowNextWindows": [
+        {
+          "order": 15,
+          "type": "AllowNextSkillAction",
+          "startFrame": 16,
+          "endFrame": 27,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[15]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_attack2"
+          ]
+        }
+      ],
+      "hitStops": [],
+      "timeDilations": [],
+      "ultimateTimeActions": []
+    },
+    "chr_0004_pelica_attack2": {
+      "skillId": "chr_0004_pelica_attack2",
+      "level": 1,
+      "skillSpecification": "CharacterNormalAttack",
+      "durationFrames": 168,
+      "exclusiveFrames": 22,
+      "offsetRecordFrame": 12,
+      "cooldownSeconds": 0,
+      "cooldownTicks": 0,
+      "costType": "UltimateSp",
+      "costValue": 0,
+      "blackboard": {
+        "atk_scale": 0.15,
+        "atb": 0,
+        "display_atk_scale": 0.3
+      },
+      "blackboardLineage": {
+        "atk_scale": [
+          {
+            "source": "SkillData.default",
+            "value": 0.29
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 0.15
+          }
+        ],
+        "atb": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 0
+          }
+        ],
+        "display_atk_scale": [
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 0.3
+          }
+        ]
+      },
+      "patch": {
+        "level": 1,
+        "coolDown": 0,
+        "costType": 0,
+        "costValue": 0
+      },
+      "events": [
+        {
+          "order": 1,
+          "type": "LaunchProjectile",
+          "startFrame": 9,
+          "endFrame": 9,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[1]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_normal_attack2",
+          "childSkillId": "chr_0004_pelica_attack2_projhit",
+          "assignEntityBlackboard": false
+        },
+        {
+          "order": 2,
+          "type": "LaunchProjectile",
+          "startFrame": 12,
+          "endFrame": 12,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[2]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_normal_attack2",
+          "childSkillId": "chr_0004_pelica_attack2_projhit",
+          "assignEntityBlackboard": false
+        },
+        {
+          "order": 20,
+          "type": "ComboCacheAction",
+          "startFrame": 0,
+          "endFrame": 28,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[19]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "Attack",
+              "skillId": "chr_0004_pelica_attack3",
+              "cacheEndByAction": true,
+              "overrideCacheTime": false,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        },
+        {
+          "order": 21,
+          "type": "AllowNextSkillAction",
+          "startFrame": 18,
+          "endFrame": 28,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[20]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_attack3"
+          ]
+        }
+      ],
+      "launches": [
+        {
+          "order": 1,
+          "type": "LaunchProjectile",
+          "startFrame": 9,
+          "endFrame": 9,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[1]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_normal_attack2",
+          "childSkillId": "chr_0004_pelica_attack2_projhit",
+          "assignEntityBlackboard": false
+        },
+        {
+          "order": 2,
+          "type": "LaunchProjectile",
+          "startFrame": 12,
+          "endFrame": 12,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[2]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_normal_attack2",
+          "childSkillId": "chr_0004_pelica_attack2_projhit",
+          "assignEntityBlackboard": false
+        }
+      ],
+      "damages": [],
+      "createBuffs": [],
+      "spellInflictions": [],
+      "resourceGains": [],
+      "comboMappings": [
+        {
+          "order": 20,
+          "type": "ComboCacheAction",
+          "startFrame": 0,
+          "endFrame": 28,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[19]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "Attack",
+              "skillId": "chr_0004_pelica_attack3",
+              "cacheEndByAction": true,
+              "overrideCacheTime": false,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        }
+      ],
+      "allowNextWindows": [
+        {
+          "order": 21,
+          "type": "AllowNextSkillAction",
+          "startFrame": 18,
+          "endFrame": 28,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[20]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_attack3"
+          ]
+        }
+      ],
+      "hitStops": [],
+      "timeDilations": [],
+      "ultimateTimeActions": []
+    },
+    "chr_0004_pelica_attack3": {
+      "skillId": "chr_0004_pelica_attack3",
+      "level": 1,
+      "skillSpecification": "CharacterNormalAttack",
+      "durationFrames": 173,
+      "exclusiveFrames": 29,
+      "offsetRecordFrame": 22,
+      "cooldownSeconds": 0,
+      "cooldownTicks": 0,
+      "costType": "UltimateSp",
+      "costValue": 0,
+      "blackboard": {
+        "atk_scale": 0.12,
+        "atb": 0,
+        "display_atk_scale": 0.37
+      },
+      "blackboardLineage": {
+        "atk_scale": [
+          {
+            "source": "SkillData.default",
+            "value": 0.23
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 0.12
+          }
+        ],
+        "atb": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 0
+          }
+        ],
+        "display_atk_scale": [
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 0.37
+          }
+        ]
+      },
+      "patch": {
+        "level": 1,
+        "coolDown": 0,
+        "costType": 0,
+        "costValue": 0
+      },
+      "events": [
+        {
+          "order": 3,
+          "type": "LaunchProjectile",
+          "startFrame": 16,
+          "endFrame": 16,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[3]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_normal_attack3",
+          "childSkillId": "chr_0004_pelica_attack3_projhit",
+          "assignEntityBlackboard": false
+        },
+        {
+          "order": 4,
+          "type": "LaunchProjectile",
+          "startFrame": 19,
+          "endFrame": 19,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[4]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_normal_attack3",
+          "childSkillId": "chr_0004_pelica_attack3_projhit",
+          "assignEntityBlackboard": false
+        },
+        {
+          "order": 5,
+          "type": "LaunchProjectile",
+          "startFrame": 22,
+          "endFrame": 22,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[5]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_normal_attack3",
+          "childSkillId": "chr_0004_pelica_attack3_projhit",
+          "assignEntityBlackboard": false
+        },
+        {
+          "order": 24,
+          "type": "ComboCacheAction",
+          "startFrame": 8,
+          "endFrame": 40,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[23]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "Attack",
+              "skillId": "chr_0004_pelica_attack4",
+              "cacheEndByAction": true,
+              "overrideCacheTime": false,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        },
+        {
+          "order": 25,
+          "type": "AllowNextSkillAction",
+          "startFrame": 26,
+          "endFrame": 40,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[24]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_attack4"
+          ]
+        }
+      ],
+      "launches": [
+        {
+          "order": 3,
+          "type": "LaunchProjectile",
+          "startFrame": 16,
+          "endFrame": 16,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[3]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_normal_attack3",
+          "childSkillId": "chr_0004_pelica_attack3_projhit",
+          "assignEntityBlackboard": false
+        },
+        {
+          "order": 4,
+          "type": "LaunchProjectile",
+          "startFrame": 19,
+          "endFrame": 19,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[4]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_normal_attack3",
+          "childSkillId": "chr_0004_pelica_attack3_projhit",
+          "assignEntityBlackboard": false
+        },
+        {
+          "order": 5,
+          "type": "LaunchProjectile",
+          "startFrame": 22,
+          "endFrame": 22,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[5]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_normal_attack3",
+          "childSkillId": "chr_0004_pelica_attack3_projhit",
+          "assignEntityBlackboard": false
+        }
+      ],
+      "damages": [],
+      "createBuffs": [],
+      "spellInflictions": [],
+      "resourceGains": [],
+      "comboMappings": [
+        {
+          "order": 24,
+          "type": "ComboCacheAction",
+          "startFrame": 8,
+          "endFrame": 40,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[23]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "Attack",
+              "skillId": "chr_0004_pelica_attack4",
+              "cacheEndByAction": true,
+              "overrideCacheTime": false,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        }
+      ],
+      "allowNextWindows": [
+        {
+          "order": 25,
+          "type": "AllowNextSkillAction",
+          "startFrame": 26,
+          "endFrame": 40,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[24]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_attack4"
+          ]
+        }
+      ],
+      "hitStops": [],
+      "timeDilations": [],
+      "ultimateTimeActions": []
+    },
+    "chr_0004_pelica_attack4": {
+      "skillId": "chr_0004_pelica_attack4",
+      "level": 1,
+      "skillSpecification": "CharacterNormalAttack",
+      "durationFrames": 269,
+      "exclusiveFrames": 43,
+      "offsetRecordFrame": 27,
+      "cooldownSeconds": 0,
+      "cooldownTicks": 0,
+      "costType": "UltimateSp",
+      "costValue": 0,
+      "blackboard": {
+        "atk_scale": 0.57,
+        "atb": 15,
+        "poise": 15
+      },
+      "blackboardLineage": {
+        "atk_scale": [
+          {
+            "source": "SkillData.default",
+            "value": 1.07
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 0.57
+          }
+        ],
+        "atb": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 15
+          }
+        ],
+        "poise": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 15
+          }
+        ]
+      },
+      "patch": {
+        "level": 1,
+        "coolDown": 0,
+        "costType": 0,
+        "costValue": 0
+      },
+      "events": [
+        {
+          "order": 3,
+          "type": "LaunchProjectile",
+          "startFrame": 27,
+          "endFrame": 27,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[3]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_normal_attack4",
+          "childSkillId": "chr_0004_pelica_attack4_projhit",
+          "assignEntityBlackboard": false
+        },
+        {
+          "order": 22,
+          "type": "ComboCacheAction",
+          "startFrame": 29,
+          "endFrame": 64,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[22]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "Attack",
+              "skillId": "chr_0004_pelica_attack1",
+              "cacheEndByAction": true,
+              "overrideCacheTime": false,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        },
+        {
+          "order": 23,
+          "type": "AllowNextSkillAction",
+          "startFrame": 54,
+          "endFrame": 64,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[23]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_attack1"
+          ]
+        }
+      ],
+      "launches": [
+        {
+          "order": 3,
+          "type": "LaunchProjectile",
+          "startFrame": 27,
+          "endFrame": 27,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[3]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_normal_attack4",
+          "childSkillId": "chr_0004_pelica_attack4_projhit",
+          "assignEntityBlackboard": false
+        }
+      ],
+      "damages": [],
+      "createBuffs": [],
+      "spellInflictions": [],
+      "resourceGains": [],
+      "comboMappings": [
+        {
+          "order": 22,
+          "type": "ComboCacheAction",
+          "startFrame": 29,
+          "endFrame": 64,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[22]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "Attack",
+              "skillId": "chr_0004_pelica_attack1",
+              "cacheEndByAction": true,
+              "overrideCacheTime": false,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        }
+      ],
+      "allowNextWindows": [
+        {
+          "order": 23,
+          "type": "AllowNextSkillAction",
+          "startFrame": 54,
+          "endFrame": 64,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[23]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_attack1"
+          ]
+        }
+      ],
+      "hitStops": [],
+      "timeDilations": [],
+      "ultimateTimeActions": []
+    },
+    "chr_0004_pelica_combo_skill": {
+      "skillId": "chr_0004_pelica_combo_skill",
+      "level": 1,
+      "skillSpecification": "CharacterComboSkill",
+      "durationFrames": 115,
+      "exclusiveFrames": 45,
+      "offsetRecordFrame": 0,
+      "cooldownSeconds": 20,
+      "cooldownTicks": 600,
+      "costType": "UltimateSp",
+      "costValue": 0,
+      "blackboard": {
+        "select_radius": 4,
+        "atk_scale": 0.8,
+        "count": 0,
+        "input_angle": 0,
+        "cam_angle": 0,
+        "cam_duration": 0,
+        "poise": 10,
+        "usp": 10,
+        "atb": 0,
+        "duration": 5,
+        "talent2": 0,
+        "extra_scaling": 1,
+        "owner_mainchar_distance": 0,
+        "owner_mainchar_alpha": 0
+      },
+      "blackboardLineage": {
+        "select_radius": [
+          {
+            "source": "SkillData.default",
+            "value": 4
+          }
+        ],
+        "atk_scale": [
+          {
+            "source": "SkillData.default",
+            "value": 2.85
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 0.8
+          }
+        ],
+        "count": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "input_angle": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "cam_angle": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "cam_duration": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "poise": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 10
+          }
+        ],
+        "usp": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 10
+          }
+        ],
+        "atb": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "duration": [
+          {
+            "source": "SkillData.default",
+            "value": 5
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 5
+          }
+        ],
+        "talent2": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "extra_scaling": [
+          {
+            "source": "SkillData.default",
+            "value": 1
+          }
+        ],
+        "owner_mainchar_distance": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "owner_mainchar_alpha": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ]
+      },
+      "patch": {
+        "level": 1,
+        "coolDown": 20,
+        "costType": 0,
+        "costValue": 0
+      },
+      "events": [
+        {
+          "order": 14,
+          "type": "LaunchProjectile",
+          "startFrame": 24,
+          "endFrame": 27,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[3]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_combo_skill",
+          "childSkillId": "chr_0004_pelica_combo_skill_projhit",
+          "assignEntityBlackboard": false
+        },
+        {
+          "order": 25,
+          "type": "TimeDilationAction",
+          "startFrame": 0,
+          "endFrame": 22,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[7]._sequenceActionData.actionData[0]",
+          "layer": "Global",
+          "curveKey": "ComboSkill",
+          "useCurveKey": true,
+          "duration": {
+            "useBlackboardKey": false,
+            "value": 0.833,
+            "blackboardKey": ""
+          },
+          "finishByAction": false,
+          "useTimeScaleForSkillCdTick": false,
+          "timeDilationPriorityTagId": -593023102
+        },
+        {
+          "order": 50,
+          "type": "ComboCacheAction",
+          "startFrame": 0,
+          "endFrame": 54,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[14]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "NormalSkill",
+              "skillId": "chr_0004_pelica_normal_skill",
+              "cacheEndByAction": true,
+              "overrideCacheTime": true,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0.3,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        },
+        {
+          "order": 51,
+          "type": "AllowNextSkillAction",
+          "startFrame": 25,
+          "endFrame": 54,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[15]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_normal_skill"
+          ]
+        }
+      ],
+      "launches": [
+        {
+          "order": 14,
+          "type": "LaunchProjectile",
+          "startFrame": 24,
+          "endFrame": 27,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[3]._sequenceActionData.actionData[0]",
+          "projectileId": "projectile_chr_0004_pelica_combo_skill",
+          "childSkillId": "chr_0004_pelica_combo_skill_projhit",
+          "assignEntityBlackboard": false
+        }
+      ],
+      "damages": [],
+      "createBuffs": [],
+      "spellInflictions": [],
+      "resourceGains": [],
+      "comboMappings": [
+        {
+          "order": 50,
+          "type": "ComboCacheAction",
+          "startFrame": 0,
+          "endFrame": 54,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[14]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "NormalSkill",
+              "skillId": "chr_0004_pelica_normal_skill",
+              "cacheEndByAction": true,
+              "overrideCacheTime": true,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0.3,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        }
+      ],
+      "allowNextWindows": [
+        {
+          "order": 51,
+          "type": "AllowNextSkillAction",
+          "startFrame": 25,
+          "endFrame": 54,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[15]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_normal_skill"
+          ]
+        }
+      ],
+      "hitStops": [],
+      "timeDilations": [
+        {
+          "order": 25,
+          "type": "TimeDilationAction",
+          "startFrame": 0,
+          "endFrame": 22,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[7]._sequenceActionData.actionData[0]",
+          "layer": "Global",
+          "curveKey": "ComboSkill",
+          "useCurveKey": true,
+          "duration": {
+            "useBlackboardKey": false,
+            "value": 0.833,
+            "blackboardKey": ""
+          },
+          "finishByAction": false,
+          "useTimeScaleForSkillCdTick": false,
+          "timeDilationPriorityTagId": -593023102
+        }
+      ],
+      "ultimateTimeActions": []
+    },
+    "chr_0004_pelica_normal_skill": {
+      "skillId": "chr_0004_pelica_normal_skill",
+      "level": 1,
+      "skillSpecification": "CharacterNormalSkill",
+      "durationFrames": 155,
+      "exclusiveFrames": 30,
+      "offsetRecordFrame": 0,
+      "cooldownSeconds": 0,
+      "cooldownTicks": 0,
+      "costType": "Atb",
+      "costValue": 100,
+      "blackboard": {
+        "atk_scale": 1.78,
+        "atk_scale_2": 0,
+        "consume_cnt": 0,
+        "select_radius": 10,
+        "input_angle": 0,
+        "cam_duration": 0,
+        "cam_angle": 0,
+        "gained_atb": 0,
+        "poise": 10
+      },
+      "blackboardLineage": {
+        "atk_scale": [
+          {
+            "source": "SkillData.default",
+            "value": 2.85
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 1.78
+          }
+        ],
+        "atk_scale_2": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "consume_cnt": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "select_radius": [
+          {
+            "source": "SkillData.default",
+            "value": 10
+          }
+        ],
+        "input_angle": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "cam_duration": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "cam_angle": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "gained_atb": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "poise": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 10
+          }
+        ]
+      },
+      "patch": {
+        "level": 1,
+        "coolDown": 0,
+        "costType": 1,
+        "costValue": 100
+      },
+      "events": [
+        {
+          "order": 15,
+          "type": "SpellInfliction",
+          "startFrame": 13,
+          "endFrame": 13,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[3]._sequenceActionData.actionData[2]",
+          "inflictionType": "Pulse",
+          "isExtra": false
+        },
+        {
+          "order": 16,
+          "type": "DamageAction",
+          "startFrame": 13,
+          "endFrame": 13,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[3]._sequenceActionData.actionData[3]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "AtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": false,
+              "onlyEnableForMainChar": false
+            },
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Poise",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 4,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "DefiniteValueCalculation",
+              "poiseValue": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "poise"
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            }
+          ]
+        },
+        {
+          "order": 22,
+          "type": "CreateBuffAction",
+          "startFrame": 13,
+          "endFrame": 13,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[3]._sequenceActionData.actionData[6]",
+          "count": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "buffs": [
+            {
+              "buffId": "buff_common_obtain_ultimate_sp",
+              "assignBlackboard": false,
+              "assignments": []
+            }
+          ],
+          "targetSource": "Source",
+          "buffSource": "ActionSource"
+        },
+        {
+          "order": 77,
+          "type": "ComboCacheAction",
+          "startFrame": 0,
+          "endFrame": 54,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[15]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "NormalSkill",
+              "skillId": "chr_0004_pelica_normal_skill",
+              "cacheEndByAction": true,
+              "overrideCacheTime": true,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0.3,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        },
+        {
+          "order": 78,
+          "type": "AllowNextSkillAction",
+          "startFrame": 28,
+          "endFrame": 54,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[16]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_normal_skill"
+          ]
+        }
+      ],
+      "launches": [],
+      "damages": [
+        {
+          "order": 16,
+          "type": "DamageAction",
+          "startFrame": 13,
+          "endFrame": 13,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[3]._sequenceActionData.actionData[3]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "AtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": false,
+              "onlyEnableForMainChar": false
+            },
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Poise",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 4,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "DefiniteValueCalculation",
+              "poiseValue": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "poise"
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            }
+          ]
+        }
+      ],
+      "createBuffs": [
+        {
+          "order": 22,
+          "type": "CreateBuffAction",
+          "startFrame": 13,
+          "endFrame": 13,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[3]._sequenceActionData.actionData[6]",
+          "count": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "buffs": [
+            {
+              "buffId": "buff_common_obtain_ultimate_sp",
+              "assignBlackboard": false,
+              "assignments": []
+            }
+          ],
+          "targetSource": "Source",
+          "buffSource": "ActionSource"
+        }
+      ],
+      "spellInflictions": [
+        {
+          "order": 15,
+          "type": "SpellInfliction",
+          "startFrame": 13,
+          "endFrame": 13,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[3]._sequenceActionData.actionData[2]",
+          "inflictionType": "Pulse",
+          "isExtra": false
+        }
+      ],
+      "resourceGains": [],
+      "comboMappings": [
+        {
+          "order": 77,
+          "type": "ComboCacheAction",
+          "startFrame": 0,
+          "endFrame": 54,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[15]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "NormalSkill",
+              "skillId": "chr_0004_pelica_normal_skill",
+              "cacheEndByAction": true,
+              "overrideCacheTime": true,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0.3,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        }
+      ],
+      "allowNextWindows": [
+        {
+          "order": 78,
+          "type": "AllowNextSkillAction",
+          "startFrame": 28,
+          "endFrame": 54,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[16]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_normal_skill"
+          ]
+        }
+      ],
+      "hitStops": [],
+      "timeDilations": [],
+      "ultimateTimeActions": []
+    },
+    "chr_0004_pelica_ultimate_skill": {
+      "skillId": "chr_0004_pelica_ultimate_skill",
+      "level": 1,
+      "skillSpecification": "CharacterUltimateSkill",
+      "durationFrames": 114,
+      "exclusiveFrames": 85,
+      "offsetRecordFrame": 0,
+      "cooldownSeconds": 10,
+      "cooldownTicks": 300,
+      "costType": "UltimateSp",
+      "costValue": 80,
+      "blackboard": {
+        "atk_scale": 4.45,
+        "select_radius": 10,
+        "radius": 4,
+        "atk_scale_2": 0,
+        "poise": 20,
+        "crit": 0
+      },
+      "blackboardLineage": {
+        "atk_scale": [
+          {
+            "source": "SkillData.default",
+            "value": 8
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 4.45
+          }
+        ],
+        "select_radius": [
+          {
+            "source": "SkillData.default",
+            "value": 10
+          }
+        ],
+        "radius": [
+          {
+            "source": "SkillData.default",
+            "value": 4
+          }
+        ],
+        "atk_scale_2": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "poise": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 20
+          }
+        ],
+        "crit": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ]
+      },
+      "patch": {
+        "level": 1,
+        "coolDown": 10,
+        "costType": 0,
+        "costValue": 80
+      },
+      "events": [
+        {
+          "order": 13,
+          "type": "UltimateTimeAction",
+          "startFrame": 0,
+          "endFrame": 50,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[2]._sequenceActionData.actionData[0]",
+          "timeScale": 0,
+          "timeDilationPriorityTagId": -1742631616
+        },
+        {
+          "order": 24,
+          "type": "DamageAction",
+          "startFrame": 58,
+          "endFrame": 63,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[6]._sequenceActionData.actionData[2]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 4,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            },
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Poise",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 6,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "DefiniteValueCalculation",
+              "poiseValue": {
+                "useBlackboardKey": true,
+                "value": 20,
+                "blackboardKey": "poise"
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            }
+          ]
+        },
+        {
+          "order": 30,
+          "type": "CreateBuffAction",
+          "startFrame": 0,
+          "endFrame": 85,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[7]._sequenceActionData.actionData[0]",
+          "count": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "buffs": [
+            {
+              "buffId": "buff_common_damage_immune_ult_skill",
+              "assignBlackboard": false,
+              "assignments": []
+            }
+          ],
+          "targetSource": "Owner",
+          "buffSource": "ActionOwner"
+        },
+        {
+          "order": 33,
+          "type": "ComboCacheAction",
+          "startFrame": 0,
+          "endFrame": 90,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[9]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "NormalSkill",
+              "skillId": "chr_0004_pelica_normal_skill",
+              "cacheEndByAction": true,
+              "overrideCacheTime": true,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0.3,
+                "blackboardKey": ""
+              }
+            },
+            {
+              "command": "ComboSkill",
+              "skillId": "chr_0004_pelica_combo_skill",
+              "cacheEndByAction": true,
+              "overrideCacheTime": true,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0.3,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        },
+        {
+          "order": 34,
+          "type": "AllowNextSkillAction",
+          "startFrame": 63,
+          "endFrame": 90,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[10]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_normal_skill",
+            "chr_0004_pelica_combo_skill"
+          ]
+        }
+      ],
+      "launches": [],
+      "damages": [
+        {
+          "order": 24,
+          "type": "DamageAction",
+          "startFrame": 58,
+          "endFrame": 63,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[6]._sequenceActionData.actionData[2]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 4,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            },
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Poise",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 6,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "DefiniteValueCalculation",
+              "poiseValue": {
+                "useBlackboardKey": true,
+                "value": 20,
+                "blackboardKey": "poise"
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            }
+          ]
+        }
+      ],
+      "createBuffs": [
+        {
+          "order": 30,
+          "type": "CreateBuffAction",
+          "startFrame": 0,
+          "endFrame": 85,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[7]._sequenceActionData.actionData[0]",
+          "count": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "buffs": [
+            {
+              "buffId": "buff_common_damage_immune_ult_skill",
+              "assignBlackboard": false,
+              "assignments": []
+            }
+          ],
+          "targetSource": "Owner",
+          "buffSource": "ActionOwner"
+        }
+      ],
+      "spellInflictions": [],
+      "resourceGains": [],
+      "comboMappings": [
+        {
+          "order": 33,
+          "type": "ComboCacheAction",
+          "startFrame": 0,
+          "endFrame": 90,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[9]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "NormalSkill",
+              "skillId": "chr_0004_pelica_normal_skill",
+              "cacheEndByAction": true,
+              "overrideCacheTime": true,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0.3,
+                "blackboardKey": ""
+              }
+            },
+            {
+              "command": "ComboSkill",
+              "skillId": "chr_0004_pelica_combo_skill",
+              "cacheEndByAction": true,
+              "overrideCacheTime": true,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0.3,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        }
+      ],
+      "allowNextWindows": [
+        {
+          "order": 34,
+          "type": "AllowNextSkillAction",
+          "startFrame": 63,
+          "endFrame": 90,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[10]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_normal_skill",
+            "chr_0004_pelica_combo_skill"
+          ]
+        }
+      ],
+      "hitStops": [],
+      "timeDilations": [],
+      "ultimateTimeActions": [
+        {
+          "order": 13,
+          "type": "UltimateTimeAction",
+          "startFrame": 0,
+          "endFrame": 50,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[2]._sequenceActionData.actionData[0]",
+          "timeScale": 0,
+          "timeDilationPriorityTagId": -1742631616
+        }
+      ]
+    },
+    "chr_0004_pelica_power_attack": {
+      "skillId": "chr_0004_pelica_power_attack",
+      "level": 1,
+      "skillSpecification": "CharacterPowerAttack",
+      "durationFrames": 135,
+      "exclusiveFrames": 50,
+      "offsetRecordFrame": 0,
+      "cooldownSeconds": 0,
+      "cooldownTicks": 0,
+      "costType": "UltimateSp",
+      "costValue": 0,
+      "blackboard": {
+        "atk_scale": 4,
+        "cam_duration": 0,
+        "cam_angle": 0,
+        "input_angle": 0,
+        "look_at_x": 0,
+        "vertical": 0,
+        "addition_vertical": 0
+      },
+      "blackboardLineage": {
+        "atk_scale": [
+          {
+            "source": "SkillData.default",
+            "value": 5
+          },
+          {
+            "source": "SkillPatchTable.level1",
+            "value": 4
+          }
+        ],
+        "cam_duration": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "cam_angle": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "input_angle": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "look_at_x": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "vertical": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "addition_vertical": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ]
+      },
+      "patch": {
+        "level": 1,
+        "coolDown": 0,
+        "costType": 0,
+        "costValue": 0
+      },
+      "events": [
+        {
+          "order": 2,
+          "type": "DamageAction",
+          "startFrame": 35,
+          "endFrame": 44,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[2]._sequenceActionData.actionData[0]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 5,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "BreakingAttackCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": false,
+              "onlyEnableForMainChar": false
+            }
+          ]
+        },
+        {
+          "order": 17,
+          "type": "HitStopAction",
+          "startFrame": 35,
+          "endFrame": 38,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[4]._sequenceActionData.actionData[0].succeedActions.actionData[0]",
+          "affectType": "Both",
+          "curveKey": "common",
+          "useDirectCurve": false,
+          "durationSeconds": 0.2,
+          "timeDilationPriorityTagId": -2059842104
+        },
+        {
+          "order": 34,
+          "type": "ComboCacheAction",
+          "startFrame": 0,
+          "endFrame": 58,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[8]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "NormalSkill",
+              "skillId": "chr_0004_pelica_normal_skill",
+              "cacheEndByAction": true,
+              "overrideCacheTime": true,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0.3,
+                "blackboardKey": ""
+              }
+            },
+            {
+              "command": "ComboSkill",
+              "skillId": "chr_0004_pelica_combo_skill",
+              "cacheEndByAction": true,
+              "overrideCacheTime": true,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0.3,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        },
+        {
+          "order": 35,
+          "type": "AllowNextSkillAction",
+          "startFrame": 35,
+          "endFrame": 58,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[9]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_normal_skill",
+            "chr_0004_pelica_combo_skill"
+          ]
+        },
+        {
+          "order": 43,
+          "type": "CreateBuffAction",
+          "startFrame": 0,
+          "endFrame": 50,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[15]._sequenceActionData.actionData[0]",
+          "count": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "buffs": [
+            {
+              "buffId": "buff_common_damage_immune_medium",
+              "assignBlackboard": false,
+              "assignments": []
+            }
+          ],
+          "targetSource": "Owner",
+          "buffSource": "ActionOwner"
+        },
+        {
+          "order": 50,
+          "type": "CreateBuffAction",
+          "startFrame": 0,
+          "endFrame": 35,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[22]._sequenceActionData.actionData[0]",
+          "count": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "buffs": [
+            {
+              "buffId": "buff_common_power_attack_disable_cast_skill",
+              "assignBlackboard": false,
+              "assignments": []
+            }
+          ],
+          "targetSource": "Owner",
+          "buffSource": "ActionOwner"
+        }
+      ],
+      "launches": [],
+      "damages": [
+        {
+          "order": 2,
+          "type": "DamageAction",
+          "startFrame": 35,
+          "endFrame": 44,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[2]._sequenceActionData.actionData[0]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 5,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "BreakingAttackCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": false,
+              "onlyEnableForMainChar": false
+            }
+          ]
+        }
+      ],
+      "createBuffs": [
+        {
+          "order": 43,
+          "type": "CreateBuffAction",
+          "startFrame": 0,
+          "endFrame": 50,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[15]._sequenceActionData.actionData[0]",
+          "count": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "buffs": [
+            {
+              "buffId": "buff_common_damage_immune_medium",
+              "assignBlackboard": false,
+              "assignments": []
+            }
+          ],
+          "targetSource": "Owner",
+          "buffSource": "ActionOwner"
+        },
+        {
+          "order": 50,
+          "type": "CreateBuffAction",
+          "startFrame": 0,
+          "endFrame": 35,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[22]._sequenceActionData.actionData[0]",
+          "count": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "buffs": [
+            {
+              "buffId": "buff_common_power_attack_disable_cast_skill",
+              "assignBlackboard": false,
+              "assignments": []
+            }
+          ],
+          "targetSource": "Owner",
+          "buffSource": "ActionOwner"
+        }
+      ],
+      "spellInflictions": [],
+      "resourceGains": [],
+      "comboMappings": [
+        {
+          "order": 34,
+          "type": "ComboCacheAction",
+          "startFrame": 0,
+          "endFrame": 58,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[8]._sequenceActionData.actionData[0]",
+          "mappings": [
+            {
+              "command": "NormalSkill",
+              "skillId": "chr_0004_pelica_normal_skill",
+              "cacheEndByAction": true,
+              "overrideCacheTime": true,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0.3,
+                "blackboardKey": ""
+              }
+            },
+            {
+              "command": "ComboSkill",
+              "skillId": "chr_0004_pelica_combo_skill",
+              "cacheEndByAction": true,
+              "overrideCacheTime": true,
+              "cacheTime": {
+                "useBlackboardKey": false,
+                "value": 0.3,
+                "blackboardKey": ""
+              }
+            }
+          ]
+        }
+      ],
+      "allowNextWindows": [
+        {
+          "order": 35,
+          "type": "AllowNextSkillAction",
+          "startFrame": 35,
+          "endFrame": 58,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[9]._sequenceActionData.actionData[0]",
+          "allowedSkillIds": [
+            "chr_0004_pelica_normal_skill",
+            "chr_0004_pelica_combo_skill"
+          ]
+        }
+      ],
+      "hitStops": [
+        {
+          "order": 17,
+          "type": "HitStopAction",
+          "startFrame": 35,
+          "endFrame": 38,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[4]._sequenceActionData.actionData[0].succeedActions.actionData[0]",
+          "affectType": "Both",
+          "curveKey": "common",
+          "useDirectCurve": false,
+          "durationSeconds": 0.2,
+          "timeDilationPriorityTagId": -2059842104
+        }
+      ],
+      "timeDilations": [],
+      "ultimateTimeActions": []
+    },
+    "chr_0004_pelica_attack1_projhit": {
+      "skillId": "chr_0004_pelica_attack1_projhit",
+      "level": 1,
+      "skillSpecification": "CharacterNormalAttack",
+      "durationFrames": 0,
+      "exclusiveFrames": 0,
+      "offsetRecordFrame": 0,
+      "cooldownSeconds": 0,
+      "cooldownTicks": 0,
+      "costType": "UltimateSp",
+      "costValue": 0,
+      "blackboard": {
+        "atk_scale": 0,
+        "atb": 0
+      },
+      "blackboardLineage": {
+        "atk_scale": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "atb": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ]
+      },
+      "patch": null,
+      "events": [
+        {
+          "order": 0,
+          "type": "DamageAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[0]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 0.9,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            }
+          ]
+        },
+        {
+          "order": 6,
+          "type": "ObtainCostAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[1].succeedActions.actionData[1]",
+          "costType": "Atb",
+          "value": {
+            "useBlackboardKey": true,
+            "value": 0,
+            "blackboardKey": "atb"
+          },
+          "coefficient": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "atbSourceType": "NormalAttack",
+          "gainMethod": "Gain"
+        }
+      ],
+      "launches": [],
+      "damages": [
+        {
+          "order": 0,
+          "type": "DamageAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[0]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 0.9,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            }
+          ]
+        }
+      ],
+      "createBuffs": [],
+      "spellInflictions": [],
+      "resourceGains": [
+        {
+          "order": 6,
+          "type": "ObtainCostAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[1].succeedActions.actionData[1]",
+          "costType": "Atb",
+          "value": {
+            "useBlackboardKey": true,
+            "value": 0,
+            "blackboardKey": "atb"
+          },
+          "coefficient": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "atbSourceType": "NormalAttack",
+          "gainMethod": "Gain"
+        }
+      ],
+      "comboMappings": [],
+      "allowNextWindows": [],
+      "hitStops": [],
+      "timeDilations": [],
+      "ultimateTimeActions": []
+    },
+    "chr_0004_pelica_attack2_projhit": {
+      "skillId": "chr_0004_pelica_attack2_projhit",
+      "level": 1,
+      "skillSpecification": "CharacterNormalAttack",
+      "durationFrames": 3,
+      "exclusiveFrames": 0,
+      "offsetRecordFrame": 0,
+      "cooldownSeconds": 0,
+      "cooldownTicks": 0,
+      "costType": "UltimateSp",
+      "costValue": 0,
+      "blackboard": {
+        "atk_scale": 0,
+        "atb": 0
+      },
+      "blackboardLineage": {
+        "atk_scale": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "atb": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ]
+      },
+      "patch": null,
+      "events": [
+        {
+          "order": 0,
+          "type": "DamageAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[0]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 1,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            }
+          ]
+        },
+        {
+          "order": 5,
+          "type": "ObtainCostAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[1].succeedActions.actionData[1]",
+          "costType": "Atb",
+          "value": {
+            "useBlackboardKey": true,
+            "value": 0,
+            "blackboardKey": "atb"
+          },
+          "coefficient": {
+            "useBlackboardKey": false,
+            "value": 0.3333333,
+            "blackboardKey": ""
+          },
+          "atbSourceType": "NormalAttack",
+          "gainMethod": "Gain"
+        }
+      ],
+      "launches": [],
+      "damages": [
+        {
+          "order": 0,
+          "type": "DamageAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[0]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 1,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            }
+          ]
+        }
+      ],
+      "createBuffs": [],
+      "spellInflictions": [],
+      "resourceGains": [
+        {
+          "order": 5,
+          "type": "ObtainCostAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[1].succeedActions.actionData[1]",
+          "costType": "Atb",
+          "value": {
+            "useBlackboardKey": true,
+            "value": 0,
+            "blackboardKey": "atb"
+          },
+          "coefficient": {
+            "useBlackboardKey": false,
+            "value": 0.3333333,
+            "blackboardKey": ""
+          },
+          "atbSourceType": "NormalAttack",
+          "gainMethod": "Gain"
+        }
+      ],
+      "comboMappings": [],
+      "allowNextWindows": [],
+      "hitStops": [],
+      "timeDilations": [],
+      "ultimateTimeActions": []
+    },
+    "chr_0004_pelica_attack3_projhit": {
+      "skillId": "chr_0004_pelica_attack3_projhit",
+      "level": 1,
+      "skillSpecification": "CharacterNormalAttack",
+      "durationFrames": 0,
+      "exclusiveFrames": 0,
+      "offsetRecordFrame": 0,
+      "cooldownSeconds": 0,
+      "cooldownTicks": 0,
+      "costType": "UltimateSp",
+      "costValue": 0,
+      "blackboard": {},
+      "blackboardLineage": {},
+      "patch": null,
+      "events": [
+        {
+          "order": 0,
+          "type": "DamageAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[0]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 1.1,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            }
+          ]
+        },
+        {
+          "order": 8,
+          "type": "ObtainCostAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[2].succeedActions.actionData[1]",
+          "costType": "Atb",
+          "value": {
+            "useBlackboardKey": true,
+            "value": 0,
+            "blackboardKey": "atb"
+          },
+          "coefficient": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "atbSourceType": "NormalAttack",
+          "gainMethod": "Gain"
+        }
+      ],
+      "launches": [],
+      "damages": [
+        {
+          "order": 0,
+          "type": "DamageAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[0]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 1.1,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            }
+          ]
+        }
+      ],
+      "createBuffs": [],
+      "spellInflictions": [],
+      "resourceGains": [
+        {
+          "order": 8,
+          "type": "ObtainCostAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[2].succeedActions.actionData[1]",
+          "costType": "Atb",
+          "value": {
+            "useBlackboardKey": true,
+            "value": 0,
+            "blackboardKey": "atb"
+          },
+          "coefficient": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "atbSourceType": "NormalAttack",
+          "gainMethod": "Gain"
+        }
+      ],
+      "comboMappings": [],
+      "allowNextWindows": [],
+      "hitStops": [],
+      "timeDilations": [],
+      "ultimateTimeActions": []
+    },
+    "chr_0004_pelica_attack4_projhit": {
+      "skillId": "chr_0004_pelica_attack4_projhit",
+      "level": 1,
+      "skillSpecification": "CharacterNormalAttack",
+      "durationFrames": 0,
+      "exclusiveFrames": 0,
+      "offsetRecordFrame": 0,
+      "cooldownSeconds": 0,
+      "cooldownTicks": 0,
+      "costType": "UltimateSp",
+      "costValue": 0,
+      "blackboard": {},
+      "blackboardLineage": {},
+      "patch": null,
+      "events": [
+        {
+          "order": 0,
+          "type": "DamageAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[0]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 1.1,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            },
+            {
+              "damageType": "Physical",
+              "damageAttributeType": "Poise",
+              "scale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "DefiniteValueCalculation",
+              "poiseValue": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "poise"
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": true
+            }
+          ]
+        },
+        {
+          "order": 8,
+          "type": "ObtainCostAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[2].succeedActions.actionData[1]",
+          "costType": "Atb",
+          "value": {
+            "useBlackboardKey": true,
+            "value": 0,
+            "blackboardKey": "atb"
+          },
+          "coefficient": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "atbSourceType": "NormalAttack",
+          "gainMethod": "Gain"
+        },
+        {
+          "order": 9,
+          "type": "HitStopAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[2].succeedActions.actionData[2]",
+          "affectType": "OnlyTarget",
+          "curveKey": "char_normal_attack",
+          "useDirectCurve": false,
+          "durationSeconds": 0.3,
+          "timeDilationPriorityTagId": -2059842104
+        }
+      ],
+      "launches": [],
+      "damages": [
+        {
+          "order": 0,
+          "type": "DamageAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[0]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 1.1,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            },
+            {
+              "damageType": "Physical",
+              "damageAttributeType": "Poise",
+              "scale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "DefiniteValueCalculation",
+              "poiseValue": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "poise"
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": true
+            }
+          ]
+        }
+      ],
+      "createBuffs": [],
+      "spellInflictions": [],
+      "resourceGains": [
+        {
+          "order": 8,
+          "type": "ObtainCostAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[2].succeedActions.actionData[1]",
+          "costType": "Atb",
+          "value": {
+            "useBlackboardKey": true,
+            "value": 0,
+            "blackboardKey": "atb"
+          },
+          "coefficient": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "atbSourceType": "NormalAttack",
+          "gainMethod": "Gain"
+        }
+      ],
+      "comboMappings": [],
+      "allowNextWindows": [],
+      "hitStops": [
+        {
+          "order": 9,
+          "type": "HitStopAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[2].succeedActions.actionData[2]",
+          "affectType": "OnlyTarget",
+          "curveKey": "char_normal_attack",
+          "useDirectCurve": false,
+          "durationSeconds": 0.3,
+          "timeDilationPriorityTagId": -2059842104
+        }
+      ],
+      "timeDilations": [],
+      "ultimateTimeActions": []
+    },
+    "chr_0004_pelica_combo_skill_projhit": {
+      "skillId": "chr_0004_pelica_combo_skill_projhit",
+      "level": 1,
+      "skillSpecification": "CharacterComboSkill",
+      "durationFrames": 0,
+      "exclusiveFrames": 0,
+      "offsetRecordFrame": 0,
+      "cooldownSeconds": 0,
+      "cooldownTicks": 0,
+      "costType": "UltimateSp",
+      "costValue": 0,
+      "blackboard": {
+        "atk_scale": 1,
+        "poise": 0,
+        "usp": 0,
+        "atb": 0,
+        "duration": 5,
+        "talent2": 0,
+        "level": 1,
+        "extra_scaling": 1
+      },
+      "blackboardLineage": {
+        "atk_scale": [
+          {
+            "source": "SkillData.default",
+            "value": 1
+          }
+        ],
+        "poise": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "usp": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "atb": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "duration": [
+          {
+            "source": "SkillData.default",
+            "value": 5
+          }
+        ],
+        "talent2": [
+          {
+            "source": "SkillData.default",
+            "value": 0
+          }
+        ],
+        "level": [
+          {
+            "source": "SkillData.default",
+            "value": 1
+          }
+        ],
+        "extra_scaling": [
+          {
+            "source": "SkillData.default",
+            "value": 1
+          }
+        ]
+      },
+      "patch": null,
+      "events": [
+        {
+          "order": 9,
+          "type": "LaunchProjectile",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[0].succeedActions.actionData[2]",
+          "projectileId": "projectile_chr_0004_pelica_combo_skill",
+          "childSkillId": "chr_0004_pelica_combo_skill_projhit",
+          "assignEntityBlackboard": true
+        },
+        {
+          "order": 12,
+          "type": "CreateBuffAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[3]",
+          "count": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "buffs": [
+            {
+              "buffId": "buff_chr_0004_pelica_combo_skill_tutorial_marker",
+              "assignBlackboard": false,
+              "assignments": []
+            }
+          ],
+          "targetSource": "Source",
+          "buffSource": "ActionSource"
+        },
+        {
+          "order": 13,
+          "type": "CreateBuffAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[4]",
+          "count": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "buffs": [
+            {
+              "buffId": "buff_common_pulse_pulse_conduct_triggered",
+              "assignBlackboard": true,
+              "assignments": [
+                {
+                  "targetKey": "duration",
+                  "sourceKey": "duration",
+                  "direct": false,
+                  "directValue": 7.5
+                },
+                {
+                  "targetKey": "extra_scaling",
+                  "sourceKey": "extra_scaling",
+                  "direct": false,
+                  "directValue": 0
+                }
+              ]
+            }
+          ],
+          "targetSource": "Target",
+          "buffSource": "ActionSource"
+        },
+        {
+          "order": 14,
+          "type": "DamageAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[5]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 2.5,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            },
+            {
+              "damageType": "Physical",
+              "damageAttributeType": "Poise",
+              "scale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "DefiniteValueCalculation",
+              "poiseValue": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "poise"
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            }
+          ]
+        },
+        {
+          "order": 18,
+          "type": "HitStopAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[7]",
+          "affectType": "OnlyTarget",
+          "curveKey": "char_normal_attack",
+          "useDirectCurve": false,
+          "durationSeconds": 0.2,
+          "timeDilationPriorityTagId": -2059842104
+        },
+        {
+          "order": 20,
+          "type": "ObtainCostAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[9]",
+          "costType": "UltimateSp",
+          "value": {
+            "useBlackboardKey": true,
+            "value": 0.2,
+            "blackboardKey": "usp"
+          },
+          "coefficient": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "atbSourceType": "Default",
+          "gainMethod": "Gain"
+        },
+        {
+          "order": 21,
+          "type": "ObtainCostAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[10]",
+          "costType": "Atb",
+          "value": {
+            "useBlackboardKey": true,
+            "value": 0.2,
+            "blackboardKey": "atb"
+          },
+          "coefficient": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "atbSourceType": "Skill",
+          "gainMethod": "Gain"
+        }
+      ],
+      "launches": [
+        {
+          "order": 9,
+          "type": "LaunchProjectile",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[0].succeedActions.actionData[2]",
+          "projectileId": "projectile_chr_0004_pelica_combo_skill",
+          "childSkillId": "chr_0004_pelica_combo_skill_projhit",
+          "assignEntityBlackboard": true
+        }
+      ],
+      "damages": [
+        {
+          "order": 14,
+          "type": "DamageAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[5]",
+          "damageUnits": [
+            {
+              "damageType": "Pulse",
+              "damageAttributeType": "Hp",
+              "scale": {
+                "useBlackboardKey": true,
+                "value": 2.5,
+                "blackboardKey": "atk_scale"
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "",
+              "poiseValue": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            },
+            {
+              "damageType": "Physical",
+              "damageAttributeType": "Poise",
+              "scale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "calculationType": "SimpleAtkScaleCalculation",
+              "calculationMultiplier": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "poiseCalculationType": "DefiniteValueCalculation",
+              "poiseValue": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "poise"
+              },
+              "poiseApplyScale": false,
+              "poiseValueScale": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              },
+              "enablePoiseBreakTimeDilation": true,
+              "simpleCalculation": true,
+              "onlyEnableForMainChar": false
+            }
+          ]
+        }
+      ],
+      "createBuffs": [
+        {
+          "order": 12,
+          "type": "CreateBuffAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[3]",
+          "count": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "buffs": [
+            {
+              "buffId": "buff_chr_0004_pelica_combo_skill_tutorial_marker",
+              "assignBlackboard": false,
+              "assignments": []
+            }
+          ],
+          "targetSource": "Source",
+          "buffSource": "ActionSource"
+        },
+        {
+          "order": 13,
+          "type": "CreateBuffAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[4]",
+          "count": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "buffs": [
+            {
+              "buffId": "buff_common_pulse_pulse_conduct_triggered",
+              "assignBlackboard": true,
+              "assignments": [
+                {
+                  "targetKey": "duration",
+                  "sourceKey": "duration",
+                  "direct": false,
+                  "directValue": 7.5
+                },
+                {
+                  "targetKey": "extra_scaling",
+                  "sourceKey": "extra_scaling",
+                  "direct": false,
+                  "directValue": 0
+                }
+              ]
+            }
+          ],
+          "targetSource": "Target",
+          "buffSource": "ActionSource"
+        }
+      ],
+      "spellInflictions": [],
+      "resourceGains": [
+        {
+          "order": 20,
+          "type": "ObtainCostAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[9]",
+          "costType": "UltimateSp",
+          "value": {
+            "useBlackboardKey": true,
+            "value": 0.2,
+            "blackboardKey": "usp"
+          },
+          "coefficient": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "atbSourceType": "Default",
+          "gainMethod": "Gain"
+        },
+        {
+          "order": 21,
+          "type": "ObtainCostAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[10]",
+          "costType": "Atb",
+          "value": {
+            "useBlackboardKey": true,
+            "value": 0.2,
+            "blackboardKey": "atb"
+          },
+          "coefficient": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "atbSourceType": "Skill",
+          "gainMethod": "Gain"
+        }
+      ],
+      "comboMappings": [],
+      "allowNextWindows": [],
+      "hitStops": [
+        {
+          "order": 18,
+          "type": "HitStopAction",
+          "startFrame": 0,
+          "endFrame": 3,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[0]._sequenceActionData.actionData[7]",
+          "affectType": "OnlyTarget",
+          "curveKey": "char_normal_attack",
+          "useDirectCurve": false,
+          "durationSeconds": 0.2,
+          "timeDilationPriorityTagId": -2059842104
+        }
+      ],
+      "timeDilations": [],
+      "ultimateTimeActions": []
+    }
+  },
+  "buffs": {
+    "buff_chr_0004_pelica_combo_skill_tutorial_marker": {
+      "buffId": "buff_chr_0004_pelica_combo_skill_tutorial_marker",
+      "lifeType": "Limited",
+      "duration": {
+        "useBlackboardKey": false,
+        "value": 1,
+        "blackboardKey": ""
+      },
+      "durationSeconds": 1,
+      "durationTicks": 30,
+      "blackboard": {},
+      "stacking": {
+        "identifierType": "Id",
+        "stackingType": "Unique",
+        "stackingKey": "",
+        "maxStackCount": 1
+      },
+      "attributeModifiers": [],
+      "damageModifiers": [],
+      "startActions": []
+    },
+    "buff_common_pulse_pulse_conduct_triggered": {
+      "buffId": "buff_common_pulse_pulse_conduct_triggered",
+      "lifeType": "Limited",
+      "duration": {
+        "useBlackboardKey": false,
+        "value": 2,
+        "blackboardKey": "duration"
+      },
+      "durationSeconds": 2,
+      "durationTicks": 60,
+      "blackboard": {
+        "duration": 0,
+        "count": 1,
+        "real_duration": 0,
+        "consumed_type": 1,
+        "consumed_layer": 0,
+        "extra_scaling": 1
+      },
+      "stacking": {
+        "identifierType": "Id",
+        "stackingType": "Unlimited",
+        "stackingKey": "pulse_triggered",
+        "maxStackCount": 1
+      },
+      "attributeModifiers": [],
+      "damageModifiers": [],
+      "startActions": [
+        {
+          "type": "IfElseAction",
+          "conditions": [
+            {
+              "type": "CompareFloat",
+              "left": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "duration"
+              },
+              "operator": "GT",
+              "right": {
+                "useBlackboardKey": false,
+                "value": 0,
+                "blackboardKey": ""
+              }
+            }
+          ],
+          "success": [
+            {
+              "type": "ModifyDynamicBlackboard",
+              "key": "real_duration",
+              "operation": "Assign",
+              "value": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "duration"
+              }
+            }
+          ],
+          "failure": [
+            {
+              "type": "ReadSkillSettingData",
+              "reads": [
+                {
+                  "dataKey": "导电持续时间",
+                  "column": {
+                    "useBlackboardKey": true,
+                    "value": 1,
+                    "blackboardKey": "count"
+                  },
+                  "storeKey": "real_duration"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "CreateBuffAction",
+          "count": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "buffs": [
+            {
+              "buffId": "buff_common_pulse_pulse_conduct_triggered_do",
+              "assignBlackboard": true,
+              "assignments": [
+                {
+                  "targetKey": "duration",
+                  "sourceKey": "real_duration",
+                  "direct": false,
+                  "directValue": 0
+                },
+                {
+                  "targetKey": "count",
+                  "sourceKey": "count",
+                  "direct": false,
+                  "directValue": 0
+                },
+                {
+                  "targetKey": "consumed_type",
+                  "sourceKey": "consumed_type",
+                  "direct": false,
+                  "directValue": 0
+                },
+                {
+                  "targetKey": "consumed_layer",
+                  "sourceKey": "consumed_layer",
+                  "direct": false,
+                  "directValue": 0
+                },
+                {
+                  "targetKey": "extra_scaling",
+                  "sourceKey": "extra_scaling",
+                  "direct": false,
+                  "directValue": 0
+                }
+              ]
+            }
+          ],
+          "targetSource": "Owner",
+          "buffSource": "ActionSource"
+        }
+      ]
+    },
+    "buff_common_pulse_pulse_conduct_triggered_do": {
+      "buffId": "buff_common_pulse_pulse_conduct_triggered_do",
+      "lifeType": "Limited",
+      "duration": {
+        "useBlackboardKey": true,
+        "value": 5,
+        "blackboardKey": "duration"
+      },
+      "durationSeconds": 5,
+      "durationTicks": 150,
+      "blackboard": {
+        "spell_resistance_decrease": 0.2,
+        "duration": 5,
+        "final_spell_resistance_decrease": 0,
+        "count": 1,
+        "extra_scaling": 1
+      },
+      "stacking": {
+        "identifierType": "StackingKey",
+        "stackingType": "Stack",
+        "stackingKey": "pulse_triggered",
+        "maxStackCount": 1
+      },
+      "attributeModifiers": [],
+      "damageModifiers": [
+        {
+          "side": "Defender",
+          "damageTypes": [
+            "Fire"
+          ],
+          "processors": [
+            {
+              "side": "Defender",
+              "zoneName": "NormalCalcZone",
+              "addition": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "final_spell_resistance_decrease"
+              }
+            }
+          ]
+        },
+        {
+          "side": "Defender",
+          "damageTypes": [
+            "Pulse"
+          ],
+          "processors": [
+            {
+              "side": "Defender",
+              "zoneName": "NormalCalcZone",
+              "addition": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "final_spell_resistance_decrease"
+              }
+            }
+          ]
+        },
+        {
+          "side": "Defender",
+          "damageTypes": [
+            "Cryst"
+          ],
+          "processors": [
+            {
+              "side": "Defender",
+              "zoneName": "NormalCalcZone",
+              "addition": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "final_spell_resistance_decrease"
+              }
+            }
+          ]
+        },
+        {
+          "side": "Defender",
+          "damageTypes": [
+            "Natural"
+          ],
+          "processors": [
+            {
+              "side": "Defender",
+              "zoneName": "NormalCalcZone",
+              "addition": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "final_spell_resistance_decrease"
+              }
+            }
+          ]
+        }
+      ],
+      "startActions": [
+        {
+          "type": "CreateBuffAction",
+          "count": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "buffs": [
+            {
+              "buffId": "buff_common_pulse_triggered_start",
+              "assignBlackboard": false,
+              "assignments": []
+            }
+          ],
+          "targetSource": "Owner",
+          "buffSource": "ActionSource"
+        },
+        {
+          "type": "ReadSkillSettingData",
+          "reads": [
+            {
+              "dataKey": "导电法术伤害提高",
+              "column": {
+                "useBlackboardKey": true,
+                "value": 1,
+                "blackboardKey": "count"
+              },
+              "storeKey": "spell_resistance_decrease"
+            }
+          ]
+        },
+        {
+          "type": "StoreAttributeValue",
+          "attributeType": "PulseAbnormalDamageIncrease",
+          "divisor": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "multiplier": {
+            "useBlackboardKey": true,
+            "value": 1,
+            "blackboardKey": "spell_resistance_decrease"
+          },
+          "baseValue": {
+            "useBlackboardKey": true,
+            "value": 1,
+            "blackboardKey": "spell_resistance_decrease"
+          },
+          "key": "final_spell_resistance_decrease"
+        },
+        {
+          "type": "ModifyDynamicBlackboard",
+          "key": "final_spell_resistance_decrease",
+          "operation": "Multiply",
+          "value": {
+            "useBlackboardKey": true,
+            "value": 0,
+            "blackboardKey": "extra_scaling"
+          }
+        },
+        {
+          "type": "CreateBuffAction",
+          "count": {
+            "useBlackboardKey": false,
+            "value": 1,
+            "blackboardKey": ""
+          },
+          "buffs": [
+            {
+              "buffId": "buff_common_pulse_triggered_fx",
+              "assignBlackboard": false,
+              "assignments": []
+            }
+          ],
+          "targetSource": "Owner",
+          "buffSource": "ActionSource"
+        },
+        {
+          "type": "OnSpellAbnormalStartFinish",
+          "supported": false
+        }
+      ]
+    },
+    "buff_common_pulse_triggered_start": {
+      "buffId": "buff_common_pulse_triggered_start",
+      "lifeType": "Limited",
+      "duration": {
+        "useBlackboardKey": false,
+        "value": 3,
+        "blackboardKey": "duration"
+      },
+      "durationSeconds": 3,
+      "durationTicks": 90,
+      "blackboard": {},
+      "stacking": {
+        "identifierType": "Id",
+        "stackingType": "Unlimited",
+        "stackingKey": "pulse_triggered",
+        "maxStackCount": 1
+      },
+      "attributeModifiers": [],
+      "damageModifiers": [],
+      "startActions": [
+        {
+          "type": "IgniteBuffTextAction",
+          "supported": false
+        }
+      ]
+    },
+    "buff_common_pulse_triggered_fx": {
+      "buffId": "buff_common_pulse_triggered_fx",
+      "lifeType": "Limited",
+      "duration": {
+        "useBlackboardKey": false,
+        "value": 5,
+        "blackboardKey": "duration"
+      },
+      "durationSeconds": 5,
+      "durationTicks": 150,
+      "blackboard": {},
+      "stacking": {
+        "identifierType": "Id",
+        "stackingType": "Unlimited",
+        "stackingKey": "",
+        "maxStackCount": 0
+      },
+      "attributeModifiers": [],
+      "damageModifiers": [],
+      "startActions": [
+        {
+          "type": "EnemyHurtAnimAction",
+          "supported": false
+        },
+        {
+          "type": "EffectAction",
+          "supported": false
+        },
+        {
+          "type": "CameraImpulseAction",
+          "supported": false
+        },
+        {
+          "type": "HitStopAction",
+          "supported": false
+        },
+        {
+          "type": "PlaySoundAction",
+          "supported": false
+        }
+      ]
+    },
+    "buff_common_energy_shard_attached_pulse": {
+      "buffId": "buff_common_energy_shard_attached_pulse",
+      "lifeType": "Limited",
+      "duration": {
+        "useBlackboardKey": true,
+        "value": 2,
+        "blackboardKey": "duration"
+      },
+      "durationSeconds": 20,
+      "durationTicks": 600,
+      "blackboard": {
+        "duration": 20,
+        "atk_scale": 0,
+        "burning_atk_scale": 0,
+        "count": 0,
+        "def_decrease_tick": 0,
+        "max_def_decrease": 0,
+        "shatter_dmg": 0,
+        "frozen_duration": 0,
+        "start_def_decrease": 0,
+        "corrupt_duration": 0
+      },
+      "stacking": {
+        "identifierType": "Id",
+        "stackingType": "EnhanceAndRefresh",
+        "stackingKey": "",
+        "maxStackCount": 4
+      },
+      "attributeModifiers": [],
+      "damageModifiers": [],
+      "startActions": []
+    },
+    "buff_common_obtain_ultimate_sp": {
+      "buffId": "buff_common_obtain_ultimate_sp",
+      "lifeType": "Limited",
+      "duration": {
+        "useBlackboardKey": false,
+        "value": 1,
+        "blackboardKey": "stun_duration"
+      },
+      "durationSeconds": 1,
+      "durationTicks": 30,
+      "blackboard": {
+        "usp_self": 0,
+        "usp_everyone": 6.5,
+        "ratio": 1
+      },
+      "stacking": {
+        "identifierType": "Id",
+        "stackingType": "Unlimited",
+        "stackingKey": "",
+        "maxStackCount": 0
+      },
+      "attributeModifiers": [],
+      "damageModifiers": [],
+      "startActions": [
+        {
+          "type": "ObtainUspInNormalSkill",
+          "coefficient": {
+            "useBlackboardKey": true,
+            "value": 1,
+            "blackboardKey": "ratio"
+          },
+          "sourceTarget": "Source"
+        }
+      ]
+    },
+    "buff_common_damage_immune_ult_skill": {
+      "buffId": "buff_common_damage_immune_ult_skill",
+      "lifeType": "Limited",
+      "duration": {
+        "useBlackboardKey": true,
+        "value": 2,
+        "blackboardKey": "duration"
+      },
+      "durationSeconds": 9999,
+      "durationTicks": 299970,
+      "blackboard": {
+        "duration": 9999
+      },
+      "stacking": {
+        "identifierType": "Id",
+        "stackingType": "Unlimited",
+        "stackingKey": "",
+        "maxStackCount": 0
+      },
+      "attributeModifiers": [],
+      "damageModifiers": [],
+      "startActions": []
+    },
+    "buff_common_poise_break_damage_taken_scale": {
+      "buffId": "buff_common_poise_break_damage_taken_scale",
+      "lifeType": "Infinity",
+      "duration": {
+        "useBlackboardKey": false,
+        "value": 0.1,
+        "blackboardKey": ""
+      },
+      "durationSeconds": 0.1,
+      "durationTicks": 3,
+      "blackboard": {
+        "dmg_up": 0.3
+      },
+      "stacking": {
+        "identifierType": "Id",
+        "stackingType": "Unlimited",
+        "stackingKey": "",
+        "maxStackCount": 1
+      },
+      "attributeModifiers": [],
+      "damageModifiers": [
+        {
+          "side": "Defender",
+          "damageTypes": [],
+          "processors": [
+            {
+              "side": "Defender",
+              "zoneName": "ProdCalcZone",
+              "addition": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "dmg_up"
+              }
+            }
+          ]
+        }
+      ],
+      "startActions": []
+    },
+    "buff_common_poise_can_be_breaking_attacked": {
+      "buffId": "buff_common_poise_can_be_breaking_attacked",
+      "lifeType": "Infinity",
+      "duration": {
+        "useBlackboardKey": false,
+        "value": 0.1,
+        "blackboardKey": ""
+      },
+      "durationSeconds": 0.1,
+      "durationTicks": 3,
+      "blackboard": {},
+      "stacking": {
+        "identifierType": "Id",
+        "stackingType": "Unlimited",
+        "stackingKey": "",
+        "maxStackCount": 1
+      },
+      "attributeModifiers": [],
+      "damageModifiers": [],
+      "startActions": []
+    },
+    "buff_common_damage_immune_medium": {
+      "buffId": "buff_common_damage_immune_medium",
+      "lifeType": "Limited",
+      "duration": {
+        "useBlackboardKey": true,
+        "value": 2,
+        "blackboardKey": "duration"
+      },
+      "durationSeconds": 9999,
+      "durationTicks": 299970,
+      "blackboard": {
+        "duration": 9999
+      },
+      "stacking": {
+        "identifierType": "Id",
+        "stackingType": "Unlimited",
+        "stackingKey": "",
+        "maxStackCount": 0
+      },
+      "attributeModifiers": [],
+      "damageModifiers": [],
+      "startActions": []
+    },
+    "buff_common_power_attack_disable_cast_skill": {
+      "buffId": "buff_common_power_attack_disable_cast_skill",
+      "lifeType": "Infinity",
+      "duration": {
+        "useBlackboardKey": false,
+        "value": 0,
+        "blackboardKey": ""
+      },
+      "durationSeconds": 0,
+      "durationTicks": 0,
+      "blackboard": {},
+      "stacking": {
+        "identifierType": "Id",
+        "stackingType": "Unlimited",
+        "stackingKey": "",
+        "maxStackCount": 0
+      },
+      "attributeModifiers": [],
+      "damageModifiers": [],
+      "startActions": []
+    }
+  }
+}

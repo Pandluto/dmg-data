@@ -1,0 +1,984 @@
+{
+  "_meta": {
+    "schemaVersion": 1,
+    "kind": "BuffData",
+    "id": "buff_common_poise_can_be_breaking_attacked",
+    "generator": "AKEV3BuffData.analyzeBuff",
+    "generatorWrapper": "scripts/export-ake-analysis.mjs",
+    "generatorWrapperSha256": "571c3da2e52854f78c3fe352b745de6555f5ead1f49c075538396d5185eff692",
+    "akeDatabaseCommit": "1bb9549705eba2601affed4cb8a7ea69ba13b150",
+    "akedataJsonRevision": "2026-08-22T05:51:44.260485+08:00",
+    "inputs": [
+      {
+        "role": "raw",
+        "path": "reference/public-data/akedata/Json/BuffData/buff_common_poise_can_be_breaking_attacked.json",
+        "sha256": "ad3fa54c0a45ceaf4b2a42f54251842b730532927180a7d4c50fa460004d73a0"
+      },
+      {
+        "role": "analyzer",
+        "path": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+        "sha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7"
+      }
+    ],
+    "semantics": "research-view-model-not-runtime-state"
+  },
+  "analysis": {
+    "identity": {
+      "id": "buff_common_poise_can_be_breaking_attacked",
+      "hasIcon": false,
+      "spritePath": "",
+      "iconPath": "",
+      "iconConfig": {
+        "showInHeadBarCommon": false,
+        "showInHeadBarAttached": false,
+        "showInSquadIcon": false,
+        "onlyShowForMainCharacter": false,
+        "abnormalColorType": "Physical",
+        "iconStyleInSquad": "Default"
+      }
+    },
+    "core": {
+      "lifeType": "Infinity",
+      "duration": {
+        "value": 0.1,
+        "fallbackValue": 0.1,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "triggerInterval": {
+        "value": -1,
+        "fallbackValue": -1,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "waitFirstTriggerInterval": true,
+      "maxTriggerCnt": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "hasAddingCooldown": false,
+      "addingCooldown": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "ignoreCooldownWhenAdding": false,
+      "ignoreTagImmune": false,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "finishOnRepatriate": false
+    },
+    "stacking": {
+      "identifierType": "Id",
+      "stackingType": "Unlimited",
+      "stackingKey": "",
+      "usePriorityKey": false,
+      "priorityKey": "",
+      "negatePriority": false,
+      "priority": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "useMaxStackCntKey": false,
+      "maxStackCntKey": "",
+      "maxStackCnt": {
+        "value": 1,
+        "fallbackValue": 1,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "isNeedStackEffect": false,
+      "stackEffects": []
+    },
+    "dispel": {
+      "canBeDispelled": false,
+      "dispelledLevel": "Default"
+    },
+    "modifiers": {
+      "isConvertedAttribute": false,
+      "attributes": [],
+      "damage": [],
+      "heal": [],
+      "poise": [],
+      "global": [],
+      "shields": []
+    },
+    "tags": {
+      "apply": [
+        {
+          "index": 0,
+          "tagId": 387258838,
+          "queryType": "",
+          "path": "applyTags[0]"
+        }
+      ],
+      "extendAfterTrigger": []
+    },
+    "eventGroups": [
+      {
+        "kind": "buff",
+        "source": "buff-event",
+        "groupIndex": 0,
+        "eventName": "DuringBuffEnable",
+        "buffEvent": "DuringBuffEnable",
+        "abilityEvent": null,
+        "igniteType": null,
+        "finishAfterIgnited": false,
+        "wrapperCount": 1,
+        "actionIndices": [
+          0,
+          1,
+          2
+        ],
+        "actionCount": 3,
+        "presentationActionCount": 3
+      }
+    ],
+    "timelineGroups": [],
+    "events": [
+      {
+        "index": 0,
+        "type": "EffectAction",
+        "rawType": "Beyond.Gameplay.Core.EffectAction+EffectActionData, Gameplay.Beyond",
+        "category": "presentation",
+        "presentation": true,
+        "synthetic": false,
+        "enabled": true,
+        "serverActionIndex": 0,
+        "priorityLevel": "Default",
+        "priorityOffset": 0,
+        "parentEventIndex": null,
+        "relation": "actions",
+        "branchPath": [
+          "actions"
+        ],
+        "source": "buff-event",
+        "eventKind": "buff",
+        "eventName": "DuringBuffEnable",
+        "abilityEvent": null,
+        "groupIndex": 0,
+        "sequenceIndex": 0,
+        "summaryFields": [
+          {
+            "key": "effectName",
+            "value": "P_common_vulnerable_03_asset",
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.effectName"
+          },
+          {
+            "key": "value",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.value"
+          },
+          {
+            "key": "fxType",
+            "value": "Normal",
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.fxType"
+          },
+          {
+            "key": "guardEffect",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.guardEffect"
+          },
+          {
+            "key": "isCenterChangeLod",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.isCenterChangeLod"
+          },
+          {
+            "key": "useScaleBB",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.useScaleBB"
+          },
+          {
+            "key": "x",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.scale.x"
+          },
+          {
+            "key": "y",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.scale.y"
+          },
+          {
+            "key": "z",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.scale.z"
+          },
+          {
+            "key": "x",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "",
+              "resolved": false,
+              "status": "empty-key-fallback",
+              "source": "empty-key-fallback",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.scaleBB.x"
+          },
+          {
+            "key": "y",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "",
+              "resolved": false,
+              "status": "empty-key-fallback",
+              "source": "empty-key-fallback",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.scaleBB.y"
+          },
+          {
+            "key": "z",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "",
+              "resolved": false,
+              "status": "empty-key-fallback",
+              "source": "empty-key-fallback",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.scaleBB.z"
+          },
+          {
+            "key": "useLengthBB",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.useLengthBB"
+          },
+          {
+            "key": "lengthBB",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": false,
+              "blackboardKey": null,
+              "resolved": true,
+              "status": "literal",
+              "source": "literal",
+              "dynamic": false
+            },
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.lengthBB"
+          },
+          {
+            "key": "useDurationScaleBB",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.useDurationScaleBB"
+          },
+          {
+            "key": "durationScaleBB",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": false,
+              "blackboardKey": null,
+              "resolved": true,
+              "status": "literal",
+              "source": "literal",
+              "dynamic": false
+            },
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.durationScaleBB"
+          },
+          {
+            "key": "releaseByAction",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.releaseByAction"
+          },
+          {
+            "key": "ignoreOwnerTimeScale",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.ignoreOwnerTimeScale"
+          },
+          {
+            "key": "interruptTime",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.interruptTime"
+          },
+          {
+            "key": "terrainPrefab",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.terrainPrefab"
+          },
+          {
+            "key": "isShowInDialog",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.isShowInDialog"
+          },
+          {
+            "key": "isLimitEffectCount",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.isLimitEffectCount"
+          },
+          {
+            "key": "limitCount",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.limitCount"
+          },
+          {
+            "key": "protectTime",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.protectTime"
+          },
+          {
+            "key": "limitTime",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.limitTime"
+          },
+          {
+            "key": "assetOnlyAffectModelRoot",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.assetOnlyAffectModelRoot"
+          },
+          {
+            "key": "isUltimateShow",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.isUltimateShow"
+          },
+          {
+            "key": "visibleWithEntity",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.visibleWithEntity"
+          },
+          {
+            "key": "visibleWithEntityType",
+            "value": "Source",
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.visibleWithEntityType"
+          },
+          {
+            "key": "ignoreEntityDither",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.ignoreEntityDither"
+          },
+          {
+            "key": "moveType",
+            "value": "FollowTarget",
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.moveType"
+          },
+          {
+            "key": "useCameraViewportAnchor",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.useCameraViewportAnchor"
+          }
+        ],
+        "summaryTruncated": true,
+        "details": null,
+        "path": "buffEventAction[0].actions[0].actionData[0]",
+        "startFrame": null,
+        "endFrame": null,
+        "rawEndFrame": null,
+        "openEnded": false,
+        "durationFrames": null
+      },
+      {
+        "index": 1,
+        "type": "EffectAction",
+        "rawType": "Beyond.Gameplay.Core.EffectAction+EffectActionData, Gameplay.Beyond",
+        "category": "presentation",
+        "presentation": true,
+        "synthetic": false,
+        "enabled": true,
+        "serverActionIndex": 1,
+        "priorityLevel": "Default",
+        "priorityOffset": 0,
+        "parentEventIndex": null,
+        "relation": "actions",
+        "branchPath": [
+          "actions"
+        ],
+        "source": "buff-event",
+        "eventKind": "buff",
+        "eventName": "DuringBuffEnable",
+        "abilityEvent": null,
+        "groupIndex": 0,
+        "sequenceIndex": 0,
+        "summaryFields": [
+          {
+            "key": "effectName",
+            "value": "P_common_vulnerable_04_asset",
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.effectName"
+          },
+          {
+            "key": "value",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.value"
+          },
+          {
+            "key": "fxType",
+            "value": "Normal",
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.fxType"
+          },
+          {
+            "key": "guardEffect",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.guardEffect"
+          },
+          {
+            "key": "isCenterChangeLod",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.isCenterChangeLod"
+          },
+          {
+            "key": "useScaleBB",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.useScaleBB"
+          },
+          {
+            "key": "x",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scale.x"
+          },
+          {
+            "key": "y",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scale.y"
+          },
+          {
+            "key": "z",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scale.z"
+          },
+          {
+            "key": "x",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "",
+              "resolved": false,
+              "status": "empty-key-fallback",
+              "source": "empty-key-fallback",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scaleBB.x"
+          },
+          {
+            "key": "y",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "",
+              "resolved": false,
+              "status": "empty-key-fallback",
+              "source": "empty-key-fallback",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scaleBB.y"
+          },
+          {
+            "key": "z",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "",
+              "resolved": false,
+              "status": "empty-key-fallback",
+              "source": "empty-key-fallback",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scaleBB.z"
+          },
+          {
+            "key": "useLengthBB",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.useLengthBB"
+          },
+          {
+            "key": "lengthBB",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": false,
+              "blackboardKey": null,
+              "resolved": true,
+              "status": "literal",
+              "source": "literal",
+              "dynamic": false
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.lengthBB"
+          },
+          {
+            "key": "useDurationScaleBB",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.useDurationScaleBB"
+          },
+          {
+            "key": "durationScaleBB",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": false,
+              "blackboardKey": null,
+              "resolved": true,
+              "status": "literal",
+              "source": "literal",
+              "dynamic": false
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.durationScaleBB"
+          },
+          {
+            "key": "releaseByAction",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.releaseByAction"
+          },
+          {
+            "key": "ignoreOwnerTimeScale",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.ignoreOwnerTimeScale"
+          },
+          {
+            "key": "interruptTime",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.interruptTime"
+          },
+          {
+            "key": "terrainPrefab",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.terrainPrefab"
+          },
+          {
+            "key": "isShowInDialog",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.isShowInDialog"
+          },
+          {
+            "key": "isLimitEffectCount",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.isLimitEffectCount"
+          },
+          {
+            "key": "limitCount",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.limitCount"
+          },
+          {
+            "key": "protectTime",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.protectTime"
+          },
+          {
+            "key": "limitTime",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.limitTime"
+          },
+          {
+            "key": "assetOnlyAffectModelRoot",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.assetOnlyAffectModelRoot"
+          },
+          {
+            "key": "isUltimateShow",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.isUltimateShow"
+          },
+          {
+            "key": "visibleWithEntity",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.visibleWithEntity"
+          },
+          {
+            "key": "visibleWithEntityType",
+            "value": "Source",
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.visibleWithEntityType"
+          },
+          {
+            "key": "ignoreEntityDither",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.ignoreEntityDither"
+          },
+          {
+            "key": "moveType",
+            "value": "FollowTarget",
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.moveType"
+          },
+          {
+            "key": "useCameraViewportAnchor",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.useCameraViewportAnchor"
+          }
+        ],
+        "summaryTruncated": true,
+        "details": null,
+        "path": "buffEventAction[0].actions[0].actionData[1]",
+        "startFrame": null,
+        "endFrame": null,
+        "rawEndFrame": null,
+        "openEnded": false,
+        "durationFrames": null
+      },
+      {
+        "index": 2,
+        "type": "EffectAction",
+        "rawType": "Beyond.Gameplay.Core.EffectAction+EffectActionData, Gameplay.Beyond",
+        "category": "presentation",
+        "presentation": true,
+        "synthetic": false,
+        "enabled": true,
+        "serverActionIndex": 2,
+        "priorityLevel": "Default",
+        "priorityOffset": 0,
+        "parentEventIndex": null,
+        "relation": "actions",
+        "branchPath": [
+          "actions"
+        ],
+        "source": "buff-event",
+        "eventKind": "buff",
+        "eventName": "DuringBuffEnable",
+        "abilityEvent": null,
+        "groupIndex": 0,
+        "sequenceIndex": 0,
+        "summaryFields": [
+          {
+            "key": "effectName",
+            "value": "P_common_vulnerable_03",
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.effectName"
+          },
+          {
+            "key": "value",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.value"
+          },
+          {
+            "key": "fxType",
+            "value": "Normal",
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.fxType"
+          },
+          {
+            "key": "guardEffect",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.guardEffect"
+          },
+          {
+            "key": "isCenterChangeLod",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.isCenterChangeLod"
+          },
+          {
+            "key": "useScaleBB",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.useScaleBB"
+          },
+          {
+            "key": "x",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.scale.x"
+          },
+          {
+            "key": "y",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.scale.y"
+          },
+          {
+            "key": "z",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.scale.z"
+          },
+          {
+            "key": "x",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "",
+              "resolved": false,
+              "status": "empty-key-fallback",
+              "source": "empty-key-fallback",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.scaleBB.x"
+          },
+          {
+            "key": "y",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "",
+              "resolved": false,
+              "status": "empty-key-fallback",
+              "source": "empty-key-fallback",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.scaleBB.y"
+          },
+          {
+            "key": "z",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "",
+              "resolved": false,
+              "status": "empty-key-fallback",
+              "source": "empty-key-fallback",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.scaleBB.z"
+          },
+          {
+            "key": "useLengthBB",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.useLengthBB"
+          },
+          {
+            "key": "lengthBB",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": false,
+              "blackboardKey": null,
+              "resolved": true,
+              "status": "literal",
+              "source": "literal",
+              "dynamic": false
+            },
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.lengthBB"
+          },
+          {
+            "key": "useDurationScaleBB",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.useDurationScaleBB"
+          },
+          {
+            "key": "durationScaleBB",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": false,
+              "blackboardKey": null,
+              "resolved": true,
+              "status": "literal",
+              "source": "literal",
+              "dynamic": false
+            },
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.durationScaleBB"
+          },
+          {
+            "key": "releaseByAction",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.releaseByAction"
+          },
+          {
+            "key": "ignoreOwnerTimeScale",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.ignoreOwnerTimeScale"
+          },
+          {
+            "key": "interruptTime",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.interruptTime"
+          },
+          {
+            "key": "terrainPrefab",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.terrainPrefab"
+          },
+          {
+            "key": "isShowInDialog",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.isShowInDialog"
+          },
+          {
+            "key": "isLimitEffectCount",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.isLimitEffectCount"
+          },
+          {
+            "key": "limitCount",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.limitCount"
+          },
+          {
+            "key": "protectTime",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.protectTime"
+          },
+          {
+            "key": "limitTime",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.limitTime"
+          },
+          {
+            "key": "assetOnlyAffectModelRoot",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.assetOnlyAffectModelRoot"
+          },
+          {
+            "key": "isUltimateShow",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.isUltimateShow"
+          },
+          {
+            "key": "visibleWithEntity",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.visibleWithEntity"
+          },
+          {
+            "key": "visibleWithEntityType",
+            "value": "Source",
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.visibleWithEntityType"
+          },
+          {
+            "key": "ignoreEntityDither",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.ignoreEntityDither"
+          },
+          {
+            "key": "moveType",
+            "value": "FollowTarget",
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.moveType"
+          },
+          {
+            "key": "useCameraViewportAnchor",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.useCameraViewportAnchor"
+          }
+        ],
+        "summaryTruncated": true,
+        "details": null,
+        "path": "buffEventAction[0].actions[0].actionData[2]",
+        "startFrame": null,
+        "endFrame": null,
+        "rawEndFrame": null,
+        "openEnded": false,
+        "durationFrames": null
+      }
+    ],
+    "links": [],
+    "blackboard": {
+      "entries": [],
+      "byKey": {},
+      "externalByKey": {},
+      "dependencies": [
+        {
+          "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.scaleBB.x",
+          "key": "",
+          "status": "empty-key-fallback",
+          "resolved": false,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.scaleBB.y",
+          "key": "",
+          "status": "empty-key-fallback",
+          "resolved": false,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[0].effectActionCfg.scaleBB.z",
+          "key": "",
+          "status": "empty-key-fallback",
+          "resolved": false,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scaleBB.x",
+          "key": "",
+          "status": "empty-key-fallback",
+          "resolved": false,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scaleBB.y",
+          "key": "",
+          "status": "empty-key-fallback",
+          "resolved": false,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scaleBB.z",
+          "key": "",
+          "status": "empty-key-fallback",
+          "resolved": false,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.scaleBB.x",
+          "key": "",
+          "status": "empty-key-fallback",
+          "resolved": false,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.scaleBB.y",
+          "key": "",
+          "status": "empty-key-fallback",
+          "resolved": false,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[2].effectActionCfg.scaleBB.z",
+          "key": "",
+          "status": "empty-key-fallback",
+          "resolved": false,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        }
+      ],
+      "localCount": 0,
+      "externalCount": 0
+    },
+    "warnings": [],
+    "stats": {
+      "eventCount": 3,
+      "presentationEventCount": 3,
+      "linkCount": 0,
+      "blackboardDependencyCount": 9,
+      "walkedNodeCount": 136,
+      "traversalStopped": false
+    }
+  }
+}

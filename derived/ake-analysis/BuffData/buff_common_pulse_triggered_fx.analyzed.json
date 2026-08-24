@@ -1,0 +1,1217 @@
+{
+  "_meta": {
+    "schemaVersion": 1,
+    "kind": "BuffData",
+    "id": "buff_common_pulse_triggered_fx",
+    "generator": "AKEV3BuffData.analyzeBuff",
+    "generatorWrapper": "scripts/export-ake-analysis.mjs",
+    "generatorWrapperSha256": "571c3da2e52854f78c3fe352b745de6555f5ead1f49c075538396d5185eff692",
+    "akeDatabaseCommit": "1bb9549705eba2601affed4cb8a7ea69ba13b150",
+    "akedataJsonRevision": "2026-08-22T05:51:44.260485+08:00",
+    "inputs": [
+      {
+        "role": "raw",
+        "path": "reference/public-data/akedata/Json/BuffData/buff_common_pulse_triggered_fx.json",
+        "sha256": "2c0df18d9cbbf64ef0f6eec8dfc1aebe5f0e36aba70cab3328105f1db7b6056e"
+      },
+      {
+        "role": "analyzer",
+        "path": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+        "sha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7"
+      }
+    ],
+    "semantics": "research-view-model-not-runtime-state"
+  },
+  "analysis": {
+    "identity": {
+      "id": "buff_common_pulse_triggered_fx",
+      "hasIcon": false,
+      "spritePath": "",
+      "iconPath": "",
+      "iconConfig": {
+        "showInHeadBarCommon": false,
+        "showInHeadBarAttached": false,
+        "showInSquadIcon": false,
+        "onlyShowForMainCharacter": false,
+        "abnormalColorType": "Physical",
+        "iconStyleInSquad": "Default"
+      }
+    },
+    "core": {
+      "lifeType": "Limited",
+      "duration": {
+        "value": 5,
+        "fallbackValue": 5,
+        "usesBlackboard": false,
+        "blackboardKey": "duration",
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "triggerInterval": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "waitFirstTriggerInterval": true,
+      "maxTriggerCnt": {
+        "value": 1,
+        "fallbackValue": 1,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "hasAddingCooldown": false,
+      "addingCooldown": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "ignoreCooldownWhenAdding": false,
+      "ignoreTagImmune": false,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "finishOnRepatriate": false
+    },
+    "stacking": {
+      "identifierType": "Id",
+      "stackingType": "Unlimited",
+      "stackingKey": "",
+      "usePriorityKey": false,
+      "priorityKey": "",
+      "negatePriority": false,
+      "priority": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "useMaxStackCntKey": false,
+      "maxStackCntKey": "",
+      "maxStackCnt": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "isNeedStackEffect": false,
+      "stackEffects": []
+    },
+    "dispel": {
+      "canBeDispelled": false,
+      "dispelledLevel": "Default"
+    },
+    "modifiers": {
+      "isConvertedAttribute": false,
+      "attributes": [],
+      "damage": [],
+      "heal": [],
+      "poise": [],
+      "global": [],
+      "shields": []
+    },
+    "tags": {
+      "apply": [],
+      "extendAfterTrigger": []
+    },
+    "eventGroups": [
+      {
+        "kind": "buff",
+        "source": "buff-event",
+        "groupIndex": 0,
+        "eventName": "OnBuffStart",
+        "buffEvent": "OnBuffStart",
+        "abilityEvent": null,
+        "igniteType": null,
+        "finishAfterIgnited": false,
+        "wrapperCount": 1,
+        "actionIndices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "actionCount": 5,
+        "presentationActionCount": 4
+      }
+    ],
+    "timelineGroups": [],
+    "events": [
+      {
+        "index": 0,
+        "type": "EnemyHurtAnimAction",
+        "rawType": "Beyond.Gameplay.Core.EnemyHurtAnimAction+Data, Gameplay.Beyond",
+        "category": "presentation",
+        "presentation": true,
+        "synthetic": false,
+        "enabled": true,
+        "serverActionIndex": 0,
+        "priorityLevel": "Default",
+        "priorityOffset": 0,
+        "parentEventIndex": null,
+        "relation": "actions",
+        "branchPath": [
+          "actions"
+        ],
+        "source": "buff-event",
+        "eventKind": "buff",
+        "eventName": "OnBuffStart",
+        "abilityEvent": null,
+        "groupIndex": 0,
+        "sequenceIndex": 0,
+        "summaryFields": [
+          {
+            "key": "targetSource",
+            "value": "Source",
+            "path": "buffEventAction[0].actions[0].actionData[0].attacker.targetSource"
+          },
+          {
+            "key": "target",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[0].attacker.target"
+          },
+          {
+            "key": "selectorOwner",
+            "value": "ActionOwner",
+            "path": "buffEventAction[0].actions[0].actionData[0].attacker.selectorOwner"
+          },
+          {
+            "key": "centerType",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[0].attacker.centerType"
+          },
+          {
+            "key": "centerToGround",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].attacker.centerToGround"
+          },
+          {
+            "key": "enableAdvancedDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].attacker.enableAdvancedDirection"
+          },
+          {
+            "key": "directionType",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[0].attacker.advancedDirection.directionType"
+          },
+          {
+            "key": "sourceMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[0].attacker.advancedDirection.sourceMountPoint"
+          },
+          {
+            "key": "targetMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[0].attacker.advancedDirection.targetMountPoint"
+          },
+          {
+            "key": "customSourceAndTarget",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].attacker.advancedDirection.customSourceAndTarget"
+          },
+          {
+            "key": "clampToXZ",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[0].attacker.advancedDirection.clampToXZ"
+          },
+          {
+            "key": "invertDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].attacker.advancedDirection.invertDirection"
+          },
+          {
+            "key": "selectorDirection",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[0].attacker.selectorDirection"
+          },
+          {
+            "key": "targetSource",
+            "value": "Owner",
+            "path": "buffEventAction[0].actions[0].actionData[0].defender.targetSource"
+          },
+          {
+            "key": "target",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[0].defender.target"
+          },
+          {
+            "key": "selectorOwner",
+            "value": "ActionOwner",
+            "path": "buffEventAction[0].actions[0].actionData[0].defender.selectorOwner"
+          },
+          {
+            "key": "centerType",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[0].defender.centerType"
+          },
+          {
+            "key": "centerToGround",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].defender.centerToGround"
+          },
+          {
+            "key": "enableAdvancedDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].defender.enableAdvancedDirection"
+          },
+          {
+            "key": "directionType",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[0].defender.advancedDirection.directionType"
+          },
+          {
+            "key": "sourceMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[0].defender.advancedDirection.sourceMountPoint"
+          },
+          {
+            "key": "targetMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[0].defender.advancedDirection.targetMountPoint"
+          },
+          {
+            "key": "customSourceAndTarget",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].defender.advancedDirection.customSourceAndTarget"
+          },
+          {
+            "key": "clampToXZ",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[0].defender.advancedDirection.clampToXZ"
+          },
+          {
+            "key": "invertDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].defender.advancedDirection.invertDirection"
+          },
+          {
+            "key": "selectorDirection",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[0].defender.selectorDirection"
+          },
+          {
+            "key": "hurtAnim",
+            "value": "LightTurn",
+            "path": "buffEventAction[0].actions[0].actionData[0].hurtAnim"
+          },
+          {
+            "key": "additiveShaking",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[0].additiveShaking"
+          },
+          {
+            "key": "shakeIntensity",
+            "value": "Mild",
+            "path": "buffEventAction[0].actions[0].actionData[0].shakeIntensity"
+          },
+          {
+            "key": "randFrameWhenZeroTimeScale",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].randFrameWhenZeroTimeScale"
+          },
+          {
+            "key": "faceToAttacker",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[0].faceToAttacker"
+          },
+          {
+            "key": "directionType",
+            "value": "TargetToSource",
+            "path": "buffEventAction[0].actions[0].actionData[0].faceDirectionSettings.directionType"
+          }
+        ],
+        "summaryTruncated": true,
+        "details": null,
+        "path": "buffEventAction[0].actions[0].actionData[0]",
+        "startFrame": null,
+        "endFrame": null,
+        "rawEndFrame": null,
+        "openEnded": false,
+        "durationFrames": null
+      },
+      {
+        "index": 1,
+        "type": "EffectAction",
+        "rawType": "Beyond.Gameplay.Core.EffectAction+EffectActionData, Gameplay.Beyond",
+        "category": "presentation",
+        "presentation": true,
+        "synthetic": false,
+        "enabled": true,
+        "serverActionIndex": 1,
+        "priorityLevel": "Default",
+        "priorityOffset": 0,
+        "parentEventIndex": null,
+        "relation": "actions",
+        "branchPath": [
+          "actions"
+        ],
+        "source": "buff-event",
+        "eventKind": "buff",
+        "eventName": "OnBuffStart",
+        "abilityEvent": null,
+        "groupIndex": 0,
+        "sequenceIndex": 0,
+        "summaryFields": [
+          {
+            "key": "effectName",
+            "value": "P_common_lightningbuff_02",
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.effectName"
+          },
+          {
+            "key": "value",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.value"
+          },
+          {
+            "key": "fxType",
+            "value": "Normal",
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.fxType"
+          },
+          {
+            "key": "guardEffect",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.guardEffect"
+          },
+          {
+            "key": "isCenterChangeLod",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.isCenterChangeLod"
+          },
+          {
+            "key": "useScaleBB",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.useScaleBB"
+          },
+          {
+            "key": "x",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scale.x"
+          },
+          {
+            "key": "y",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scale.y"
+          },
+          {
+            "key": "z",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scale.z"
+          },
+          {
+            "key": "x",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "",
+              "resolved": false,
+              "status": "empty-key-fallback",
+              "source": "empty-key-fallback",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scaleBB.x"
+          },
+          {
+            "key": "y",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "",
+              "resolved": false,
+              "status": "empty-key-fallback",
+              "source": "empty-key-fallback",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scaleBB.y"
+          },
+          {
+            "key": "z",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "",
+              "resolved": false,
+              "status": "empty-key-fallback",
+              "source": "empty-key-fallback",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scaleBB.z"
+          },
+          {
+            "key": "useLengthBB",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.useLengthBB"
+          },
+          {
+            "key": "lengthBB",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": false,
+              "blackboardKey": null,
+              "resolved": true,
+              "status": "literal",
+              "source": "literal",
+              "dynamic": false
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.lengthBB"
+          },
+          {
+            "key": "useDurationScaleBB",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.useDurationScaleBB"
+          },
+          {
+            "key": "durationScaleBB",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": false,
+              "blackboardKey": null,
+              "resolved": true,
+              "status": "literal",
+              "source": "literal",
+              "dynamic": false
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.durationScaleBB"
+          },
+          {
+            "key": "releaseByAction",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.releaseByAction"
+          },
+          {
+            "key": "ignoreOwnerTimeScale",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.ignoreOwnerTimeScale"
+          },
+          {
+            "key": "interruptTime",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.interruptTime"
+          },
+          {
+            "key": "terrainPrefab",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.terrainPrefab"
+          },
+          {
+            "key": "isShowInDialog",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.isShowInDialog"
+          },
+          {
+            "key": "isLimitEffectCount",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.isLimitEffectCount"
+          },
+          {
+            "key": "limitCount",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.limitCount"
+          },
+          {
+            "key": "protectTime",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.protectTime"
+          },
+          {
+            "key": "limitTime",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.limitTime"
+          },
+          {
+            "key": "assetOnlyAffectModelRoot",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.assetOnlyAffectModelRoot"
+          },
+          {
+            "key": "isUltimateShow",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.isUltimateShow"
+          },
+          {
+            "key": "visibleWithEntity",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.visibleWithEntity"
+          },
+          {
+            "key": "visibleWithEntityType",
+            "value": "Source",
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.visibleWithEntityType"
+          },
+          {
+            "key": "ignoreEntityDither",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.ignoreEntityDither"
+          },
+          {
+            "key": "moveType",
+            "value": "Stationary",
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.moveType"
+          },
+          {
+            "key": "useCameraViewportAnchor",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.useCameraViewportAnchor"
+          }
+        ],
+        "summaryTruncated": true,
+        "details": null,
+        "path": "buffEventAction[0].actions[0].actionData[1]",
+        "startFrame": null,
+        "endFrame": null,
+        "rawEndFrame": null,
+        "openEnded": false,
+        "durationFrames": null
+      },
+      {
+        "index": 2,
+        "type": "CameraImpulseAction",
+        "rawType": "Beyond.Gameplay.Core.CameraImpulseAction+CameraImpulseActionData, Gameplay.Beyond",
+        "category": "presentation",
+        "presentation": true,
+        "synthetic": false,
+        "enabled": true,
+        "serverActionIndex": 2,
+        "priorityLevel": "Default",
+        "priorityOffset": 0,
+        "parentEventIndex": null,
+        "relation": "actions",
+        "branchPath": [
+          "actions"
+        ],
+        "source": "buff-event",
+        "eventKind": "buff",
+        "eventName": "OnBuffStart",
+        "abilityEvent": null,
+        "groupIndex": 0,
+        "sequenceIndex": 0,
+        "summaryFields": [
+          {
+            "key": "realCameraShake2D",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].realCameraShake2D"
+          },
+          {
+            "key": "targetSource",
+            "value": "Target",
+            "path": "buffEventAction[0].actions[0].actionData[2].targetSettings.targetSource"
+          },
+          {
+            "key": "target",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[2].targetSettings.target"
+          },
+          {
+            "key": "selectorOwner",
+            "value": "ActionOwner",
+            "path": "buffEventAction[0].actions[0].actionData[2].targetSettings.selectorOwner"
+          },
+          {
+            "key": "centerType",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[2].targetSettings.centerType"
+          },
+          {
+            "key": "centerToGround",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].targetSettings.centerToGround"
+          },
+          {
+            "key": "enableAdvancedDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].targetSettings.enableAdvancedDirection"
+          },
+          {
+            "key": "directionType",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[2].targetSettings.advancedDirection.directionType"
+          },
+          {
+            "key": "sourceMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[2].targetSettings.advancedDirection.sourceMountPoint"
+          },
+          {
+            "key": "targetMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[2].targetSettings.advancedDirection.targetMountPoint"
+          },
+          {
+            "key": "customSourceAndTarget",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].targetSettings.advancedDirection.customSourceAndTarget"
+          },
+          {
+            "key": "clampToXZ",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[2].targetSettings.advancedDirection.clampToXZ"
+          },
+          {
+            "key": "invertDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].targetSettings.advancedDirection.invertDirection"
+          },
+          {
+            "key": "selectorDirection",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[2].targetSettings.selectorDirection"
+          },
+          {
+            "key": "releaseWhenActionEnds",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2].releaseWhenActionEnds"
+          },
+          {
+            "key": "mountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[2]._mountPoint"
+          },
+          {
+            "key": "x",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[2]._positionOffset.x"
+          },
+          {
+            "key": "y",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[2]._positionOffset.y"
+          },
+          {
+            "key": "z",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[2]._positionOffset.z"
+          },
+          {
+            "key": "followTarget",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[2]._followTarget"
+          },
+          {
+            "key": "cameraShake2D",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[2]._impulseDefinitionData.cameraShake2D"
+          },
+          {
+            "key": "impulseChannel",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[2]._impulseDefinitionData.impulseChannel"
+          },
+          {
+            "key": "impulseType",
+            "value": "Legacy",
+            "path": "buffEventAction[0].actions[0].actionData[2]._impulseDefinitionData.impulseType"
+          },
+          {
+            "key": "impulseShape",
+            "value": "Custom",
+            "path": "buffEventAction[0].actions[0].actionData[2]._impulseDefinitionData.impulseShape"
+          },
+          {
+            "key": "impulseDuration",
+            "value": 0.2,
+            "path": "buffEventAction[0].actions[0].actionData[2]._impulseDefinitionData.impulseDuration"
+          },
+          {
+            "key": "rawSignalPath",
+            "value": "Assets/Beyond/DynamicAssets/Gameplay/Cameras/CameraNoiseSettings/NoiseSettings_Level_3D_LargeXZ.asset",
+            "path": "buffEventAction[0].actions[0].actionData[2]._impulseDefinitionData.rawSignalPath"
+          },
+          {
+            "key": "amplitudeGain",
+            "value": 0.5,
+            "path": "buffEventAction[0].actions[0].actionData[2]._impulseDefinitionData.amplitudeGain"
+          },
+          {
+            "key": "frequencyGain",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[2]._impulseDefinitionData.frequencyGain"
+          },
+          {
+            "key": "repeatMode",
+            "value": "Loop",
+            "path": "buffEventAction[0].actions[0].actionData[2]._impulseDefinitionData.repeatMode"
+          },
+          {
+            "key": "randomize",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[2]._impulseDefinitionData.randomize"
+          },
+          {
+            "key": "value",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[2]._impulseDefinitionData.timeEnvelope.m_DecayShape[0].value"
+          },
+          {
+            "key": "time",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[2]._impulseDefinitionData.timeEnvelope.m_DecayShape[0].time"
+          }
+        ],
+        "summaryTruncated": true,
+        "details": null,
+        "path": "buffEventAction[0].actions[0].actionData[2]",
+        "startFrame": null,
+        "endFrame": null,
+        "rawEndFrame": null,
+        "openEnded": false,
+        "durationFrames": null
+      },
+      {
+        "index": 3,
+        "type": "HitStopAction",
+        "rawType": "Beyond.Gameplay.Core.HitStopAction+Data, Gameplay.Beyond",
+        "category": "timing",
+        "presentation": false,
+        "synthetic": false,
+        "enabled": true,
+        "serverActionIndex": 3,
+        "priorityLevel": "Default",
+        "priorityOffset": 0,
+        "parentEventIndex": null,
+        "relation": "actions",
+        "branchPath": [
+          "actions"
+        ],
+        "source": "buff-event",
+        "eventKind": "buff",
+        "eventName": "OnBuffStart",
+        "abilityEvent": null,
+        "groupIndex": 0,
+        "sequenceIndex": 0,
+        "summaryFields": [
+          {
+            "key": "duration",
+            "value": 0.1,
+            "path": "buffEventAction[0].actions[0].actionData[3].duration"
+          },
+          {
+            "key": "targetSource",
+            "value": "Owner",
+            "path": "buffEventAction[0].actions[0].actionData[3].target.targetSource"
+          },
+          {
+            "key": "target",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[3].target.target"
+          },
+          {
+            "key": "selectorOwner",
+            "value": "ActionOwner",
+            "path": "buffEventAction[0].actions[0].actionData[3].target.selectorOwner"
+          },
+          {
+            "key": "centerType",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[3].target.centerType"
+          },
+          {
+            "key": "centerToGround",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[3].target.centerToGround"
+          },
+          {
+            "key": "enableAdvancedDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[3].target.enableAdvancedDirection"
+          },
+          {
+            "key": "directionType",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[3].target.advancedDirection.directionType"
+          },
+          {
+            "key": "sourceMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[3].target.advancedDirection.sourceMountPoint"
+          },
+          {
+            "key": "targetMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[3].target.advancedDirection.targetMountPoint"
+          },
+          {
+            "key": "customSourceAndTarget",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[3].target.advancedDirection.customSourceAndTarget"
+          },
+          {
+            "key": "clampToXZ",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[3].target.advancedDirection.clampToXZ"
+          },
+          {
+            "key": "invertDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[3].target.advancedDirection.invertDirection"
+          },
+          {
+            "key": "selectorDirection",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[3].target.selectorDirection"
+          },
+          {
+            "key": "affectType",
+            "value": "OnlyTarget",
+            "path": "buffEventAction[0].actions[0].actionData[3].affectType"
+          },
+          {
+            "key": "curveKey",
+            "value": "char_hard_stop",
+            "path": "buffEventAction[0].actions[0].actionData[3].curveKey"
+          },
+          {
+            "key": "useDirectCurve",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[3].useDirectCurve"
+          },
+          {
+            "key": "tagId",
+            "value": -2059842104,
+            "path": "buffEventAction[0].actions[0].actionData[3].timeDilationPriority.tagId"
+          },
+          {
+            "key": "targetSource",
+            "value": "Source",
+            "path": "buffEventAction[0].actions[0].actionData[3].attacker.targetSource"
+          },
+          {
+            "key": "target",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[3].attacker.target"
+          },
+          {
+            "key": "selectorOwner",
+            "value": "ActionOwner",
+            "path": "buffEventAction[0].actions[0].actionData[3].attacker.selectorOwner"
+          },
+          {
+            "key": "centerType",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[3].attacker.centerType"
+          },
+          {
+            "key": "centerToGround",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[3].attacker.centerToGround"
+          },
+          {
+            "key": "enableAdvancedDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[3].attacker.enableAdvancedDirection"
+          },
+          {
+            "key": "directionType",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[3].attacker.advancedDirection.directionType"
+          },
+          {
+            "key": "sourceMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[3].attacker.advancedDirection.sourceMountPoint"
+          },
+          {
+            "key": "targetMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[3].attacker.advancedDirection.targetMountPoint"
+          },
+          {
+            "key": "customSourceAndTarget",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[3].attacker.advancedDirection.customSourceAndTarget"
+          },
+          {
+            "key": "clampToXZ",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[3].attacker.advancedDirection.clampToXZ"
+          },
+          {
+            "key": "invertDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[3].attacker.advancedDirection.invertDirection"
+          },
+          {
+            "key": "selectorDirection",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[3].attacker.selectorDirection"
+          }
+        ],
+        "summaryTruncated": false,
+        "details": {
+          "duration": {
+            "value": 0.1,
+            "fallbackValue": 0.1,
+            "usesBlackboard": false,
+            "blackboardKey": null,
+            "resolved": true,
+            "status": "literal",
+            "source": "literal",
+            "dynamic": false
+          }
+        },
+        "path": "buffEventAction[0].actions[0].actionData[3]",
+        "startFrame": null,
+        "endFrame": null,
+        "rawEndFrame": null,
+        "openEnded": false,
+        "durationFrames": null
+      },
+      {
+        "index": 4,
+        "type": "PlaySoundAction",
+        "rawType": "Beyond.Gameplay.Core.PlaySoundAction+PlaySoundActionData, Gameplay.Beyond",
+        "category": "presentation",
+        "presentation": true,
+        "synthetic": false,
+        "enabled": true,
+        "serverActionIndex": 4,
+        "priorityLevel": "Default",
+        "priorityOffset": 0,
+        "parentEventIndex": null,
+        "relation": "actions",
+        "branchPath": [
+          "actions"
+        ],
+        "source": "buff-event",
+        "eventKind": "buff",
+        "eventName": "OnBuffStart",
+        "abilityEvent": null,
+        "groupIndex": 0,
+        "sequenceIndex": 0,
+        "summaryFields": [
+          {
+            "key": "soundEvent",
+            "value": "au_chr_conduct_attribute_expo",
+            "path": "buffEventAction[0].actions[0].actionData[4]._soundEvent"
+          },
+          {
+            "key": "stopOnEnd",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[4]._stopOnEnd"
+          },
+          {
+            "key": "stopFadeDurationMs",
+            "value": 100,
+            "path": "buffEventAction[0].actions[0].actionData[4]._stopFadeDurationMs"
+          },
+          {
+            "key": "canInterruptTimeMs",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[4]._canInterruptTimeMs"
+          },
+          {
+            "key": "intrptFadeDurationMs",
+            "value": 100,
+            "path": "buffEventAction[0].actions[0].actionData[4]._intrptFadeDurationMs"
+          },
+          {
+            "key": "jumpToWhenPlayMs",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[4]._jumpToWhenPlayMs"
+          },
+          {
+            "key": "useTempEmitter",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[4]._useTempEmitter"
+          },
+          {
+            "key": "targetSource",
+            "value": "Owner",
+            "path": "buffEventAction[0].actions[0].actionData[4].targetSettings.targetSource"
+          },
+          {
+            "key": "target",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[4].targetSettings.target"
+          },
+          {
+            "key": "selectorOwner",
+            "value": "ActionOwner",
+            "path": "buffEventAction[0].actions[0].actionData[4].targetSettings.selectorOwner"
+          },
+          {
+            "key": "centerType",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[4].targetSettings.centerType"
+          },
+          {
+            "key": "centerToGround",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[4].targetSettings.centerToGround"
+          },
+          {
+            "key": "enableAdvancedDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[4].targetSettings.enableAdvancedDirection"
+          },
+          {
+            "key": "directionType",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[4].targetSettings.advancedDirection.directionType"
+          },
+          {
+            "key": "sourceMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[4].targetSettings.advancedDirection.sourceMountPoint"
+          },
+          {
+            "key": "targetMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[4].targetSettings.advancedDirection.targetMountPoint"
+          },
+          {
+            "key": "customSourceAndTarget",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[4].targetSettings.advancedDirection.customSourceAndTarget"
+          },
+          {
+            "key": "clampToXZ",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[4].targetSettings.advancedDirection.clampToXZ"
+          },
+          {
+            "key": "invertDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[4].targetSettings.advancedDirection.invertDirection"
+          },
+          {
+            "key": "selectorDirection",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[4].targetSettings.selectorDirection"
+          },
+          {
+            "key": "mountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[4].mountPoint"
+          },
+          {
+            "key": "followMountPoint",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[4].followMountPoint"
+          },
+          {
+            "key": "useWeaponMountPoint",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[4].useWeaponMountPoint"
+          },
+          {
+            "key": "weaponIndex",
+            "value": 0,
+            "path": "buffEventAction[0].actions[0].actionData[4].weaponIndex"
+          },
+          {
+            "key": "weaponMountPoint",
+            "value": "Root",
+            "path": "buffEventAction[0].actions[0].actionData[4].weaponMountPoint"
+          },
+          {
+            "key": "useTimeDilationPauseAndSeek",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[4].useTimeDilationPauseAndSeek"
+          },
+          {
+            "key": "timeDilationPauseThreshold",
+            "value": 0.7,
+            "path": "buffEventAction[0].actions[0].actionData[4].timeDilationPauseThreshold"
+          },
+          {
+            "key": "timeDilationSeekThreshold",
+            "value": 0.4,
+            "path": "buffEventAction[0].actions[0].actionData[4].timeDilationSeekThreshold"
+          },
+          {
+            "key": "timeDilationFadeOutDurationMs",
+            "value": 500,
+            "path": "buffEventAction[0].actions[0].actionData[4].timeDilationFadeOutDurationMs"
+          },
+          {
+            "key": "timeDilationFadeInDurationMs",
+            "value": 100,
+            "path": "buffEventAction[0].actions[0].actionData[4].timeDilationFadeInDurationMs"
+          }
+        ],
+        "summaryTruncated": false,
+        "details": null,
+        "path": "buffEventAction[0].actions[0].actionData[4]",
+        "startFrame": null,
+        "endFrame": null,
+        "rawEndFrame": null,
+        "openEnded": false,
+        "durationFrames": null
+      }
+    ],
+    "links": [],
+    "blackboard": {
+      "entries": [],
+      "byKey": {},
+      "externalByKey": {},
+      "dependencies": [
+        {
+          "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scaleBB.x",
+          "key": "",
+          "status": "empty-key-fallback",
+          "resolved": false,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scaleBB.y",
+          "key": "",
+          "status": "empty-key-fallback",
+          "resolved": false,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[1].effectActionCfg.scaleBB.z",
+          "key": "",
+          "status": "empty-key-fallback",
+          "resolved": false,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        }
+      ],
+      "localCount": 0,
+      "externalCount": 0
+    },
+    "warnings": [],
+    "stats": {
+      "eventCount": 5,
+      "presentationEventCount": 4,
+      "linkCount": 0,
+      "blackboardDependencyCount": 3,
+      "walkedNodeCount": 116,
+      "traversalStopped": false
+    }
+  }
+}

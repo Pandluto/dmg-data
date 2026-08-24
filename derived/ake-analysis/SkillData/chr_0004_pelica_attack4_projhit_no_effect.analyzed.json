@@ -1,0 +1,171 @@
+{
+  "_meta": {
+    "schemaVersion": 1,
+    "kind": "SkillData",
+    "id": "chr_0004_pelica_attack4_projhit_no_effect",
+    "level": 1,
+    "generator": "AKEV3SkillData.analyzeSkill",
+    "generatorWrapper": "scripts/export-ake-analysis.mjs",
+    "generatorWrapperSha256": "571c3da2e52854f78c3fe352b745de6555f5ead1f49c075538396d5185eff692",
+    "akeDatabaseCommit": "1bb9549705eba2601affed4cb8a7ea69ba13b150",
+    "akedataTableVersion": "1.4.4@9433094-12",
+    "akedataJsonRevision": "2026-08-22T05:51:44.260485+08:00",
+    "inputs": [
+      {
+        "role": "raw",
+        "path": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack4_projhit_no_effect.json",
+        "sha256": "a5de423cc3be69a4a1cb002613396f7dafc914ab45d13124599f3f5fe67c90df"
+      },
+      {
+        "role": "analyzer",
+        "path": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+        "sha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10"
+      },
+      {
+        "role": "skill-patch-table",
+        "path": "reference/public-data/akedata/TableCfg/SkillPatchTable.json",
+        "sha256": "1ed8b010f6413b90f64cc68739ffd9bebef6613853ff7134f154eb2c87728a1d"
+      },
+      {
+        "role": "potential-talent-effect-table",
+        "path": "reference/public-data/akedata/TableCfg/PotentialTalentEffectTable.json",
+        "sha256": "b31a47150b62bd4a03348964848406c83ee28e7a1f73967724f8c9297e510c99"
+      }
+    ],
+    "semantics": "research-view-model-not-runtime-state"
+  },
+  "analysis": {
+    "basic": {
+      "skillId": "chr_0004_pelica_attack4_projhit_no_effect",
+      "skillName": "",
+      "level": 1,
+      "runtimeLevel": 1,
+      "characterId": null,
+      "characterName": null,
+      "skillGroupId": null,
+      "skillGroupName": null,
+      "skillGroupType": null,
+      "variantId": "chr_0004_pelica_attack4_projhit_no_effect",
+      "variantName": "",
+      "castType": "Active",
+      "skillSpecification": "CharacterNormalAttack",
+      "durationFrame": 0,
+      "durationSeconds": null,
+      "exclusiveFrame": 0,
+      "offsetRecordFrame": 0,
+      "useAIExclusiveFrame": false,
+      "aiExclusiveFrame": 0,
+      "dontInterruptCombo": false,
+      "timeBasis": {
+        "durationFrame": null,
+        "exclusiveFrame": null,
+        "actionGroupFrame": null,
+        "startCdFrame": 30
+      },
+      "targeting": {
+        "attackRangeType": "Melee",
+        "selectStrategy": "SelectObject",
+        "smartTargetSelectStrategy": "SelectComboSkillTarget",
+        "checkCastDistanceType": "NotCheck",
+        "useCustomCastDistance": false,
+        "castDistance": {
+          "value": 0,
+          "usesBlackboard": false,
+          "blackboardKey": null,
+          "resolved": true,
+          "source": "literal",
+          "fallbackValue": 0
+        },
+        "checkHeightDiff": false,
+        "heightDiffLimit": {
+          "value": 0,
+          "usesBlackboard": false,
+          "blackboardKey": null,
+          "resolved": true,
+          "source": "literal",
+          "fallbackValue": 0
+        },
+        "rotateType": "RotateToTarget",
+        "castAngle": 360
+      },
+      "mobility": {
+        "canMove": false,
+        "canCastInAir": false,
+        "canDummyCast": true,
+        "rootMotionCliffCheck": true,
+        "characterReturnToIdle": false,
+        "dummyPositionOffset": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "runtimeCast": {
+        "cooldownTime": 0,
+        "startCdFrame": 0,
+        "maxChargeTime": 1,
+        "costType": "UltimateSp",
+        "costValue": {
+          "value": 0,
+          "usesBlackboard": false,
+          "blackboardKey": null,
+          "resolved": true,
+          "source": "literal",
+          "fallbackValue": 0
+        },
+        "atbValueThreshold": {
+          "value": 0,
+          "usesBlackboard": false,
+          "blackboardKey": null,
+          "resolved": true,
+          "source": "literal",
+          "fallbackValue": 0
+        }
+      },
+      "patch": null
+    },
+    "windows": [
+      {
+        "kind": "costCommit",
+        "type": "Skill",
+        "source": "skill",
+        "abilityEvent": null,
+        "groupIndex": null,
+        "eventIndex": null,
+        "branchPath": [],
+        "path": "costCommit",
+        "startFrame": 0,
+        "endFrame": 0,
+        "durationFrames": 0
+      }
+    ],
+    "hits": [],
+    "events": [],
+    "links": [],
+    "blackboard": {
+      "entries": [],
+      "byKey": {},
+      "requestedLevel": 1,
+      "level": 1,
+      "patch": null,
+      "warnings": []
+    },
+    "spatial": {
+      "unit": {
+        "distance": "meter",
+        "angle": "degree"
+      },
+      "castLimits": [],
+      "selectionHints": [],
+      "targetSearches": [],
+      "impactVolumes": [],
+      "persistentFields": [],
+      "collisionVolumes": [],
+      "relations": [],
+      "warnings": [],
+      "externalVariants": [],
+      "pendingReferences": []
+    },
+    "warnings": []
+  }
+}

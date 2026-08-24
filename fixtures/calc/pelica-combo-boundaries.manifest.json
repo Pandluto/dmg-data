@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "description": "Calc public simulation endpoint black-box boundary observations",
+    "url": "https://calc.perlica.tech/api/simulations",
+    "method": "POST",
+    "authentication": "none"
+  },
+  "recordedAt": "2026-08-22T16:28:33.380Z",
+  "calcDataVersion": "9163343-11",
+  "files": [
+    {
+      "path": "fixtures/calc/pelica-combo-boundaries.oracle.json",
+      "bytes": 56067,
+      "sha256": "423501b106b0b692572621effbe2dddc73ffd36fbe3b633b437fcc1a719a349a"
+    }
+  ]
+}

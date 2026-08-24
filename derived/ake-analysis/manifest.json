@@ -1,0 +1,711 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-24T04:54:09.067Z",
+  "generatorWrapper": "scripts/export-ake-analysis.mjs",
+  "generatorWrapperSha256": "571c3da2e52854f78c3fe352b745de6555f5ead1f49c075538396d5185eff692",
+  "pins": {
+    "akedataTableVersion": "1.4.4@9433094-12",
+    "akedataJsonRevision": "2026-08-22T05:51:44.260485+08:00",
+    "akeDatabaseCommit": "1bb9549705eba2601affed4cb8a7ea69ba13b150",
+    "calcDataVersion": "9163343-11",
+    "calcBundle": "/_nuxt/Cgx2mFCV.js"
+  },
+  "recordCount": 40,
+  "records": [
+    {
+      "kind": "BuffData",
+      "id": "buff_cc_chr_main_attribute_down",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_main_attribute_down.json",
+      "rawSha256": "b0eed429181f36e67b51cbff9f0af78ed6b8c69da409aa0bcac6ef7f5355ae94",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_cc_chr_main_attribute_down.analyzed.json",
+      "outputSha256": "041306205377918e958cb91a7e2ce3eafd6eec33e0851550699e0c62b5d4783a",
+      "summary": {
+        "eventCount": 0,
+        "linkCount": 0,
+        "blackboardDependencyCount": 2,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_chr_0004_pelica_combo_skill_tutorial_marker",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_chr_0004_pelica_combo_skill_tutorial_marker.json",
+      "rawSha256": "1f70c5765d3ef6baa8b5024e3977da18277e0a0fad5fd8044c2e1e6b7857d43e",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_chr_0004_pelica_combo_skill_tutorial_marker.analyzed.json",
+      "outputSha256": "714505b5b7549f94b29db551256e01fe94972827961274adce1cbaa20b63e998",
+      "summary": {
+        "eventCount": 0,
+        "linkCount": 0,
+        "blackboardDependencyCount": 0,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_chr_0004_pelica_potential_3",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_chr_0004_pelica_potential_3.json",
+      "rawSha256": "7661f7626e549801854ac85d805e77169893dff7515419861c5d0f93b8277754",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_chr_0004_pelica_potential_3.analyzed.json",
+      "outputSha256": "2e71cbafe834acf6566f68b6c4bc871f9971fd6ae833d15b1a81a65b7db2d0af",
+      "summary": {
+        "eventCount": 2,
+        "linkCount": 2,
+        "blackboardDependencyCount": 3,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_chr_0004_pelica_potential_3_atkup",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_chr_0004_pelica_potential_3_atkup.json",
+      "rawSha256": "db86603273c13a2432731a2c2af42ddffa0be5a0676d59aef1422624667ca0ed",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_chr_0004_pelica_potential_3_atkup.analyzed.json",
+      "outputSha256": "71fe37dab6d254405774d542bbe78453e8b3b840008f5f54fde9537be36f0072",
+      "summary": {
+        "eventCount": 0,
+        "linkCount": 0,
+        "blackboardDependencyCount": 2,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_damage_immune_medium",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_damage_immune_medium.json",
+      "rawSha256": "06edbda12a3e766980eef26101141d480365bf1737735e3c14c2ceb18fbe0b84",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_damage_immune_medium.analyzed.json",
+      "outputSha256": "5b3954793e3b4bc319b66a4890cc6a097ce228c2673f51adb438cfc82a1a1722",
+      "summary": {
+        "eventCount": 0,
+        "linkCount": 0,
+        "blackboardDependencyCount": 1,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_damage_immune_ult_skill",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_damage_immune_ult_skill.json",
+      "rawSha256": "6467ad58e2b61ba1572a019746e2fd6bb868778e6fe8d3ee3ed10de74d7b0893",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_damage_immune_ult_skill.analyzed.json",
+      "outputSha256": "89795b7bb729eed42d16b0f48efb8c168b6490f264c584b3c4838fb30049b609",
+      "summary": {
+        "eventCount": 1,
+        "linkCount": 0,
+        "blackboardDependencyCount": 1,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_energy_shard_attached_pulse",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_energy_shard_attached_pulse.json",
+      "rawSha256": "d22078be2571cd4380c6bdfc31d47417580f7b49415d7e200ef34408311c3124",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_energy_shard_attached_pulse.analyzed.json",
+      "outputSha256": "56699e2cfad2a1e9a9c28e5af5449acb8025246a260f4eedfa1aaa573dd9ec0a",
+      "summary": {
+        "eventCount": 10,
+        "linkCount": 5,
+        "blackboardDependencyCount": 10,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_heal_moss_1",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_heal_moss_1.json",
+      "rawSha256": "44291a6bf6b2cb989840415381dc910d75481366e305959fbc65d70f4173eaec",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_heal_moss_1.analyzed.json",
+      "outputSha256": "b2978eafdfb9a3f1ed847db274aac1ed5d9c727c2d171667120e01125ebb2258",
+      "summary": {
+        "eventCount": 5,
+        "linkCount": 0,
+        "blackboardDependencyCount": 8,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_mini_poise_break",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_mini_poise_break.json",
+      "rawSha256": "e68db46e3fb27d5be8edaabf8c4fdb811731e2bccf70a89ab7bc1822bbc3b31a",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_mini_poise_break.analyzed.json",
+      "outputSha256": "c00f702723c7f4cd866e710068dcdfdc07449f3a5eab84a9ef1dd9dcc1ffd751",
+      "summary": {
+        "eventCount": 4,
+        "linkCount": 0,
+        "blackboardDependencyCount": 3,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_obtain_ultimate_sp",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_obtain_ultimate_sp.json",
+      "rawSha256": "d33ec6a06568d46131a9067692ffd076b50ec85b081710e02ff004437558859a",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_obtain_ultimate_sp.analyzed.json",
+      "outputSha256": "798cd6bb12f0e6f258b903be5926537ac8d06ce8b36fc277b7cd4b0009edc5cb",
+      "summary": {
+        "eventCount": 1,
+        "linkCount": 0,
+        "blackboardDependencyCount": 1,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_poise_break_damage_taken_scale",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_poise_break_damage_taken_scale.json",
+      "rawSha256": "1442156e5810066e7480da377d3c46f0019c1539df8b98452df98ead3db2f466",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_poise_break_damage_taken_scale.analyzed.json",
+      "outputSha256": "24041549c6991be2ff034160f14dc17a2aac83bae7bce54ba7b63547a0c8afa9",
+      "summary": {
+        "eventCount": 0,
+        "linkCount": 0,
+        "blackboardDependencyCount": 1,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_poise_can_be_breaking_attacked",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_poise_can_be_breaking_attacked.json",
+      "rawSha256": "ad3fa54c0a45ceaf4b2a42f54251842b730532927180a7d4c50fa460004d73a0",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_poise_can_be_breaking_attacked.analyzed.json",
+      "outputSha256": "e0800e716cbd81285a7acbb48967761cdba9c55fda6a49a5c49f0b8b5fe2f22b",
+      "summary": {
+        "eventCount": 3,
+        "linkCount": 0,
+        "blackboardDependencyCount": 9,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_poise_guard",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_poise_guard.json",
+      "rawSha256": "9f07f1614a08a3b59ab3b2c9693a42083bd7bdfb9a17176b46f334ca727124c5",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_poise_guard.analyzed.json",
+      "outputSha256": "65599e5c6aadf1443fd7947a6f646095bc8128b7d3f1b52bd0003959f581879a",
+      "summary": {
+        "eventCount": 0,
+        "linkCount": 0,
+        "blackboardDependencyCount": 2,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_poise_rectime",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_poise_rectime.json",
+      "rawSha256": "14052a94baa03b320b434abe4cb1d91506915655b0546ce1b4eb809ad970b61f",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_poise_rectime.analyzed.json",
+      "outputSha256": "0c1f65c18325a042327bdb258fd763a3adf4daacca575063ca0357ba304d9378",
+      "summary": {
+        "eventCount": 0,
+        "linkCount": 0,
+        "blackboardDependencyCount": 1,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_power_attack_disable_cast_skill",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_power_attack_disable_cast_skill.json",
+      "rawSha256": "bdae18386e29a9a0c5ce600213710ec3bfb2684b4e7ead8fa35dc3a968d81490",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_power_attack_disable_cast_skill.analyzed.json",
+      "outputSha256": "062380c95c449f4e32cb9bf1853d099e22e792a6ec4f6242d0a0d01091fff1cf",
+      "summary": {
+        "eventCount": 0,
+        "linkCount": 0,
+        "blackboardDependencyCount": 0,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_pulse_pulse_conduct_triggered",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_pulse_pulse_conduct_triggered.json",
+      "rawSha256": "08b94e0cf47d2585d45b71b292578a4ea007556c507ac6e14b48e63238c8b43c",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_pulse_pulse_conduct_triggered.analyzed.json",
+      "outputSha256": "a915d7d3e0ea6583ce5ecac2ff61c9654cd232b29f5278b3976935555ae69070",
+      "summary": {
+        "eventCount": 5,
+        "linkCount": 1,
+        "blackboardDependencyCount": 8,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_pulse_pulse_conduct_triggered_do",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_pulse_pulse_conduct_triggered_do.json",
+      "rawSha256": "93cd6f9d2359490d9ae354b9334d263ee5a332e918440738ad9abe336c37e16f",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_pulse_pulse_conduct_triggered_do.analyzed.json",
+      "outputSha256": "55f4558a2139e3566d891cecbe40d546b96c9d3ffbb8f574f0d3c55671e7442b",
+      "summary": {
+        "eventCount": 15,
+        "linkCount": 2,
+        "blackboardDependencyCount": 15,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_pulse_pulse_triggered",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_pulse_pulse_triggered.json",
+      "rawSha256": "e6a3969646ff51d646a97a8f148e91f35007ad1b6b2e09b1fb3b3dbc8ef1a045",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_pulse_pulse_triggered.analyzed.json",
+      "outputSha256": "30f387157c3da7f314e33bcb384b9e3b396866281bbae4a68f6a92b9f32946e6",
+      "summary": {
+        "eventCount": 13,
+        "linkCount": 0,
+        "blackboardDependencyCount": 7,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_pulse_triggered_fx",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_pulse_triggered_fx.json",
+      "rawSha256": "2c0df18d9cbbf64ef0f6eec8dfc1aebe5f0e36aba70cab3328105f1db7b6056e",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_pulse_triggered_fx.analyzed.json",
+      "outputSha256": "64c8caf34f2fa45cd38205b16a6713de8cfaa481261cbe7514b22d1b406571e2",
+      "summary": {
+        "eventCount": 5,
+        "linkCount": 0,
+        "blackboardDependencyCount": 3,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_pulse_triggered_start",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_pulse_triggered_start.json",
+      "rawSha256": "a7589040db6e4f2744c8ea24183fa98dc20803e3b55e9d810292a5eb4dc334b7",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_pulse_triggered_start.analyzed.json",
+      "outputSha256": "17ee3a17cf71c5345a83e5b0965206b90a940f724015963e9ddccd929b91a047",
+      "summary": {
+        "eventCount": 1,
+        "linkCount": 0,
+        "blackboardDependencyCount": 0,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_recoverpoise",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_recoverpoise.json",
+      "rawSha256": "71e7c22aa93c725b2278ff7f368975ffc88f3b810ff940df98400386c1b2f00b",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_recoverpoise.analyzed.json",
+      "outputSha256": "9792e68499ec44ca89db6c68b80f6d33ec4f7425dab916d7240ab409ebefe4f8",
+      "summary": {
+        "eventCount": 1,
+        "linkCount": 0,
+        "blackboardDependencyCount": 1,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_resilience_decrease",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_resilience_decrease.json",
+      "rawSha256": "03d23fa98e13f4a0e3c98ef5829fca8512abdce6309f713fbf3783d842067f92",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_resilience_decrease.analyzed.json",
+      "outputSha256": "84dc763b826316a095688437a00c1d1c58b6dda4488ded15af7413f859c931c1",
+      "summary": {
+        "eventCount": 1,
+        "linkCount": 0,
+        "blackboardDependencyCount": 0,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_setmaxpoise",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_setmaxpoise.json",
+      "rawSha256": "c83393a4a30054bf91b4d2fe57da3b84b60709a75dbd9d79797562b70161ba31",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_setmaxpoise.analyzed.json",
+      "outputSha256": "93c9c5d2ea764d86a80e537649776e3c647540ea2f1d722465372a5c3ca3ad22",
+      "summary": {
+        "eventCount": 0,
+        "linkCount": 0,
+        "blackboardDependencyCount": 1,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_temp_poise_break",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_temp_poise_break.json",
+      "rawSha256": "24d3c4fad8dbe4efdfc16ed30679ea6b0082bc10006707a08169eb09c2e46268",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_temp_poise_break.analyzed.json",
+      "outputSha256": "5dba0d67e3eaa1c0e0a4602253f0b093daeaf9fbcc329d3dbc06ddf1c8490d7c",
+      "summary": {
+        "eventCount": 4,
+        "linkCount": 1,
+        "blackboardDependencyCount": 6,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "BuffData",
+      "id": "buff_common_temp_poise_damage_ratio",
+      "rawPath": "reference/public-data/akedata/Json/BuffData/buff_common_temp_poise_damage_ratio.json",
+      "rawSha256": "5859a3f990d3ac166947ee19c225d7e45c1467c8e76fa075991022152a6d3825",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+      "analyzerSha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7",
+      "outputPath": "derived/ake-analysis/BuffData/buff_common_temp_poise_damage_ratio.analyzed.json",
+      "outputSha256": "1b33520e38c856a1196cb89c0b1aea22e0b335ce6e9636d007d13de2476a53fb",
+      "summary": {
+        "eventCount": 1,
+        "linkCount": 0,
+        "blackboardDependencyCount": 0,
+        "warningCount": 0,
+        "traversalStopped": false
+      }
+    },
+    {
+      "kind": "SkillData",
+      "id": "chr_0004_pelica_attack1",
+      "rawPath": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack1.json",
+      "rawSha256": "6dd2f654daad0330f3f13d5a3608249b4c736777d2e0e411c556a5966ef2c832",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+      "analyzerSha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10",
+      "outputPath": "derived/ake-analysis/SkillData/chr_0004_pelica_attack1.analyzed.json",
+      "outputSha256": "4ee4dbe1aa46f5e4977089c0bea2b7d4bd7129534e07f77e2a62904c2a2e4902",
+      "summary": {
+        "eventCount": 16,
+        "linkCount": 4,
+        "hitCount": 0,
+        "windowCount": 8,
+        "warningCount": 0,
+        "pendingSpatialReferenceCount": 0
+      }
+    },
+    {
+      "kind": "SkillData",
+      "id": "chr_0004_pelica_attack1_projhit",
+      "rawPath": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack1_projhit.json",
+      "rawSha256": "857da8b827a322d1480e14875821265f423a5b403a0b0b39a44a97e996269fe6",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+      "analyzerSha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10",
+      "outputPath": "derived/ake-analysis/SkillData/chr_0004_pelica_attack1_projhit.analyzed.json",
+      "outputSha256": "b417d03c6195de1c03b95e5e0802c7c6b04edd8b7841501b61e78ae6cf2f93ea",
+      "summary": {
+        "eventCount": 7,
+        "linkCount": 0,
+        "hitCount": 1,
+        "windowCount": 2,
+        "warningCount": 0,
+        "pendingSpatialReferenceCount": 0
+      }
+    },
+    {
+      "kind": "SkillData",
+      "id": "chr_0004_pelica_attack1_projhit02",
+      "rawPath": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack1_projhit02.json",
+      "rawSha256": "92f1adac7f0fe452733c69331dd0c93669c96b2e022dae35434ffb3047c0e2ea",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+      "analyzerSha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10",
+      "outputPath": "derived/ake-analysis/SkillData/chr_0004_pelica_attack1_projhit02.analyzed.json",
+      "outputSha256": "b9d6da54508ea39ca87d8451001531afdc6c7e6a03fbe18a46057c1fc349610b",
+      "summary": {
+        "eventCount": 11,
+        "linkCount": 0,
+        "hitCount": 1,
+        "windowCount": 2,
+        "warningCount": 0,
+        "pendingSpatialReferenceCount": 0
+      }
+    },
+    {
+      "kind": "SkillData",
+      "id": "chr_0004_pelica_attack2",
+      "rawPath": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack2.json",
+      "rawSha256": "c87f07e7bc020cceff095c0806965e5e5689062cde7bdfb9cf2f69128d432269",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+      "analyzerSha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10",
+      "outputPath": "derived/ake-analysis/SkillData/chr_0004_pelica_attack2.analyzed.json",
+      "outputSha256": "6d1fbbe153d5aae0f3911f1bd3351199145b7d2dabd73edaf36062976d247b1c",
+      "summary": {
+        "eventCount": 22,
+        "linkCount": 6,
+        "hitCount": 0,
+        "windowCount": 9,
+        "warningCount": 0,
+        "pendingSpatialReferenceCount": 0
+      }
+    },
+    {
+      "kind": "SkillData",
+      "id": "chr_0004_pelica_attack2_projhit",
+      "rawPath": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack2_projhit.json",
+      "rawSha256": "8118553d97ddf894fbe8a6d385149ffa50a4db02b37fcca8f3afc1921f9a49e4",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+      "analyzerSha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10",
+      "outputPath": "derived/ake-analysis/SkillData/chr_0004_pelica_attack2_projhit.analyzed.json",
+      "outputSha256": "ce5133988155aca839a57fecc00148f802c3a47571eac597e35c0dd1b5d6cebe",
+      "summary": {
+        "eventCount": 6,
+        "linkCount": 0,
+        "hitCount": 1,
+        "windowCount": 2,
+        "warningCount": 0,
+        "pendingSpatialReferenceCount": 0
+      }
+    },
+    {
+      "kind": "SkillData",
+      "id": "chr_0004_pelica_attack3",
+      "rawPath": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack3.json",
+      "rawSha256": "66e2dc9fbbc636c42775d01fc46f54c27b6ca53b33da1d6dfa646bb65df31324",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+      "analyzerSha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10",
+      "outputPath": "derived/ake-analysis/SkillData/chr_0004_pelica_attack3.analyzed.json",
+      "outputSha256": "a62093f8e51ab5ad665b3874abed6d3907760e2ec2c236f87fecc0cf24c92f20",
+      "summary": {
+        "eventCount": 26,
+        "linkCount": 8,
+        "hitCount": 0,
+        "windowCount": 9,
+        "warningCount": 0,
+        "pendingSpatialReferenceCount": 0
+      }
+    },
+    {
+      "kind": "SkillData",
+      "id": "chr_0004_pelica_attack3_projhit",
+      "rawPath": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack3_projhit.json",
+      "rawSha256": "35c7006ccabec985a4a4c23e5ca09efc89bbd578efd12121fdfb8cc8eac6eb00",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+      "analyzerSha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10",
+      "outputPath": "derived/ake-analysis/SkillData/chr_0004_pelica_attack3_projhit.analyzed.json",
+      "outputSha256": "7801c5077f4a882635619494d060472112b977367ce9577d53afa746ed4b3104",
+      "summary": {
+        "eventCount": 9,
+        "linkCount": 0,
+        "hitCount": 1,
+        "windowCount": 2,
+        "warningCount": 2,
+        "pendingSpatialReferenceCount": 0
+      }
+    },
+    {
+      "kind": "SkillData",
+      "id": "chr_0004_pelica_attack4",
+      "rawPath": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack4.json",
+      "rawSha256": "420e4ae3682fc400c533280186533a3cbe0281d194f4030d4bbcdcb6d086b69a",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+      "analyzerSha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10",
+      "outputPath": "derived/ake-analysis/SkillData/chr_0004_pelica_attack4.analyzed.json",
+      "outputSha256": "43576092a9813eff57e3ac0693ec793a1ccf653441abc624da5079dfd38beb40",
+      "summary": {
+        "eventCount": 24,
+        "linkCount": 4,
+        "hitCount": 0,
+        "windowCount": 8,
+        "warningCount": 0,
+        "pendingSpatialReferenceCount": 0
+      }
+    },
+    {
+      "kind": "SkillData",
+      "id": "chr_0004_pelica_attack4_projhit",
+      "rawPath": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack4_projhit.json",
+      "rawSha256": "a429e46b5be7138d5ad5c024a77e8e8921483169f2716e63ab34c833ce6d3a4c",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+      "analyzerSha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10",
+      "outputPath": "derived/ake-analysis/SkillData/chr_0004_pelica_attack4_projhit.analyzed.json",
+      "outputSha256": "91901a41331db8e7440efa270cf35cab2da97d06f58f6808ef8060cb454854f9",
+      "summary": {
+        "eventCount": 8,
+        "linkCount": 0,
+        "hitCount": 2,
+        "windowCount": 3,
+        "warningCount": 3,
+        "pendingSpatialReferenceCount": 0
+      }
+    },
+    {
+      "kind": "SkillData",
+      "id": "chr_0004_pelica_attack4_projhit_no_effect",
+      "rawPath": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack4_projhit_no_effect.json",
+      "rawSha256": "a5de423cc3be69a4a1cb002613396f7dafc914ab45d13124599f3f5fe67c90df",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+      "analyzerSha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10",
+      "outputPath": "derived/ake-analysis/SkillData/chr_0004_pelica_attack4_projhit_no_effect.analyzed.json",
+      "outputSha256": "040b98cb6ad6de63715aca783be9a74de8d6dd05af6fc6d04f0145cfcc6012da",
+      "summary": {
+        "eventCount": 0,
+        "linkCount": 0,
+        "hitCount": 0,
+        "windowCount": 1,
+        "warningCount": 0,
+        "pendingSpatialReferenceCount": 0
+      }
+    },
+    {
+      "kind": "SkillData",
+      "id": "chr_0004_pelica_combo_skill",
+      "rawPath": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_combo_skill.json",
+      "rawSha256": "ee772d42aa4b4b777c87c1171408fa4afb9a705837ce0c8f36a66e80a57ab1f0",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+      "analyzerSha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10",
+      "outputPath": "derived/ake-analysis/SkillData/chr_0004_pelica_combo_skill.analyzed.json",
+      "outputSha256": "22bde1f321ba734adc9cd940066a9caa209a5ae5c680c348b13f6e7e51523130",
+      "summary": {
+        "eventCount": 43,
+        "linkCount": 4,
+        "hitCount": 0,
+        "windowCount": 10,
+        "warningCount": 0,
+        "pendingSpatialReferenceCount": 0
+      }
+    },
+    {
+      "kind": "SkillData",
+      "id": "chr_0004_pelica_combo_skill_projhit",
+      "rawPath": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_combo_skill_projhit.json",
+      "rawSha256": "d5050953d5d98ee3ef369be42c136b142f1686940b5c5ee5b3a8428630bf003c",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+      "analyzerSha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10",
+      "outputPath": "derived/ake-analysis/SkillData/chr_0004_pelica_combo_skill_projhit.analyzed.json",
+      "outputSha256": "6eab43c4ef5e36308be073150a643d257cc25762ea0503d1a3564f61ec57061d",
+      "summary": {
+        "eventCount": 17,
+        "linkCount": 4,
+        "hitCount": 2,
+        "windowCount": 3,
+        "warningCount": 1,
+        "pendingSpatialReferenceCount": 0
+      }
+    },
+    {
+      "kind": "SkillData",
+      "id": "chr_0004_pelica_normal_skill",
+      "rawPath": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_normal_skill.json",
+      "rawSha256": "d22803ad767ccd61ad3df66f45723c038338af99b91ca38d49693ebc5685912e",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+      "analyzerSha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10",
+      "outputPath": "derived/ake-analysis/SkillData/chr_0004_pelica_normal_skill.analyzed.json",
+      "outputSha256": "8604c102c818f49596abf5b12a7fed0904112864b8d1217509f34a8758df7acf",
+      "summary": {
+        "eventCount": 65,
+        "linkCount": 3,
+        "hitCount": 2,
+        "windowCount": 11,
+        "warningCount": 0,
+        "pendingSpatialReferenceCount": 0
+      }
+    },
+    {
+      "kind": "SkillData",
+      "id": "chr_0004_pelica_power_attack",
+      "rawPath": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_power_attack.json",
+      "rawSha256": "7e3549258bfde30d48795f6576e35674012b9ff2f75ebb96e829b9db6a215cbb",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+      "analyzerSha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10",
+      "outputPath": "derived/ake-analysis/SkillData/chr_0004_pelica_power_attack.analyzed.json",
+      "outputSha256": "682bacf0bddb8be38c4521c639c063a960296bfba8726ff1084a75273a545c3e",
+      "summary": {
+        "eventCount": 50,
+        "linkCount": 6,
+        "hitCount": 1,
+        "windowCount": 11,
+        "warningCount": 0,
+        "pendingSpatialReferenceCount": 0
+      }
+    },
+    {
+      "kind": "SkillData",
+      "id": "chr_0004_pelica_ultimate_skill",
+      "rawPath": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_ultimate_skill.json",
+      "rawSha256": "4813fe2e73dac06835fc242b5c596f5add73d8829a191eb9bb283fc843857e2a",
+      "analyzerPath": "reference/third-party/akedatabase/plugin/js/v3-skill-data.js",
+      "analyzerSha256": "9be67663dfc299ee782c73d1b440b7e3c64ea567a46e523b2bae7bf97bcade10",
+      "outputPath": "derived/ake-analysis/SkillData/chr_0004_pelica_ultimate_skill.analyzed.json",
+      "outputSha256": "bfd900ff41588321219db6b48c01030491bd765520a079987e8e212faefa6b5f",
+      "summary": {
+        "eventCount": 61,
+        "linkCount": 7,
+        "hitCount": 2,
+        "windowCount": 9,
+        "warningCount": 0,
+        "pendingSpatialReferenceCount": 1
+      }
+    }
+  ]
+}

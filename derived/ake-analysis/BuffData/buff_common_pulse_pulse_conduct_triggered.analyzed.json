@@ -1,0 +1,1190 @@
+{
+  "_meta": {
+    "schemaVersion": 1,
+    "kind": "BuffData",
+    "id": "buff_common_pulse_pulse_conduct_triggered",
+    "generator": "AKEV3BuffData.analyzeBuff",
+    "generatorWrapper": "scripts/export-ake-analysis.mjs",
+    "generatorWrapperSha256": "571c3da2e52854f78c3fe352b745de6555f5ead1f49c075538396d5185eff692",
+    "akeDatabaseCommit": "1bb9549705eba2601affed4cb8a7ea69ba13b150",
+    "akedataJsonRevision": "2026-08-22T05:51:44.260485+08:00",
+    "inputs": [
+      {
+        "role": "raw",
+        "path": "reference/public-data/akedata/Json/BuffData/buff_common_pulse_pulse_conduct_triggered.json",
+        "sha256": "08b94e0cf47d2585d45b71b292578a4ea007556c507ac6e14b48e63238c8b43c"
+      },
+      {
+        "role": "analyzer",
+        "path": "reference/third-party/akedatabase/plugin/js/v3-buff-data.js",
+        "sha256": "7cfc175cf7337a623e75841c2f993a3b7696ec536cb77404ed237b8219e5f4a7"
+      }
+    ],
+    "semantics": "research-view-model-not-runtime-state"
+  },
+  "analysis": {
+    "identity": {
+      "id": "buff_common_pulse_pulse_conduct_triggered",
+      "hasIcon": false,
+      "spritePath": "",
+      "iconPath": "",
+      "iconConfig": {
+        "showInHeadBarCommon": false,
+        "showInHeadBarAttached": false,
+        "showInSquadIcon": false,
+        "onlyShowForMainCharacter": false,
+        "abnormalColorType": "Physical",
+        "iconStyleInSquad": "Default"
+      }
+    },
+    "core": {
+      "lifeType": "Limited",
+      "duration": {
+        "value": 2,
+        "fallbackValue": 2,
+        "usesBlackboard": false,
+        "blackboardKey": "duration",
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "triggerInterval": {
+        "value": -1,
+        "fallbackValue": -1,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "waitFirstTriggerInterval": false,
+      "maxTriggerCnt": {
+        "value": 1,
+        "fallbackValue": 1,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "hasAddingCooldown": false,
+      "addingCooldown": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "ignoreCooldownWhenAdding": false,
+      "ignoreTagImmune": false,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "finishOnRepatriate": false
+    },
+    "stacking": {
+      "identifierType": "Id",
+      "stackingType": "Unlimited",
+      "stackingKey": "pulse_triggered",
+      "usePriorityKey": false,
+      "priorityKey": "",
+      "negatePriority": false,
+      "priority": {
+        "value": 0,
+        "fallbackValue": 0,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "useMaxStackCntKey": false,
+      "maxStackCntKey": "",
+      "maxStackCnt": {
+        "value": 1,
+        "fallbackValue": 1,
+        "usesBlackboard": false,
+        "blackboardKey": null,
+        "resolved": true,
+        "status": "literal",
+        "source": "literal",
+        "dynamic": false
+      },
+      "isNeedStackEffect": false,
+      "stackEffects": []
+    },
+    "dispel": {
+      "canBeDispelled": false,
+      "dispelledLevel": "Default"
+    },
+    "modifiers": {
+      "isConvertedAttribute": false,
+      "attributes": [],
+      "damage": [],
+      "heal": [],
+      "poise": [],
+      "global": [],
+      "shields": []
+    },
+    "tags": {
+      "apply": [],
+      "extendAfterTrigger": []
+    },
+    "eventGroups": [
+      {
+        "kind": "buff",
+        "source": "buff-event",
+        "groupIndex": 0,
+        "eventName": "OnBuffStart",
+        "buffEvent": "OnBuffStart",
+        "abilityEvent": null,
+        "igniteType": null,
+        "finishAfterIgnited": false,
+        "wrapperCount": 1,
+        "actionIndices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "actionCount": 5,
+        "presentationActionCount": 0
+      }
+    ],
+    "timelineGroups": [],
+    "events": [
+      {
+        "index": 0,
+        "type": "IfElseAction",
+        "rawType": "Beyond.Gameplay.Core.IfElseAction+IfElseActionData, Gameplay.Beyond",
+        "category": "logic",
+        "presentation": false,
+        "synthetic": false,
+        "enabled": true,
+        "serverActionIndex": 0,
+        "priorityLevel": "Default",
+        "priorityOffset": 0,
+        "parentEventIndex": null,
+        "relation": "actions",
+        "branchPath": [
+          "actions"
+        ],
+        "source": "buff-event",
+        "eventKind": "buff",
+        "eventName": "OnBuffStart",
+        "abilityEvent": null,
+        "groupIndex": 0,
+        "sequenceIndex": 0,
+        "summaryFields": [
+          {
+            "key": "actionDataCount",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[0].conditionAction.actionData"
+          },
+          {
+            "key": "onlyExecuteWhenSourceIsMainChar",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].conditionAction.onlyExecuteWhenSourceIsMainChar"
+          },
+          {
+            "key": "onlyExecuteWhenSourceIsGuard",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].conditionAction.onlyExecuteWhenSourceIsGuard"
+          },
+          {
+            "key": "actionDataCount",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData"
+          },
+          {
+            "key": "onlyExecuteWhenSourceIsMainChar",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.onlyExecuteWhenSourceIsMainChar"
+          },
+          {
+            "key": "onlyExecuteWhenSourceIsGuard",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.onlyExecuteWhenSourceIsGuard"
+          },
+          {
+            "key": "actionDataCount",
+            "value": 1,
+            "path": "buffEventAction[0].actions[0].actionData[0].failActions.actionData"
+          },
+          {
+            "key": "onlyExecuteWhenSourceIsMainChar",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].failActions.onlyExecuteWhenSourceIsMainChar"
+          },
+          {
+            "key": "onlyExecuteWhenSourceIsGuard",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].failActions.onlyExecuteWhenSourceIsGuard"
+          },
+          {
+            "key": "alwaysNext",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[0].alwaysNext"
+          }
+        ],
+        "summaryTruncated": false,
+        "details": null,
+        "path": "buffEventAction[0].actions[0].actionData[0]",
+        "startFrame": null,
+        "endFrame": null,
+        "rawEndFrame": null,
+        "openEnded": false,
+        "durationFrames": null
+      },
+      {
+        "index": 1,
+        "type": "CompareFloat",
+        "rawType": "Beyond.Gameplay.Core.CompareFloat+Data, Gameplay.Beyond",
+        "category": "logic",
+        "presentation": false,
+        "synthetic": false,
+        "enabled": true,
+        "serverActionIndex": 1,
+        "priorityLevel": "Default",
+        "priorityOffset": 0,
+        "parentEventIndex": 0,
+        "relation": "actions",
+        "branchPath": [
+          "actions",
+          "condition",
+          "actions"
+        ],
+        "source": "buff-event",
+        "eventKind": "buff",
+        "eventName": "OnBuffStart",
+        "abilityEvent": null,
+        "groupIndex": 0,
+        "sequenceIndex": 0,
+        "summaryFields": [
+          {
+            "key": "compare",
+            "value": "GT",
+            "path": "buffEventAction[0].actions[0].actionData[0].conditionAction.actionData[0].compare"
+          },
+          {
+            "key": "valueA",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "duration",
+              "resolved": true,
+              "status": "local-default",
+              "source": "local-default",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[0].conditionAction.actionData[0].valueA"
+          },
+          {
+            "key": "valueB",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": false,
+              "blackboardKey": null,
+              "resolved": true,
+              "status": "literal",
+              "source": "literal",
+              "dynamic": false
+            },
+            "path": "buffEventAction[0].actions[0].actionData[0].conditionAction.actionData[0].valueB"
+          }
+        ],
+        "summaryTruncated": false,
+        "details": null,
+        "path": "buffEventAction[0].actions[0].actionData[0].conditionAction.actionData[0]",
+        "startFrame": null,
+        "endFrame": null,
+        "rawEndFrame": null,
+        "openEnded": false,
+        "durationFrames": null
+      },
+      {
+        "index": 2,
+        "type": "ModifyDynamicBlackboard",
+        "rawType": "Beyond.Gameplay.Core.ModifyDynamicBlackboard+Data, Gameplay.Beyond",
+        "category": "logic",
+        "presentation": false,
+        "synthetic": false,
+        "enabled": true,
+        "serverActionIndex": 2,
+        "priorityLevel": "Default",
+        "priorityOffset": 0,
+        "parentEventIndex": 0,
+        "relation": "actions",
+        "branchPath": [
+          "actions",
+          "succeed",
+          "actions"
+        ],
+        "source": "buff-event",
+        "eventKind": "buff",
+        "eventName": "OnBuffStart",
+        "abilityEvent": null,
+        "groupIndex": 0,
+        "sequenceIndex": 0,
+        "summaryFields": [
+          {
+            "key": "key",
+            "value": "real_duration",
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].key"
+          },
+          {
+            "key": "operation",
+            "value": "Assign",
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].operation"
+          },
+          {
+            "key": "calculateType",
+            "value": "HpRatio",
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].calculateType"
+          },
+          {
+            "key": "value",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "duration",
+              "resolved": true,
+              "status": "local-default",
+              "source": "local-default",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].value"
+          },
+          {
+            "key": "directValue",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].directValue"
+          },
+          {
+            "key": "targetSource",
+            "value": "Owner",
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].calculationTarget.targetSource"
+          },
+          {
+            "key": "target",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].calculationTarget.target"
+          },
+          {
+            "key": "selectorOwner",
+            "value": "ActionOwner",
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].calculationTarget.selectorOwner"
+          },
+          {
+            "key": "centerType",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].calculationTarget.centerType"
+          },
+          {
+            "key": "centerToGround",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].calculationTarget.centerToGround"
+          },
+          {
+            "key": "enableAdvancedDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].calculationTarget.enableAdvancedDirection"
+          },
+          {
+            "key": "directionType",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].calculationTarget.advancedDirection.directionType"
+          },
+          {
+            "key": "sourceMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].calculationTarget.advancedDirection.sourceMountPoint"
+          },
+          {
+            "key": "targetMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].calculationTarget.advancedDirection.targetMountPoint"
+          },
+          {
+            "key": "customSourceAndTarget",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].calculationTarget.advancedDirection.customSourceAndTarget"
+          },
+          {
+            "key": "clampToXZ",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].calculationTarget.advancedDirection.clampToXZ"
+          },
+          {
+            "key": "invertDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].calculationTarget.advancedDirection.invertDirection"
+          },
+          {
+            "key": "selectorDirection",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].calculationTarget.selectorDirection"
+          }
+        ],
+        "summaryTruncated": false,
+        "details": null,
+        "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0]",
+        "startFrame": null,
+        "endFrame": null,
+        "rawEndFrame": null,
+        "openEnded": false,
+        "durationFrames": null
+      },
+      {
+        "index": 3,
+        "type": "ReadSkillSettingData",
+        "rawType": "Beyond.Gameplay.Core.ReadSkillSettingData+Data, Gameplay.Beyond",
+        "category": "other",
+        "presentation": false,
+        "synthetic": false,
+        "enabled": true,
+        "serverActionIndex": 3,
+        "priorityLevel": "Default",
+        "priorityOffset": 0,
+        "parentEventIndex": 0,
+        "relation": "actions",
+        "branchPath": [
+          "actions",
+          "fail",
+          "actions"
+        ],
+        "source": "buff-event",
+        "eventKind": "buff",
+        "eventName": "OnBuffStart",
+        "abilityEvent": null,
+        "groupIndex": 0,
+        "sequenceIndex": 0,
+        "summaryFields": [
+          {
+            "key": "dataKey",
+            "value": "导电持续时间",
+            "path": "buffEventAction[0].actions[0].actionData[0].failActions.actionData[0].dataList[0].dataKey"
+          },
+          {
+            "key": "column",
+            "value": {
+              "value": 1,
+              "fallbackValue": 1,
+              "usesBlackboard": true,
+              "blackboardKey": "count",
+              "resolved": true,
+              "status": "local-default",
+              "source": "local-default",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[0].failActions.actionData[0].dataList[0].column"
+          },
+          {
+            "key": "enhanceAttributeSourceSource",
+            "value": "Source",
+            "path": "buffEventAction[0].actions[0].actionData[0].failActions.actionData[0].dataList[0].enhanceAttributeSource.targetSource"
+          },
+          {
+            "key": "storeKey",
+            "value": "real_duration",
+            "path": "buffEventAction[0].actions[0].actionData[0].failActions.actionData[0].dataList[0].storeKey"
+          }
+        ],
+        "summaryTruncated": false,
+        "details": null,
+        "path": "buffEventAction[0].actions[0].actionData[0].failActions.actionData[0]",
+        "startFrame": null,
+        "endFrame": null,
+        "rawEndFrame": null,
+        "openEnded": false,
+        "durationFrames": null
+      },
+      {
+        "index": 4,
+        "type": "CreateBuffAction",
+        "rawType": "Beyond.Gameplay.Core.CreateBuffAction+Data, Gameplay.Beyond",
+        "category": "buff",
+        "presentation": false,
+        "synthetic": false,
+        "enabled": true,
+        "serverActionIndex": 4,
+        "priorityLevel": "Default",
+        "priorityOffset": 0,
+        "parentEventIndex": null,
+        "relation": "actions",
+        "branchPath": [
+          "actions"
+        ],
+        "source": "buff-event",
+        "eventKind": "buff",
+        "eventName": "OnBuffStart",
+        "abilityEvent": null,
+        "groupIndex": 0,
+        "sequenceIndex": 0,
+        "summaryFields": [
+          {
+            "key": "count",
+            "value": {
+              "value": 1,
+              "fallbackValue": 1,
+              "usesBlackboard": false,
+              "blackboardKey": null,
+              "resolved": true,
+              "status": "literal",
+              "source": "literal",
+              "dynamic": false
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].count"
+          },
+          {
+            "key": "buffId",
+            "value": "buff_common_pulse_pulse_conduct_triggered_do",
+            "path": "buffEventAction[0].actions[0].actionData[1].buffs[0].buffId"
+          },
+          {
+            "key": "assignBlackboard",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[1].buffs[0].assignBlackboard"
+          },
+          {
+            "key": "duration",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "real_duration",
+              "resolved": true,
+              "status": "local-default",
+              "source": "local-default",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].buffs[0].assignItems[0]"
+          },
+          {
+            "key": "count",
+            "value": {
+              "value": 1,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "count",
+              "resolved": true,
+              "status": "local-default",
+              "source": "local-default",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].buffs[0].assignItems[1]"
+          },
+          {
+            "key": "consumed_type",
+            "value": {
+              "value": 1,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "consumed_type",
+              "resolved": true,
+              "status": "local-default",
+              "source": "local-default",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].buffs[0].assignItems[2]"
+          },
+          {
+            "key": "consumed_layer",
+            "value": {
+              "value": 0,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "consumed_layer",
+              "resolved": true,
+              "status": "local-default",
+              "source": "local-default",
+              "dynamic": true
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].buffs[0].assignItems[3]"
+          },
+          {
+            "key": "extra_scaling",
+            "value": {
+              "value": 1,
+              "fallbackValue": 0,
+              "usesBlackboard": true,
+              "blackboardKey": "extra_scaling",
+              "resolved": true,
+              "status": "local-default",
+              "source": "local-default",
+              "dynamic": false
+            },
+            "path": "buffEventAction[0].actions[0].actionData[1].buffs[0].assignItems[4]"
+          },
+          {
+            "key": "readIdFromBlackboard",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].buffs[0].readIdFromBlackboard"
+          },
+          {
+            "key": "targetSource",
+            "value": "Owner",
+            "path": "buffEventAction[0].actions[0].actionData[1].targetSettings.targetSource"
+          },
+          {
+            "key": "target",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[1].targetSettings.target"
+          },
+          {
+            "key": "selectorOwner",
+            "value": "ActionOwner",
+            "path": "buffEventAction[0].actions[0].actionData[1].targetSettings.selectorOwner"
+          },
+          {
+            "key": "centerType",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[1].targetSettings.centerType"
+          },
+          {
+            "key": "centerToGround",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].targetSettings.centerToGround"
+          },
+          {
+            "key": "enableAdvancedDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].targetSettings.enableAdvancedDirection"
+          },
+          {
+            "key": "directionType",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[1].targetSettings.advancedDirection.directionType"
+          },
+          {
+            "key": "sourceMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[1].targetSettings.advancedDirection.sourceMountPoint"
+          },
+          {
+            "key": "targetMountPoint",
+            "value": "None",
+            "path": "buffEventAction[0].actions[0].actionData[1].targetSettings.advancedDirection.targetMountPoint"
+          },
+          {
+            "key": "customSourceAndTarget",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].targetSettings.advancedDirection.customSourceAndTarget"
+          },
+          {
+            "key": "clampToXZ",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[1].targetSettings.advancedDirection.clampToXZ"
+          },
+          {
+            "key": "invertDirection",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].targetSettings.advancedDirection.invertDirection"
+          },
+          {
+            "key": "selectorDirection",
+            "value": "SourceForward",
+            "path": "buffEventAction[0].actions[0].actionData[1].targetSettings.selectorDirection"
+          },
+          {
+            "key": "buffSource",
+            "value": "ActionSource",
+            "path": "buffEventAction[0].actions[0].actionData[1].buffSource"
+          },
+          {
+            "key": "autoFinishByAction",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].autoFinishByAction"
+          },
+          {
+            "key": "finishWithNextSkillIfNotInherited",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[1].finishWithNextSkillIfNotInherited"
+          },
+          {
+            "key": "asChildBuff",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].asChildBuff"
+          },
+          {
+            "key": "inheritSourceSkillCastId",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].inheritSourceSkillCastId"
+          },
+          {
+            "key": "inheritSourceSkillCastInfo",
+            "value": true,
+            "path": "buffEventAction[0].actions[0].actionData[1].inheritSourceSkillCastInfo"
+          },
+          {
+            "key": "isExtra",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].isExtra"
+          },
+          {
+            "key": "passTargetGroupsToBuff",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].passTargetGroupsToBuff"
+          },
+          {
+            "key": "overrideBuffIconDuration",
+            "value": false,
+            "path": "buffEventAction[0].actions[0].actionData[1].overrideBuffIconDuration"
+          },
+          {
+            "key": "m_abilityEntityTypeInfo",
+            "value": "当ActionOwner是AbilityEntity时，Buff图标倒计时显示Owner的剩余时间",
+            "path": "buffEventAction[0].actions[0].actionData[1].buffIconDurationSource.m_abilityEntityTypeInfo"
+          }
+        ],
+        "summaryTruncated": true,
+        "details": {
+          "buffs": [
+            {
+              "index": 0,
+              "buffId": {
+                "value": "buff_common_pulse_pulse_conduct_triggered_do",
+                "fallbackValue": "buff_common_pulse_pulse_conduct_triggered_do",
+                "usesBlackboard": false,
+                "blackboardKey": null,
+                "resolved": true,
+                "status": "literal",
+                "source": "literal",
+                "dynamic": false
+              },
+              "assignBlackboard": true,
+              "assignments": [
+                {
+                  "key": "duration",
+                  "value": {
+                    "value": 0,
+                    "fallbackValue": 0,
+                    "usesBlackboard": true,
+                    "blackboardKey": "real_duration",
+                    "resolved": true,
+                    "status": "local-default",
+                    "source": "local-default",
+                    "dynamic": true
+                  }
+                },
+                {
+                  "key": "count",
+                  "value": {
+                    "value": 1,
+                    "fallbackValue": 0,
+                    "usesBlackboard": true,
+                    "blackboardKey": "count",
+                    "resolved": true,
+                    "status": "local-default",
+                    "source": "local-default",
+                    "dynamic": true
+                  }
+                },
+                {
+                  "key": "consumed_type",
+                  "value": {
+                    "value": 1,
+                    "fallbackValue": 0,
+                    "usesBlackboard": true,
+                    "blackboardKey": "consumed_type",
+                    "resolved": true,
+                    "status": "local-default",
+                    "source": "local-default",
+                    "dynamic": true
+                  }
+                },
+                {
+                  "key": "consumed_layer",
+                  "value": {
+                    "value": 0,
+                    "fallbackValue": 0,
+                    "usesBlackboard": true,
+                    "blackboardKey": "consumed_layer",
+                    "resolved": true,
+                    "status": "local-default",
+                    "source": "local-default",
+                    "dynamic": true
+                  }
+                },
+                {
+                  "key": "extra_scaling",
+                  "value": {
+                    "value": 1,
+                    "fallbackValue": 0,
+                    "usesBlackboard": true,
+                    "blackboardKey": "extra_scaling",
+                    "resolved": true,
+                    "status": "local-default",
+                    "source": "local-default",
+                    "dynamic": false
+                  }
+                }
+              ]
+            }
+          ],
+          "count": {
+            "value": 1,
+            "fallbackValue": 1,
+            "usesBlackboard": false,
+            "blackboardKey": null,
+            "resolved": true,
+            "status": "literal",
+            "source": "literal",
+            "dynamic": false
+          },
+          "targetSource": "Owner",
+          "targetGroupKey": "",
+          "buffSource": "ActionSource",
+          "autoFinishByAction": false,
+          "asChildBuff": false
+        },
+        "path": "buffEventAction[0].actions[0].actionData[1]",
+        "startFrame": null,
+        "endFrame": null,
+        "rawEndFrame": null,
+        "openEnded": false,
+        "durationFrames": null
+      }
+    ],
+    "links": [
+      {
+        "kind": "buff",
+        "id": "buff_common_pulse_pulse_conduct_triggered_do",
+        "relation": "create",
+        "path": "buffEventAction[0].actions[0].actionData[1].buffs[0].buffId",
+        "eventIndex": 4,
+        "eventType": "CreateBuffAction",
+        "source": "buff-event",
+        "resolvedId": {
+          "value": "buff_common_pulse_pulse_conduct_triggered_do",
+          "fallbackValue": "buff_common_pulse_pulse_conduct_triggered_do",
+          "usesBlackboard": false,
+          "blackboardKey": null,
+          "resolved": true,
+          "status": "literal",
+          "source": "literal",
+          "dynamic": false
+        },
+        "dynamic": false
+      }
+    ],
+    "blackboard": {
+      "entries": [
+        {
+          "key": "duration",
+          "index": 0,
+          "value": 0,
+          "valueDouble": 0,
+          "valueStr": "",
+          "isDynamic": true,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 0,
+              "value": 0,
+              "isDynamic": true
+            }
+          ]
+        },
+        {
+          "key": "count",
+          "index": 1,
+          "value": 1,
+          "valueDouble": 1,
+          "valueStr": "",
+          "isDynamic": true,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 1,
+              "value": 1,
+              "isDynamic": true
+            }
+          ]
+        },
+        {
+          "key": "real_duration",
+          "index": 2,
+          "value": 0,
+          "valueDouble": 0,
+          "valueStr": "",
+          "isDynamic": true,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 2,
+              "value": 0,
+              "isDynamic": true
+            }
+          ]
+        },
+        {
+          "key": "consumed_type",
+          "index": 3,
+          "value": 1,
+          "valueDouble": 1,
+          "valueStr": "",
+          "isDynamic": true,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 3,
+              "value": 1,
+              "isDynamic": true
+            }
+          ]
+        },
+        {
+          "key": "consumed_layer",
+          "index": 4,
+          "value": 0,
+          "valueDouble": 0,
+          "valueStr": "",
+          "isDynamic": true,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 4,
+              "value": 0,
+              "isDynamic": true
+            }
+          ]
+        },
+        {
+          "key": "extra_scaling",
+          "index": 5,
+          "value": 1,
+          "valueDouble": 1,
+          "valueStr": "",
+          "isDynamic": false,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 5,
+              "value": 1,
+              "isDynamic": false
+            }
+          ]
+        }
+      ],
+      "byKey": {
+        "duration": {
+          "key": "duration",
+          "index": 0,
+          "value": 0,
+          "valueDouble": 0,
+          "valueStr": "",
+          "isDynamic": true,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 0,
+              "value": 0,
+              "isDynamic": true
+            }
+          ]
+        },
+        "count": {
+          "key": "count",
+          "index": 1,
+          "value": 1,
+          "valueDouble": 1,
+          "valueStr": "",
+          "isDynamic": true,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 1,
+              "value": 1,
+              "isDynamic": true
+            }
+          ]
+        },
+        "real_duration": {
+          "key": "real_duration",
+          "index": 2,
+          "value": 0,
+          "valueDouble": 0,
+          "valueStr": "",
+          "isDynamic": true,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 2,
+              "value": 0,
+              "isDynamic": true
+            }
+          ]
+        },
+        "consumed_type": {
+          "key": "consumed_type",
+          "index": 3,
+          "value": 1,
+          "valueDouble": 1,
+          "valueStr": "",
+          "isDynamic": true,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 3,
+              "value": 1,
+              "isDynamic": true
+            }
+          ]
+        },
+        "consumed_layer": {
+          "key": "consumed_layer",
+          "index": 4,
+          "value": 0,
+          "valueDouble": 0,
+          "valueStr": "",
+          "isDynamic": true,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 4,
+              "value": 0,
+              "isDynamic": true
+            }
+          ]
+        },
+        "extra_scaling": {
+          "key": "extra_scaling",
+          "index": 5,
+          "value": 1,
+          "valueDouble": 1,
+          "valueStr": "",
+          "isDynamic": false,
+          "source": "buff",
+          "status": "local-default",
+          "overridden": false,
+          "history": [
+            {
+              "index": 5,
+              "value": 1,
+              "isDynamic": false
+            }
+          ]
+        }
+      },
+      "externalByKey": {},
+      "dependencies": [
+        {
+          "path": "buffEventAction[0].actions[0].actionData[0].conditionAction.actionData[0].valueA",
+          "key": "duration",
+          "status": "local-default",
+          "resolved": true,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[0].succeedActions.actionData[0].value",
+          "key": "duration",
+          "status": "local-default",
+          "resolved": true,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[0].failActions.actionData[0].dataList[0].column",
+          "key": "count",
+          "status": "local-default",
+          "resolved": true,
+          "value": 1,
+          "fallbackValue": 1,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[1].buffs[0].assignItems[0]",
+          "key": "real_duration",
+          "status": "local-default",
+          "resolved": true,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[1].buffs[0].assignItems[1]",
+          "key": "count",
+          "status": "local-default",
+          "resolved": true,
+          "value": 1,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[1].buffs[0].assignItems[2]",
+          "key": "consumed_type",
+          "status": "local-default",
+          "resolved": true,
+          "value": 1,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[1].buffs[0].assignItems[3]",
+          "key": "consumed_layer",
+          "status": "local-default",
+          "resolved": true,
+          "value": 0,
+          "fallbackValue": 0,
+          "dynamic": true
+        },
+        {
+          "path": "buffEventAction[0].actions[0].actionData[1].buffs[0].assignItems[4]",
+          "key": "extra_scaling",
+          "status": "local-default",
+          "resolved": true,
+          "value": 1,
+          "fallbackValue": 0,
+          "dynamic": false
+        }
+      ],
+      "localCount": 6,
+      "externalCount": 0
+    },
+    "warnings": [],
+    "stats": {
+      "eventCount": 5,
+      "presentationEventCount": 0,
+      "linkCount": 1,
+      "blackboardDependencyCount": 8,
+      "walkedNodeCount": 76,
+      "traversalStopped": false
+    }
+  }
+}

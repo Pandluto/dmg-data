@@ -1,0 +1,4319 @@
+{
+  "data": {
+    "id": "chr_0006_wolfgd",
+    "name": {
+      "id": -3531987865314967000,
+      "text": ""
+    },
+    "rarity": 5,
+    "profession": "CASTER",
+    "weaponType": "Pistol",
+    "weaponTypeName": "手铳",
+    "mainAttrType": "Str",
+    "subAttrType": "Agi",
+    "defaultWeaponId": "wpn_pistol_0001",
+    "skills": [
+      {
+        "name": {
+          "id": 6528389494536353000,
+          "text": ""
+        },
+        "desc": {
+          "id": -7078643435449438000,
+          "text": ""
+        },
+        "icon": "icon_combo_skill_wolfgd_01",
+        "groupId": "chr_0006_wolfgd_ComboSkill",
+        "groupType": "ComboSkill",
+        "conditions": [],
+        "skillDetails": [
+          {
+            "skillId": "chr_0006_wolfgd_combo_skill",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_wolfgd_01",
+                "coolDown": 20,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.6,
+                  "poise": 10,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7860985993827661000,
+                      "text": ""
+                    },
+                    "value": "60%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8282099172026386000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 101909894347134130,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_wolfgd_01",
+                "coolDown": 20,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.66,
+                  "poise": 10,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2196164987706624300,
+                      "text": ""
+                    },
+                    "value": "66%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1369155319059173600,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5913617406751631000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_wolfgd_01",
+                "coolDown": 20,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.72,
+                  "poise": 10,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1360095323690847000,
+                      "text": ""
+                    },
+                    "value": "72%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8299476216326938000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2401834489048000000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_wolfgd_01",
+                "coolDown": 20,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.78,
+                  "poise": 10,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5865320362758259000,
+                      "text": ""
+                    },
+                    "value": "78%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5138734706646564000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5901545986607210000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_wolfgd_01",
+                "coolDown": 20,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.84,
+                  "poise": 10,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 8262244917769559000,
+                      "text": ""
+                    },
+                    "value": "84%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6147310774992490000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4653214271962601000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_wolfgd_01",
+                "coolDown": 20,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.9,
+                  "poise": 10,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 8983261437068417000,
+                      "text": ""
+                    },
+                    "value": "90%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5618882295782022000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2980339181193415700,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_wolfgd_01",
+                "coolDown": 20,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.96,
+                  "poise": 10,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1709118316107782100,
+                      "text": ""
+                    },
+                    "value": "96%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 43344007504868460,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 9072557031405635000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_wolfgd_01",
+                "coolDown": 20,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.02,
+                  "poise": 10,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 271827693033254900,
+                      "text": ""
+                    },
+                    "value": "102%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -723590462971265000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4522955453411997000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_wolfgd_01",
+                "coolDown": 20,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.08,
+                  "poise": 10,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1666737204973366800,
+                      "text": ""
+                    },
+                    "value": "108%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 8225609863288537000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -3950294206214227500,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_wolfgd_01",
+                "coolDown": 20,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.16,
+                  "poise": 10,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4205342514687912000,
+                      "text": ""
+                    },
+                    "value": "116%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1730935413261126100,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7197748933027827000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_wolfgd_01",
+                "coolDown": 20,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.25,
+                  "poise": 10,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6956390293911327000,
+                      "text": ""
+                    },
+                    "value": "125%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -264935890882267600,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2095126731257152300,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_combo_skill_wolfgd_01",
+                "coolDown": 19,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.35,
+                  "poise": 10,
+                  "usp": 10
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1591512848419420200,
+                      "text": ""
+                    },
+                    "value": "135%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8799096025369854000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3099252915312632000,
+                      "text": ""
+                    },
+                    "value": "10"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": {
+          "id": -4790878662153950000,
+          "text": ""
+        },
+        "desc": {
+          "id": -7774166291332626000,
+          "text": ""
+        },
+        "icon": "icon_attack_pistol",
+        "groupId": "chr_0006_wolfgd_NormalAttack",
+        "groupType": "NormalAttack",
+        "conditions": [],
+        "skillDetails": [
+          {
+            "skillId": "chr_0006_wolfgd_attack1",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.15,
+                  "display_atk_scale": 0.3,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -631791709374555300,
+                      "text": ""
+                    },
+                    "value": "30%"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.17,
+                  "display_atk_scale": 0.33,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6005530810523390000,
+                      "text": ""
+                    },
+                    "value": "33%"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.18,
+                  "display_atk_scale": 0.36,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2338207255772753000,
+                      "text": ""
+                    },
+                    "value": "36%"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.2,
+                  "display_atk_scale": 0.39,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2608483992296154000,
+                      "text": ""
+                    },
+                    "value": "39%"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.21,
+                  "display_atk_scale": 0.42,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1435998588022840000,
+                      "text": ""
+                    },
+                    "value": "42%"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.23,
+                  "display_atk_scale": 0.45,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8355791711031869000,
+                      "text": ""
+                    },
+                    "value": "45%"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.24,
+                  "display_atk_scale": 0.48,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4498897579631194000,
+                      "text": ""
+                    },
+                    "value": "48%"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.26,
+                  "display_atk_scale": 0.51,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2589401943097279500,
+                      "text": ""
+                    },
+                    "value": "51%"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.27,
+                  "display_atk_scale": 0.54,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1985903338758766600,
+                      "text": ""
+                    },
+                    "value": "54%"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.29,
+                  "display_atk_scale": 0.58,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2195496802018851600,
+                      "text": ""
+                    },
+                    "value": "58%"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.31,
+                  "display_atk_scale": 0.62,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3150284305528233500,
+                      "text": ""
+                    },
+                    "value": "62%"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.34,
+                  "display_atk_scale": 0.68,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7889230018654329000,
+                      "text": ""
+                    },
+                    "value": "68%"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "skillId": "chr_0006_wolfgd_attack2",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.18,
+                  "display_atk_scale": 0.35,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7521420230313755000,
+                      "text": ""
+                    },
+                    "value": "35%"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.19,
+                  "display_atk_scale": 0.39,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6837203561636643000,
+                      "text": ""
+                    },
+                    "value": "39%"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.21,
+                  "display_atk_scale": 0.42,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4800442051692197000,
+                      "text": ""
+                    },
+                    "value": "42%"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.23,
+                  "display_atk_scale": 0.46,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4427570701450055000,
+                      "text": ""
+                    },
+                    "value": "46%"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.25,
+                  "display_atk_scale": 0.49,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -3403154298115703300,
+                      "text": ""
+                    },
+                    "value": "49%"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.26,
+                  "display_atk_scale": 0.53,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2090736505634505500,
+                      "text": ""
+                    },
+                    "value": "53%"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.28,
+                  "display_atk_scale": 0.56,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7613492537353588000,
+                      "text": ""
+                    },
+                    "value": "56%"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.3,
+                  "display_atk_scale": 0.6,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1474060056957585000,
+                      "text": ""
+                    },
+                    "value": "60%"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.32,
+                  "display_atk_scale": 0.63,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4985414996321933000,
+                      "text": ""
+                    },
+                    "value": "63%"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.34,
+                  "display_atk_scale": 0.67,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5132236395212028000,
+                      "text": ""
+                    },
+                    "value": "67%"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.36,
+                  "display_atk_scale": 0.73,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6237915394292286000,
+                      "text": ""
+                    },
+                    "value": "73%"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.39,
+                  "display_atk_scale": 0.79,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4220621008651070500,
+                      "text": ""
+                    },
+                    "value": "79%"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "skillId": "chr_0006_wolfgd_attack3",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.19,
+                  "display_atk_scale": 0.56,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 488319274558021900,
+                      "text": ""
+                    },
+                    "value": "56%"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.2,
+                  "display_atk_scale": 0.61,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6389336409751849000,
+                      "text": ""
+                    },
+                    "value": "61%"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.22,
+                  "display_atk_scale": 0.67,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4256892855314387000,
+                      "text": ""
+                    },
+                    "value": "67%"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.24,
+                  "display_atk_scale": 0.72,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5893672543858724000,
+                      "text": ""
+                    },
+                    "value": "72%"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.26,
+                  "display_atk_scale": 0.78,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4942645041881679000,
+                      "text": ""
+                    },
+                    "value": "78%"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.28,
+                  "display_atk_scale": 0.83,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4010836348568325600,
+                      "text": ""
+                    },
+                    "value": "83%"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.3,
+                  "display_atk_scale": 0.89,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -3081516901989009000,
+                      "text": ""
+                    },
+                    "value": "89%"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.31,
+                  "display_atk_scale": 0.94,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1005931215566247400,
+                      "text": ""
+                    },
+                    "value": "94%"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.33,
+                  "display_atk_scale": 1,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 8680874792354133000,
+                      "text": ""
+                    },
+                    "value": "100%"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.36,
+                  "display_atk_scale": 1.07,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -3178097900645127700,
+                      "text": ""
+                    },
+                    "value": "107%"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.38,
+                  "display_atk_scale": 1.15,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5871657553577589000,
+                      "text": ""
+                    },
+                    "value": "115%"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.42,
+                  "display_atk_scale": 1.25,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3641183917525173000,
+                      "text": ""
+                    },
+                    "value": "125%"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "skillId": "chr_0006_wolfgd_attack4",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.68,
+                  "poise": 18,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2357481342740818000,
+                      "text": ""
+                    },
+                    "value": "68%"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.74,
+                  "poise": 18,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7575134507732266000,
+                      "text": ""
+                    },
+                    "value": "74%"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.81,
+                  "poise": 18,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2934886871670892500,
+                      "text": ""
+                    },
+                    "value": "81%"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.88,
+                  "poise": 18,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1270195632608691000,
+                      "text": ""
+                    },
+                    "value": "88%"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.95,
+                  "poise": 18,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8178918261901942000,
+                      "text": ""
+                    },
+                    "value": "95%"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.01,
+                  "poise": 18,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4106484398940714500,
+                      "text": ""
+                    },
+                    "value": "101%"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.08,
+                  "poise": 18,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4170499496759392000,
+                      "text": ""
+                    },
+                    "value": "108%"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.15,
+                  "poise": 18,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6573823027013023000,
+                      "text": ""
+                    },
+                    "value": "115%"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.22,
+                  "poise": 18,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 8548986167042105000,
+                      "text": ""
+                    },
+                    "value": "122%"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.3,
+                  "poise": 18,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 971824317724038800,
+                      "text": ""
+                    },
+                    "value": "130%"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.4,
+                  "poise": 18,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7018135440342186000,
+                      "text": ""
+                    },
+                    "value": "140%"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.52,
+                  "poise": 18,
+                  "atb": 18
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7384030490500388000,
+                      "text": ""
+                    },
+                    "value": "152%"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "skillId": "chr_0006_wolfgd_power_attack",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 4
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6792057629394331000,
+                      "text": ""
+                    },
+                    "value": "400%"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 4.4
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5020724883719448000,
+                      "text": ""
+                    },
+                    "value": "440%"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 4.8
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8273963914892778000,
+                      "text": ""
+                    },
+                    "value": "480%"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 5.2
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -29972693491092160,
+                      "text": ""
+                    },
+                    "value": "520%"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 5.6
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4052280831214350300,
+                      "text": ""
+                    },
+                    "value": "560%"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 6
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5638112660128272000,
+                      "text": ""
+                    },
+                    "value": "600%"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 6.4
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2922923307068921300,
+                      "text": ""
+                    },
+                    "value": "640%"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 6.8
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6135366654368629000,
+                      "text": ""
+                    },
+                    "value": "680%"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 7.2
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3819898268049593000,
+                      "text": ""
+                    },
+                    "value": "720%"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 7.7
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 246518683655303170,
+                      "text": ""
+                    },
+                    "value": "770%"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 8.3
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5611865594451903000,
+                      "text": ""
+                    },
+                    "value": "830%"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 9
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 9086456262887589000,
+                      "text": ""
+                    },
+                    "value": "900%"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "skillId": "chr_0006_wolfgd_plunging_attack_end",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.8,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 8361132822256031000,
+                      "text": ""
+                    },
+                    "value": "80%"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.88,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6582085438304289000,
+                      "text": ""
+                    },
+                    "value": "88%"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.96,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7328082120830941000,
+                      "text": ""
+                    },
+                    "value": "96%"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.04,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3334910248663617500,
+                      "text": ""
+                    },
+                    "value": "104%"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.12,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7827319979493033000,
+                      "text": ""
+                    },
+                    "value": "112%"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.2,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -3516255109359593500,
+                      "text": ""
+                    },
+                    "value": "120%"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.28,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6246345319162660000,
+                      "text": ""
+                    },
+                    "value": "128%"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.36,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8126280677078141000,
+                      "text": ""
+                    },
+                    "value": "136%"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.44,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6198258717000736000,
+                      "text": ""
+                    },
+                    "value": "144%"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.54,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2865371236750736400,
+                      "text": ""
+                    },
+                    "value": "154%"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.66,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -783376682756771100,
+                      "text": ""
+                    },
+                    "value": "166%"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_attack_pistol",
+                "coolDown": 0,
+                "costType": "UltimateSp",
+                "costValue": 0,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 1.8,
+                  "atb": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3407923341761292300,
+                      "text": ""
+                    },
+                    "value": "180%"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": {
+          "id": 4458041313593767400,
+          "text": ""
+        },
+        "desc": {
+          "id": 6982050467550679000,
+          "text": ""
+        },
+        "icon": "icon_skill_wolfgd_01",
+        "groupId": "chr_0006_wolfgd_NormalSkill",
+        "groupType": "NormalSkill",
+        "conditions": [],
+        "skillDetails": [
+          {
+            "skillId": "chr_0006_wolfgd_normal_skill",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_wolfgd_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.34,
+                  "atk_scale_plus": 3.78,
+                  "display_atk_scale": 1.02,
+                  "poise_first_bullet": 1.67,
+                  "poise_extra_bullet": 5,
+                  "poise_first_bullet_display": 5,
+                  "atk_scale_plus_fail": 0.36,
+                  "poise_extra_bullet_fail": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5987879581946036000,
+                      "text": ""
+                    },
+                    "value": "102%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1916360547528988400,
+                      "text": ""
+                    },
+                    "value": "5"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5817035140827248000,
+                      "text": ""
+                    },
+                    "value": "378%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4840537322379331000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_wolfgd_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.37,
+                  "atk_scale_plus": 4.15,
+                  "display_atk_scale": 1.12,
+                  "poise_first_bullet": 1.67,
+                  "poise_extra_bullet": 5,
+                  "poise_first_bullet_display": 5,
+                  "atk_scale_plus_fail": 0.4,
+                  "poise_extra_bullet_fail": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4536626410613817300,
+                      "text": ""
+                    },
+                    "value": "112%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1853749960154567700,
+                      "text": ""
+                    },
+                    "value": "5"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3467145697697459000,
+                      "text": ""
+                    },
+                    "value": "415%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6846938813189320000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_wolfgd_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.41,
+                  "atk_scale_plus": 4.53,
+                  "display_atk_scale": 1.22,
+                  "poise_first_bullet": 1.67,
+                  "poise_extra_bullet": 5,
+                  "poise_first_bullet_display": 5,
+                  "atk_scale_plus_fail": 0.43,
+                  "poise_extra_bullet_fail": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4476593716412231000,
+                      "text": ""
+                    },
+                    "value": "122%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8603591277885127000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7683077878433221000,
+                      "text": ""
+                    },
+                    "value": "453%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4125811343027347500,
+                      "text": ""
+                    },
+                    "value": "5"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_wolfgd_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.44,
+                  "atk_scale_plus": 4.91,
+                  "display_atk_scale": 1.33,
+                  "poise_first_bullet": 1.67,
+                  "poise_extra_bullet": 5,
+                  "poise_first_bullet_display": 5,
+                  "atk_scale_plus_fail": 0.47,
+                  "poise_extra_bullet_fail": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5064739753020431000,
+                      "text": ""
+                    },
+                    "value": "133%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8847941255992860000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5954167746181462000,
+                      "text": ""
+                    },
+                    "value": "491%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5152011950677794000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_wolfgd_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.48,
+                  "atk_scale_plus": 5.29,
+                  "display_atk_scale": 1.43,
+                  "poise_first_bullet": 1.67,
+                  "poise_extra_bullet": 5,
+                  "poise_first_bullet_display": 5,
+                  "atk_scale_plus_fail": 0.5,
+                  "poise_extra_bullet_fail": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 8314241116221794000,
+                      "text": ""
+                    },
+                    "value": "143%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6453131795053627000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4465128936297899000,
+                      "text": ""
+                    },
+                    "value": "529%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1879720765330511000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_wolfgd_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.51,
+                  "atk_scale_plus": 5.66,
+                  "display_atk_scale": 1.53,
+                  "poise_first_bullet": 1.67,
+                  "poise_extra_bullet": 5,
+                  "poise_first_bullet_display": 5,
+                  "atk_scale_plus_fail": 0.54,
+                  "poise_extra_bullet_fail": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5359212319751512000,
+                      "text": ""
+                    },
+                    "value": "153%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -170793413098161570,
+                      "text": ""
+                    },
+                    "value": "5"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -34145856774093410,
+                      "text": ""
+                    },
+                    "value": "566%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3246951488618965000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_wolfgd_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.54,
+                  "atk_scale_plus": 6.04,
+                  "display_atk_scale": 1.63,
+                  "poise_first_bullet": 1.67,
+                  "poise_extra_bullet": 5,
+                  "poise_first_bullet_display": 5,
+                  "atk_scale_plus_fail": 0.58,
+                  "poise_extra_bullet_fail": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4115612821197724700,
+                      "text": ""
+                    },
+                    "value": "163%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6701464973861809000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2752994203950753000,
+                      "text": ""
+                    },
+                    "value": "604%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8036074787970618000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_wolfgd_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.58,
+                  "atk_scale_plus": 6.42,
+                  "display_atk_scale": 1.74,
+                  "poise_first_bullet": 1.67,
+                  "poise_extra_bullet": 5,
+                  "poise_first_bullet_display": 5,
+                  "atk_scale_plus_fail": 0.61,
+                  "poise_extra_bullet_fail": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -579647441422549900,
+                      "text": ""
+                    },
+                    "value": "174%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7080508440663404000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 8813393597558886000,
+                      "text": ""
+                    },
+                    "value": "642%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6762141914424159000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_wolfgd_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.61,
+                  "atk_scale_plus": 6.8,
+                  "display_atk_scale": 1.84,
+                  "poise_first_bullet": 1.67,
+                  "poise_extra_bullet": 5,
+                  "poise_first_bullet_display": 5,
+                  "atk_scale_plus_fail": 0.65,
+                  "poise_extra_bullet_fail": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3016193207522016000,
+                      "text": ""
+                    },
+                    "value": "184%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 8879981824589663000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 616202414412413200,
+                      "text": ""
+                    },
+                    "value": "680%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7335781309395170000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_wolfgd_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.65,
+                  "atk_scale_plus": 7.27,
+                  "display_atk_scale": 1.96,
+                  "poise_first_bullet": 1.67,
+                  "poise_extra_bullet": 5,
+                  "poise_first_bullet_display": 5,
+                  "atk_scale_plus_fail": 0.69,
+                  "poise_extra_bullet_fail": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5084834292840890000,
+                      "text": ""
+                    },
+                    "value": "196%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 131624521546346300,
+                      "text": ""
+                    },
+                    "value": "5"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 507314501228064450,
+                      "text": ""
+                    },
+                    "value": "727%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -2503670006966178300,
+                      "text": ""
+                    },
+                    "value": "5"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_wolfgd_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.71,
+                  "atk_scale_plus": 7.84,
+                  "display_atk_scale": 2.12,
+                  "poise_first_bullet": 1.67,
+                  "poise_extra_bullet": 5,
+                  "poise_first_bullet_display": 5,
+                  "atk_scale_plus_fail": 0.75,
+                  "poise_extra_bullet_fail": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -3090360342856136000,
+                      "text": ""
+                    },
+                    "value": "212%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 622454053390077300,
+                      "text": ""
+                    },
+                    "value": "5"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4554299477316507600,
+                      "text": ""
+                    },
+                    "value": "784%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 6804298491231621000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_skill_wolfgd_01",
+                "coolDown": 0,
+                "costType": "Atb",
+                "costValue": 100,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.77,
+                  "atk_scale_plus": 8.5,
+                  "display_atk_scale": 2.3,
+                  "poise_first_bullet": 1.67,
+                  "poise_extra_bullet": 5,
+                  "poise_first_bullet_display": 5,
+                  "atk_scale_plus_fail": 0.81,
+                  "poise_extra_bullet_fail": 0
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8828667111292715000,
+                      "text": ""
+                    },
+                    "value": "230%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7883427416910201000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4610404571606128000,
+                      "text": ""
+                    },
+                    "value": "850%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 8264662280424056000,
+                      "text": ""
+                    },
+                    "value": "5"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": {
+          "id": -1633813225122986500,
+          "text": ""
+        },
+        "desc": {
+          "id": 6606961914581916000,
+          "text": ""
+        },
+        "icon": "icon_ultimate_skill_wolfgd_01",
+        "groupId": "chr_0006_wolfgd_UltimateSkill",
+        "groupType": "UltimateSkill",
+        "conditions": [],
+        "skillDetails": [
+          {
+            "skillId": "chr_0006_wolfgd_ultimate_skill",
+            "tagId": "",
+            "levels": [
+              {
+                "level": 1,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_wolfgd_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 90,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.32,
+                  "poise": 3,
+                  "display_atk_scale": 1.6,
+                  "poise_display": 15
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6520242693821146000,
+                      "text": ""
+                    },
+                    "value": "32%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7187299520887493000,
+                      "text": ""
+                    },
+                    "value": "15"
+                  }
+                ]
+              },
+              {
+                "level": 2,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_wolfgd_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 90,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.35,
+                  "poise": 3,
+                  "display_atk_scale": 1.76,
+                  "poise_display": 15
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -3091897578510504400,
+                      "text": ""
+                    },
+                    "value": "35%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4678336906218962000,
+                      "text": ""
+                    },
+                    "value": "15"
+                  }
+                ]
+              },
+              {
+                "level": 3,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_wolfgd_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 90,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.38,
+                  "poise": 3,
+                  "display_atk_scale": 1.92,
+                  "poise_display": 15
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -8080060555000616000,
+                      "text": ""
+                    },
+                    "value": "38%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -3287690466044122000,
+                      "text": ""
+                    },
+                    "value": "15"
+                  }
+                ]
+              },
+              {
+                "level": 4,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_wolfgd_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 90,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.42,
+                  "poise": 3,
+                  "display_atk_scale": 2.08,
+                  "poise_display": 15
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1737319018908648400,
+                      "text": ""
+                    },
+                    "value": "42%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4145511930519416300,
+                      "text": ""
+                    },
+                    "value": "15"
+                  }
+                ]
+              },
+              {
+                "level": 5,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_wolfgd_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 90,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.45,
+                  "poise": 3,
+                  "display_atk_scale": 2.24,
+                  "poise_display": 15
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 4352846850909823500,
+                      "text": ""
+                    },
+                    "value": "45%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -6177116432943179000,
+                      "text": ""
+                    },
+                    "value": "15"
+                  }
+                ]
+              },
+              {
+                "level": 6,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_wolfgd_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 90,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.48,
+                  "poise": 3,
+                  "display_atk_scale": 2.4,
+                  "poise_display": 15
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5359041446420639000,
+                      "text": ""
+                    },
+                    "value": "48%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -1263257068521532400,
+                      "text": ""
+                    },
+                    "value": "15"
+                  }
+                ]
+              },
+              {
+                "level": 7,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_wolfgd_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 90,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.51,
+                  "poise": 3,
+                  "display_atk_scale": 2.56,
+                  "poise_display": 15
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 9171379876880524000,
+                      "text": ""
+                    },
+                    "value": "51%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -3951391589854080500,
+                      "text": ""
+                    },
+                    "value": "15"
+                  }
+                ]
+              },
+              {
+                "level": 8,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_wolfgd_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 90,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.54,
+                  "poise": 3,
+                  "display_atk_scale": 2.72,
+                  "poise_display": 15
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7155017093348434000,
+                      "text": ""
+                    },
+                    "value": "54%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 5136601237426114000,
+                      "text": ""
+                    },
+                    "value": "15"
+                  }
+                ]
+              },
+              {
+                "level": 9,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_wolfgd_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 90,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.58,
+                  "poise": 3,
+                  "display_atk_scale": 2.88,
+                  "poise_display": 15
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -5940062491840460000,
+                      "text": ""
+                    },
+                    "value": "58%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 7878858068494250000,
+                      "text": ""
+                    },
+                    "value": "15"
+                  }
+                ]
+              },
+              {
+                "level": 10,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_wolfgd_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 90,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.62,
+                  "poise": 3,
+                  "display_atk_scale": 3.08,
+                  "poise_display": 15
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -7234344967858282000,
+                      "text": ""
+                    },
+                    "value": "62%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": -4687147888645935000,
+                      "text": ""
+                    },
+                    "value": "15"
+                  }
+                ]
+              },
+              {
+                "level": 11,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_wolfgd_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 90,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.66,
+                  "poise": 3,
+                  "display_atk_scale": 3.32,
+                  "poise_display": 15
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1792467334872382700,
+                      "text": ""
+                    },
+                    "value": "66%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 2799290409393914400,
+                      "text": ""
+                    },
+                    "value": "15"
+                  }
+                ]
+              },
+              {
+                "level": 12,
+                "name": {
+                  "id": 0,
+                  "text": ""
+                },
+                "description": {
+                  "id": 0,
+                  "text": ""
+                },
+                "iconId": "icon_ultimate_skill_wolfgd_01",
+                "coolDown": 10,
+                "costType": "UltimateSp",
+                "costValue": 90,
+                "maxChargeTime": 1,
+                "blackboard": {
+                  "atk_scale": 0.72,
+                  "poise": 3,
+                  "display_atk_scale": 3.6,
+                  "poise_display": 15
+                },
+                "subDescriptions": [
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 3249535151159333400,
+                      "text": ""
+                    },
+                    "value": "72%"
+                  },
+                  {
+                    "conditionId": "",
+                    "name": {
+                      "id": 1612876609526776000,
+                      "text": ""
+                    },
+                    "value": "15"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "attributeNodes": [
+      {
+        "name": {
+          "id": -4660261528964634000,
+          "text": ""
+        },
+        "desc": {
+          "id": -4144559758808570400,
+          "text": ""
+        },
+        "attributeModifiers": [
+          {
+            "attrType": "Str",
+            "attrValue": 10,
+            "modifierType": "BaseAddition",
+            "modifyAttributeType": "Specific"
+          }
+        ],
+        "level": 1
+      },
+      {
+        "name": {
+          "id": 8270116786799317000,
+          "text": ""
+        },
+        "desc": {
+          "id": 3754859235061723600,
+          "text": ""
+        },
+        "attributeModifiers": [
+          {
+            "attrType": "Str",
+            "attrValue": 15,
+            "modifierType": "BaseAddition",
+            "modifyAttributeType": "Specific"
+          }
+        ],
+        "level": 2
+      },
+      {
+        "name": {
+          "id": 4194098452074468400,
+          "text": ""
+        },
+        "desc": {
+          "id": -5066597914227834000,
+          "text": ""
+        },
+        "attributeModifiers": [
+          {
+            "attrType": "Str",
+            "attrValue": 15,
+            "modifierType": "BaseAddition",
+            "modifyAttributeType": "Specific"
+          }
+        ],
+        "level": 3
+      },
+      {
+        "name": {
+          "id": -7558688452379335000,
+          "text": ""
+        },
+        "desc": {
+          "id": 8912127340862954000,
+          "text": ""
+        },
+        "attributeModifiers": [
+          {
+            "attrType": "Str",
+            "attrValue": 20,
+            "modifierType": "BaseAddition",
+            "modifyAttributeType": "Specific"
+          }
+        ],
+        "level": 4
+      }
+    ],
+    "passiveSkillNodes": {
+      "0": [
+        {
+          "name": {
+            "id": -8306912769656953000,
+            "text": ""
+          },
+          "desc": {
+            "id": -5066639242433111000,
+            "text": ""
+          },
+          "descBb": {
+            "add": 0.2,
+            "duration": 10
+          },
+          "icon": "icon_talent_wolfgd_01",
+          "level": 1
+        },
+        {
+          "name": {
+            "id": -7234466059370866000,
+            "text": ""
+          },
+          "desc": {
+            "id": -230158100401355040,
+            "text": ""
+          },
+          "descBb": {
+            "add": 0.3,
+            "duration": 10
+          },
+          "icon": "icon_talent_wolfgd_01",
+          "level": 2
+        }
+      ],
+      "1": [
+        {
+          "name": {
+            "id": 1585629752376930300,
+            "text": ""
+          },
+          "desc": {
+            "id": 200225138343979620,
+            "text": ""
+          },
+          "descBb": {
+            "returnskillpower": 5,
+            "talent2": 1
+          },
+          "icon": "icon_talent_wolfgd_02",
+          "level": 1
+        },
+        {
+          "name": {
+            "id": 4872014088588489000,
+            "text": ""
+          },
+          "desc": {
+            "id": -2622357208124097000,
+            "text": ""
+          },
+          "descBb": {
+            "returnskillpower": 10,
+            "talent2": 1
+          },
+          "icon": "icon_talent_wolfgd_02",
+          "level": 2
+        }
+      ]
+    },
+    "potentials": [
+      {
+        "level": 1,
+        "name": {
+          "id": 8214513251222246000,
+          "text": ""
+        },
+        "desc": {
+          "id": -7008145546855819000,
+          "text": ""
+        },
+        "descBb": {
+          "str": 15,
+          "agi": 15
+        }
+      },
+      {
+        "level": 2,
+        "name": {
+          "id": -8025814885986549000,
+          "text": ""
+        },
+        "desc": {
+          "id": -1701473395642316800,
+          "text": ""
+        },
+        "descBb": {
+          "potential_skillpower": 10,
+          "potential_2": 1
+        }
+      },
+      {
+        "level": 3,
+        "name": {
+          "id": 7854579678740351000,
+          "text": ""
+        },
+        "desc": {
+          "id": 3724723273397933600,
+          "text": ""
+        },
+        "descBb": {
+          "potential_3": 1,
+          "teammate_percent": 0.5
+        }
+      },
+      {
+        "level": 4,
+        "name": {
+          "id": -5237023013244553000,
+          "text": ""
+        },
+        "desc": {
+          "id": -781557117168535800,
+          "text": ""
+        },
+        "descBb": {
+          "costvalue": 0.85
+        }
+      },
+      {
+        "level": 5,
+        "name": {
+          "id": -343874562622686140,
+          "text": ""
+        },
+        "desc": {
+          "id": -6077531864449037000,
+          "text": ""
+        },
+        "descBb": {
+          "potential_5": 1
+        }
+      }
+    ]
+  }
+}

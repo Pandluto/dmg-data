@@ -1,0 +1,28 @@
+{
+  "name": "ake-calc-cleanroom",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "capture:combo-boundaries": "node ./scripts/capture-calc-combo-boundaries.mjs",
+    "capture:poise-boundaries": "node ./scripts/capture-calc-poise-boundaries.mjs",
+    "capture:poise-guard-boundaries": "node ./scripts/capture-calc-poise-guard-boundaries.mjs",
+    "capture:resource-boundaries": "node ./scripts/capture-calc-resource-boundaries.mjs",
+    "capture:cross-character-smoke": "node ./scripts/capture-calc-cross-character-smoke.mjs",
+    "probe:interruption": "node ./scripts/probe-calc-interruption.mjs",
+    "compare:interruption": "node ./scripts/compare-calc-interruption-probe.mjs",
+    "derive:ake": "node ./scripts/export-ake-analysis.mjs",
+    "derive:pelica": "node ./scripts/export-cleanroom-model.mjs",
+    "sync:ake-runtime-corpus": "node ./scripts/sync-ake-runtime-corpus.mjs",
+    "audit:ake-actions": "node ./scripts/audit-ake-action-coverage.mjs",
+    "simulate:pelica": "node ./src/cli.mjs pelica",
+    "simulate:pelica-generic": "node ./src/generic-cli.mjs",
+    "verify:cross-character": "node ./scripts/verify-cross-character-smoke.mjs",
+    "simulate:poise": "node ./src/cli.mjs pelica-poise",
+    "test": "node --test",
+    "verify": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

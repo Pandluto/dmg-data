@@ -1,0 +1,239 @@
+{
+  "schemaVersion": 1,
+  "dependencies": [
+    {
+      "id": "global-buff-data",
+      "status": "resolved-for-current-public-buffdata-corpus",
+      "neededFor": [
+        "CcTagTable to child BuffData resolution",
+        "globalModifier execution",
+        "level event dispatch"
+      ],
+      "evidence": "reference/public-data/akedata/runtime-corpus.manifest.json",
+      "implemented": "Every BuffData file listed by the current public index is present in the runtime corpus and can be passed through the compiler audit.",
+      "remaining": "The public index still exposes no separate GlobalBuffData dataset. CcTag, level-event and environment selector semantics remain independent unresolved mappings and must not be inferred from file completeness."
+    },
+    {
+      "id": "read-skill-setting-data",
+      "status": "external-runtime-input",
+      "neededFor": [
+        "buff_common_pulse_pulse_triggered atk_scale"
+      ],
+      "lookupKey": "法术爆发伤害倍率",
+      "evidence": "reference/public-data/akedata/Json/BuffData/buff_common_pulse_pulse_triggered.json",
+      "notes": "The separate conduct lookup used by the current minimal fixture is resolved explicitly in spec/engine-semantic-mappings.json; spell-burst damage remains unresolved."
+    },
+    {
+      "id": "blackboard-precedence",
+      "status": "partially-confirmed",
+      "neededFor": [
+        "potential overrides",
+        "contingency contract tier values",
+        "parent-to-child assignments"
+      ],
+      "rule": "Preserve all value origins; reject ambiguous precedence until a focused fixture confirms it."
+    },
+    {
+      "id": "raw-calc-simulation-fixture",
+      "status": "resolved-for-pelica-minimal",
+      "neededFor": [
+        "automated POST /api/simulations compatibility testing"
+      ],
+      "request": "fixtures/calc/pelica-heavy-combo-skill.request.json",
+      "response": "fixtures/calc/pelica-heavy-combo-skill.response.json",
+      "oracle": "fixtures/calc/pelica-heavy-combo-skill.oracle.json",
+      "manifest": "fixtures/calc/pelica-heavy-combo-skill.manifest.json",
+      "rule": "Captured only from the public, non-authenticated endpoint with no user or account data."
+    },
+    {
+      "id": "pelica-combo-trigger-rule",
+      "status": "resolved-for-pelica",
+      "neededFor": [
+        "combo pending creation",
+        "same-tick command ordering",
+        "pending expiry and repeated trigger behavior",
+        "cooldown suppression and target binding"
+      ],
+      "oracle": "fixtures/calc/pelica-combo-boundaries.oracle.json",
+      "manifest": "fixtures/calc/pelica-combo-boundaries.manifest.json",
+      "rule": "Runtime semantics are declared in spec/engine-semantic-mappings.json and executed without character IDs in the simulator core. Other characters still require their own evidence-backed rules."
+    },
+    {
+      "id": "pelica-atb-usp-resource-rules",
+      "status": "resolved-for-pelica-single-character",
+      "neededFor": [
+        "ATB passive recovery and spend delay",
+        "normal attack ATB gain",
+        "combo and normal-skill USP gain",
+        "ultimate resource gate and cost"
+      ],
+      "oracle": "fixtures/calc/pelica-resource-boundaries.oracle.json",
+      "manifest": "fixtures/calc/pelica-resource-boundaries.manifest.json",
+      "rule": "All non-initialization resource events match the captured oracle. Multi-character shared ATB and per-character USP routing remain a separate scope."
+    },
+    {
+      "id": "poise-and-execution-core",
+      "status": "resolved-for-pelica-single-target",
+      "neededFor": [
+        "Poise DamageUnit execution",
+        "threshold and overflow semantics",
+        "broken-target damage zone",
+        "single-use execution gate",
+        "execution damage scalar and ATB refund",
+        "poise knots"
+      ],
+      "oracle": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+      "manifest": "fixtures/calc/pelica-poise-boundaries.manifest.json",
+      "rule": "Enemy mechanics come from EnemyAttributeTemplateTable; SkillData supplies Poise units and BreakingAttackCalculation. Nine public Calc cases verify the implemented single-target core."
+    },
+    {
+      "id": "poise-presentation-local-time",
+      "status": "resolved-for-captured-pelica-poise-cases",
+      "neededFor": [
+        "exact wall-frame poise recovery",
+        "hit-stop and time-dilation interaction"
+      ],
+      "implemented": "A separate enemy LocalClock owns the recovery countdown. Evidence-backed PoiseBreak, HpDamageWhileBroken and ExecutionHit pause rules reschedule only local timers while global command frames remain unchanged.",
+      "observed": "The local engine now reproduces all four captured wall-frame recoveries exactly: 613, 484, 617 and 620.",
+      "evidence": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+      "remaining": "Other characters, hit-stop curves and time-dilation layers need their own calibrated LocalClockPauseRule before exact recovery timing can be claimed for them."
+    },
+    {
+      "id": "rapid-poise-break-recovery-penalty",
+      "status": "resolved-for-current-calc-ordinary-signature",
+      "neededFor": [
+        "post-recovery PoiseDamageTakenScalar guard",
+        "enemy-signature-specific fast-break windows",
+        "local-time qualification and same-frame expiry ordering"
+      ],
+      "oracle": "fixtures/calc/poise-guard-boundaries.oracle.json",
+      "manifest": "fixtures/calc/poise-guard-boundaries.manifest.json",
+      "evidence": [
+        "reference/public-data/akedata/Json/BuffData/buff_common_poise_guard.json",
+        "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md"
+      ],
+      "implemented": "For executionDamageScalar=1 and breakingAttackedAtbObtain=25, a break completed in fewer than 48 enemy-local ticks queues a 90-tick post-recovery guard. The scalar is 0.6 + elapsed/48 * 0.4 and expires after the frame start+91 event.",
+      "notes": "The current Calc behavior materially differs from the older public guide's fixed 50% tier table. Advanced, elite/boss and leader profiles remain unresolved and are deliberately not inferred from the ordinary profile."
+    },
+    {
+      "id": "targeting-and-same-tick-order",
+      "status": "partially-modeled",
+      "neededFor": [
+        "multi-target actions",
+        "spatial conditions",
+        "deterministic event ordering"
+      ],
+      "implemented": "Single attacker/single target ordering, combo owner/trigger binding and timeout ordering are Calc-verified. Identifier-level multi-target isolation is unit-tested; spatial selection and Calc multi-enemy behavior remain out of scope."
+    },
+    {
+      "id": "ake-spatial-target-provider",
+      "status": "external-provider-required",
+      "neededFor": [
+        "FindTargetAction and target-group resolution",
+        "ranged Aura target refresh",
+        "projectile travel and child-skill launch",
+        "distance, shape and direction conditions"
+      ],
+      "compilerCode": "AKE_SPATIAL_PROVIDER_REQUIRED",
+      "evidence": "derived/cleanroom/ake-action-coverage.json",
+      "rule": "The compiler retains raw selectors and reports the missing provider; it must not choose targets from list order."
+    },
+    {
+      "id": "ake-time-dilation-curves",
+      "status": "partially-adapted",
+      "neededFor": [
+        "generic HitStopAction execution",
+        "generic TimeDilationAction execution",
+        "attacker and target clock-domain selection",
+        "curve-integrated excluded ticks"
+      ],
+      "compilerCode": "AKE_TIME_DILATION_RESOLVER_REQUIRED",
+      "implemented": "ResolveTimeDilation delegates to an injected adapter and ClockDomainManager applies only adapter-supplied excludedTicks. RESETto1 and the 0.6-second ComboSkill target-clock sample are frozen by black-box evidence; delayed curve samples can reschedule already-active target timers. Other raw curves remain metadata-only. Evidence-backed LocalClockPauseRule triggers also apply PoiseBreak, HpDamageWhileBroken and ExecutionHit pauses to the enemy domain.",
+      "evidence": "test/calc-interruption-oracle.test.mjs",
+      "rule": "Do not convert raw duration or requested scale into pause ticks without an evidence-backed curve adapter."
+    },
+    {
+      "id": "ake-interval-scheduler",
+      "status": "adapter-required",
+      "neededFor": [
+        "TickIntervalAction repeat cadence",
+        "interval end-boundary ordering",
+        "local-clock pause interaction"
+      ],
+      "compilerCode": "AKE_INTERVAL_SCHEDULER_REQUIRED",
+      "evidence": "derived/cleanroom/ake-action-coverage.json"
+    },
+    {
+      "id": "ake-environment-buff-selector",
+      "status": "external-provider-required",
+      "neededFor": [
+        "FinishBuffAdvanced Environment selectors",
+        "Context, MainCharacter and InstantSearch target sources"
+      ],
+      "compilerCode": "AKE_BUFF_SELECTOR_PROVIDER_REQUIRED",
+      "rule": "ID, tag and layer selectors execute locally; environment-backed selectors remain explicit provider requests."
+    },
+    {
+      "id": "ake-damage-parameter-sources",
+      "status": "partially-modeled",
+      "neededFor": [
+        "all DamageCalculation variants",
+        "all character SkillSetting lookups",
+        "equipment and level-derived combat attributes",
+        "target resistance and special damage zones"
+      ],
+      "implemented": "The generic resolver executes supported HP and Poise/Resilience DamageUnits with live attributes and reversible source zones.",
+      "evidence": "test/ake-action-compiler.test.mjs",
+      "rule": "Missing attributes, settings or calculation variants return Unresolved instead of a default value."
+    },
+    {
+      "id": "ake-equipment-blackboard-values",
+      "status": "external-runtime-input",
+      "neededFor": [
+        "equipment passive level values",
+        "random affix and suit values",
+        "conditional passive Buff assignments"
+      ],
+      "implemented": "Public equipment passive SkillData can be compiled, installed, refreshed and removed by source.",
+      "remaining": "Several passive SkillData files contain zero/default Blackboard values; the actual equipment table or caller must supply the selected level and affix values."
+    },
+    {
+      "id": "ake-resilience-decrease-factor-unit",
+      "status": "adapter-required",
+      "neededFor": [
+        "ModifyResilienceDecreaseFactor numeric execution"
+      ],
+      "compilerCode": "AKE_RESILIENCE_FACTOR_UNIT_UNKNOWN",
+      "implemented": "The raw value and reversible source modifier are retained.",
+      "rule": "Do not treat the serialized value as a scalar or percentage until a focused fixture confirms the unit."
+    },
+    {
+      "id": "ake-skill-timeline-control",
+      "status": "blackbox-verified-implemented",
+      "neededFor": [
+        "JumpToAction conditional timeline seeks",
+        "MarkCanInterrupt command admission",
+        "queued command expiry against actor-local time",
+        "element-state-driven alternate skill branches"
+      ],
+      "oracle": "fixtures/calc/ake-interruption-probe.oracle.json",
+      "manifest": "fixtures/calc/ake-interruption-probe.manifest.json",
+      "evidence": "docs/12-calc-interruption-probe.md",
+      "observed": "Forty-three Wulfgard cases close same-frame interruption, strict 30-frame queue expiry, MarkCanInterrupt frame 48, actor-local AllowNext frames, conditional JumpToAction, projectile cancellation and detached burning-Buff behavior.",
+      "implemented": "The parser/compiler emits timeline seek and interrupt-marker actions. Program executions share dynamic Blackboard state, invalidate skipped generations, reschedule natural ends, and cancel cast-bound child programs. CommandAdmissionProvider reads the confirmed Attack=0, NormalSkill=2, ComboSkill=5 and UltimateSkill=7 priorities from semantic mappings, then combines them with exclusive frames, AllowNext and MarkCanInterrupt. Eligibility uses the actor-local clock while the 30-frame expiry boundary stays strict. Every decision is exposed in commandAdmissionTrace, and all 43 observations match command frames and every HP damage packet.",
+      "remaining": "BreakingAttack has no captured INTERRUPT_CHECK priority and remains on a provisional external execution gate. Additional center-state pairs, named curves and projectile flight profiles still require independent cross-character boundary evidence before they can be generalized."
+    },
+    {
+      "id": "ake-unknown-action-semantics",
+      "status": "blocked-by-missing-semantics",
+      "neededFor": [
+        "InterruptAction",
+        "FinishOwnerAction",
+        "remaining unsupported gameplay actions and conditions"
+      ],
+      "compilerCode": "AKE_ACTION_UNSUPPORTED",
+      "evidence": "derived/cleanroom/ake-action-coverage.json",
+      "rule": "Unknown gameplay actions remain blocked and auditable; presentation actions may be retained as metadata only."
+    }
+  ]
+}

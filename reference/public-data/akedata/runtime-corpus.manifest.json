@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "indexRevision": "2026-08-21T21:51:44.260485+00:00",
+  "indexUpdatedAt": "2026-08-21T21:51:44.260485+00:00",
+  "sourceIndex": "reference/public-data/akedata/asset-sync-index.json",
+  "baseUrl": "https://data.akedata.wiki/public/Json",
+  "scopes": [
+    "BuffData/",
+    "SkillData/chr_",
+    "SkillData/passive_equip",
+    "SkillData/passive_rpg_equip",
+    "SkillData/rpg_equip"
+  ],
+  "files": 3389,
+  "expectedBytes": 147580776,
+  "verified": 3348,
+  "downloaded": 41,
+  "processedBytes": 147580776
+}

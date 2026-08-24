@@ -1,0 +1,1925 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "description": "Calc public simulation endpoint black-box boundary observations",
+    "url": "https://calc.perlica.tech/api/simulations",
+    "method": "POST",
+    "authentication": "none"
+  },
+  "recordedAt": "2026-08-22T16:28:33.380Z",
+  "calcDataVersion": "9163343-11",
+  "tickRate": 30,
+  "cases": [
+    {
+      "id": "before-hit",
+      "commands": [
+        {
+          "uuid": "pelica",
+          "frame": 0,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 15,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 30,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 45,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 85,
+          "commandType": "ComboSkill"
+        }
+      ],
+      "commandTrace": [
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 0,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack1",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 15,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack2",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 33,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack3",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "next-skill-request"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 59,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack4",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        }
+      ],
+      "comboSkillTrace": [
+        {
+          "frame": 85,
+          "stage": "COMMAND_GATE",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": false,
+          "reason": "COMBO_PENDING_MISSING",
+          "targetUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 86,
+          "stage": "PENDING_CREATED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "TRIGGERED",
+          "pendingRemainingFrames": 180,
+          "pendingCanCast": true,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 265,
+          "stage": "PENDING_EXPIRED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": false,
+          "reason": "TIMEOUT",
+          "pendingRemainingFrames": 0,
+          "pendingCanCast": true,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        }
+      ],
+      "damageLog": [
+        {
+          "frame": 8,
+          "skillId": "chr_0004_pelica_attack1_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 10.481375
+        },
+        {
+          "frame": 24,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 27,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 49,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 52,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 55,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 86,
+          "skillId": "chr_0004_pelica_attack4_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 23.897534999999998
+        }
+      ],
+      "durationTicks": 446
+    },
+    {
+      "id": "same-frame-as-hit",
+      "commands": [
+        {
+          "uuid": "pelica",
+          "frame": 0,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 15,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 30,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 45,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 86,
+          "commandType": "ComboSkill"
+        }
+      ],
+      "commandTrace": [
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 0,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack1",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 15,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack2",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 33,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack3",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "next-skill-request"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 59,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack4",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 86,
+          "commandType": "ComboSkill",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        }
+      ],
+      "comboSkillTrace": [
+        {
+          "frame": 86,
+          "stage": "PENDING_CREATED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "TRIGGERED",
+          "pendingRemainingFrames": 180,
+          "pendingCanCast": true,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 86,
+          "stage": "COMMAND_GATE",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "COMBO_PENDING_READY",
+          "pendingRemainingFrames": 179,
+          "pendingCanCast": true,
+          "targetUuid": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 86,
+          "stage": "PENDING_CONSUMED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_combo_skill",
+          "currentPriority": 5,
+          "result": true,
+          "reason": "CAST_SUCCESS",
+          "pendingRemainingFrames": 179,
+          "pendingCanCast": false,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        }
+      ],
+      "damageLog": [
+        {
+          "frame": 8,
+          "skillId": "chr_0004_pelica_attack1_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 10.481375
+        },
+        {
+          "frame": 24,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 27,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 49,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 52,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 55,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 86,
+          "skillId": "chr_0004_pelica_attack4_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 23.897534999999998
+        },
+        {
+          "frame": 110,
+          "skillId": "chr_0004_pelica_combo_skill_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 37.565248000000004
+        }
+      ],
+      "durationTicks": 381
+    },
+    {
+      "id": "first-frame-after-hit",
+      "commands": [
+        {
+          "uuid": "pelica",
+          "frame": 0,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 15,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 30,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 45,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 87,
+          "commandType": "ComboSkill"
+        }
+      ],
+      "commandTrace": [
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 0,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack1",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 15,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack2",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 33,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack3",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "next-skill-request"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 59,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack4",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 87,
+          "commandType": "ComboSkill",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        }
+      ],
+      "comboSkillTrace": [
+        {
+          "frame": 86,
+          "stage": "PENDING_CREATED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "TRIGGERED",
+          "pendingRemainingFrames": 180,
+          "pendingCanCast": true,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 87,
+          "stage": "COMMAND_GATE",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "COMBO_PENDING_READY",
+          "pendingRemainingFrames": 178,
+          "pendingCanCast": true,
+          "targetUuid": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 87,
+          "stage": "PENDING_CONSUMED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_combo_skill",
+          "currentPriority": 5,
+          "result": true,
+          "reason": "CAST_SUCCESS",
+          "pendingRemainingFrames": 178,
+          "pendingCanCast": false,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        }
+      ],
+      "damageLog": [
+        {
+          "frame": 8,
+          "skillId": "chr_0004_pelica_attack1_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 10.481375
+        },
+        {
+          "frame": 24,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 27,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 49,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 52,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 55,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 86,
+          "skillId": "chr_0004_pelica_attack4_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 23.897534999999998
+        },
+        {
+          "frame": 111,
+          "skillId": "chr_0004_pelica_combo_skill_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 37.565248000000004
+        }
+      ],
+      "durationTicks": 382
+    },
+    {
+      "id": "expiry-minus-one",
+      "commands": [
+        {
+          "uuid": "pelica",
+          "frame": 0,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 15,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 30,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 45,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 264,
+          "commandType": "ComboSkill"
+        }
+      ],
+      "commandTrace": [
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 0,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack1",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 15,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack2",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 33,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack3",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "next-skill-request"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 59,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack4",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 264,
+          "commandType": "ComboSkill",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        }
+      ],
+      "comboSkillTrace": [
+        {
+          "frame": 86,
+          "stage": "PENDING_CREATED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "TRIGGERED",
+          "pendingRemainingFrames": 180,
+          "pendingCanCast": true,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 264,
+          "stage": "COMMAND_GATE",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "COMBO_PENDING_READY",
+          "pendingRemainingFrames": 1,
+          "pendingCanCast": true,
+          "targetUuid": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 264,
+          "stage": "PENDING_CONSUMED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_combo_skill",
+          "currentPriority": 5,
+          "result": true,
+          "reason": "CAST_SUCCESS",
+          "pendingRemainingFrames": 1,
+          "pendingCanCast": false,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        }
+      ],
+      "damageLog": [
+        {
+          "frame": 8,
+          "skillId": "chr_0004_pelica_attack1_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 10.481375
+        },
+        {
+          "frame": 24,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 27,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 49,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 52,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 55,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 86,
+          "skillId": "chr_0004_pelica_attack4_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 23.897534999999998
+        },
+        {
+          "frame": 288,
+          "skillId": "chr_0004_pelica_combo_skill_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 37.565248000000004
+        }
+      ],
+      "durationTicks": 559
+    },
+    {
+      "id": "reported-expiry-frame",
+      "commands": [
+        {
+          "uuid": "pelica",
+          "frame": 0,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 15,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 30,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 45,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 265,
+          "commandType": "ComboSkill"
+        }
+      ],
+      "commandTrace": [
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 0,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack1",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 15,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack2",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 33,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack3",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "next-skill-request"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 59,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack4",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        }
+      ],
+      "comboSkillTrace": [
+        {
+          "frame": 86,
+          "stage": "PENDING_CREATED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "TRIGGERED",
+          "pendingRemainingFrames": 180,
+          "pendingCanCast": true,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 265,
+          "stage": "PENDING_EXPIRED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": false,
+          "reason": "TIMEOUT",
+          "pendingRemainingFrames": 0,
+          "pendingCanCast": true,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 265,
+          "stage": "COMMAND_GATE",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": false,
+          "reason": "COMBO_PENDING_MISSING",
+          "targetUuid": "eny_0007_mimicw"
+        }
+      ],
+      "damageLog": [
+        {
+          "frame": 8,
+          "skillId": "chr_0004_pelica_attack1_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 10.481375
+        },
+        {
+          "frame": 24,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 27,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 49,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 52,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 55,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 86,
+          "skillId": "chr_0004_pelica_attack4_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 23.897534999999998
+        }
+      ],
+      "durationTicks": 446
+    },
+    {
+      "id": "after-expiry",
+      "commands": [
+        {
+          "uuid": "pelica",
+          "frame": 0,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 15,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 30,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 45,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 266,
+          "commandType": "ComboSkill"
+        }
+      ],
+      "commandTrace": [
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 0,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack1",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 15,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack2",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 33,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack3",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "next-skill-request"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 59,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack4",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        }
+      ],
+      "comboSkillTrace": [
+        {
+          "frame": 86,
+          "stage": "PENDING_CREATED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "TRIGGERED",
+          "pendingRemainingFrames": 180,
+          "pendingCanCast": true,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 265,
+          "stage": "PENDING_EXPIRED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": false,
+          "reason": "TIMEOUT",
+          "pendingRemainingFrames": 0,
+          "pendingCanCast": true,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 266,
+          "stage": "COMMAND_GATE",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": false,
+          "reason": "COMBO_PENDING_MISSING",
+          "targetUuid": "eny_0007_mimicw"
+        }
+      ],
+      "damageLog": [
+        {
+          "frame": 8,
+          "skillId": "chr_0004_pelica_attack1_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 10.481375
+        },
+        {
+          "frame": 24,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 27,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 49,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 52,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 55,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 86,
+          "skillId": "chr_0004_pelica_attack4_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 23.897534999999998
+        }
+      ],
+      "durationTicks": 446
+    },
+    {
+      "id": "second-trigger-while-pending",
+      "commands": [
+        {
+          "uuid": "pelica",
+          "frame": 0,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 15,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 30,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 45,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 140,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 155,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 170,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 185,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 270,
+          "commandType": "ComboSkill"
+        }
+      ],
+      "commandTrace": [
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 0,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack1",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 15,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack2",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 33,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack3",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "next-skill-request"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 59,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack4",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 140,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack1",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 155,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack2",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 173,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack3",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "next-skill-request"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 199,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack4",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 270,
+          "commandType": "ComboSkill",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        }
+      ],
+      "comboSkillTrace": [
+        {
+          "frame": 86,
+          "stage": "PENDING_CREATED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "TRIGGERED",
+          "pendingRemainingFrames": 180,
+          "pendingCanCast": true,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 226,
+          "stage": "PENDING_CREATED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "TRIGGERED",
+          "pendingRemainingFrames": 180,
+          "pendingCanCast": true,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 265,
+          "stage": "PENDING_EXPIRED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": false,
+          "reason": "TIMEOUT",
+          "pendingRemainingFrames": 0,
+          "pendingCanCast": true,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 270,
+          "stage": "COMMAND_GATE",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "COMBO_PENDING_READY",
+          "pendingRemainingFrames": 135,
+          "pendingCanCast": true,
+          "targetUuid": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 270,
+          "stage": "PENDING_CONSUMED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_combo_skill",
+          "currentPriority": 5,
+          "result": true,
+          "reason": "CAST_SUCCESS",
+          "pendingRemainingFrames": 135,
+          "pendingCanCast": false,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        }
+      ],
+      "damageLog": [
+        {
+          "frame": 8,
+          "skillId": "chr_0004_pelica_attack1_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 10.481375
+        },
+        {
+          "frame": 24,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 27,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 49,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 52,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 55,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 86,
+          "skillId": "chr_0004_pelica_attack4_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 23.897534999999998
+        },
+        {
+          "frame": 148,
+          "skillId": "chr_0004_pelica_attack1_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 10.481375
+        },
+        {
+          "frame": 164,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 167,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 189,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 192,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 195,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 226,
+          "skillId": "chr_0004_pelica_attack4_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 23.897534999999998
+        },
+        {
+          "frame": 294,
+          "skillId": "chr_0004_pelica_combo_skill_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 37.565248000000004
+        }
+      ],
+      "durationTicks": 565
+    },
+    {
+      "id": "two-pending-consume-selection",
+      "commands": [
+        {
+          "uuid": "pelica",
+          "frame": 0,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 15,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 30,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 45,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 140,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 155,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 170,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 185,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 230,
+          "commandType": "ComboSkill"
+        }
+      ],
+      "commandTrace": [
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 0,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack1",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 15,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack2",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 33,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack3",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "next-skill-request"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 59,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack4",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 140,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack1",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 155,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack2",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 173,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack3",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "next-skill-request"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 199,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack4",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 230,
+          "commandType": "ComboSkill",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        }
+      ],
+      "comboSkillTrace": [
+        {
+          "frame": 86,
+          "stage": "PENDING_CREATED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "TRIGGERED",
+          "pendingRemainingFrames": 180,
+          "pendingCanCast": true,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 226,
+          "stage": "PENDING_CREATED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "TRIGGERED",
+          "pendingRemainingFrames": 180,
+          "pendingCanCast": true,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 230,
+          "stage": "COMMAND_GATE",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "COMBO_PENDING_READY",
+          "pendingRemainingFrames": 175,
+          "pendingCanCast": true,
+          "targetUuid": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 230,
+          "stage": "PENDING_CONSUMED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_combo_skill",
+          "currentPriority": 5,
+          "result": true,
+          "reason": "CAST_SUCCESS",
+          "pendingRemainingFrames": 175,
+          "pendingCanCast": false,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        }
+      ],
+      "damageLog": [
+        {
+          "frame": 8,
+          "skillId": "chr_0004_pelica_attack1_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 10.481375
+        },
+        {
+          "frame": 24,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 27,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 49,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 52,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 55,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 86,
+          "skillId": "chr_0004_pelica_attack4_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 23.897534999999998
+        },
+        {
+          "frame": 148,
+          "skillId": "chr_0004_pelica_attack1_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 10.481375
+        },
+        {
+          "frame": 164,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 167,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 189,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 192,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 195,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 226,
+          "skillId": "chr_0004_pelica_attack4_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 23.897534999999998
+        },
+        {
+          "frame": 254,
+          "skillId": "chr_0004_pelica_combo_skill_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 37.565248000000004
+        }
+      ],
+      "durationTicks": 525
+    },
+    {
+      "id": "second-trigger-during-cooldown",
+      "commands": [
+        {
+          "uuid": "pelica",
+          "frame": 0,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 15,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 30,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 45,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 90,
+          "commandType": "ComboSkill"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 210,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 225,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 240,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 255,
+          "commandType": "Attack"
+        },
+        {
+          "uuid": "pelica",
+          "frame": 310,
+          "commandType": "ComboSkill"
+        }
+      ],
+      "commandTrace": [
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 0,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack1",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 15,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack2",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 33,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack3",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "next-skill-request"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 59,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack4",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 90,
+          "commandType": "ComboSkill",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 210,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack1",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 225,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack2",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 243,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack3",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "next-skill-request"
+        },
+        {
+          "$type": "CommandExecutedTrace",
+          "frame": 269,
+          "commandType": "Attack",
+          "skillId": "chr_0004_pelica_attack4",
+          "success": true,
+          "targetEntityId": "eny_0007_mimicw",
+          "targetSource": "explicit",
+          "skillSource": "combo-mapping"
+        }
+      ],
+      "comboSkillTrace": [
+        {
+          "frame": 86,
+          "stage": "PENDING_CREATED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "TRIGGERED",
+          "pendingRemainingFrames": 180,
+          "pendingCanCast": true,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 90,
+          "stage": "COMMAND_GATE",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": true,
+          "reason": "COMBO_PENDING_READY",
+          "pendingRemainingFrames": 175,
+          "pendingCanCast": true,
+          "targetUuid": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 90,
+          "stage": "PENDING_CONSUMED",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_combo_skill",
+          "currentPriority": 5,
+          "result": true,
+          "reason": "CAST_SUCCESS",
+          "pendingRemainingFrames": 175,
+          "pendingCanCast": false,
+          "targetId": "chr_0004_pelica",
+          "targetUuid": "pelica",
+          "triggerId": "eny_0007_mimicw",
+          "triggerUuid": "eny_0007_mimicw"
+        },
+        {
+          "frame": 310,
+          "stage": "COMMAND_GATE",
+          "skillId": "chr_0004_pelica_combo_skill",
+          "currentSkillId": "chr_0004_pelica_attack4",
+          "currentPriority": 0,
+          "result": false,
+          "reason": "COMBO_PENDING_MISSING",
+          "targetUuid": "eny_0007_mimicw"
+        }
+      ],
+      "damageLog": [
+        {
+          "frame": 8,
+          "skillId": "chr_0004_pelica_attack1_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 10.481375
+        },
+        {
+          "frame": 24,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 27,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 6.288825
+        },
+        {
+          "frame": 49,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 52,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 55,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.03106
+        },
+        {
+          "frame": 86,
+          "skillId": "chr_0004_pelica_attack4_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 23.897534999999998
+        },
+        {
+          "frame": 114,
+          "skillId": "chr_0004_pelica_combo_skill_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 37.565248000000004
+        },
+        {
+          "frame": 218,
+          "skillId": "chr_0004_pelica_attack1_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 11.73914
+        },
+        {
+          "frame": 234,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 7.043484000000001
+        },
+        {
+          "frame": 237,
+          "skillId": "chr_0004_pelica_attack2_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 7.043484000000001
+        },
+        {
+          "frame": 259,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.634787200000001
+        },
+        {
+          "frame": 262,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.634787200000001
+        },
+        {
+          "frame": 265,
+          "skillId": "chr_0004_pelica_attack3_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 5.634787200000001
+        },
+        {
+          "frame": 296,
+          "skillId": "chr_0004_pelica_attack4_projhit",
+          "damageType": "Pulse",
+          "finalDamage": 23.897534999999998
+        }
+      ],
+      "durationTicks": 656
+    }
+  ]
+}

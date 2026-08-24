@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "description": "Calc public OpenAPI panel and simulation black-box observations",
+    "simulationUrl": "https://calc.perlica.tech/api/simulations",
+    "panelUrl": "https://calc.perlica.tech/api/openapi/characters/panel",
+    "authentication": "none"
+  },
+  "recordedAt": "2026-08-24T10:01:49.996Z",
+  "calcDataVersion": "9163343-11",
+  "files": [
+    {
+      "path": "reference/public-data/calc/api/character-chr_0005_chen.json",
+      "bytes": 135258,
+      "sha256": "c09434025cec34a453fe488fa1d6cc668bbbec7b7c0528c4fa088c8b0b55d43b"
+    },
+    {
+      "path": "reference/public-data/calc/api/weapon-wpn_sword_0003.json",
+      "bytes": 15505,
+      "sha256": "2405af74b5e202487a0f14845f977cb53727a4b9f2476bc121a60a2b1992606c"
+    },
+    {
+      "path": "reference/public-data/calc/api/character-panel-chr_0005_chen-level1.json",
+      "bytes": 25530,
+      "sha256": "1d83ee18b6e674c4d9ba29f99fc8801510b923bb46b12f8b98173ba3cf5cd496"
+    },
+    {
+      "path": "fixtures/calc/ake-cross-character-chen-qianyu.request.json",
+      "bytes": 29308,
+      "sha256": "982036cbbdd0efb498200115458b923dc07d91820bc370dfb8fcd7fe7e10f683"
+    },
+    {
+      "path": "fixtures/calc/ake-cross-character-chen-qianyu.response.json",
+      "bytes": 712201,
+      "sha256": "aaa0f9da65734d5d949c4c0acc2d7097f153e302d27a3cdd3d872ad9f737ef24"
+    },
+    {
+      "path": "reference/public-data/calc/api/character-chr_0006_wolfgd.json",
+      "bytes": 127571,
+      "sha256": "5d7e9a4f78c647fc9d2de5f3aa102be22f0988276951badc3119566a18fe34ff"
+    },
+    {
+      "path": "reference/public-data/calc/api/weapon-wpn_pistol_0001.json",
+      "bytes": 15501,
+      "sha256": "c7fa7d2626415b0fa8dc5bacb852d747192b56a89250d060a5fd65d56f4c5cd2"
+    },
+    {
+      "path": "reference/public-data/calc/api/character-panel-chr_0006_wolfgd-level1.json",
+      "bytes": 25547,
+      "sha256": "a503dcd46c822896aa01741a8bbc6b84d0f07898e0d6c4f989f25a0797ebcc49"
+    },
+    {
+      "path": "fixtures/calc/ake-cross-character-wulfgard.request.json",
+      "bytes": 29252,
+      "sha256": "6da24665eec5d63881ec866bd7058fe849c7a47c6b514b1c1c4f19c20507f283"
+    },
+    {
+      "path": "fixtures/calc/ake-cross-character-wulfgard.response.json",
+      "bytes": 994480,
+      "sha256": "8a7c72bb06b7e54c0baffc37f6dfea52b4adebc50657fb5d8438fcd646615e5e"
+    },
+    {
+      "path": "fixtures/calc/ake-cross-character-smoke.oracle.json",
+      "bytes": 22102,
+      "sha256": "fd18586e9fd21793e3f8d6d7e51af04477bb31fd6cf5eee99cd596d793e8bc1f"
+    }
+  ]
+}

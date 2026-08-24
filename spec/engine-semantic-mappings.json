@@ -1,0 +1,708 @@
+{
+  "schemaVersion": 1,
+  "mappings": [
+    {
+      "id": "calc.command-admission.policy",
+      "actionType": "CommandAdmissionPolicy",
+      "effect": {
+        "operation": "ResolveCommandAdmission",
+        "decisionOrder": [
+          "HigherPriority",
+          "AllowedNext",
+          "CurrentCanBeInterrupted",
+          "ExclusiveEnd"
+        ],
+        "retrySources": [
+          "AllowNextSkillAction",
+          "MarkCanInterrupt",
+          "ExclusiveFrame"
+        ]
+      },
+      "confidence": "confirmed-for-fixtures",
+      "evidence": [
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/ake-cross-character-wulfgard.response.json",
+          "observation": "INTERRUPT_CHECK reports HIGHER_PRIORITY even when currentCanBeInterrupted is already true; blocked commands become eligible through MarkCanInterrupt or the serialized timeline windows."
+        },
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/ake-interruption-probe.oracle.json",
+          "observation": "The 43-case Wulfgard matrix freezes strict queue expiry, AllowNext/exclusive boundaries and MarkCanInterrupt frame 48."
+        }
+      ],
+      "notes": "This policy is single-actor command admission. Resource, cooldown, combo-pending and execution gates are evaluated separately."
+    },
+    {
+      "id": "calc.command-admission.attack",
+      "actionType": "CommandAdmissionRule",
+      "selector": {
+        "commandType": "Attack"
+      },
+      "effect": {
+        "operation": "ConfigureCommandAdmission",
+        "centerState": "Attack",
+        "priority": 0,
+        "admissionMode": "Priority"
+      },
+      "confidence": "confirmed",
+      "evidence": [
+        {
+          "type": "black-box-observation",
+          "fixture": "fixtures/calc/ake-cross-character-chen-qianyu.response.json",
+          "observation": "INTERRUPT_CHECK serializes newPriority=0 for attack-chain commands."
+        },
+        {
+          "type": "black-box-observation",
+          "fixture": "fixtures/calc/pelica-heavy-combo-skill.response.json",
+          "observation": "Pelica attack-chain checks also serialize priority 0."
+        }
+      ]
+    },
+    {
+      "id": "calc.command-admission.normal-skill",
+      "actionType": "CommandAdmissionRule",
+      "selector": {
+        "commandType": "NormalSkill"
+      },
+      "effect": {
+        "operation": "ConfigureCommandAdmission",
+        "centerState": "Skill",
+        "priority": 2,
+        "admissionMode": "Priority"
+      },
+      "confidence": "confirmed",
+      "evidence": [
+        {
+          "type": "black-box-observation",
+          "fixture": "fixtures/calc/ake-cross-character-chen-qianyu.response.json",
+          "observation": "INTERRUPT_CHECK serializes newPriority=2 and HIGHER_PRIORITY for NormalSkill replacing Attack."
+        },
+        {
+          "type": "black-box-observation",
+          "fixture": "fixtures/calc/ake-cross-character-wulfgard.response.json",
+          "observation": "Wulfgard independently reproduces NormalSkill priority 2."
+        }
+      ]
+    },
+    {
+      "id": "calc.command-admission.combo-skill",
+      "actionType": "CommandAdmissionRule",
+      "selector": {
+        "commandType": "ComboSkill"
+      },
+      "effect": {
+        "operation": "ConfigureCommandAdmission",
+        "centerState": "Skill",
+        "priority": 5,
+        "admissionMode": "Priority",
+        "transitionBeforeInterrupt": true
+      },
+      "confidence": "confirmed",
+      "evidence": [
+        {
+          "type": "black-box-observation",
+          "fixture": "fixtures/calc/pelica-heavy-combo-skill.response.json",
+          "observation": "INTERRUPT_CHECK serializes newPriority=5 when Pelica's combo skill replaces attack4."
+        }
+      ]
+    },
+    {
+      "id": "calc.command-admission.ultimate-skill",
+      "actionType": "CommandAdmissionRule",
+      "selector": {
+        "commandType": "UltimateSkill"
+      },
+      "effect": {
+        "operation": "ConfigureCommandAdmission",
+        "centerState": "Skill",
+        "priority": 7,
+        "admissionMode": "Priority"
+      },
+      "confidence": "confirmed",
+      "evidence": [
+        {
+          "type": "black-box-observation",
+          "fixture": "fixtures/calc/ake-cross-character-wulfgard.response.json",
+          "observation": "INTERRUPT_CHECK serializes currentPriority=2, newPriority=7 and HIGHER_PRIORITY for UltimateSkill replacing NormalSkill."
+        }
+      ]
+    },
+    {
+      "id": "calc.command-admission.breaking-attack",
+      "actionType": "CommandAdmissionRule",
+      "selector": {
+        "commandType": "BreakingAttack"
+      },
+      "effect": {
+        "operation": "ConfigureCommandAdmission",
+        "centerState": "Skill",
+        "priority": null,
+        "admissionMode": "ExternalGate"
+      },
+      "confidence": "provisional",
+      "evidence": [
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+          "observation": "BreakingAttack is accepted only in the execution scenario, but the captured oracle contains no INTERRUPT_CHECK priority field for this command."
+        },
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_power_attack.json",
+          "observation": "The command's damage uses BreakingAttackCalculation and is governed by the separate execution gate."
+        }
+      ],
+      "notes": "ExternalGate preserves execution routing without inventing an unobserved numeric priority. Its interaction with an actively casting skill remains unresolved."
+    },
+    {
+      "actionType": "SpellInfliction",
+      "selector": {
+        "inflictionType": "Pulse"
+      },
+      "effect": {
+        "operation": "ApplyBuff",
+        "buffId": "buff_common_energy_shard_attached_pulse"
+      },
+      "confidence": "confirmed",
+      "evidence": [
+        {
+          "type": "public-frontend",
+          "path": "reference/public-data/calc/_nuxt/Cgx2mFCV.js"
+        },
+        {
+          "type": "black-box-observation",
+          "fixture": "fixtures/pelica-pulse.expected.json"
+        }
+      ],
+      "notes": "The SkillData action contains Pulse but no attached Buff ID, so this is not an explicit JSON reference."
+    },
+    {
+      "id": "global.fire-infliction-attachment",
+      "actionType": "SpellInfliction",
+      "selector": {
+        "inflictionType": "Fire"
+      },
+      "effect": {
+        "operation": "ApplyBuff",
+        "buffId": "buff_common_energy_shard_attached_fire"
+      },
+      "confidence": "confirmed-for-fixtures",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_common_energy_shard_attached_fire.json"
+        },
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/ake-interruption-probe.oracle.json",
+          "observation": "Repeated Fire SpellInfliction and Wulfgard's ability entity retain the inflicting skill attribution through the attachment/reaction chain."
+        }
+      ],
+      "notes": "Fire SkillData carries only the element enum; the attachment Buff ID is supplied as evidence-backed engine vocabulary."
+    },
+    {
+      "id": "global.fire-burst.first-trigger-frame",
+      "actionType": "StatusTriggerTimingRule",
+      "selector": {
+        "buffId": "buff_common_fire_fire_triggered"
+      },
+      "effect": {
+        "operation": "OverrideFirstTriggerDelay",
+        "firstTriggerDelayTicks": 29
+      },
+      "confidence": "confirmed-for-fixtures",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_common_fire_fire_triggered.json",
+          "observation": "The one-shot Fire burst declares a one-second trigger interval and waitFirstTriggerInterval=true."
+        },
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/ake-interruption-probe.oracle.json",
+          "observation": "A reaction created by Wulfgard's repeated Fire infliction at frame 55 resolves at frame 84."
+        }
+      ],
+      "notes": "This is a frozen first-trigger boundary; later periodic intervals continue to use the serialized interval."
+    },
+    {
+      "id": "global.combo-skill-curve-0.6",
+      "actionType": "TimeDilationCurveRule",
+      "selector": {
+        "sourceType": "TimeDilationAction",
+        "curveKey": "ComboSkill",
+        "durationSeconds": 0.6
+      },
+      "effect": {
+        "operation": "ScheduleClockPauseSample",
+        "domainBinding": "EventTarget",
+        "frameOffsetTicks": 12,
+        "excludedTicks": 7,
+        "priority": 50
+      },
+      "confidence": "confirmed-for-fixtures",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0006_wolfgd_combo_skill.json",
+          "observation": "The global ComboSkill curve lasts 0.6 seconds and excludes Owner plus OwnerSpawned AbilityEntity targets."
+        },
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/ake-interruption-probe.oracle.json",
+          "observation": "The ability entity hits at frame 42 while its target-owned Fire burst timer resolves at frame 78."
+        }
+      ],
+      "notes": "The public corpus omits the named curve samples, so the integrated seven excluded target ticks are retained as an auditable discrete sample."
+    },
+    {
+      "id": "wulfgard.normal-plus.projectile-flight",
+      "actionType": "ProjectileFlightRule",
+      "selector": {
+        "projectileId": "projectile_chr_0006_wolfgd_normal_skill_plus"
+      },
+      "effect": {
+        "operation": "DelayChildSkillProgram",
+        "delayTicks": 1
+      },
+      "confidence": "confirmed-for-fixtures",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0006_wolfgd_normal_skill.json",
+          "observation": "The enhanced branch launches a distinct projectile at timeline frame 141."
+        },
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/ake-interruption-probe.oracle.json",
+          "observation": "After the timeline jump, launch occurs at wall frame 130 and its HP hit resolves at frame 131."
+        }
+      ]
+    },
+    {
+      "id": "pelica.attack4.first-hp-damage",
+      "actionType": "ComboTriggerRule",
+      "eventType": "BeforeHpDamage",
+      "selector": {
+        "rootSkillIds": [
+          "chr_0004_pelica_attack4"
+        ],
+        "sourceSkillIds": [
+          "chr_0004_pelica_attack4_projhit"
+        ],
+        "damageAttributeType": "Hp",
+        "occurrence": "first-per-cast"
+      },
+      "effect": {
+        "operation": "CreateComboPending",
+        "comboSkillId": "chr_0004_pelica_combo_skill",
+        "pendingDurationTicks": 180,
+        "ownerBinding": "event-source",
+        "triggerTargetBinding": "event-target",
+        "requireComboOffCooldown": true,
+        "pendingPolicy": "append",
+        "selectionPolicy": "newest",
+        "consumePolicy": "all-for-owner-and-skill"
+      },
+      "confidence": "confirmed-for-fixture",
+      "evidence": [
+        {
+          "type": "black-box-observation",
+          "fixture": "fixtures/calc/pelica-heavy-combo-skill.response.json",
+          "observation": "attack4 HP hit creates pending at frame 86; isolated pending expires at frame 265"
+        },
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/pelica-combo-boundaries.oracle.json",
+          "observation": "same-frame cast succeeds; active interval is [86,265); repeated casts append and newest is selected; cooldown suppresses creation"
+        }
+      ],
+      "notes": "The public SkillData exposes attack4 timing and damage but does not declare the character-specific combo-pending rule. first-per-cast is a conservative selector because this SkillData currently has one HP hit."
+    },
+    {
+      "id": "global.atb.passive-recovery",
+      "actionType": "ResourceRule",
+      "selector": {
+        "resourceType": "Atb"
+      },
+      "effect": {
+        "operation": "PassiveRecovery",
+        "ratePerSecond": 8,
+        "quantization": "float32",
+        "firstTickFrame": 1,
+        "resumeDelayTicksAfterSpend": 16,
+        "sameFramePriority": {
+          "timelineGain": "before-passive-recovery",
+          "commandSpend": "after-passive-recovery"
+        }
+      },
+      "confidence": "confirmed-for-fixtures",
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "ATB cap is 300 and passive recovery is 8 per second"
+        },
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/pelica-resource-boundaries.oracle.json",
+          "observation": "per-tick value is Math.fround(8/30); spend at T resumes at T+16; an already scheduled recovery at T precedes the spend"
+        }
+      ]
+    },
+    {
+      "id": "global.normal-skill-usp-action",
+      "actionType": "ResourceActionRule",
+      "selector": {
+        "actionType": "ObtainUspInNormalSkill"
+      },
+      "effect": {
+        "resourceType": "UltimateSp",
+        "includeEveryone": true,
+        "includeSelf": true,
+        "quantization": "percentage-float32"
+      },
+      "confidence": "confirmed-for-fixtures",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_common_obtain_ultimate_sp.json",
+          "observation": "usp_everyone=6.5, usp_self=0, ratio=1"
+        },
+        {
+          "type": "black-box-observation",
+          "fixture": "fixtures/calc/pelica-resource-boundaries.oracle.json",
+          "observation": "normal skill grants 6.499999761581421 USP; Math.fround(6.5/100)*100 reproduces it exactly"
+        }
+      ]
+    },
+    {
+      "actionType": "ReadSkillSettingData",
+      "selector": {
+        "lookupKey": "导电法术伤害提高",
+        "column": 1
+      },
+      "effect": {
+        "operation": "ReturnValue",
+        "value": 0.12
+      },
+      "confidence": "confirmed-for-fixture",
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md"
+        },
+        {
+          "type": "black-box-observation",
+          "fixture": "fixtures/calc/pelica-heavy-combo-skill.response.json",
+          "observation": "NormalCalcZone defender addition is 0.12"
+        }
+      ]
+    },
+    {
+      "actionType": "ReadSkillSettingData",
+      "selector": {
+        "lookupKey": "导电持续时间",
+        "column": 1
+      },
+      "effect": {
+        "operation": "ReturnValue",
+        "value": 12
+      },
+      "confidence": "public-reference",
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md"
+        }
+      ],
+      "notes": "The selected combo fixture overrides the parent duration with 5 seconds, so this fallback is parsed but not used in that run."
+    },
+    {
+      "actionType": "ReadSkillSettingData",
+      "selector": {
+        "lookupKey": "燃烧每跳伤害",
+        "column": 1
+      },
+      "effect": {
+        "operation": "ReturnValue",
+        "value": 0.24
+      },
+      "confidence": "confirmed-for-fixture",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_common_fire_fire_burning_triggered.json",
+          "observation": "ReadSkillSettingData stores this value as burning_atk_scale before creating buff_common_burning_status."
+        },
+        {
+          "type": "black-box-observation",
+          "fixture": "fixtures/calc/ake-cross-character-smoke.oracle.json",
+          "observation": "Wulfgard's level-1 Atk 82.218 produces raw burn damage 19.73232 and final damage 9.86616 against 100 Def, fixing the Blackboard scale at 0.24."
+        }
+      ]
+    },
+    {
+      "id": "global.spell-burst-damage-scale",
+      "actionType": "ReadSkillSettingData",
+      "selector": {
+        "lookupKey": "法术爆发伤害倍率",
+        "column": 1
+      },
+      "effect": {
+        "operation": "ReturnValue",
+        "value": 1.6
+      },
+      "confidence": "confirmed-for-fixtures",
+      "evidence": [
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/ake-interruption-probe.oracle.json",
+          "observation": "Atk 82.218 produces raw Fire burst damage 131.5488, fixing the multiplier at 1.6."
+        }
+      ]
+    },
+    {
+      "id": "global.poise.damage",
+      "actionType": "PoiseDamageRule",
+      "selector": {
+        "damageAttributeType": "Poise",
+        "calculationType": "DefiniteValueCalculation"
+      },
+      "effect": {
+        "operation": "AccumulatePoise",
+        "baseValuePath": "poiseCalculation.value",
+        "formula": "basePoise * PoiseDamageOutputScalar * PoiseDamageTakenScalar",
+        "capPolicy": "cap-state-but-report-full-hit"
+      },
+      "confidence": "confirmed-for-fixtures",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack4_projhit.json",
+          "observation": "The second DamageUnit is Poise and reads blackboard key poise through DefiniteValueCalculation."
+        },
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+          "observation": "Pelica reports 15/10/10/20 poise hits; a 60-point target breaks on a 65-point overflow hit."
+        }
+      ]
+    },
+    {
+      "id": "global.enemy.poise-template",
+      "actionType": "EnemyPoiseTemplateRule",
+      "effect": {
+        "operation": "ReadEnemyPoiseTemplate",
+        "maxPoiseAttributeType": 20,
+        "recoverySecondsAttributeType": 21,
+        "executionDamageScalarAttributeType": 27,
+        "executionAtbGainField": "breakingAttackedAtbObtain",
+        "knotPercentagesField": "poiseKnotPctList",
+        "knotBuffIdsField": "poiseKnotBuffList"
+      },
+      "confidence": "confirmed-for-fixtures",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/TableCfg/EnemyAttributeTemplateTable.json"
+        },
+        {
+          "type": "public-parser",
+          "path": "reference/third-party/akedatabase/plugin/js/v2-enemy.js",
+          "observation": "AKE labels slots 20, 21 and 27 as max poise, poise recovery time and execution scalar."
+        },
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+          "observation": "Enemy template thresholds, recovery tier, knot and execution ATB refund all affect the public simulator."
+        }
+      ]
+    },
+    {
+      "id": "global.poise.break",
+      "actionType": "PoiseBreakRule",
+      "effect": {
+        "operation": "EnterBrokenState",
+        "breakDamageBuffId": "buff_common_poise_break_damage_taken_scale",
+        "executionGateBuffId": "buff_common_poise_can_be_breaking_attacked",
+        "recoveryTimingModel": "nominal-gameplay-ticks-excludes-presentation-pauses"
+      },
+      "confidence": "confirmed-for-fixtures",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_common_poise_break_damage_taken_scale.json",
+          "observation": "The break buff adds dmg_up=0.3 in defender ProdCalcZone."
+        },
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+          "observation": "Break creates both buffs; damage becomes 1.3x; nominal six-second recovery is delayed in wall frames by presentation hit pauses."
+        }
+      ]
+    },
+    {
+      "id": "global.execution.breaking-attack",
+      "actionType": "ExecutionRule",
+      "selector": {
+        "commandType": "BreakingAttack",
+        "calculationType": "BreakingAttackCalculation"
+      },
+      "effect": {
+        "operation": "ConsumeExecutionGateOnHit",
+        "damageScalarSource": "enemy.executionDamageScalar",
+        "atbGainSource": "enemy.breakingAttackedAtbObtain",
+        "gatePolicy": "single-use-per-break-cycle"
+      },
+      "confidence": "confirmed-for-fixtures",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_power_attack.json",
+          "observation": "The HP DamageUnit uses BreakingAttackCalculation."
+        },
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+          "observation": "Execution is rejected before break, succeeds once, consumes its gate on hit and grants the enemy-template ATB amount."
+        }
+      ]
+    },
+    {
+      "id": "calc-current.ordinary.rapid-poise-break-guard",
+      "actionType": "RapidPoiseBreakRule",
+      "selector": {
+        "executionDamageScalar": 1,
+        "breakingAttackedAtbObtain": 25
+      },
+      "effect": {
+        "operation": "ApplyPostRecoveryPoiseGuard",
+        "qualifyingTicks": 48,
+        "guardDurationTicks": 90,
+        "minimumTakenScalar": 0.6,
+        "interpolation": "linear-to-one",
+        "lifecycleOffsetTicks": 1,
+        "buffId": "buff_common_poise_guard"
+      },
+      "confidence": "confirmed-for-enemy-signature",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_common_poise_guard.json",
+          "observation": "The buff exposes duration and poiseTakenScalar blackboard inputs to a defender PoiseDamageTakenScalar FinalMultiplier."
+        },
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/poise-guard-boundaries.oracle.json",
+          "observation": "The current public Calc uses a 48-local-tick qualifying interval, linearly interpolates 0.6 to 1, starts a 90-tick guard on recovery, applies it through the frame-371 expiry event, and no longer applies it on frame 372."
+        }
+      ],
+      "notes": "This current-Calc profile differs from the older public AKE research prose (3-second qualification, 1-second fixed 50% penalty). It is selected only by the observed execution-scalar/ATB enemy signature; other ranks remain unresolved."
+    },
+    {
+      "id": "pelica.attack4-break.enemy-local-pause",
+      "actionType": "LocalClockPauseRule",
+      "selector": {
+        "trigger": "PoiseBreak",
+        "sourceSkillIds": [
+          "chr_0004_pelica_attack4_projhit"
+        ]
+      },
+      "effect": {
+        "operation": "PauseEnemyLocalClock",
+        "durationTicks": 7
+      },
+      "confidence": "confirmed-for-fixture",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack4_projhit.json",
+          "observation": "The hit has enablePoiseBreakTimeDilation=true and an OnlyTarget HitStopAction with duration=0.3 and curveKey=char_normal_attack."
+        },
+        {
+          "type": "black-box-observation",
+          "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+          "observation": "An attack4 break at frame 426 recovers at 613 instead of nominal 606: 7 effective enemy-local ticks are excluded."
+        }
+      ]
+    },
+    {
+      "id": "pelica.normal-skill-break.enemy-local-pause",
+      "actionType": "LocalClockPauseRule",
+      "selector": {
+        "trigger": "PoiseBreak",
+        "sourceSkillIds": [
+          "chr_0004_pelica_normal_skill"
+        ]
+      },
+      "effect": {
+        "operation": "PauseEnemyLocalClock",
+        "durationTicks": 11
+      },
+      "confidence": "confirmed-for-fixture",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_normal_skill.json",
+          "observation": "Both HP and Poise damage units enable poise-break time dilation."
+        },
+        {
+          "type": "black-box-observation",
+          "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+          "observation": "A normal-skill overflow break at frame 293 recovers at 484 instead of nominal 473: 11 effective enemy-local ticks are excluded."
+        }
+      ]
+    },
+    {
+      "id": "pelica.normal-skill-on-broken.enemy-local-pause",
+      "actionType": "LocalClockPauseRule",
+      "selector": {
+        "trigger": "HpDamageWhileBroken",
+        "sourceSkillIds": [
+          "chr_0004_pelica_normal_skill"
+        ]
+      },
+      "effect": {
+        "operation": "PauseEnemyLocalClock",
+        "durationTicks": 4
+      },
+      "confidence": "confirmed-for-fixture",
+      "evidence": [
+        {
+          "type": "black-box-observation",
+          "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+          "observation": "After the 7-tick attack4 break pause, a normal-skill hit during break moves recovery from 613 to 617: 4 additional ticks."
+        }
+      ]
+    },
+    {
+      "id": "pelica.execution-hit.enemy-local-pause",
+      "actionType": "LocalClockPauseRule",
+      "selector": {
+        "trigger": "ExecutionHit",
+        "sourceSkillIds": [
+          "chr_0004_pelica_power_attack"
+        ]
+      },
+      "effect": {
+        "operation": "PauseEnemyLocalClock",
+        "durationTicks": 7
+      },
+      "confidence": "confirmed-for-fixture",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_power_attack.json",
+          "observation": "The execution hit enables poise-break time dilation and contains a Both-target HitStopAction with duration=0.2 and curveKey=common."
+        },
+        {
+          "type": "black-box-observation",
+          "fixture": "fixtures/calc/pelica-poise-boundaries.oracle.json",
+          "observation": "After the 7-tick attack4 break pause, the execution hit moves recovery from 613 to 620: 7 additional ticks."
+        }
+      ]
+    }
+  ]
+}

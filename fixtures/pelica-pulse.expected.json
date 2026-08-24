@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "caseId": "pelica-pulse-double-cast",
+  "evidenceType": "normalized-black-box-observation",
+  "observedAt": "2026-08-22",
+  "tickRate": 30,
+  "scenario": {
+    "characterId": "chr_0004_pelica",
+    "skillId": "chr_0004_pelica_normal_skill",
+    "castFrames": [0, 100]
+  },
+  "expectedBuffEvents": [
+    {
+      "frame": 13,
+      "stage": "Started",
+      "buffId": "buff_common_energy_shard_attached_pulse",
+      "stackingType": "EnhanceAndRefresh",
+      "previousStackCount": 0,
+      "stackCount": 1,
+      "maxStackCount": 4,
+      "durationTicks": 600
+    },
+    {
+      "frame": 113,
+      "stage": "Started",
+      "buffId": "buff_common_pulse_pulse_triggered",
+      "stackingType": "Unlimited",
+      "stackCount": 1,
+      "durationTicks": 300
+    },
+    {
+      "frame": 113,
+      "stage": "Refreshed",
+      "buffId": "buff_common_energy_shard_attached_pulse",
+      "stackingType": "EnhanceAndRefresh",
+      "previousStackCount": 1,
+      "stackCount": 2,
+      "maxStackCount": 4,
+      "durationTicks": 600
+    }
+  ],
+  "expectedDamageFrames": [13, 113, 143],
+  "assertions": [
+    "20 seconds equals 600 ticks",
+    "10 seconds equals 300 ticks",
+    "the child buff first triggers 30 ticks after it starts",
+    "the second Pulse creates the reaction child and refreshes the attachment to stack 2"
+  ],
+  "limitations": [
+    "This is a normalized excerpt, not a stored raw Calc response.",
+    "The exact SpellInfliction-to-Buff mapping is engine-semantic or black-box observed.",
+    "The final spell-burst atk_scale depends on ReadSkillSettingData."
+  ]
+}

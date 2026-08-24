@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "url": "https://calc.perlica.tech/api/simulations",
+    "method": "POST",
+    "authentication": "none"
+  },
+  "calcDataVersion": "9163343-11",
+  "responseRecordedAt": "2026-08-22T15:12:27.539Z",
+  "files": [
+    {
+      "path": "fixtures/calc/pelica-heavy-combo-skill.request.json",
+      "bytes": 29237,
+      "sha256": "90f9471e5043a49c3f27f8582c30cf282616ea5c946be3462f2eba136ac2524c"
+    },
+    {
+      "path": "fixtures/calc/pelica-heavy-combo-skill.response.json",
+      "bytes": 497960,
+      "sha256": "fc47d0a6272d77d7ddca5521bea1334a832dbdeea8404fe6288be0d4902c54b9"
+    },
+    {
+      "path": "fixtures/calc/pelica-heavy-combo-skill.oracle.json",
+      "bytes": 13978,
+      "sha256": "16575dd6bf0777a0d5a903bd37935964acdc0bc3f01c0cba94340ab86276ab12"
+    }
+  ]
+}

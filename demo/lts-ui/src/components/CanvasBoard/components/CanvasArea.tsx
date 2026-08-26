@@ -3,6 +3,7 @@ import type { MouseEvent } from 'react';
 import { Character, SkillButton, CanvasConfig, SkillButtonSkillChangePayload, SkillButtonSkillOption } from '../../../types';
 import { SkillButtonComponent } from '../SkillButton';
 import { TimelineWaitSegment } from '../TimelineWaitSegment';
+import { TimelineOperatorSwitchSegment } from '../TimelineOperatorSwitchSegment';
 import type { TimelineData } from '../../../types';
 import {
   getGridNodeCenterX,
@@ -304,6 +305,9 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
     const resolvedLaneWait = button.timelineModuleKind === 'lane-wait'
       ? variableTimeline?.laneWaits.find(wait => wait.id === button.id) ?? null
       : null;
+    const resolvedOperatorSwitch = button.timelineModuleKind === 'operator-switch'
+      ? variableTimeline?.operatorSwitches.find(operatorSwitch => operatorSwitch.id === button.id) ?? null
+      : null;
     // Both wait carriers begin at the left edge of their projected interval.
     // Only a forced wait owns a full-column group boundary; an ordinary wait
     // remains inside its lane and therefore uses the lane-wait projection.
@@ -311,6 +315,8 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
       ? visualPointForX(resolvedForcedWait.xStart, 'after')
       : resolvedLaneWait
         ? visualPointForX(resolvedLaneWait.startX, 'after')
+        : resolvedOperatorSwitch
+          ? visualPointForX(resolvedOperatorSwitch.startX, 'after')
         : frame !== null && button.timelineModuleKind === 'forced-wait' && variableTimeline
         ? (() => {
           const globalX = projectSharedTimelineFrame(variableTimeline, frame, 'before');
@@ -437,11 +443,45 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
       variableTimeline,
     ]);
 
+  const operatorSwitchSegments = useMemo(() => skillButtons
+    .filter(button => button.timelineModuleKind === 'operator-switch')
+    .map((button) => {
+      const displayButton = projectTimelineModuleToAnchor(button);
+      const resolved = variableTimeline?.operatorSwitches.find(
+        operatorSwitch => operatorSwitch.id === button.id,
+      ) ?? null;
+      const target = selectedCharacters.find(
+        character => character.id === button.operatorSwitchConfig?.targetCharacterId,
+      );
+      return {
+        button,
+        displayButton,
+        targetName: target?.name ?? '未选择',
+        frame: resolved?.startFrame ?? resolveTimelineModuleAnchorFrame(button),
+        tickRate: variableTimeline?.tickRate
+          ?? akeRealtimeTimeline?.tickRate
+          ?? akeTimeline?.tickRate
+          ?? 30,
+        width: resolved
+          ? Math.max(GRID_COLUMN_WIDTH, resolved.endX - resolved.startX)
+          : GRID_COLUMN_WIDTH,
+      };
+    }), [
+      akeRealtimeTimeline?.tickRate,
+      akeTimeline?.tickRate,
+      projectTimelineModuleToAnchor,
+      resolveTimelineModuleAnchorFrame,
+      selectedCharacters,
+      skillButtons,
+      variableTimeline,
+    ]);
+
   const renderSkillButtons = () => {
     return skillButtons
       .filter(button => (
         button.timelineModuleKind !== 'forced-wait'
         && button.timelineModuleKind !== 'lane-wait'
+        && button.timelineModuleKind !== 'operator-switch'
       ))
       .map((button) => {
         const command = akeCommandById.get(button.id) ?? null;
@@ -508,6 +548,34 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
       onConfirmRemove={onConfirmRemove}
       onCloseContextMenu={onCloseContextMenu}
       onCopy={onCopy}
+    />
+  ));
+
+  const renderOperatorSwitchSegments = () => operatorSwitchSegments.map(({
+    button,
+    displayButton,
+    targetName,
+    frame,
+    tickRate,
+    width,
+  }) => (
+    <TimelineOperatorSwitchSegment
+      key={button.id}
+      button={displayButton}
+      targetName={targetName}
+      left={displayButton.position.x - GRID_COLUMN_WIDTH / 2}
+      top={displayButton.position.y - 15}
+      width={width}
+      frame={frame}
+      tickRate={tickRate}
+      isBrowseMode={isBrowseMode}
+      isDragDisabled={isDragDisabled}
+      onMouseDown={onButtonMouseDown}
+      onContextMenu={onButtonContextMenu}
+      onConfigure={onConfigureTimelineModule}
+      contextMenuState={contextMenuState}
+      onConfirmRemove={onConfirmRemove}
+      onCloseContextMenu={onCloseContextMenu}
     />
   ));
 
@@ -956,6 +1024,18 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
             >
               <div className="canvas-staff-line" />
 
+              {staffIndex === 0 && lineIndex === 0 && character ? (
+                <svg
+                  className="canvas-controlled-operator-marker"
+                  viewBox="0 0 25 16"
+                  role="img"
+                  aria-label={`${character.name} 为初始主控干员`}
+                >
+                  <path d="M1 3.5h15.5V1l7 7-7 7v-2.5H1z" />
+                  <circle cx="7" cy="8" r="2.2" />
+                </svg>
+              ) : null}
+
               <div className="canvas-staff-line-label">
                 {character?.avatarUrl && (
                   <img
@@ -1017,6 +1097,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
         </div>
         {renderSkillButtons()}
         {renderWaitSegments()}
+        {renderOperatorSwitchSegments()}
       </div>
     </div>
   );

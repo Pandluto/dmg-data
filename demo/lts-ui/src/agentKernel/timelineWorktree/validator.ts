@@ -108,7 +108,9 @@ export function validateTimelinePayload(payload: TimelineSnapshotPayload): AiTim
         || JSON.stringify(tableButton.forcedWaitConfig ?? null)
           !== JSON.stringify(button.forcedWaitConfig ?? null)
         || JSON.stringify(tableButton.laneWaitConfig ?? null)
-          !== JSON.stringify(button.laneWaitConfig ?? null)) {
+          !== JSON.stringify(button.laneWaitConfig ?? null)
+        || JSON.stringify(tableButton.operatorSwitchConfig ?? null)
+          !== JSON.stringify(button.operatorSwitchConfig ?? null)) {
         issues.push(issue('timeline-button-table-release-mismatch', `Timeline button ${button.id} release anchor or control-module configuration differs from skillButtonTable.`, `${buttonPath}.releaseAnchor`));
       }
       const timelineBuffIds = [...(button.buffIds || [])].sort();
@@ -125,7 +127,7 @@ export function validateTimelinePayload(payload: TimelineSnapshotPayload): AiTim
     releaseAnchor: button.releaseAnchor,
   }));
   const validReleaseKinds = new Set(['group-start', 'action-start', 'action-end', 'damage-hit']);
-  const validTimelineModuleKinds = new Set(['lane-wait', 'forced-wait', 'dodge', 'perfect-dodge']);
+  const validTimelineModuleKinds = new Set(['lane-wait', 'forced-wait', 'dodge', 'perfect-dodge', 'operator-switch']);
   for (const [buttonId, button] of Object.entries(payload.skillButtonTable)) {
     if (button.timelineModuleKind && !validTimelineModuleKinds.has(button.timelineModuleKind)) {
       issues.push(issue('invalid-timeline-module-kind', `Button ${buttonId} has an invalid timeline module kind.`, `skillButtonTable.${buttonId}.timelineModuleKind`));
@@ -154,6 +156,25 @@ export function validateTimelinePayload(payload: TimelineSnapshotPayload): AiTim
         || !['placeholder', 'fixed-duration'].includes(laneWaitConfig.mode)
         || invalidFixedDuration) {
         issues.push(issue('invalid-lane-wait-config', `Button ${buttonId} has an invalid ordinary-wait config.`, configPath));
+      }
+    }
+    const operatorSwitchConfig = button.operatorSwitchConfig;
+    if (button.timelineModuleKind === 'operator-switch' && !operatorSwitchConfig) {
+      issues.push(issue(
+        'missing-operator-switch-config',
+        `Button ${buttonId} is missing its operator-switch target.`,
+        `skillButtonTable.${buttonId}.operatorSwitchConfig`,
+      ));
+    }
+    if (operatorSwitchConfig) {
+      const configPath = `skillButtonTable.${buttonId}.operatorSwitchConfig`;
+      if (button.timelineModuleKind !== 'operator-switch'
+        || operatorSwitchConfig.schemaVersion !== 1
+        || typeof operatorSwitchConfig.targetCharacterId !== 'string'
+        || !operatorSwitchConfig.targetCharacterId.trim()
+        || operatorSwitchConfig.targetCharacterId === button.characterId
+        || !selectedCharacters.has(operatorSwitchConfig.targetCharacterId)) {
+        issues.push(issue('invalid-operator-switch-config', `Button ${buttonId} has an invalid operator-switch target.`, configPath));
       }
     }
     const anchor = button.releaseAnchor;

@@ -105,6 +105,7 @@ function timelineButtonFromTable(button: PersistedSkillButton): SkillButtonData 
     ...(button.timelineModuleKind ? { timelineModuleKind: button.timelineModuleKind } : {}),
     ...(button.forcedWaitConfig ? { forcedWaitConfig: button.forcedWaitConfig } : {}),
     ...(button.laneWaitConfig ? { laneWaitConfig: button.laneWaitConfig } : {}),
+    ...(button.operatorSwitchConfig ? { operatorSwitchConfig: button.operatorSwitchConfig } : {}),
     buffIds: [...button.selectedBuff],
   };
 }

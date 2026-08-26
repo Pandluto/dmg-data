@@ -3,7 +3,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import type { Character, SkillButton } from '../../types';
 import { ForcedWaitConfigDialog } from './ForcedWaitConfigDialog';
 import { LaneWaitConfigDialog } from './LaneWaitConfigDialog';
+import { OperatorSwitchDialog } from './OperatorSwitchDialog';
 import { SkillSandbox } from './SkillSandbox';
+import { TimelineOperatorSwitchSegment } from './TimelineOperatorSwitchSegment';
 import { TimelineWaitContextMenu, TimelineWaitSegment } from './TimelineWaitSegment';
 
 const character = {
@@ -24,9 +26,10 @@ assert.match(html, /第五站位/);
 assert.match(html, /强制等待/);
 assert.match(html, /普通等待/);
 assert.match(html, /极限闪避/);
-assert.match(html, /普通等待接入单条尾链/);
-assert.match(html, /强制等待只吸附完整组边界/);
-assert.equal((html.match(/sandbox-timeline-module/g) ?? []).length, 4);
+assert.match(html, /切人/);
+assert.match(html, /普通等待接尾链/);
+assert.match(html, /强制等待只吸附组边界/);
+assert.equal((html.match(/sandbox-timeline-module/g) ?? []).length, 5);
 
 const waitDialogHtml = renderToStaticMarkup(
   <ForcedWaitConfigDialog
@@ -92,6 +95,52 @@ assert.match(waitSegmentHtml, /timeline-wait-cursor is-end/);
 assert.match(waitSegmentHtml, /1\.00秒/);
 assert.match(waitSegmentHtml, /2\.00秒/);
 assert.doesNotMatch(waitSegmentHtml, /skill-button-orb/);
+
+const switchDialogHtml = renderToStaticMarkup(
+  <OperatorSwitchDialog
+    sourceCharacterId="operator-1"
+    characters={[
+      character,
+      { ...character, id: 'operator-2', name: '目标干员' },
+    ]}
+    initialConfig={{ schemaVersion: 1, targetCharacterId: 'operator-2' }}
+    onCancel={() => undefined}
+    onConfirm={() => undefined}
+  />,
+);
+assert.match(switchDialogHtml, /选择切换目标/);
+assert.match(switchDialogHtml, /目标干员/);
+assert.match(switchDialogHtml, /保留默认/);
+
+const switchSegmentHtml = renderToStaticMarkup(
+  <TimelineOperatorSwitchSegment
+    button={{
+      id: 'switch-1',
+      characterId: 'operator-1',
+      characterName: '测试干员',
+      skillType: 'Dot',
+      position: { x: 120, y: 100 },
+      staffIndex: 0,
+      lineIndex: 0,
+      nodeIndex: 0,
+      timelineModuleKind: 'operator-switch',
+      operatorSwitchConfig: { schemaVersion: 1, targetCharacterId: 'operator-2' },
+    } as SkillButton}
+    targetName="目标干员"
+    left={80}
+    top={85}
+    width={80}
+    frame={30}
+    tickRate={30}
+    onMouseDown={() => undefined}
+    onContextMenu={() => undefined}
+    onConfigure={() => undefined}
+  />,
+);
+assert.match(switchSegmentHtml, /timeline-operator-switch-segment/);
+assert.match(switchSegmentHtml, /data-timeline-module="operator-switch"/);
+assert.match(switchSegmentHtml, /切至 目标干员/);
+assert.match(switchSegmentHtml, /0秒 · 强制打断/);
 
 const waitContextMenuHtml = renderToStaticMarkup(
   <TimelineWaitContextMenu

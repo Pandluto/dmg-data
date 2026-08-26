@@ -156,6 +156,49 @@
   cursor: default;
 }
 
+.operator-switch-target-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.operator-switch-target-grid button {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 6px 9px;
+  border: 1px solid rgba(17, 17, 17, 0.2);
+  background: #ffffff;
+  color: #111111;
+  text-align: left;
+  cursor: pointer;
+}
+
+.operator-switch-target-grid button.is-selected {
+  border-color: #167d48;
+  box-shadow: inset 0 -3px 0 #167d48;
+  background: #f2f8f4;
+}
+
+.operator-switch-target-grid img,
+.operator-switch-target-grid i {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #e9eeea;
+}
+
+.operator-switch-target-grid i {
+  display: grid;
+  place-items: center;
+  font-style: normal;
+  font-weight: 800;
+}
+
 @media (max-width: 560px) {
   .forced-wait-mode-grid {
     grid-template-columns: 1fr;

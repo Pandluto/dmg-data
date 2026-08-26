@@ -365,6 +365,96 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
 }
 
 {
+  const actorA = character('switch-source');
+  const actorB = character('switch-target');
+  const source = button('switch-source-skill', actorA.id, 0, 'B');
+  source.releaseAnchor = { schemaVersion: 1, kind: 'group-start', debounceFrames: 0 };
+  const operatorSwitch = button('switch-control-node', actorA.id, 1, 'A');
+  operatorSwitch.skillType = 'Dot';
+  operatorSwitch.timelineModuleKind = 'operator-switch';
+  operatorSwitch.operatorSwitchConfig = { schemaVersion: 1, targetCharacterId: actorB.id };
+  operatorSwitch.releaseAnchor = {
+    schemaVersion: 1,
+    kind: 'damage-hit',
+    sourceButtonId: source.id,
+    sourceHitOffsetFrames: 13,
+    debounceFrames: 6,
+  };
+  const targetAttack = button('attack-after-switch', actorB.id, 2, 'A');
+  targetAttack.releaseAnchor = {
+    schemaVersion: 1,
+    kind: 'action-end',
+    sourceButtonId: operatorSwitch.id,
+    debounceFrames: 0,
+  };
+  const attackProfile = profile({
+    commandType: 'Attack',
+    skillId: 'switch-target-attack',
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+  });
+  const result = buildAkeRealtimeTimeline({
+    timelineData: timeline([
+      { characterId: actorA.id, buttons: [source, operatorSwitch] },
+      { characterId: actorB.id, buttons: [targetAttack] },
+    ]),
+    selectedCharacters: [actorA, actorB],
+    catalog: catalog({
+      [actorA.id]: [profile()],
+      [actorB.id]: [attackProfile],
+    }),
+    staffCount: 1,
+  });
+  const model = result.sharedVariableRateTimeline!;
+  const scheduledSwitch = model.operatorSwitches.find(entry => entry.id === operatorSwitch.id)!;
+  const scheduledAttack = model.actions.find(entry => entry.id === targetAttack.id)!;
+  assertEqual(scheduledSwitch.startFrame, 19, 'switch starts at hit plus the 0.2-second buffer');
+  assertEqual(scheduledAttack.startFrame, 19, 'the new controller may act in the same real frame');
+  assertEqual(scheduledAttack.startX, scheduledSwitch.endX, 'the new action is visually after the zero-time switch cell');
+  assertEqual(
+    result.commands.find(command => command.commandId === source.id)?.endFrame,
+    19,
+    'switching forcibly closes a non-ultimate predecessor',
+  );
+  assertEqual(model.admissionStatus, 'valid', 'a correctly owned handoff remains executable');
+}
+
+{
+  const actor = character('ultimate-lock-actor');
+  const ultimateButton = button('locked-ultimate', actor.id, 0, 'Q');
+  const follower = button('skill-after-ultimate', actor.id, 1, 'B');
+  const ultimateProfile = profile({
+    commandType: 'UltimateSkill',
+    skillId: 'locked-ultimate-profile',
+    durationFrames: 91,
+    bodyEndOffset: 90,
+    tailEndOffset: 90,
+    exclusiveFrames: 10,
+    priority: 10,
+    costType: null,
+    costValue: 0,
+    allowNext: [{
+      startOffsetFrames: 15,
+      endOffsetFrames: 40,
+      allowedSkillIds: ['normal-skill'],
+    }],
+  });
+  const result = buildAkeRealtimeTimeline({
+    timelineData: timeline([{ characterId: actor.id, buttons: [ultimateButton, follower] }]),
+    selectedCharacters: [actor],
+    catalog: catalog({ [actor.id]: [ultimateProfile, profile()] }),
+    staffCount: 1,
+  });
+  const ultimateCommand = result.commands.find(command => command.commandId === ultimateButton.id)!;
+  const followerCommand = result.commands.find(command => command.commandId === follower.id)!;
+  assertEqual(followerCommand.requestedFrame, 90, 'ultimate successor waits for the full natural animation');
+  assertEqual(followerCommand.actualFrame, 90, 'runtime also admits the successor only at natural end');
+  assertEqual(ultimateCommand.endFrame, 90, 'ultimate body is never tail-compressed');
+  assertEqual(ultimateCommand.completion, 'completed', 'ultimate is not marked interrupted');
+}
+
+{
   const actor = character('actor-greedy');
   const result = buildAkeRealtimeTimeline({
     timelineData: timeline([{

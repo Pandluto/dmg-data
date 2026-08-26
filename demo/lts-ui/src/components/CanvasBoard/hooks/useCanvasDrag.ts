@@ -11,6 +11,7 @@ import {
   SandboxSkill,
   ForcedWaitConfig,
   LaneWaitConfig,
+  OperatorSwitchConfig,
   SkillReleaseAnchor,
   TimelineModuleKind,
 } from '../../../types';
@@ -37,6 +38,10 @@ import type { AkeRealtimeTimeline } from '../../../integrations/ake/akeRealtimeT
 import { projectSharedTimelineFrame } from '../../../core/domain/sharedVariableRateTimeline';
 import { debounceFramesForTickRate } from '../../../core/domain/combatActionTailPlanner';
 import {
+  controlledOperatorAt,
+  isFrameInsideUltimate,
+} from '../../../core/domain/operatorControlTimeline';
+import {
   attachLegacyLanePredecessors,
   buildReleaseSnapPoints,
   getReleaseDeletionBlockers,
@@ -56,6 +61,7 @@ interface DraggingState {
   timelineModuleKind?: TimelineModuleKind;
   forcedWaitConfig?: ForcedWaitConfig;
   laneWaitConfig?: LaneWaitConfig;
+  operatorSwitchConfig?: OperatorSwitchConfig;
   dragScope: 'character' | 'global';
   lineIndex: number;
   offsetX: number;
@@ -100,6 +106,7 @@ interface UseCanvasDragProps {
     timelineModuleKind?: TimelineModuleKind;
     forcedWaitConfig?: ForcedWaitConfig;
     laneWaitConfig?: LaneWaitConfig;
+    operatorSwitchConfig?: OperatorSwitchConfig;
   }, buttonId?: string) => void;
   updateSkillButtonPosition?: (
     staffIndex: number,
@@ -170,6 +177,15 @@ function snapKindRank(kind: SkillReleaseAnchor['kind']): number {
   return 3;
 }
 
+export function hitsEligibleForReleaseSnap(
+  timeline: Pick<AkeRealtimeTimeline, 'commands' | 'hits'>,
+): AkeRealtimeTimeline['hits'] {
+  const commandTypeById = new Map(
+    timeline.commands.map(command => [command.commandId, command.commandType]),
+  );
+  return timeline.hits.filter(hit => commandTypeById.get(hit.commandId) !== 'UltimateSkill');
+}
+
 export function useCanvasDrag({
   disabled = false,
   config,
@@ -225,12 +241,13 @@ export function useCanvasDrag({
             ?? buttonById.get(action.id)?.skillType
             ?? action.id,
         })),
-        hits: akeRealtimeTimeline.hits.map(hit => ({
+        hits: hitsEligibleForReleaseSnap(akeRealtimeTimeline)
+          .map(hit => ({
           id: hit.id,
           commandId: hit.commandId,
           frame: hit.frame,
           offsetFrames: hit.offsetFrames,
-        })),
+          })),
         debounceFrames: debounceFramesForTickRate(akeRealtimeTimeline.tickRate),
         projectFrame: frame => projectSharedTimelineFrame(model, frame, 'after')
           ?? (frame >= model.endFrame ? model.width : null),
@@ -250,6 +267,25 @@ export function useCanvasDrag({
             schemaVersion: 1,
             kind: 'action-end',
             sourceButtonId: wait.id,
+            debounceFrames: 0,
+          },
+        });
+      });
+      model.operatorSwitches.forEach((operatorSwitch) => {
+        const sourceGroupIndex = sourceGroupIndexByGroupId.get(operatorSwitch.groupId) ?? 0;
+        const sourceButton = buttonById.get(operatorSwitch.id);
+        points.push({
+          id: `operator-switch-end:${operatorSwitch.id}`,
+          kind: 'action-end',
+          frame: operatorSwitch.endFrame,
+          globalX: operatorSwitch.endX,
+          groupId: operatorSwitch.groupId,
+          groupIndex: sourceGroupIndex,
+          label: `紧跟 ${sourceButton?.skillDisplayName ?? '切人'} 尾部`,
+          anchor: {
+            schemaVersion: 1,
+            kind: 'action-end',
+            sourceButtonId: operatorSwitch.id,
             debounceFrames: 0,
           },
         });
@@ -312,6 +348,28 @@ export function useCanvasDrag({
             },
           });
         });
+      skillButtons
+        .filter(button => button.timelineModuleKind === 'operator-switch')
+        .forEach((button) => {
+          const groupIndex = Math.max(0, button.staffIndex);
+          const localNodeIndex = clampGridNodeIndex(button.nodeIndex ?? 0);
+          points.push({
+            id: `operator-switch-end:${button.id}`,
+            kind: 'action-end',
+            frame: groupIndex * GRID_NODE_COUNT * 15 + localNodeIndex * 15,
+            globalX: groupIndex * GRID_TIMELINE_WIDTH
+              + (localNodeIndex + 1) * GRID_COLUMN_WIDTH,
+            groupId: `release-group:${groupIndex}`,
+            groupIndex,
+            label: `紧跟 ${button.skillDisplayName ?? '切人'} 尾部`,
+            anchor: {
+              schemaVersion: 1,
+              kind: 'action-end',
+              sourceButtonId: button.id,
+              debounceFrames: 0,
+            },
+          });
+        });
       nextGroupIndex = combatButtons.length > 0
         ? Math.max(...combatButtons.map(button => button.staffIndex)) + 1
         : 0;
@@ -357,8 +415,13 @@ export function useCanvasDrag({
         .map(action => [action.id, action.laneId] as [string, string]),
       ...(akeRealtimeTimeline?.sharedVariableRateTimeline?.laneWaits ?? [])
         .map(wait => [wait.id, wait.laneId] as [string, string]),
+      ...(akeRealtimeTimeline?.sharedVariableRateTimeline?.operatorSwitches ?? [])
+        .map(operatorSwitch => [operatorSwitch.id, operatorSwitch.laneId] as [string, string]),
       ...skillButtons
-        .filter(button => button.timelineModuleKind === 'lane-wait')
+        .filter(button => (
+          button.timelineModuleKind === 'lane-wait'
+          || button.timelineModuleKind === 'operator-switch'
+        ))
         .map(button => [button.id, button.characterId] as [string, string]),
     ]);
     const sourceGroupIndices = [...new Set(
@@ -426,12 +489,37 @@ export function useCanvasDrag({
         if (point.id.startsWith('new-group:') && point.groupIndex > 0) continue;
         if (point.kind !== 'group-start' && point.kind !== 'action-end') continue;
       }
+      if (draggingState.timelineModuleKind === 'operator-switch') {
+        if (!['group-start', 'action-end', 'damage-hit'].includes(point.kind)) continue;
+      }
+      if (draggingState.timelineModuleKind === 'dodge'
+        || draggingState.timelineModuleKind === 'perfect-dodge') {
+        if (!['group-start', 'action-end', 'damage-hit'].includes(point.kind)) continue;
+      }
+      const variableModel = akeRealtimeTimeline?.sharedVariableRateTimeline ?? null;
+      const controlRestricted = (
+        draggingState.skillType === 'A' && !draggingState.timelineModuleKind
+      )
+        || ['dodge', 'perfect-dodge', 'operator-switch']
+          .includes(draggingState.timelineModuleKind ?? '');
+      if (['dodge', 'perfect-dodge', 'operator-switch'].includes(
+        draggingState.timelineModuleKind ?? '',
+      ) && variableModel && isFrameInsideUltimate(variableModel.actions, point.frame)) {
+        continue;
+      }
+      const controlledCharacterId = controlledOperatorAt(
+        selectedCharacters[0]?.id,
+        variableModel?.operatorSwitches ?? [],
+        point.frame,
+        point.globalX,
+      );
 
       const visual = visualLocationForGlobalX(point.globalX);
       if (visual.staffIndex >= staffCount) continue;
       for (const lineIndex of allowedLineIndices) {
         const characterId = selectedCharacters[lineIndex]?.id;
         if (!characterId) continue;
+        if (controlRestricted && characterId !== controlledCharacterId) continue;
         if (point.id.startsWith('lane-wait-end:')
           && sourceButtonId
           && sourceLaneIdById.get(sourceButtonId) !== characterId) {
@@ -451,6 +539,13 @@ export function useCanvasDrag({
             && action.groupId === point.groupId
           ));
         if (sameFrameCollision) continue;
+        if (draggingState.timelineModuleKind === 'operator-switch') {
+          const sameSwitchPosition = (variableModel?.operatorSwitches ?? []).some(operatorSwitch => (
+            operatorSwitch.id !== movingButtonId
+            && operatorSwitch.startFrame === point.frame
+          ));
+          if (sameSwitchPosition) continue;
+        }
 
         const occupied = new Set(skillButtons
           .filter(button => (
@@ -526,6 +621,7 @@ export function useCanvasDrag({
         timelineModuleKind: sandboxSkill.timelineModuleKind,
         forcedWaitConfig: sandboxSkill.forcedWaitConfig,
         laneWaitConfig: sandboxSkill.laneWaitConfig,
+        operatorSwitchConfig: sandboxSkill.operatorSwitchConfig,
         dragScope: sandboxSkill.dragScope ?? 'character',
         lineIndex,
         offsetX: offset,
@@ -580,6 +676,7 @@ export function useCanvasDrag({
           timelineModuleKind: button.timelineModuleKind,
           forcedWaitConfig: button.forcedWaitConfig,
           laneWaitConfig: button.laneWaitConfig,
+          operatorSwitchConfig: button.operatorSwitchConfig,
           dragScope: button.timelineModuleKind ? 'global' : 'character',
           lineIndex: button.lineIndex,
           offsetX: config.skillButtonSize / 2,
@@ -745,6 +842,19 @@ export function useCanvasDrag({
         const characterElement = (selectedCharacters as { id: string; element?: string }[]).find(
           character => character.id === characterId,
         )?.element;
+        const operatorSwitchConfig = draggingState.timelineModuleKind === 'operator-switch'
+          ? draggingState.operatorSwitchConfig ?? (() => {
+            if (selectedCharacters.length < 2) return undefined;
+            const nextCharacter = selectedCharacters[(lineIndex + 1) % selectedCharacters.length];
+            return nextCharacter
+              ? { schemaVersion: 1 as const, targetCharacterId: nextCharacter.id }
+              : undefined;
+          })()
+          : undefined;
+        if (draggingState.timelineModuleKind === 'operator-switch' && !operatorSwitchConfig) {
+          onInteractionRejected?.('至少选择两位干员后才能切人。');
+          return;
+        }
         const newButton: SkillButton = {
           id: draggingState.id,
           characterId,
@@ -769,6 +879,7 @@ export function useCanvasDrag({
           timelineModuleKind: draggingState.timelineModuleKind,
           forcedWaitConfig: draggingState.forcedWaitConfig,
           laneWaitConfig: draggingState.laneWaitConfig,
+          operatorSwitchConfig,
         };
 
         dispatch({ type: 'ADD_SKILL_BUTTON', button: newButton });
@@ -789,6 +900,7 @@ export function useCanvasDrag({
             timelineModuleKind: draggingState.timelineModuleKind,
             forcedWaitConfig: draggingState.forcedWaitConfig,
             laneWaitConfig: draggingState.laneWaitConfig,
+            operatorSwitchConfig,
           }, draggingState.id);
         } catch (timelineError) {
           committed = false;

@@ -128,7 +128,8 @@ export function akeProfileToActionTailContract(input: {
     // A rendered A button is a composed sequence of verified attack stages.
     // Its explicit stage selection supplies the cancel boundary even though
     // the synthetic full-combo profile intentionally has no allow-next window.
-    tailCancelable: commitEvidence === 'verified'
+    tailCancelable: kind !== 'ultimate-skill'
+      && commitEvidence === 'verified'
       && (earliestKnownGate < naturalEnd || (kind === 'basic-attack' && basicStages.length > 0)),
     commitEvidence,
     ...(kind === 'basic-attack' && basicStages.length > 0 ? {
@@ -157,7 +158,15 @@ export function akeProfileToTailSuccessor(
     kind: actionKind(profile),
     priority: profile.priority,
     ...(['dodge', 'perfect-dodge'].includes(actionKind(profile)) ? {
-      forceInterruptsKinds: ['basic-attack' as const],
+      forceInterruptsKinds: [
+        'basic-attack' as const,
+        'normal-skill' as const,
+        'combo-skill' as const,
+        'dodge' as const,
+        'perfect-dodge' as const,
+        'basic-combo-reset' as const,
+        'other' as const,
+      ],
     } : {}),
   };
 }

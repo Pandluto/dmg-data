@@ -119,4 +119,26 @@ assert(validateTimelinePayload(invalidOrdinaryWait).issues.some(
   issue => issue.code === 'invalid-lane-wait-config',
 ));
 
+const operatorSwitch = validPayload();
+operatorSwitch.selectedCharacters.push('operator-2');
+operatorSwitch.skillButtonTable['button-1'].skillType = 'Dot';
+operatorSwitch.timelineData.staffLines[0].buttons[0].skillType = 'Dot';
+operatorSwitch.skillButtonTable['button-1'].timelineModuleKind = 'operator-switch';
+operatorSwitch.timelineData.staffLines[0].buttons[0].timelineModuleKind = 'operator-switch';
+operatorSwitch.skillButtonTable['button-1'].operatorSwitchConfig = {
+  schemaVersion: 1,
+  targetCharacterId: 'operator-2',
+};
+operatorSwitch.timelineData.staffLines[0].buttons[0].operatorSwitchConfig =
+  operatorSwitch.skillButtonTable['button-1'].operatorSwitchConfig;
+assert.deepEqual(validateTimelinePayload(operatorSwitch), { ok: true, issues: [] });
+
+const invalidOperatorSwitch = structuredClone(operatorSwitch);
+invalidOperatorSwitch.skillButtonTable['button-1'].operatorSwitchConfig!.targetCharacterId = 'missing';
+invalidOperatorSwitch.timelineData.staffLines[0].buttons[0].operatorSwitchConfig =
+  invalidOperatorSwitch.skillButtonTable['button-1'].operatorSwitchConfig;
+assert(validateTimelinePayload(invalidOperatorSwitch).issues.some(
+  issue => issue.code === 'invalid-operator-switch-config',
+));
+
 console.log('Timeline payload validator identity contract: PASS');

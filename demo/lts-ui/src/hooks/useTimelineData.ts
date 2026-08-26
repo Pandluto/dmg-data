@@ -8,6 +8,7 @@ import {
   BasicAttackTailBundle,
   ForcedWaitConfig,
   LaneWaitConfig,
+  OperatorSwitchConfig,
   SkillReleaseAnchor,
   SkillButtonData,
   SkillButtonSkillChangePayload,
@@ -26,6 +27,7 @@ import {
   updateBasicAttackTailBundle as updateBasicAttackTailBundleService,
   updateForcedWaitConfig as updateForcedWaitConfigService,
   updateLaneWaitConfig as updateLaneWaitConfigService,
+  updateOperatorSwitchConfig as updateOperatorSwitchConfigService,
   getStaffButtons as getStaffButtonsService,
   saveTimelineData as saveTimelineDataService,
   loadTimelineData as loadTimelineDataService,
@@ -157,6 +159,12 @@ export function useTimelineData(selectedCharacters: { name: string }[]) {
     return result.updatedButton;
   }, []);
 
+  const updateOperatorSwitchConfig = useCallback((buttonId: string, config: OperatorSwitchConfig) => {
+    const result = updateOperatorSwitchConfigService(timelineDataRef.current, buttonId, config);
+    setTimelineData(result.newTimelineData);
+    return result.updatedButton;
+  }, []);
+
   const getStaffButtons = useCallback((staffIndex: number): SkillButtonData[] => {
     return getStaffButtonsService(timelineData, staffIndex);
   }, [timelineData]);
@@ -205,6 +213,7 @@ export function useTimelineData(selectedCharacters: { name: string }[]) {
     updateBasicAttackTailBundle,
     updateForcedWaitConfig,
     updateLaneWaitConfig,
+    updateOperatorSwitchConfig,
     getStaffButtons,
     saveTimelineData,
     loadTimelineData,

@@ -6,6 +6,7 @@ import { SkillSandbox } from './SkillSandbox';
 import { BasicAttackCutDialog } from './BasicAttackCutDialog';
 import { ForcedWaitConfigDialog } from './ForcedWaitConfigDialog';
 import { LaneWaitConfigDialog } from './LaneWaitConfigDialog';
+import { OperatorSwitchDialog } from './OperatorSwitchDialog';
 import {
   WorkNodeTreePanel,
   type WorkbenchSelectedNodeContext,
@@ -24,6 +25,7 @@ import {
   BasicAttackTailBundle,
   ForcedWaitConfig,
   LaneWaitConfig,
+  OperatorSwitchConfig,
   SandboxSkill,
   SkillButton,
   SkillButtonType,
@@ -444,6 +446,7 @@ function buildVisibleTimelineMirrors(
       timelineModuleKind: button.timelineModuleKind,
       forcedWaitConfig: button.forcedWaitConfig,
       laneWaitConfig: button.laneWaitConfig,
+      operatorSwitchConfig: button.operatorSwitchConfig,
       selectedBuff,
       ...(previous ? clonePersistedSkillButtonConfig(previous) : {}),
       createdAt: previous?.createdAt ?? now,
@@ -478,6 +481,7 @@ function buildVisibleTimelineMirrors(
           timelineModuleKind: button.timelineModuleKind,
           forcedWaitConfig: button.forcedWaitConfig,
           laneWaitConfig: button.laneWaitConfig,
+          operatorSwitchConfig: button.operatorSwitchConfig,
           buffIds: [...button.selectedBuff],
         }))
         .sort((left, right) => left.nodeIndex - right.nodeIndex);
@@ -605,6 +609,7 @@ export function CanvasBoard({
   const [pendingBasicAttackCut, setPendingBasicAttackCut] = useState<PendingBasicAttackCut | null>(null);
   const [pendingForcedWaitButtonId, setPendingForcedWaitButtonId] = useState<string | null>(null);
   const [pendingLaneWaitButtonId, setPendingLaneWaitButtonId] = useState<string | null>(null);
+  const [pendingOperatorSwitchButtonId, setPendingOperatorSwitchButtonId] = useState<string | null>(null);
   const [selectedBasicAttackStageCount, setSelectedBasicAttackStageCount] = useState(0);
   const [checkoutBootstrapRevision, setCheckoutBootstrapRevision] = useState(0);
   const [checkoutRenderRevision, setCheckoutRenderRevision] = useState(0);
@@ -720,6 +725,7 @@ export function CanvasBoard({
     updateBasicAttackTailBundle,
     updateForcedWaitConfig,
     updateLaneWaitConfig,
+    updateOperatorSwitchConfig,
   } = useTimelineData(selectedCharacters);
 
   const requiredStaffCount = React.useMemo(() => {
@@ -907,6 +913,7 @@ export function CanvasBoard({
           timelineModuleKind: btn.timelineModuleKind,
           forcedWaitConfig: btn.forcedWaitConfig,
           laneWaitConfig: btn.laneWaitConfig,
+          operatorSwitchConfig: btn.operatorSwitchConfig,
           element: character?.element,
         });
       });
@@ -973,6 +980,7 @@ export function CanvasBoard({
             timelineModuleKind: button.timelineModuleKind,
             forcedWaitConfig: button.forcedWaitConfig,
             laneWaitConfig: button.laneWaitConfig,
+            operatorSwitchConfig: button.operatorSwitchConfig,
             buffIds: [...(button.selectedBuff || [])],
           }))
           .sort((left, right) => left.nodeIndex - right.nodeIndex);
@@ -1887,6 +1895,7 @@ export function CanvasBoard({
           timelineModuleKind: button.timelineModuleKind,
           forcedWaitConfig: button.forcedWaitConfig,
           laneWaitConfig: button.laneWaitConfig,
+          operatorSwitchConfig: button.operatorSwitchConfig,
           element: character?.element,
         });
       });
@@ -1920,6 +1929,7 @@ export function CanvasBoard({
         timelineModuleKind: button.timelineModuleKind,
         forcedWaitConfig: button.forcedWaitConfig,
         laneWaitConfig: button.laneWaitConfig,
+        operatorSwitchConfig: button.operatorSwitchConfig,
         element: character?.element,
       });
     });
@@ -2947,6 +2957,7 @@ export function CanvasBoard({
                   timelineModuleKind: button.timelineModuleKind,
                   forcedWaitConfig: button.forcedWaitConfig,
                   laneWaitConfig: button.laneWaitConfig,
+                  operatorSwitchConfig: button.operatorSwitchConfig,
                   buffIds: [...(button.selectedBuff ?? [])],
                 }))
                 .sort((left, right) => left.nodeIndex - right.nodeIndex);
@@ -3135,6 +3146,7 @@ export function CanvasBoard({
           timelineModuleKind: btn.timelineModuleKind,
           forcedWaitConfig: btn.forcedWaitConfig,
           laneWaitConfig: btn.laneWaitConfig,
+          operatorSwitchConfig: btn.operatorSwitchConfig,
           element: character?.element,
         });
       });
@@ -3168,6 +3180,10 @@ export function CanvasBoard({
   }, [setSessionWorkingPayload]);
 
   const handleNewTimelineButtonCommitted = useCallback((newButton: SkillButton) => {
+    if (newButton.timelineModuleKind === 'operator-switch') {
+      setPendingOperatorSwitchButtonId(newButton.id);
+      return;
+    }
     if (import.meta.env.VITE_AKE_DEMO !== '1') return;
     if (newButton.timelineModuleKind) return;
     const newNodeIndex = newButton.nodeIndex ?? -1;
@@ -3636,6 +3652,10 @@ export function CanvasBoard({
   };
 
   const handleConfigureTimelineModule = useCallback((button: SkillButton) => {
+    if (button.timelineModuleKind === 'operator-switch') {
+      setPendingOperatorSwitchButtonId(button.id);
+      return;
+    }
     if (button.timelineModuleKind === 'lane-wait') {
       setPendingLaneWaitButtonId(button.id);
       return;
@@ -3693,6 +3713,25 @@ export function CanvasBoard({
       setWorkNodeSaveNotice(`普通等待配置失败：${error instanceof Error ? error.message : String(error)}`);
     }
   }, [dispatch, pendingLaneWaitButtonId, updateLaneWaitConfig]);
+
+  const handleConfirmOperatorSwitchConfig = useCallback((config: OperatorSwitchConfig) => {
+    if (!pendingOperatorSwitchButtonId) return;
+    try {
+      updateOperatorSwitchConfig(pendingOperatorSwitchButtonId, config);
+      dispatch({
+        type: 'SET_OPERATOR_SWITCH_CONFIG',
+        buttonId: pendingOperatorSwitchButtonId,
+        config,
+      });
+      setPendingOperatorSwitchButtonId(null);
+      const targetName = selectedCharacters.find(character => character.id === config.targetCharacterId)?.name
+        ?? config.targetCharacterId;
+      setWorkNodeSaveNotice(`切人目标已设为 ${targetName}。`);
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2200);
+    } catch (error) {
+      setWorkNodeSaveNotice(`切人配置失败：${error instanceof Error ? error.message : String(error)}`);
+    }
+  }, [dispatch, pendingOperatorSwitchButtonId, selectedCharacters, updateOperatorSwitchConfig]);
 
   const handleCopySkillButton = () => {
     if (!contextMenuState) return;
@@ -3884,6 +3923,7 @@ export function CanvasBoard({
       timelineModuleKind: sourceButtonRuntime.timelineModuleKind,
       forcedWaitConfig: sourceButtonRuntime.forcedWaitConfig,
       laneWaitConfig: sourceButtonRuntime.laneWaitConfig,
+      operatorSwitchConfig: sourceButtonRuntime.operatorSwitchConfig,
     }, newButtonId);
 
     if (sourceButtonConfig.selectedBuff.length > 0) {
@@ -4644,6 +4684,9 @@ export function CanvasBoard({
   const pendingLaneWaitButton = pendingLaneWaitButtonId
     ? skillButtons.find(button => button.id === pendingLaneWaitButtonId) ?? null
     : null;
+  const pendingOperatorSwitchButton = pendingOperatorSwitchButtonId
+    ? skillButtons.find(button => button.id === pendingOperatorSwitchButtonId) ?? null
+    : null;
 
   const rightWorkbenchContent = (
     <SkillSandbox
@@ -5267,6 +5310,15 @@ export function CanvasBoard({
           tickRate={akeRealtimeTimeline?.tickRate ?? 30}
           onCancel={() => setPendingLaneWaitButtonId(null)}
           onConfirm={handleConfirmLaneWaitConfig}
+        />
+      )}
+      {pendingOperatorSwitchButton && (
+        <OperatorSwitchDialog
+          sourceCharacterId={pendingOperatorSwitchButton.characterId}
+          characters={selectedCharacters}
+          initialConfig={pendingOperatorSwitchButton.operatorSwitchConfig}
+          onCancel={() => setPendingOperatorSwitchButtonId(null)}
+          onConfirm={handleConfirmOperatorSwitchConfig}
         />
       )}
       {pendingBasicAttackCut && !basicAttackCutDraft && (

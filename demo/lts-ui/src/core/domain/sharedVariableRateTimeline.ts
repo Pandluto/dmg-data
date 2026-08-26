@@ -38,6 +38,15 @@ export type TimelineLaneWaitSpec = {
   durationFrames: number;
 };
 
+/** A zero-time control handoff rendered inside one release group. */
+export type TimelineOperatorSwitchSpec = {
+  id: string;
+  /** The operator who must be controlled immediately before the handoff. */
+  laneId: string;
+  targetLaneId: string;
+  startOffsetFrames: number;
+};
+
 export type SealOnlyWaitColumnSpec = {
   id: string;
   mode: 'seal-only';
@@ -74,6 +83,7 @@ export type TimelineReleaseGroupSpec = {
   id: string;
   lanes: TimelineLaneSpec[];
   laneWaits?: TimelineLaneWaitSpec[];
+  operatorSwitches?: TimelineOperatorSwitchSpec[];
   /** Required for every group after the first. It is the explicit group seal. */
   separatorBefore?: WaitColumnSpec;
 };
@@ -118,6 +128,19 @@ export type ScheduledTimelineLaneWait = {
   startFrame: number;
   endFrame: number;
   durationFrames: number;
+  startX: number;
+  endX: number;
+  coveredColumnIds: string[];
+};
+
+export type ScheduledTimelineOperatorSwitch = {
+  id: string;
+  groupId: string;
+  laneId: string;
+  targetLaneId: string;
+  startFrame: number;
+  endFrame: number;
+  durationFrames: 0;
   startX: number;
   endX: number;
   coveredColumnIds: string[];
@@ -246,6 +269,8 @@ export type SharedVariableRateTimelineModel = {
   waits: WaitTimelineColumn[];
   /** Ordinary waits stay inside a group and affect one lane successor only. */
   laneWaits: ScheduledTimelineLaneWait[];
+  /** Operator switches occupy a visible group-local cell but advance zero frames. */
+  operatorSwitches: ScheduledTimelineOperatorSwitch[];
   columns: SharedTimelineColumn[];
   actions: ScheduledTimelineAction[];
   cohorts: ScheduledReleaseCohort[];
@@ -277,6 +302,7 @@ type PreliminaryGroup = Omit<
 > & {
   actions: PreliminaryAction[];
   laneWaits: Array<Omit<ScheduledTimelineLaneWait, 'startX' | 'endX' | 'coveredColumnIds'>>;
+  operatorSwitches: Array<Omit<ScheduledTimelineOperatorSwitch, 'startX' | 'endX' | 'coveredColumnIds'>>;
   boundaries: number[];
 };
 
@@ -333,6 +359,7 @@ function validateSpec(spec: SharedVariableRateTimelineSpec): void {
   const groupIds = new Set<string>();
   const waitIds = new Set<string>();
   const actionIds = new Set<string>();
+  const switchIds = new Set<string>();
 
   if (spec.initialWait) {
     requireId(spec.initialWait.id, 'initialWait.id');
@@ -368,7 +395,7 @@ function validateSpec(spec: SharedVariableRateTimelineSpec): void {
     if (group.separatorBefore) {
       const wait = group.separatorBefore;
       requireId(wait.id, `groups[${groupIndex}].separatorBefore.id`);
-      if (waitIds.has(wait.id)) {
+      if (waitIds.has(wait.id) || switchIds.has(wait.id)) {
         throw new SharedVariableRateTimelineError('DUPLICATE_WAIT_ID', `Duplicate wait id: ${wait.id}.`);
       }
       waitIds.add(wait.id);
@@ -406,7 +433,7 @@ function validateSpec(spec: SharedVariableRateTimelineSpec): void {
       lane.actions.forEach((action, actionIndex) => {
         actionCount += 1;
         requireId(action.id, `group ${group.id} lane ${lane.laneId} actions[${actionIndex}].id`);
-        if (actionIds.has(action.id)) {
+        if (actionIds.has(action.id) || switchIds.has(action.id)) {
           throw new SharedVariableRateTimelineError(
             'DUPLICATE_ACTION_ID',
             `Duplicate action id: ${action.id}.`,
@@ -436,13 +463,40 @@ function validateSpec(spec: SharedVariableRateTimelineSpec): void {
     }
     (group.laneWaits ?? []).forEach((wait, waitIndex) => {
       requireId(wait.id, `group ${group.id} laneWaits[${waitIndex}].id`);
-      if (actionIds.has(wait.id) || waitIds.has(wait.id)) {
+      if (actionIds.has(wait.id) || waitIds.has(wait.id) || switchIds.has(wait.id)) {
         throw new SharedVariableRateTimelineError('DUPLICATE_WAIT_ID', `Duplicate lane wait id: ${wait.id}.`);
       }
       waitIds.add(wait.id);
       requireId(wait.laneId, `lane wait ${wait.id} laneId`);
       requireIntegerFrame(wait.startOffsetFrames, `lane wait ${wait.id} startOffsetFrames`, { allowZero: true });
       requireIntegerFrame(wait.durationFrames, `lane wait ${wait.id} durationFrames`, { allowZero: true });
+    });
+    (group.operatorSwitches ?? []).forEach((operatorSwitch, switchIndex) => {
+      requireId(operatorSwitch.id, `group ${group.id} operatorSwitches[${switchIndex}].id`);
+      if (
+        actionIds.has(operatorSwitch.id)
+        || waitIds.has(operatorSwitch.id)
+        || switchIds.has(operatorSwitch.id)
+      ) {
+        throw new SharedVariableRateTimelineError(
+          'DUPLICATE_OPERATOR_SWITCH_ID',
+          `Duplicate operator switch id: ${operatorSwitch.id}.`,
+        );
+      }
+      switchIds.add(operatorSwitch.id);
+      requireId(operatorSwitch.laneId, `operator switch ${operatorSwitch.id} laneId`);
+      requireId(operatorSwitch.targetLaneId, `operator switch ${operatorSwitch.id} targetLaneId`);
+      if (operatorSwitch.laneId === operatorSwitch.targetLaneId) {
+        throw new SharedVariableRateTimelineError(
+          'OPERATOR_SWITCH_TO_SELF',
+          `Operator switch ${operatorSwitch.id} must target another lane.`,
+        );
+      }
+      requireIntegerFrame(
+        operatorSwitch.startOffsetFrames,
+        `operator switch ${operatorSwitch.id} startOffsetFrames`,
+        { allowZero: true },
+      );
     });
   });
 }
@@ -463,11 +517,23 @@ function scheduleGroup(
     endFrame: startFrame + wait.startOffsetFrames + wait.durationFrames,
     durationFrames: wait.durationFrames,
   }));
+  const operatorSwitches = (group.operatorSwitches ?? []).map(operatorSwitch => ({
+    id: operatorSwitch.id,
+    groupId: group.id,
+    laneId: operatorSwitch.laneId,
+    targetLaneId: operatorSwitch.targetLaneId,
+    startFrame: startFrame + operatorSwitch.startOffsetFrames,
+    endFrame: startFrame + operatorSwitch.startOffsetFrames,
+    durationFrames: 0 as const,
+  }));
   const lanes: ScheduledTimelineLane[] = [];
   const boundaries = new Set<number>([startFrame]);
   laneWaits.forEach((wait) => {
     boundaries.add(wait.startFrame);
     boundaries.add(wait.endFrame);
+  });
+  operatorSwitches.forEach((operatorSwitch) => {
+    boundaries.add(operatorSwitch.startFrame);
   });
 
   for (const lane of group.lanes) {
@@ -512,6 +578,7 @@ function scheduleGroup(
     startFrame,
     ...lanes.map((lane) => lane.endFrame),
     ...laneWaits.map(wait => wait.endFrame),
+    ...operatorSwitches.map(operatorSwitch => operatorSwitch.startFrame),
   );
   boundaries.add(endFrame);
   return {
@@ -525,6 +592,7 @@ function scheduleGroup(
     lanes,
     actions,
     laneWaits,
+    operatorSwitches,
     boundaries: [...boundaries].sort((left, right) => left - right),
   };
 }
@@ -588,19 +656,20 @@ function makeActivityColumns(
   columnWidth: number,
 ): ActivityTimelineColumn[] {
   const columns: ActivityTimelineColumn[] = [];
-  const zeroWaitFrames = new Set(
-    preliminary.laneWaits
+  const zeroControlFrames = new Set([
+    ...preliminary.laneWaits
       .filter(wait => wait.durationFrames === 0)
       .map(wait => wait.startFrame),
-  );
-  const pushZeroWaitColumn = (frame: number) => {
-    if (!zeroWaitFrames.delete(frame)) return;
+    ...preliminary.operatorSwitches.map(operatorSwitch => operatorSwitch.startFrame),
+  ]);
+  const pushZeroControlColumn = (frame: number) => {
+    if (!zeroControlFrames.delete(frame)) return;
     const columnXStart = xStart + columns.length * columnWidth;
     const active = preliminary.actions.filter(action => (
       action.startFrame <= frame && action.endFrame >= frame
     ));
     columns.push({
-      id: `group:${preliminary.id}:lane-wait-zero:${frame}`,
+      id: `group:${preliminary.id}:control-zero:${frame}`,
       kind: 'activity',
       groupId: preliminary.id,
       startFrame: frame,
@@ -618,7 +687,7 @@ function makeActivityColumns(
   for (let index = 0; index < preliminary.boundaries.length - 1; index += 1) {
     const startFrame = preliminary.boundaries[index];
     const endFrame = preliminary.boundaries[index + 1];
-    pushZeroWaitColumn(startFrame);
+    pushZeroControlColumn(startFrame);
     if (endFrame <= startFrame) continue;
     const columnXStart = xStart + columns.length * columnWidth;
     const active = preliminary.actions.filter((action) => (
@@ -646,7 +715,7 @@ function makeActivityColumns(
         .map((action) => action.id),
     });
   }
-  preliminary.boundaries.forEach(pushZeroWaitColumn);
+  preliminary.boundaries.forEach(pushZeroControlColumn);
   return columns;
 }
 
@@ -657,16 +726,18 @@ function materializeActions(
   return preliminary.actions.map((action) => {
     const releaseAnchor = (action.payload as { releaseAnchor?: { sourceButtonId?: string } } | undefined)
       ?.releaseAnchor;
-    const startsAfterZeroWait = preliminary.laneWaits.some(wait => (
-      wait.durationFrames === 0
-      && wait.endFrame === action.startFrame
-      && wait.id === releaseAnchor?.sourceButtonId
+    const startsAfterZeroControl = [
+      ...preliminary.laneWaits.filter(wait => wait.durationFrames === 0),
+      ...preliminary.operatorSwitches,
+    ].some(control => (
+      control.endFrame === action.startFrame
+      && control.id === releaseAnchor?.sourceButtonId
     ));
     const covered = columns.filter((column) => (
       column.durationFrames > 0
         ? column.startFrame < action.endFrame && column.endFrame > action.startFrame
         : (column.startFrame > action.startFrame && column.startFrame < action.endFrame)
-          || (column.startFrame === action.startFrame && !startsAfterZeroWait)
+          || (column.startFrame === action.startFrame && !startsAfterZeroControl)
     ));
     const primary = covered[0];
     const ending = covered[covered.length - 1];
@@ -713,6 +784,30 @@ function materializeLaneWaits(
       startX: first.xStart,
       endX: last.xEnd,
       coveredColumnIds: covered.map(column => column.id),
+    };
+  });
+}
+
+function materializeOperatorSwitches(
+  preliminary: PreliminaryGroup,
+  columns: ActivityTimelineColumn[],
+): ScheduledTimelineOperatorSwitch[] {
+  return preliminary.operatorSwitches.map((operatorSwitch) => {
+    const column = columns.find(candidate => (
+      candidate.durationFrames === 0
+      && candidate.startFrame === operatorSwitch.startFrame
+    ));
+    if (!column) {
+      throw new SharedVariableRateTimelineError(
+        'OPERATOR_SWITCH_PROJECTION_FAILED',
+        `Could not project operator switch ${operatorSwitch.id} into group ${preliminary.id}.`,
+      );
+    }
+    return {
+      ...operatorSwitch,
+      startX: column.xStart,
+      endX: column.xEnd,
+      coveredColumnIds: [column.id],
     };
   });
 }
@@ -788,6 +883,7 @@ export function buildSharedVariableRateTimeline(
   const groups: ScheduledReleaseGroup[] = [];
   const waits: WaitTimelineColumn[] = [];
   const laneWaits: ScheduledTimelineLaneWait[] = [];
+  const operatorSwitches: ScheduledTimelineOperatorSwitch[] = [];
   const columns: SharedTimelineColumn[] = [];
   const actions: ScheduledTimelineAction[] = [];
   let currentFrame = startFrame;
@@ -866,6 +962,7 @@ export function buildSharedVariableRateTimeline(
     const activityColumns = makeActivityColumns(preliminary, currentX, columnWidth);
     const materializedActions = materializeActions(preliminary, activityColumns);
     const materializedLaneWaits = materializeLaneWaits(preliminary, activityColumns);
+    const materializedOperatorSwitches = materializeOperatorSwitches(preliminary, activityColumns);
     const scheduledGroup: ScheduledReleaseGroup = {
       id: preliminary.id,
       groupIndex: preliminary.groupIndex,
@@ -883,6 +980,7 @@ export function buildSharedVariableRateTimeline(
     columns.push(...activityColumns);
     actions.push(...materializedActions);
     laneWaits.push(...materializedLaneWaits);
+    operatorSwitches.push(...materializedOperatorSwitches);
     currentFrame = scheduledGroup.endFrame;
     currentX = scheduledGroup.xEnd;
   });
@@ -901,6 +999,7 @@ export function buildSharedVariableRateTimeline(
     groups,
     waits,
     laneWaits,
+    operatorSwitches,
     columns,
     actions,
     cohorts,

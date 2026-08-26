@@ -8,6 +8,7 @@ import {
   BasicAttackTailBundle,
   ForcedWaitConfig,
   LaneWaitConfig,
+  OperatorSwitchConfig,
   SkillButtonData,
   SkillButtonSkillChangePayload,
   TimelineData,
@@ -168,6 +169,7 @@ export function buildTimelineButtonsFromSkillButtonTable(
         timelineModuleKind: button.timelineModuleKind,
         forcedWaitConfig: button.forcedWaitConfig,
         laneWaitConfig: button.laneWaitConfig,
+        operatorSwitchConfig: button.operatorSwitchConfig,
         buffIds: [...(button.selectedBuff ?? [])],
       }))
       .sort((left, right) => left.nodeIndex - right.nodeIndex);
@@ -230,7 +232,9 @@ function hasTimelineTableMismatch(
       || JSON.stringify(timelineButton.forcedWaitConfig ?? null)
         !== JSON.stringify(tableButton.forcedWaitConfig ?? null)
       || JSON.stringify(timelineButton.laneWaitConfig ?? null)
-        !== JSON.stringify(tableButton.laneWaitConfig ?? null);
+        !== JSON.stringify(tableButton.laneWaitConfig ?? null)
+      || JSON.stringify(timelineButton.operatorSwitchConfig ?? null)
+        !== JSON.stringify(tableButton.operatorSwitchConfig ?? null);
   })) {
     return true;
   }
@@ -374,6 +378,7 @@ export function addSkillButton(
     timelineModuleKind: buttonData.timelineModuleKind,
     forcedWaitConfig: buttonData.forcedWaitConfig,
     laneWaitConfig: buttonData.laneWaitConfig,
+    operatorSwitchConfig: buttonData.operatorSwitchConfig,
     selectedBuff: [],
     panelConfig: {
       selectedBuff: [],
@@ -572,6 +577,41 @@ export function updateLaneWaitConfig(
   upsertSkillButton({
     ...persistedButton,
     laneWaitConfig: config,
+    updatedAt,
+  });
+  saveTimelineRepo(newTimelineData);
+  return { updatedButton, newTimelineData };
+}
+
+/** Persist the target of a zero-time controlled-operator handoff. */
+export function updateOperatorSwitchConfig(
+  timelineData: TimelineData,
+  buttonId: string,
+  config: OperatorSwitchConfig,
+): { updatedButton: SkillButtonData; newTimelineData: TimelineData } {
+  const persistedButton = getSkillButtonById(buttonId);
+  if (!persistedButton || persistedButton.timelineModuleKind !== 'operator-switch') {
+    throw new Error(`OPERATOR_SWITCH_BUTTON_NOT_FOUND: ${buttonId}`);
+  }
+  const currentButton = timelineData.staffLines
+    .flatMap(line => line.buttons)
+    .find(button => button.id === buttonId);
+  if (!currentButton || currentButton.timelineModuleKind !== 'operator-switch') {
+    throw new Error(`OPERATOR_SWITCH_TIMELINE_MIRROR_NOT_FOUND: ${buttonId}`);
+  }
+  const updatedAt = Date.now();
+  const updatedButton = { ...currentButton, operatorSwitchConfig: config };
+  const newTimelineData: TimelineData = {
+    ...timelineData,
+    updatedAt,
+    staffLines: timelineData.staffLines.map(line => ({
+      ...line,
+      buttons: line.buttons.map(button => button.id === buttonId ? updatedButton : button),
+    })),
+  };
+  upsertSkillButton({
+    ...persistedButton,
+    operatorSwitchConfig: config,
     updatedAt,
   });
   saveTimelineRepo(newTimelineData);

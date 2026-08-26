@@ -100,6 +100,15 @@ const TIMELINE_MODULES: SandboxSkill[] = [
     timelineModuleKind: 'perfect-dodge',
     dragScope: 'global',
   },
+  {
+    id: 'timeline-module:operator-switch',
+    displayName: '切人',
+    buttonType: 'Dot',
+    hitCount: 0,
+    source: 'local',
+    timelineModuleKind: 'operator-switch',
+    dragScope: 'global',
+  },
 ];
 
 const TIMELINE_MODULE_GLYPHS = {
@@ -107,6 +116,7 @@ const TIMELINE_MODULE_GLYPHS = {
   'forced-wait': '封',
   dodge: '闪',
   'perfect-dodge': '极',
+  'operator-switch': '切',
 } as const;
 
 function getCharacterSandboxSkills(character: Character): SandboxSkill[] {
@@ -336,7 +346,7 @@ export function SkillSandbox({
               </button>
             ))}
           </div>
-          <small>普通等待接入单条尾链；强制等待只吸附完整组边界。</small>
+          <small>切人、闪避强制打断非终结技；普通等待接尾链，强制等待只吸附组边界。</small>
         </section>
         {selectedCharacters.map((character, index) => {
           const sandboxSkills = getCharacterSandboxSkills(character);

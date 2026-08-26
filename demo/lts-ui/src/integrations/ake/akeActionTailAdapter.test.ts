@@ -129,4 +129,33 @@ function baseProfile(overrides: Partial<AkeTimingSkillProfile>): AkeTimingSkillP
   assert.equal(contract.tailCancelable, false);
 }
 
+{
+  const ultimate = baseProfile({
+    commandType: 'UltimateSkill',
+    skillId: 'ultimate-with-early-hit',
+    bodyEndOffset: 120,
+    exclusiveFrames: 15,
+    interruptibleAt: [20],
+    hits: [{
+      offsetFrames: 12,
+      launchOffsetFrames: null,
+      sourceSkillId: 'ultimate-with-early-hit',
+      rootSkillId: 'ultimate-with-early-hit',
+      kind: 'direct',
+      hitCount: 1,
+      damageTypes: ['Pulse'],
+    }],
+  });
+  assert.equal(
+    akeProfileToActionTailContract({ actionId: 'ultimate', profile: ultimate }).tailCancelable,
+    false,
+    'an ultimate always keeps its complete natural animation body',
+  );
+  const forcedKinds = akeProfileToTailSuccessor('dodge', baseProfile({ commandType: 'Dodge' }))
+    .forceInterruptsKinds ?? [];
+  assert(forcedKinds.includes('basic-attack'));
+  assert(forcedKinds.includes('normal-skill'));
+  assert.equal(forcedKinds.includes('ultimate-skill'), false);
+}
+
 console.log('AKE action-tail adapter: PASS');

@@ -347,6 +347,8 @@ export function SkillButtonComponent({
       ? button.laneWaitConfig?.mode === 'fixed-duration'
         ? `普通等待 ${button.laneWaitConfig.durationSeconds.toFixed(2)}秒`
         : '普通等待 0秒'
+      : timelineModuleKind === 'operator-switch'
+        ? '切人 0秒'
       : displayName;
   const browseModeDisplayName = timelineModuleKind
     ? timelineModuleDisplayName
@@ -2026,6 +2028,8 @@ export function SkillButtonComponent({
                   ? '闪'
                   : timelineModuleKind === 'perfect-dodge'
                     ? '极'
+                    : timelineModuleKind === 'operator-switch'
+                      ? '切'
                     : isBrowseMode && isDotButton ? '~' : skillType}
             </span>
           </div>

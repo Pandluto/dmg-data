@@ -13,6 +13,7 @@ import {
 } from '../../core/calculators/gridSnapLayout';
 import {
   buildSharedVariableRateTimeline,
+  projectSharedTimelineFrame,
   type ReleaseCohortDraft,
   type SharedVariableRateTimelineModel,
   type SharedVariableRateTimelineSpec,
@@ -22,6 +23,11 @@ import {
   resolveActionTailTransition,
 } from '../../core/domain/combatActionTailPlanner';
 import { solveReleaseStartOffsets } from '../../core/domain/releaseAnchorGraph';
+import {
+  controlledOperatorAt,
+  isFrameInsideUltimate,
+  validateOperatorControlTimeline,
+} from '../../core/domain/operatorControlTimeline';
 import {
   akeProfileToActionTailContract,
   akeProfileToTailSuccessor,
@@ -477,6 +483,13 @@ function nextAdmission(
   if (!active || active.actualFrame === null || active.naturalEndFrame === null
     || requestedFrame >= active.naturalEndFrame) {
     return { frame: requestedFrame, reason: 'NO_ACTIVE_SKILL', queued: false };
+  }
+  if (active.commandType === 'UltimateSkill') {
+    return {
+      frame: active.naturalEndFrame,
+      reason: 'ULTIMATE_NATURAL_END',
+      queued: true,
+    };
   }
   const currentPriority = active.profile.priority;
   if (profile.priority !== null && currentPriority !== null && profile.priority > currentPriority) {
@@ -1204,7 +1217,8 @@ function simulateAkeRealtimeTimeline(
     command.completion = 'completed';
     command.hits = profile.hits.map((hit, index) => hitFromProfile(command, hit, index));
 
-    if (actor.active && actor.active.actualFrame !== null
+    if (actor.active && actor.active.commandType !== 'UltimateSkill'
+      && actor.active.actualFrame !== null
       && actor.active.naturalEndFrame !== null
       && frame < actor.active.naturalEndFrame) {
       updateBasicComboCursorAfterInterruption(
@@ -1435,6 +1449,7 @@ function simulateAkeRealtimeTimeline(
     for (const actor of actors.values()) {
       const active = actor.active;
       if (!active || active.actualFrame === null || active.naturalEndFrame === null) continue;
+      if (active.commandType === 'UltimateSkill') continue;
       const plannedEnd = plannedBlockingEndFrames?.get(active.commandId);
       if (plannedEnd === undefined
         || frame < plannedEnd
@@ -1563,6 +1578,7 @@ function timelineActionFacts(
   inputs: readonly TimelineInput[],
   profiles: ReadonlyMap<string, AkeTimingSkillProfile>,
   tickRate: number,
+  timelineModules: readonly SkillButtonData[] = [],
 ): Map<string, TimelineActionFacts> {
   const facts = new Map<string, TimelineActionFacts>();
   const lanes = new Map<string, TimelineInput[]>();
@@ -1573,6 +1589,24 @@ function timelineActionFacts(
     lanes.set(laneKey, entries);
   }
   const debounceFrames = debounceFramesForTickRate(tickRate);
+  const forcedCutByActionId = new Map<string, number>();
+  timelineModules
+    .filter(module => (
+      ['operator-switch', 'dodge', 'perfect-dodge'].includes(module.timelineModuleKind ?? '')
+      && module.releaseAnchor?.kind === 'damage-hit'
+      && module.releaseAnchor.sourceButtonId
+    ))
+    .forEach((module) => {
+      const sourceButtonId = module.releaseAnchor?.sourceButtonId;
+      if (!sourceButtonId) return;
+      const offset = Math.max(
+        1,
+        Math.round(module.releaseAnchor?.sourceHitOffsetFrames ?? 0)
+          + Math.max(0, Math.round(module.releaseAnchor?.debounceFrames ?? 0)),
+      );
+      const previous = forcedCutByActionId.get(sourceButtonId);
+      forcedCutByActionId.set(sourceButtonId, previous === undefined ? offset : Math.min(previous, offset));
+    });
   for (const entries of lanes.values()) {
     const ordered = [...entries].sort((left, right) => (
       left.sourceNodeIndex - right.sourceNodeIndex
@@ -1602,9 +1636,14 @@ function timelineActionFacts(
           ? timelineInput.basicAttackStageCount
           : undefined,
       });
+      const forcedCut = forcedCutByActionId.get(timelineInput.commandId);
+      const blockingEndOffsetFrames = profile.commandType !== 'UltimateSkill'
+        && forcedCut !== undefined
+        ? Math.min(transition.blockingEndOffsetFrames, forcedCut)
+        : transition.blockingEndOffsetFrames;
       facts.set(
         timelineInput.commandId,
-        factsFromProfile(profile, transition.blockingEndOffsetFrames),
+        factsFromProfile(profile, blockingEndOffsetFrames),
       );
     });
   }
@@ -1629,7 +1668,10 @@ function timelineReleaseAnchorIssues(
     entries.push(timelineInput);
     grouped.set(timelineInput.sourceGroupIndex, entries);
   });
-  const laneWaits = timelineModules.filter(module => module.timelineModuleKind === 'lane-wait');
+  const laneControls = timelineModules.filter(module => (
+    module.timelineModuleKind === 'lane-wait'
+    || module.timelineModuleKind === 'operator-switch'
+  ));
   return [...grouped.entries()].flatMap(([sourceGroupIndex, groupInputs]) => {
     const lanes = new Map<string, Array<{
       id: string;
@@ -1649,7 +1691,7 @@ function timelineReleaseAnchorIssues(
       });
       lanes.set(timelineInput.characterId, entries);
     });
-    laneWaits
+    laneControls
       .filter(module => Math.floor(module.nodeIndex / GRID_NODE_COUNT) === sourceGroupIndex)
       .forEach((module, index) => {
         const laneId = module.characterId ?? `line:${module.staffIndex}`;
@@ -1658,7 +1700,9 @@ function timelineReleaseAnchorIssues(
           id: module.id,
           sourceNodeIndex: module.nodeIndex,
           sequence: groupInputs.length + index,
-          durationFrames: laneWaitDurationFrames(module, tickRate),
+          durationFrames: module.timelineModuleKind === 'lane-wait'
+            ? laneWaitDurationFrames(module, tickRate)
+            : 0,
           releaseAnchor: module.releaseAnchor,
         });
         lanes.set(laneId, entries);
@@ -1780,6 +1824,10 @@ function makeSharedVariableRateTimelineSpec(input: {
         module.timelineModuleKind === 'lane-wait'
         && Math.floor(module.nodeIndex / GRID_NODE_COUNT) === sourceGroupIndex
       ));
+      const groupOperatorSwitches = input.timelineModules.filter(module => (
+        module.timelineModuleKind === 'operator-switch'
+        && Math.floor(module.nodeIndex / GRID_NODE_COUNT) === sourceGroupIndex
+      ));
       const releaseEntriesByLane = new Map<string, Array<{
         id: string;
         sourceNodeIndex: number;
@@ -1807,6 +1855,18 @@ function makeSharedVariableRateTimelineSpec(input: {
           sourceNodeIndex: module.nodeIndex,
           sequence: groupInputs.length + index,
           durationFrames: laneWaitDurationFrames(module, input.tickRate),
+          releaseAnchor: module.releaseAnchor,
+        });
+        releaseEntriesByLane.set(laneId, entries);
+      });
+      groupOperatorSwitches.forEach((module, index) => {
+        const laneId = module.characterId ?? `line:${module.staffIndex}`;
+        const entries = releaseEntriesByLane.get(laneId) ?? [];
+        entries.push({
+          id: module.id,
+          sourceNodeIndex: module.nodeIndex,
+          sequence: groupInputs.length + groupLaneWaits.length + index,
+          durationFrames: 0,
           releaseAnchor: module.releaseAnchor,
         });
         releaseEntriesByLane.set(laneId, entries);
@@ -1845,6 +1905,9 @@ function makeSharedVariableRateTimelineSpec(input: {
                 sharedAtbCost: facts.sharedAtbCost,
                 payload: {
                   characterId: timelineInput.characterId,
+                  commandType: timelineInput.commandType,
+                  skillType: Object.entries(COMMAND_TYPE_BY_BUTTON)
+                    .find(([, commandType]) => commandType === timelineInput.commandType)?.[0],
                   sourceGroupIndex,
                   sourceNodeIndex: timelineInput.sourceNodeIndex,
                   releaseAnchor: timelineInput.releaseAnchor,
@@ -1864,6 +1927,13 @@ function makeSharedVariableRateTimelineSpec(input: {
           laneId: module.characterId ?? `line:${module.staffIndex}`,
           startOffsetFrames: releaseOffsets.get(module.id) ?? 0,
           durationFrames: laneWaitDurationFrames(module, input.tickRate),
+        })),
+        operatorSwitches: groupOperatorSwitches.map(module => ({
+          id: module.id,
+          laneId: module.characterId ?? `line:${module.staffIndex}`,
+          targetLaneId: module.operatorSwitchConfig?.targetCharacterId
+            ?? `missing-switch-target:${module.id}`,
+          startOffsetFrames: releaseOffsets.get(module.id) ?? 0,
         })),
         lanes,
       };
@@ -1939,6 +2009,79 @@ function validateRuntimeCohort(
   };
 }
 
+function validateDodgeControlModules(
+  modules: readonly SkillButtonData[],
+  model: SharedVariableRateTimelineModel,
+  initialControllerLaneId: string | undefined,
+): Array<{ code: string; message: string }> {
+  const actionsById = new Map(model.actions.map(action => [action.id, action]));
+  const switchesById = new Map(model.operatorSwitches.map(operatorSwitch => [operatorSwitch.id, operatorSwitch]));
+  return modules
+    .filter(module => (
+      module.timelineModuleKind === 'dodge'
+      || module.timelineModuleKind === 'perfect-dodge'
+    ))
+    .flatMap((module) => {
+      const anchor = module.releaseAnchor;
+      if (!anchor) {
+        return [{ code: 'DODGE_ANCHOR_MISSING', message: `${module.id}: 闪避缺少释放锚点。` }];
+      }
+      const sourceAction = anchor.sourceButtonId ? actionsById.get(anchor.sourceButtonId) : undefined;
+      const sourceSwitch = anchor.sourceButtonId ? switchesById.get(anchor.sourceButtonId) : undefined;
+      let frame: number | null = null;
+      let x: number | null = null;
+      if (anchor.kind === 'group-start') {
+        const group = model.groups.find(candidate => model.actions.some(action => {
+          const payload = action.payload as { sourceGroupIndex?: number } | undefined;
+          return action.groupId === candidate.id
+            && payload?.sourceGroupIndex === Math.floor(module.nodeIndex / GRID_NODE_COUNT);
+        }));
+        frame = group?.startFrame ?? null;
+        x = group?.xStart ?? null;
+      } else if (sourceAction) {
+        if (anchor.kind === 'action-start') {
+          frame = sourceAction.startFrame + anchor.debounceFrames;
+          x = sourceAction.startX;
+        } else if (anchor.kind === 'action-end') {
+          frame = sourceAction.endFrame + anchor.debounceFrames;
+          x = sourceAction.endX;
+        } else if (Number.isFinite(anchor.sourceHitOffsetFrames)) {
+          frame = sourceAction.startFrame
+            + Number(anchor.sourceHitOffsetFrames)
+            + anchor.debounceFrames;
+          x = projectSharedTimelineFrame(model, frame, 'after');
+        }
+      } else if (sourceSwitch && anchor.kind === 'action-end') {
+        frame = sourceSwitch.endFrame + anchor.debounceFrames;
+        x = sourceSwitch.endX;
+      }
+      if (frame === null || x === null) {
+        return [{ code: 'DODGE_ANCHOR_UNRESOLVED', message: `${module.id}: 无法解析闪避释放位置。` }];
+      }
+      const issues: Array<{ code: string; message: string }> = [];
+      const controlled = controlledOperatorAt(
+        initialControllerLaneId,
+        model.operatorSwitches,
+        frame,
+        x,
+      );
+      const sourceLaneId = module.characterId ?? `line:${module.staffIndex}`;
+      if (controlled !== sourceLaneId) {
+        issues.push({
+          code: 'DODGE_SOURCE_NOT_CONTROLLED',
+          message: `${module.id}: 只有当前主控干员 ${controlled ?? '未知'} 可以闪避。`,
+        });
+      }
+      if (isFrameInsideUltimate(model.actions, frame)) {
+        issues.push({
+          code: 'DODGE_DURING_ULTIMATE',
+          message: `${module.id}: 终结技完整动画期间不能用闪避打断。`,
+        });
+      }
+      return issues;
+    });
+}
+
 /**
  * Resolves relationship time before asking the local AKE state machine to run.
  * Stateful skill forms can change blocking duration, so the planner and the
@@ -1959,6 +2102,7 @@ export function buildAkeRealtimeTimeline(
   const unresolvedTimelineModules = timelineModules.filter(module => (
     module.timelineModuleKind !== 'forced-wait'
     && module.timelineModuleKind !== 'lane-wait'
+    && module.timelineModuleKind !== 'operator-switch'
   ));
   if (timelineInputs.length === 0) {
     const emptySimulation = simulateAkeRealtimeTimeline(input);
@@ -1976,7 +2120,7 @@ export function buildAkeRealtimeTimeline(
 
   let profiles = initialTimelineActionProfiles(timing, timelineInputs);
   const releaseAnchorIssues = timelineReleaseAnchorIssues(timelineInputs, timelineModules, tickRate);
-  let facts = timelineActionFacts(timelineInputs, profiles, tickRate);
+  let facts = timelineActionFacts(timelineInputs, profiles, tickRate, timelineModules);
   let spec = makeSharedVariableRateTimelineSpec({
     tickRate,
     timelineInputs,
@@ -1997,7 +2141,7 @@ export function buildAkeRealtimeTimeline(
       blockingEndFramesFromPlan(plan),
     );
     profiles = timelineActionProfilesFromSimulation(simulation, profiles);
-    facts = timelineActionFacts(timelineInputs, profiles, tickRate);
+    facts = timelineActionFacts(timelineInputs, profiles, tickRate, timelineModules);
     const nextSpec = makeSharedVariableRateTimelineSpec({
       tickRate,
       timelineInputs,
@@ -2040,8 +2184,31 @@ export function buildAkeRealtimeTimeline(
       return validateRuntimeCohort(cohort, simulation as AkeRealtimeTimeline);
     },
   });
+  const operatorControlIssues = validateOperatorControlTimeline(
+    validatedPlan,
+    input.selectedCharacters[0]?.id,
+    new Set(input.selectedCharacters.map(character => character.id)),
+  );
+  const dodgeControlIssues = validateDodgeControlModules(
+    timelineModules,
+    validatedPlan,
+    input.selectedCharacters[0]?.id,
+  );
+  const controlValidatedPlan = operatorControlIssues.length > 0 || dodgeControlIssues.length > 0
+    ? {
+      ...validatedPlan,
+      admissionStatus: 'invalid' as const,
+      isExecutable: false,
+    }
+    : validatedPlan;
   const diagnostics = [...simulation.diagnostics];
   diagnostics.push(...releaseAnchorIssues.map(issue => (
+    `${issue.code}: ${issue.message}`
+  )));
+  diagnostics.push(...operatorControlIssues.map(issue => (
+    `${issue.code}: ${issue.message}`
+  )));
+  diagnostics.push(...dodgeControlIssues.map(issue => (
     `${issue.code}: ${issue.message}`
   )));
   if (!stabilized) {
@@ -2052,11 +2219,13 @@ export function buildAkeRealtimeTimeline(
   const hasUnresolvedTimelineModules = unresolvedTimelineModules.length > 0;
   const exposedPlan = hasUnresolvedTimelineModules
     ? {
-      ...validatedPlan,
-      admissionStatus: 'unverified' as const,
+      ...controlValidatedPlan,
+      admissionStatus: controlValidatedPlan.admissionStatus === 'invalid'
+        ? 'invalid' as const
+        : 'unverified' as const,
       isExecutable: false,
     }
-    : validatedPlan;
+    : controlValidatedPlan;
   diagnostics.push(...unresolvedTimelineModules.map(module => (
     `TIMELINE_MODULE_RUNTIME_REQUIRED: ${module.timelineModuleKind}:${module.id}`
   )));

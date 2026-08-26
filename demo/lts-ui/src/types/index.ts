@@ -32,7 +32,18 @@ export interface SkillReleaseAnchor {
 }
 
 /** Timeline controls are deliberately not ordinary combat skills. */
-export type TimelineModuleKind = 'lane-wait' | 'forced-wait' | 'dodge' | 'perfect-dodge';
+export type TimelineModuleKind =
+  | 'lane-wait'
+  | 'forced-wait'
+  | 'dodge'
+  | 'perfect-dodge'
+  | 'operator-switch';
+
+/** Persisted target for a zero-time controlled-operator handoff. */
+export interface OperatorSwitchConfig {
+  schemaVersion: 1;
+  targetCharacterId: string;
+}
 
 /**
  * An ordinary wait belongs to one lane tail. A placeholder keeps a visible
@@ -208,6 +219,8 @@ export interface SandboxSkill {
   forcedWaitConfig?: ForcedWaitConfig;
   /** Default configuration copied into a newly placed ordinary lane wait. */
   laneWaitConfig?: LaneWaitConfig;
+  /** Default target is resolved from the current squad when the module is dropped. */
+  operatorSwitchConfig?: OperatorSwitchConfig;
   /** Global tools may be dropped onto any occupied operator lane. */
   dragScope?: 'character' | 'global';
 }
@@ -355,6 +368,8 @@ export interface SkillButton {
   forcedWaitConfig?: ForcedWaitConfig;
   /** Configuration for an ordinary wait on this lane only. */
   laneWaitConfig?: LaneWaitConfig;
+  /** Target of an operator-switch control cell. */
+  operatorSwitchConfig?: OperatorSwitchConfig;
 }
 
 /**
@@ -485,6 +500,7 @@ export interface SkillButtonData {
   timelineModuleKind?: TimelineModuleKind; // 第五工具栏控制节点
   forcedWaitConfig?: ForcedWaitConfig; // 强制等待列配置
   laneWaitConfig?: LaneWaitConfig; // 行内普通等待配置
+  operatorSwitchConfig?: OperatorSwitchConfig; // 切人目标配置
 }
 
 /**

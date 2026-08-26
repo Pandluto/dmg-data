@@ -24,6 +24,7 @@ import {
   Character,
   ForcedWaitConfig,
   LaneWaitConfig,
+  OperatorSwitchConfig,
   SkillButton,
   SkillType,
   ViewType,
@@ -188,6 +189,11 @@ type AppAction =
       buttonId: string;
       config: LaneWaitConfig;
     }
+  | {
+      type: 'SET_OPERATOR_SWITCH_CONFIG';
+      buttonId: string;
+      config: OperatorSwitchConfig;
+    }
   | { type: 'CLEAR_SKILL_BUTTONS' };
 
 /** 初始状态：默认显示干员选择界面，无已选干员，无技能按钮 */
@@ -329,6 +335,16 @@ function appReducer(state: AppState, action: AppAction): AppState {
         skillButtons: state.skillButtons.map(button => (
           button.id === action.buttonId
             ? { ...button, laneWaitConfig: action.config }
+            : button
+        )),
+      };
+
+    case 'SET_OPERATOR_SWITCH_CONFIG':
+      return {
+        ...state,
+        skillButtons: state.skillButtons.map(button => (
+          button.id === action.buttonId
+            ? { ...button, operatorSwitchConfig: action.config }
             : button
         )),
       };

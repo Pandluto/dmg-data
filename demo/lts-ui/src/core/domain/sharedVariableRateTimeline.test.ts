@@ -179,6 +179,44 @@ function assertErrorCode(run: () => unknown, expectedCode: string): void {
   assert.equal(action(model, 'B-after-placeholder').startX, 80);
 }
 
+// Switching operators is a zero-time control handoff with one visible cell.
+// A successor attached to it starts at the same real frame on the new lane,
+// but is projected after the handoff cell.
+{
+  const model = buildSharedVariableRateTimeline({
+    tickRate: 30,
+    columnWidth: 80,
+    groups: [{
+      id: 'operator-handoff-group',
+      operatorSwitches: [{
+        id: 'switch-A-to-B',
+        laneId: 'A',
+        targetLaneId: 'B',
+        startOffsetFrames: 30,
+      }],
+      lanes: [
+        { laneId: 'A', actions: [{ id: 'A-opening', durationFrames: 90, startOffsetFrames: 0 }] },
+        {
+          laneId: 'B',
+          actions: [{
+            id: 'B-after-switch',
+            durationFrames: 30,
+            startOffsetFrames: 30,
+            payload: { releaseAnchor: { sourceButtonId: 'switch-A-to-B' } },
+          }],
+        },
+      ],
+    }],
+  });
+
+  const operatorSwitch = model.operatorSwitches[0];
+  assert.equal(operatorSwitch.durationFrames, 0);
+  assert.equal(operatorSwitch.startFrame, 30);
+  assert.equal(operatorSwitch.endX - operatorSwitch.startX, 80);
+  assert.equal(action(model, 'B-after-switch').startFrame, 30);
+  assert.equal(action(model, 'B-after-switch').startX, operatorSwitch.endX);
+}
+
 // A's tail-chain creates two boundaries. C's longer action is automatically
 // stretched over all resulting columns, including its short final tail.
 {

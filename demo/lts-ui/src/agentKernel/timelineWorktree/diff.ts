@@ -305,6 +305,7 @@ function normalizeButton(button: TimelineSnapshotPayload['skillButtonTable'][str
     timelineModuleKind: button.timelineModuleKind,
     forcedWaitConfig: button.forcedWaitConfig,
     laneWaitConfig: button.laneWaitConfig,
+    operatorSwitchConfig: button.operatorSwitchConfig,
     selectedBuffIds: [...(button.selectedBuff || [])].sort(),
     buffStackCounts: Object.fromEntries(Object.entries(button.buffStackCounts ?? {}).sort(([left], [right]) => left.localeCompare(right))),
     targetResistance: Object.fromEntries(Object.entries(button.resistanceConfig?.targetResistance ?? {}).sort(([left], [right]) => left.localeCompare(right))),
@@ -356,6 +357,7 @@ function compareButton(before: TimelineButtonDiffItem, after: TimelineButtonDiff
   compareField(changes, 'timelineModuleKind', before.timelineModuleKind, after.timelineModuleKind);
   compareField(changes, 'forcedWaitConfig', before.forcedWaitConfig, after.forcedWaitConfig);
   compareField(changes, 'laneWaitConfig', before.laneWaitConfig, after.laneWaitConfig);
+  compareField(changes, 'operatorSwitchConfig', before.operatorSwitchConfig, after.operatorSwitchConfig);
   compareField(changes, 'selectedBuffIds', before.selectedBuffIds, after.selectedBuffIds);
   compareField(changes, 'buffStackCounts', before.buffStackCounts, after.buffStackCounts);
   compareField(changes, 'targetResistance', before.targetResistance, after.targetResistance);

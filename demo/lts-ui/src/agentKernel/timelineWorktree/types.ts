@@ -159,6 +159,8 @@ export type TimelinePayloadDiffSummary = {
   addedBuffCount: number;
   removedBuffCount: number;
   changedCharacterInputCount: number;
+  /** 0 or 1 when the frame-zero controller changed. */
+  changedInitialControllerCount?: number;
   beforeButtonCount: number;
   afterButtonCount: number;
   beforeBuffCount: number;
@@ -176,6 +178,9 @@ export type TimelinePayloadDiffSummary = {
 export type TimelinePayloadDiff = {
   summary: TimelinePayloadDiffSummary;
   selectedCharactersChanged: boolean;
+  initialControllerChanged: boolean;
+  beforeInitialControllerCharacterId: string | null;
+  afterInitialControllerCharacterId: string | null;
   beforeSelectedCharacters: string[];
   afterSelectedCharacters: string[];
   addedButtons: TimelineButtonDiffItem[];

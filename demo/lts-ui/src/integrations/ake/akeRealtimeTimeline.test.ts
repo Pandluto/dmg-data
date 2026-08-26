@@ -421,6 +421,36 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
 }
 
 {
+  const actorA = character('initial-controller-a');
+  const actorB = character('initial-controller-b');
+  const initialAttack = button('initial-controller-b-attack', actorB.id, 0, 'A');
+  const timelineData = timeline([
+    { characterId: actorA.id, buttons: [] },
+    { characterId: actorB.id, buttons: [initialAttack] },
+  ]);
+  timelineData.initialControllerCharacterId = actorB.id;
+  const result = buildAkeRealtimeTimeline({
+    timelineData,
+    selectedCharacters: [actorA, actorB],
+    catalog: catalog({
+      [actorA.id]: [],
+      [actorB.id]: [profile({
+        commandType: 'Attack',
+        skillId: 'initial-controller-b-attack-profile',
+        costType: null,
+        costValue: 0,
+      })],
+    }),
+    staffCount: 1,
+  });
+  assertEqual(
+    result.sharedVariableRateTimeline?.admissionStatus,
+    'valid',
+    'the persisted initial controller, not squad order, owns the frame-zero basic attack',
+  );
+}
+
+{
   const actor = character('ultimate-lock-actor');
   const ultimateButton = button('locked-ultimate', actor.id, 0, 'Q');
   const follower = button('skill-after-ultimate', actor.id, 1, 'B');

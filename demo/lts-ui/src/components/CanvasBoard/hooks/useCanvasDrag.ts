@@ -40,6 +40,7 @@ import { debounceFramesForTickRate } from '../../../core/domain/combatActionTail
 import {
   controlledOperatorAt,
   isFrameInsideUltimate,
+  resolveInitialControllerLaneId,
 } from '../../../core/domain/operatorControlTimeline';
 import {
   attachLegacyLanePredecessors,
@@ -87,6 +88,7 @@ interface UseCanvasDragProps {
   canvasWidth: number;
   staffCount: number;
   selectedCharacters: { id: string; name?: string }[];
+  initialControllerCharacterId?: string | null;
   skillButtons: SkillButton[];
   akeRealtimeTimeline?: AkeRealtimeTimeline | null;
   canvasRef: React.RefObject<HTMLDivElement | null>;
@@ -192,6 +194,7 @@ export function useCanvasDrag({
   canvasWidth,
   staffCount,
   selectedCharacters,
+  initialControllerCharacterId = null,
   skillButtons,
   akeRealtimeTimeline = null,
   canvasRef,
@@ -508,7 +511,10 @@ export function useCanvasDrag({
         continue;
       }
       const controlledCharacterId = controlledOperatorAt(
-        selectedCharacters[0]?.id,
+        resolveInitialControllerLaneId(
+          initialControllerCharacterId,
+          selectedCharacters.map(character => character.id),
+        ),
         variableModel?.operatorSwitches ?? [],
         point.frame,
         point.globalX,
@@ -591,6 +597,7 @@ export function useCanvasDrag({
   }, [
     akeRealtimeTimeline,
     draggingState,
+    initialControllerCharacterId,
     releaseSnapPoints,
     selectedCharacters,
     skillButtons,

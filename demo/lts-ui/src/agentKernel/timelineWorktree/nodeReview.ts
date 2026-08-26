@@ -62,7 +62,7 @@ export type AiTimelineNodeReviewManifest = {
 };
 
 export type AiTimelineNodeReviewSemanticChange = {
-  kind: 'selection' | 'button' | 'buff' | 'input';
+  kind: 'selection' | 'timeline-control' | 'button' | 'buff' | 'input';
   id: string;
   change: 'added' | 'removed' | 'changed';
   before?: unknown;
@@ -192,6 +192,15 @@ function buildSemanticChanges(diff: TimelinePayloadDiff): AiTimelineNodeReviewSe
       change: 'changed',
       before: diff.beforeSelectedCharacters,
       after: diff.afterSelectedCharacters,
+    });
+  }
+  if (diff.initialControllerChanged) {
+    changes.push({
+      kind: 'timeline-control',
+      id: 'initialControllerCharacterId',
+      change: 'changed',
+      before: diff.beforeInitialControllerCharacterId,
+      after: diff.afterInitialControllerCharacterId,
     });
   }
   changes.push(

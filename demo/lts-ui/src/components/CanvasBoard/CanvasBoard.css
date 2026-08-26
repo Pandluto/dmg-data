@@ -2607,24 +2607,84 @@
   flex-shrink: 0;
 }
 
+.canvas-initial-controller-picker {
+  position: absolute;
+  z-index: 4;
+  left: 3px;
+  top: 3px;
+  display: grid;
+  grid-template-columns: 12px 1fr;
+  align-items: center;
+  gap: 2px;
+  width: 34px;
+  height: 24px;
+  padding: 0 3px;
+  border: 1px solid rgba(109, 61, 184, 0.72);
+  border-radius: 2px;
+  background: #ffffff;
+  color: #5b2d9b;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 6px rgba(56, 28, 96, 0.14);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.canvas-initial-controller-picker:hover {
+  border-color: #5b2d9b;
+  background: #f4edff;
+}
+
+.canvas-initial-controller-picker:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.canvas-initial-controller-picker svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+.canvas-initial-controller-picker span {
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1;
+}
+
 .canvas-controlled-operator-marker {
   position: absolute;
-  left: 8px;
-  top: calc(50% - 8px);
+  z-index: 4;
+  left: 5px;
+  top: calc(50% - 11px);
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #6d3db8;
+  cursor: pointer;
+  filter: drop-shadow(0 1px 0 #ffffff);
+  pointer-events: auto;
+}
+
+.canvas-controlled-operator-marker:disabled {
+  cursor: default;
+}
+
+.canvas-controlled-operator-marker svg {
   width: 25px;
   height: 16px;
   overflow: visible;
-  color: #6d3db8;
-  filter: drop-shadow(0 1px 0 #ffffff);
 }
 
-.canvas-controlled-operator-marker path {
+.canvas-controlled-operator-marker svg path {
   fill: #ffffff;
   stroke: currentColor;
   stroke-width: 1.5;
 }
 
-.canvas-controlled-operator-marker circle { fill: currentColor; }
+.canvas-controlled-operator-marker svg circle { fill: currentColor; }
 
 /* 头像占位符 */
 .canvas-staff-avatar-placeholder {

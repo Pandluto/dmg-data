@@ -46,6 +46,17 @@ export function validateTimelinePayload(payload: TimelineSnapshotPayload): AiTim
   }
   const validSkillTypes = new Set(['A', 'B', 'E', 'Q', 'Dot']);
   const selectedCharacters = new Set(payload.selectedCharacters);
+  const initialControllerCharacterId = payload.timelineData.initialControllerCharacterId;
+  if (initialControllerCharacterId !== undefined
+    && (typeof initialControllerCharacterId !== 'string'
+      || !initialControllerCharacterId.trim()
+      || !selectedCharacters.has(initialControllerCharacterId))) {
+    issues.push(issue(
+      'invalid-initial-controller',
+      'timelineData.initialControllerCharacterId must reference a selected character.',
+      'timelineData.initialControllerCharacterId',
+    ));
+  }
   const staffIndices = new Set<number>();
   for (const [staffOffset, staffLine] of payload.timelineData.staffLines.entries()) {
     if (!Number.isInteger(staffLine.staffIndex) || staffLine.staffIndex < 0 || staffLine.staffIndex >= payload.selectedCharacters.length) {

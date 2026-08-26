@@ -10,6 +10,7 @@ function countDiffChanges(diff) {
     summary.changedButtonCount,
     summary.addedBuffCount,
     summary.removedBuffCount,
+    summary.changedInitialControllerCount,
     diff?.selectedCharactersChanged ? 1 : 0,
   ].reduce((total, value) => total + (typeof value === 'number' && Number.isFinite(value) ? value : 0), 0);
 }
@@ -22,6 +23,7 @@ function formatChangeReason(diff) {
   if (summary.changedButtonCount) parts.push(`修改技能按钮 ${summary.changedButtonCount} 个`);
   if (summary.addedBuffCount) parts.push(`新增 Buff ${summary.addedBuffCount} 个`);
   if (summary.removedBuffCount) parts.push(`删除 Buff ${summary.removedBuffCount} 个`);
+  if (summary.changedInitialControllerCount) parts.push('修改初始主控');
   if (diff?.selectedCharactersChanged) parts.push('出战干员变化');
   return parts.length ? parts.join('，') : 'base 与 working 没有结构化差异';
 }

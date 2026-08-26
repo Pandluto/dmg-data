@@ -394,6 +394,9 @@ export function diffTimelinePayloads(basePayload: TimelineSnapshotPayload, worki
   const baseInputs = inputMap(basePayload);
   const workingInputs = inputMap(workingPayload);
   const changedOperatorConfigs = diffOperatorConfigs(basePayload, workingPayload);
+  const beforeInitialControllerCharacterId = basePayload.timelineData.initialControllerCharacterId ?? null;
+  const afterInitialControllerCharacterId = workingPayload.timelineData.initialControllerCharacterId ?? null;
+  const initialControllerChanged = beforeInitialControllerCharacterId !== afterInitialControllerCharacterId;
   const addedButtons: TimelineButtonDiffItem[] = [];
   const removedButtons: TimelineButtonDiffItem[] = [];
   const changedButtons: TimelineButtonChange[] = [];
@@ -435,6 +438,7 @@ export function diffTimelinePayloads(basePayload: TimelineSnapshotPayload, worki
       addedBuffCount: addedBuffs.length,
       removedBuffCount: removedBuffs.length,
       changedCharacterInputCount: changedCharacterInputs.length,
+      changedInitialControllerCount: initialControllerChanged ? 1 : 0,
       beforeButtonCount: baseButtons.size,
       afterButtonCount: workingButtons.size,
       beforeBuffCount: baseBuffs.size,
@@ -445,6 +449,9 @@ export function diffTimelinePayloads(basePayload: TimelineSnapshotPayload, worki
       changedOperatorConfigFieldCount: changedOperatorConfigs.reduce((count, change) => count + change.changes.length, 0),
     },
     selectedCharactersChanged: JSON.stringify(basePayload.selectedCharacters) !== JSON.stringify(workingPayload.selectedCharacters),
+    initialControllerChanged,
+    beforeInitialControllerCharacterId,
+    afterInitialControllerCharacterId,
     beforeSelectedCharacters: basePayload.selectedCharacters,
     afterSelectedCharacters: workingPayload.selectedCharacters,
     addedButtons: addedButtons.sort((left, right) => left.label.localeCompare(right.label)),

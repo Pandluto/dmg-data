@@ -303,6 +303,7 @@ export function normalizeCompatibleTimelinePayload(
     };
   });
   const originalTimeline = normalizedDefaults.timelineData;
+  const configuredInitialController = nonEmptyText(originalTimeline.initialControllerCharacterId);
   const timelineData: TimelineData = {
     version: nonEmptyText(originalTimeline.version) || '1',
     createdAt: Number.isFinite(Number(originalTimeline.createdAt))
@@ -311,6 +312,10 @@ export function normalizeCompatibleTimelinePayload(
     updatedAt: Number.isFinite(Number(originalTimeline.updatedAt))
       ? Number(originalTimeline.updatedAt)
       : 0,
+    initialControllerCharacterId: configuredInitialController
+      && selectedCharacters.includes(configuredInitialController)
+      ? configuredInitialController
+      : selectedCharacters[0],
     staffLines,
   };
   const payload = {

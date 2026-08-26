@@ -2,8 +2,14 @@ import assert from 'node:assert/strict';
 import { buildSharedVariableRateTimeline } from './sharedVariableRateTimeline';
 import {
   controlledOperatorAt,
+  resolveInitialControllerLaneId,
   validateOperatorControlTimeline,
 } from './operatorControlTimeline';
+
+assert.equal(resolveInitialControllerLaneId('B', ['A', 'B', 'C']), 'B');
+assert.equal(resolveInitialControllerLaneId('removed', ['A', 'B']), 'A');
+assert.equal(resolveInitialControllerLaneId(undefined, ['A', 'B']), 'A');
+assert.equal(resolveInitialControllerLaneId(undefined, []), null);
 
 {
   const model = buildSharedVariableRateTimeline({

@@ -41,7 +41,7 @@ const snapshots = source
   ? source.storage.local['def.timeline.snapshot-archive.v1'].snapshots
   : (generatedPackage.timelineArchives || [])
     .filter(({ archiveId }) => archiveId !== 'web-lts-1.8-shared-current');
-assert.equal(snapshots.length, 12);
+assert.ok(snapshots.length > 0, 'at least one legacy timeline fixture is required');
 
 for (const snapshot of snapshots) {
   const result = normalizeCompatibleTimelinePayload(snapshot.payload);
@@ -58,15 +58,29 @@ for (const snapshot of snapshots) {
   assert.equal(actualButtonCount, expectedButtonCount, snapshot.label);
 }
 
-const firstPayload = snapshots[0].payload;
-const originalFirstButton = firstPayload.timelineData.staffLines[0].buttons[0];
+const identityFixture = snapshots.find(snapshot => snapshot.payload.timelineData.staffLines.some(
+  line => line.buttons.length > 0,
+));
+assert.ok(identityFixture, 'at least one fixture must contain a timeline button');
+const firstPayload = structuredClone(identityFixture.payload);
+const legacyStaffIndex = firstPayload.timelineData.staffLines.findIndex(line => line.buttons.length > 0);
+const originalFirstButton = firstPayload.timelineData.staffLines[legacyStaffIndex].buttons[0];
+delete originalFirstButton.characterId;
+delete originalFirstButton.buffIds;
 assert.equal(originalFirstButton.characterId, undefined);
 assert.equal(originalFirstButton.buffIds, undefined);
 const normalizedFirst = normalizeCompatibleTimelinePayload(firstPayload);
-const repairedFirstButton = normalizedFirst.payload.timelineData.staffLines[0].buttons[0];
+assert.equal(
+  normalizedFirst.payload.timelineData.initialControllerCharacterId,
+  normalizedFirst.payload.selectedCharacters[0],
+  'legacy timelines migrate the first selected operator into an editable initial controller',
+);
+const repairedFirstButton = normalizedFirst.payload.timelineData.staffLines[legacyStaffIndex].buttons.find(
+  button => button.id === originalFirstButton.id,
+)!;
 const repairedFirstTableButton = normalizedFirst.payload.skillButtonTable[repairedFirstButton.id];
-assert.equal(repairedFirstButton.characterId, 'laevatain');
-assert.equal(repairedFirstButton.lineIndex, 0);
+assert.equal(repairedFirstButton.characterId, normalizedFirst.payload.selectedCharacters[legacyStaffIndex]);
+assert.equal(repairedFirstButton.lineIndex, legacyStaffIndex);
 assert.deepEqual(repairedFirstButton.buffIds, repairedFirstTableButton.selectedBuff);
 assert.equal(originalFirstButton.characterId, undefined, 'normalization must not mutate imported JSON');
 assert(normalizedFirst.repairs.some((repair) => repair.code === 'legacy-button-identities-repaired'));

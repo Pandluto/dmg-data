@@ -18,6 +18,7 @@ function validPayload(): TimelineSnapshotPayload {
     selectedCharacters: ['operator-1'],
     timelineData: {
       version: '1', createdAt: 1, updatedAt: 1,
+      initialControllerCharacterId: 'operator-1',
       staffLines: [{ staffIndex: 0, characterName: '干员一', occupiedNodes: [16], buttons: [{ ...button, buffIds: [] }] }],
     },
     skillButtonTable: { 'button-1': { ...button, selectedBuff: [] } },
@@ -31,6 +32,12 @@ function validPayload(): TimelineSnapshotPayload {
 }
 
 assert.deepEqual(validateTimelinePayload(validPayload()), { ok: true, issues: [] });
+
+const invalidInitialController = validPayload();
+invalidInitialController.timelineData.initialControllerCharacterId = 'missing';
+assert(validateTimelinePayload(invalidInitialController).issues.some(
+  issue => issue.code === 'invalid-initial-controller',
+));
 
 const incomplete = validPayload();
 incomplete.timelineData.staffLines[0].buttons[0] = { id: 'button-1', nodeIndex: 0, skillKey: 'operator-1-B' } as never;

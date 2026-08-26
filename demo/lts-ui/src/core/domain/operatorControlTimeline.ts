@@ -49,6 +49,22 @@ function orderedSwitches(
 }
 
 /**
+ * Migrates old timelines to the first selected operator while honoring an
+ * explicit, still-selected controller whenever one is persisted.
+ */
+export function resolveInitialControllerLaneId(
+  configuredLaneId: string | null | undefined,
+  selectedLaneIds: readonly (string | null | undefined)[],
+): string | null {
+  const validLaneIds = selectedLaneIds
+    .map(laneId => laneId?.trim() ?? '')
+    .filter(Boolean);
+  const configured = configuredLaneId?.trim() ?? '';
+  if (configured && validLaneIds.includes(configured)) return configured;
+  return validLaneIds[0] ?? null;
+}
+
+/**
  * Resolves control at one real/visual position. A zero-time switch takes effect
  * at its right edge, so actions before and after it may share the same frame.
  */

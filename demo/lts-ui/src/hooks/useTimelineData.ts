@@ -25,6 +25,7 @@ import {
   updateSelectedBuffList as updateSelectedBuffListService,
   updateSkillButtonType as updateSkillButtonTypeService,
   updateBasicAttackTailBundle as updateBasicAttackTailBundleService,
+  updateInitialControllerCharacterId as updateInitialControllerCharacterIdService,
   updateForcedWaitConfig as updateForcedWaitConfigService,
   updateLaneWaitConfig as updateLaneWaitConfigService,
   updateOperatorSwitchConfig as updateOperatorSwitchConfigService,
@@ -35,7 +36,7 @@ import {
   ensureTimelineDataConsistency,
 } from '../core/services/timelineService';
 
-export function useTimelineData(selectedCharacters: { name: string }[]) {
+export function useTimelineData(selectedCharacters: { id?: string; name: string }[]) {
   const [timelineData, setTimelineData] = useState<TimelineData>(() => {
     return createEmptyTimelineData(selectedCharacters);
   });
@@ -147,6 +148,15 @@ export function useTimelineData(selectedCharacters: { name: string }[]) {
     return result;
   }, []);
 
+  const updateInitialControllerCharacterId = useCallback((characterId: string) => {
+    const newTimelineData = updateInitialControllerCharacterIdService(
+      timelineDataRef.current,
+      characterId,
+    );
+    setTimelineData(newTimelineData);
+    return newTimelineData;
+  }, []);
+
   const updateForcedWaitConfig = useCallback((buttonId: string, config: ForcedWaitConfig) => {
     const result = updateForcedWaitConfigService(timelineDataRef.current, buttonId, config);
     setTimelineData(result.newTimelineData);
@@ -211,6 +221,7 @@ export function useTimelineData(selectedCharacters: { name: string }[]) {
     updateSelectedBuffList,
     updateSkillButtonType,
     updateBasicAttackTailBundle,
+    updateInitialControllerCharacterId,
     updateForcedWaitConfig,
     updateLaneWaitConfig,
     updateOperatorSwitchConfig,

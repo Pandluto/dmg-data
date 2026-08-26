@@ -98,6 +98,16 @@ assert.equal(diff.summary.changedCharacterInputCount, 1);
 assert.deepEqual(diff.changedCharacterInputs.map((change) => change.characterId), ['mifu']);
 assert.equal(diffTimelinePayloads(equipped, equipped).summary.changedCharacterInputCount, 0);
 
+const controllerBase = structuredClone(base);
+controllerBase.timelineData.initialControllerCharacterId = 'mifu';
+const controllerChanged = structuredClone(controllerBase);
+controllerChanged.timelineData.initialControllerCharacterId = 'operator-b';
+const controllerDiff = diffTimelinePayloads(controllerBase, controllerChanged);
+assert.equal(controllerDiff.initialControllerChanged, true);
+assert.equal(controllerDiff.beforeInitialControllerCharacterId, 'mifu');
+assert.equal(controllerDiff.afterInitialControllerCharacterId, 'operator-b');
+assert.equal(controllerDiff.summary.changedInitialControllerCount, 1);
+
 const baseConfig = makeOperatorConfig();
 const configWithDifferentInsertionOrder = structuredClone(baseConfig) as any;
 configWithDifferentInsertionOrder.operator.skillConfig = {

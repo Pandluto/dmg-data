@@ -4,6 +4,7 @@ import type { Character, SkillButton } from '../../types';
 import { ForcedWaitConfigDialog } from './ForcedWaitConfigDialog';
 import { LaneWaitConfigDialog } from './LaneWaitConfigDialog';
 import { OperatorSwitchDialog } from './OperatorSwitchDialog';
+import { InitialControllerDialog } from './InitialControllerDialog';
 import { SkillSandbox } from './SkillSandbox';
 import { TimelineOperatorSwitchSegment } from './TimelineOperatorSwitchSegment';
 import { TimelineWaitContextMenu, TimelineWaitSegment } from './TimelineWaitSegment';
@@ -111,6 +112,21 @@ const switchDialogHtml = renderToStaticMarkup(
 assert.match(switchDialogHtml, /选择切换目标/);
 assert.match(switchDialogHtml, /目标干员/);
 assert.match(switchDialogHtml, /保留默认/);
+
+const initialControllerDialogHtml = renderToStaticMarkup(
+  <InitialControllerDialog
+    characters={[
+      character,
+      { ...character, id: 'operator-2', name: '目标干员' },
+    ]}
+    initialCharacterId="operator-2"
+    onCancel={() => undefined}
+    onConfirm={() => undefined}
+  />,
+);
+assert.match(initialControllerDialogHtml, /选择初始主控干员/);
+assert.match(initialControllerDialogHtml, /0\.00 秒/);
+assert.match(initialControllerDialogHtml, /设为初始主控/);
 
 const switchSegmentHtml = renderToStaticMarkup(
   <TimelineOperatorSwitchSegment

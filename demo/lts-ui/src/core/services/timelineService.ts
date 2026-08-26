@@ -29,6 +29,7 @@ import {
   attachLegacyLanePredecessors,
   getReleaseDeletionBlockers,
 } from '../domain/releaseAnchorGraph';
+import { resolveInitialControllerLaneId } from '../domain/operatorControlTimeline';
 import {
   getSkillButtonById,
   getSkillButtonTable,
@@ -43,12 +44,16 @@ import { cleanupBuffsOnButtonRemove, recomputeSkillButtonPanel } from './buffSer
 /**
  * 创建空的 Timeline 数据
  */
-export function createEmptyTimelineData(characters: { name: string }[]): TimelineData {
+export function createEmptyTimelineData(characters: { id?: string; name: string }[]): TimelineData {
   const now = Date.now();
   return {
-    version: "1.1.0",
+    version: "1.2.0",
     createdAt: now,
     updatedAt: now,
+    initialControllerCharacterId: resolveInitialControllerLaneId(
+      undefined,
+      characters.map(character => character.id),
+    ) ?? undefined,
     staffLines: characters.map((char, index) => ({
       staffIndex: index,
       characterName: char.name,
@@ -66,7 +71,7 @@ export function createEmptyTimelineData(characters: { name: string }[]): Timelin
  */
 export function normalizeTimelineData(
   data: TimelineData,
-  characters: { name: string }[]
+  characters: { id?: string; name: string }[]
 ): TimelineData {
   const normalizedStaffLines: StaffLineData[] = [];
 
@@ -107,6 +112,10 @@ export function normalizeTimelineData(
 
   return {
     ...data,
+    initialControllerCharacterId: resolveInitialControllerLaneId(
+      data.initialControllerCharacterId,
+      characters.map(character => character.id),
+    ) ?? undefined,
     staffLines: normalizedStaffLines,
     updatedAt: Date.now(),
   };
@@ -185,12 +194,16 @@ export function buildTimelineButtonsFromSkillButtonTable(
 
 function buildTimelineDataFromSkillButtonTable(
   skillButtonTable: Record<string, PersistedSkillButton>,
-  characters: { name: string }[],
+  characters: { id?: string; name: string }[],
   existingTimelineData?: TimelineData | null
 ): TimelineData {
   const fallbackTimelineData = existingTimelineData ?? createEmptyTimelineData(characters);
   return {
     ...fallbackTimelineData,
+    initialControllerCharacterId: resolveInitialControllerLaneId(
+      fallbackTimelineData.initialControllerCharacterId,
+      characters.map(character => character.id),
+    ) ?? undefined,
     updatedAt: Date.now(),
     staffLines: buildTimelineButtonsFromSkillButtonTable(skillButtonTable, characters),
   };
@@ -511,6 +524,24 @@ export function updateBasicAttackTailBundle(
     successor: nextSuccessor,
     newTimelineData,
   };
+}
+
+/** Persist the operator who owns control at frame zero. */
+export function updateInitialControllerCharacterId(
+  timelineData: TimelineData,
+  characterId: string,
+): TimelineData {
+  const normalizedCharacterId = characterId.trim();
+  if (!normalizedCharacterId) {
+    throw new Error('INITIAL_CONTROLLER_CHARACTER_REQUIRED');
+  }
+  const newTimelineData: TimelineData = {
+    ...timelineData,
+    initialControllerCharacterId: normalizedCharacterId,
+    updatedAt: Date.now(),
+  };
+  saveTimelineRepo(newTimelineData);
+  return newTimelineData;
 }
 
 /** Persist a forced-wait control column without treating it as a damage skill. */

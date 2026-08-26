@@ -7,6 +7,7 @@ import { BasicAttackCutDialog } from './BasicAttackCutDialog';
 import { ForcedWaitConfigDialog } from './ForcedWaitConfigDialog';
 import { LaneWaitConfigDialog } from './LaneWaitConfigDialog';
 import { OperatorSwitchDialog } from './OperatorSwitchDialog';
+import { InitialControllerDialog } from './InitialControllerDialog';
 import {
   WorkNodeTreePanel,
   type WorkbenchSelectedNodeContext,
@@ -102,6 +103,7 @@ import { flushUserWorkspaceState, restoreUserWorkspaceSnapshot } from '../../uti
 import './CanvasBoard.css';
 import { resolveRuntimeTemplateSkill } from '../../core/services/skillDamageTemplateResolver';
 import { buildDamageReportSnapshot } from '../../core/services/damageReportService';
+import { resolveInitialControllerLaneId } from '../../core/domain/operatorControlTimeline';
 import type { PersistedSkillButton } from '../../types/storage';
 import type { HitResistanceInput } from '../../types/storage';
 import DeferredNumberInput from '../DeferredNumberInput';
@@ -229,6 +231,7 @@ function formatTimelineDiffSummary(diff: ReturnType<typeof diffTimelinePayloads>
   if (summary.addedBuffCount) parts.push(`added ${summary.addedBuffCount} buff(s)`);
   if (summary.removedBuffCount) parts.push(`removed ${summary.removedBuffCount} buff(s)`);
   if (summary.changedCharacterInputCount) parts.push(`changed ${summary.changedCharacterInputCount} character loadout(s)`);
+  if (summary.changedInitialControllerCount) parts.push('initial controller changed');
   if (diff.selectedCharactersChanged) parts.push('selected characters changed');
   return parts.length ? parts.join('; ') : 'no diff';
 }
@@ -410,6 +413,7 @@ function buildVisibleTimelineMirrors(
   characters: Character[],
   visibleButtons: SkillButton[],
   previousPayload: TimelineSnapshotPayload,
+  initialControllerCharacterId?: string | null,
 ): Pick<TimelineSnapshotPayload, 'timelineData' | 'skillButtonTable'> {
   const previousTable = previousPayload.skillButtonTable || {};
   const now = Date.now();
@@ -458,6 +462,10 @@ function buildVisibleTimelineMirrors(
     version: previousPayload.timelineData.version || '1.0.0',
     createdAt: previousPayload.timelineData.createdAt || now,
     updatedAt: now,
+    initialControllerCharacterId: resolveInitialControllerLaneId(
+      initialControllerCharacterId ?? previousPayload.timelineData.initialControllerCharacterId,
+      characters.map(character => character.id),
+    ) ?? undefined,
     staffLines: characters.map((character, lineIndex) => {
       const buttons = Object.values(skillButtonTable)
         .filter((button) => button.staffIndex === lineIndex)
@@ -610,6 +618,7 @@ export function CanvasBoard({
   const [pendingForcedWaitButtonId, setPendingForcedWaitButtonId] = useState<string | null>(null);
   const [pendingLaneWaitButtonId, setPendingLaneWaitButtonId] = useState<string | null>(null);
   const [pendingOperatorSwitchButtonId, setPendingOperatorSwitchButtonId] = useState<string | null>(null);
+  const [isInitialControllerDialogOpen, setIsInitialControllerDialogOpen] = useState(false);
   const [selectedBasicAttackStageCount, setSelectedBasicAttackStageCount] = useState(0);
   const [checkoutBootstrapRevision, setCheckoutBootstrapRevision] = useState(0);
   const [checkoutRenderRevision, setCheckoutRenderRevision] = useState(0);
@@ -723,10 +732,16 @@ export function CanvasBoard({
     normalizeTimelineData,
     updateSkillButtonType: updateTimelineButtonType,
     updateBasicAttackTailBundle,
+    updateInitialControllerCharacterId,
     updateForcedWaitConfig,
     updateLaneWaitConfig,
     updateOperatorSwitchConfig,
   } = useTimelineData(selectedCharacters);
+
+  const initialControllerCharacterId = resolveInitialControllerLaneId(
+    timelineData.initialControllerCharacterId,
+    selectedCharacters.map(character => character.id),
+  );
 
   const requiredStaffCount = React.useMemo(() => {
     const timelineNodeIndices = timelineData.staffLines.flatMap((staffLine) => (
@@ -3224,6 +3239,7 @@ export function CanvasBoard({
     canvasWidth,
     staffCount: projectionStaffCount,
     selectedCharacters,
+    initialControllerCharacterId,
     skillButtons,
     akeRealtimeTimeline,
     canvasRef,
@@ -3733,6 +3749,22 @@ export function CanvasBoard({
     }
   }, [dispatch, pendingOperatorSwitchButtonId, selectedCharacters, updateOperatorSwitchConfig]);
 
+  const handleConfirmInitialController = useCallback((characterId: string) => {
+    const character = selectedCharacters.find(candidate => candidate.id === characterId);
+    if (!character) {
+      setWorkNodeSaveNotice('初始主控设置失败：该干员已不在当前队伍中。');
+      return;
+    }
+    try {
+      updateInitialControllerCharacterId(characterId);
+      setIsInitialControllerDialogOpen(false);
+      setWorkNodeSaveNotice(`初始主控已设为 ${character.name}。`);
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2200);
+    } catch (error) {
+      setWorkNodeSaveNotice(`初始主控设置失败：${error instanceof Error ? error.message : String(error)}`);
+    }
+  }, [selectedCharacters, updateInitialControllerCharacterId]);
+
   const handleCopySkillButton = () => {
     if (!contextMenuState) return;
     const { buttonId } = contextMenuState;
@@ -4122,7 +4154,12 @@ export function CanvasBoard({
       // Always rebuild both persistence mirrors from the currently visible
       // Canvas. Existing checkouts can carry the same stale Buff mirror as a
       // first save, so they must not bypass this canonicalization step.
-      const visibleMirrors = buildVisibleTimelineMirrors(selectedCharacters, skillButtons, currentPayload);
+      const visibleMirrors = buildVisibleTimelineMirrors(
+        selectedCharacters,
+        skillButtons,
+        currentPayload,
+        initialControllerCharacterId,
+      );
       payload = { ...currentPayload, ...visibleMirrors };
       const validation = validateTimelinePayload(payload);
       if (!validation.ok) {
@@ -4724,6 +4761,7 @@ export function CanvasBoard({
             config={canvasConfig}
             staffCount={projectionStaffCount}
             selectedCharacters={selectedCharacters}
+            initialControllerCharacterId={initialControllerCharacterId}
             skillButtons={skillButtons}
             onButtonMouseDown={handleButtonMouseDown}
             onButtonContextMenu={handleButtonContextMenu}
@@ -4736,6 +4774,7 @@ export function CanvasBoard({
             onCopy={handleCopySkillButton}
             onChangeSkillType={handleChangeSkillType}
             onConfigureTimelineModule={handleConfigureTimelineModule}
+            onConfigureInitialController={() => setIsInitialControllerDialogOpen(true)}
             getSkillChangeOptions={getSkillChangeOptions}
             isDraggingActive={Boolean(draggingState)}
             isBrowseMode={isBrowseMode}
@@ -5319,6 +5358,14 @@ export function CanvasBoard({
           initialConfig={pendingOperatorSwitchButton.operatorSwitchConfig}
           onCancel={() => setPendingOperatorSwitchButtonId(null)}
           onConfirm={handleConfirmOperatorSwitchConfig}
+        />
+      )}
+      {isInitialControllerDialogOpen && (
+        <InitialControllerDialog
+          characters={selectedCharacters}
+          initialCharacterId={initialControllerCharacterId}
+          onCancel={() => setIsInitialControllerDialogOpen(false)}
+          onConfirm={handleConfirmInitialController}
         />
       )}
       {pendingBasicAttackCut && !basicAttackCutDraft && (

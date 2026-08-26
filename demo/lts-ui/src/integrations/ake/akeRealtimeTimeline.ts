@@ -26,6 +26,7 @@ import { solveReleaseStartOffsets } from '../../core/domain/releaseAnchorGraph';
 import {
   controlledOperatorAt,
   isFrameInsideUltimate,
+  resolveInitialControllerLaneId,
   validateOperatorControlTimeline,
 } from '../../core/domain/operatorControlTimeline';
 import {
@@ -2099,6 +2100,10 @@ export function buildAkeRealtimeTimeline(
   const timelineModules = input.timelineData.staffLines.flatMap(line => (
     line.buttons.filter(button => button.timelineModuleKind)
   ));
+  const initialControllerLaneId = resolveInitialControllerLaneId(
+    input.timelineData.initialControllerCharacterId,
+    input.selectedCharacters.map(character => character.id),
+  );
   const unresolvedTimelineModules = timelineModules.filter(module => (
     module.timelineModuleKind !== 'forced-wait'
     && module.timelineModuleKind !== 'lane-wait'
@@ -2186,13 +2191,13 @@ export function buildAkeRealtimeTimeline(
   });
   const operatorControlIssues = validateOperatorControlTimeline(
     validatedPlan,
-    input.selectedCharacters[0]?.id,
+    initialControllerLaneId,
     new Set(input.selectedCharacters.map(character => character.id)),
   );
   const dodgeControlIssues = validateDodgeControlModules(
     timelineModules,
     validatedPlan,
-    input.selectedCharacters[0]?.id,
+    initialControllerLaneId ?? undefined,
   );
   const controlValidatedPlan = operatorControlIssues.length > 0 || dodgeControlIssues.length > 0
     ? {

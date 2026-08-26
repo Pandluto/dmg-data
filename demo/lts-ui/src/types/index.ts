@@ -521,5 +521,7 @@ export interface TimelineData {
   version: string;                 // 数据版本号
   createdAt: number;               // 创建时间
   updatedAt: number;               // 最后更新时间
+  /** 0 秒时的主控干员；旧存档缺省时由当前队伍首位迁移。 */
+  initialControllerCharacterId?: string;
   staffLines: StaffLineData[];     // 4 个干员的谱线数据
 }

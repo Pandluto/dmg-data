@@ -35,6 +35,7 @@ import {
   type ScheduledTimelineAction,
   type SharedTimelineColumn,
 } from '../../../core/domain/sharedVariableRateTimeline';
+import { resolveInitialControllerLaneId } from '../../../core/domain/operatorControlTimeline';
 import type { CanvasDropTarget } from '../hooks/useCanvasDrag';
 
 interface CanvasAreaProps {
@@ -42,6 +43,7 @@ interface CanvasAreaProps {
   config: CanvasConfig;
   staffCount: number;
   selectedCharacters: Character[];
+  initialControllerCharacterId?: string | null;
   skillButtons: SkillButton[];
   onButtonMouseDown: (event: MouseEvent, buttonId: string) => void;
   onButtonContextMenu: (event: MouseEvent, buttonId: string) => void;
@@ -54,6 +56,7 @@ interface CanvasAreaProps {
   onCopy?: () => void;
   onChangeSkillType?: (payload: SkillButtonSkillChangePayload) => void;
   onConfigureTimelineModule?: (button: SkillButton) => void;
+  onConfigureInitialController?: () => void;
   getSkillChangeOptions?: (button: SkillButton) => SkillButtonSkillOption[];
   isDraggingActive?: boolean;
   isBrowseMode?: boolean;
@@ -75,6 +78,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
   config,
   staffCount,
   selectedCharacters,
+  initialControllerCharacterId = null,
   skillButtons,
   onButtonMouseDown,
   onButtonContextMenu,
@@ -86,6 +90,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
   onCopy,
   onChangeSkillType,
   onConfigureTimelineModule,
+  onConfigureInitialController,
   getSkillChangeOptions,
   isDraggingActive = false,
   isBrowseMode = false,
@@ -145,6 +150,10 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
   );
 
   const variableTimeline = akeRealtimeTimeline?.sharedVariableRateTimeline ?? null;
+  const resolvedInitialControllerCharacterId = resolveInitialControllerLaneId(
+    initialControllerCharacterId,
+    selectedCharacters.map(character => character.id),
+  );
   const variableActionById = useMemo(
     () => new Map((variableTimeline?.actions ?? []).map(action => [action.id, action])),
     [variableTimeline],
@@ -1010,7 +1019,30 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
   // 渲染谱线视觉层 - 独立UI层覆盖在表格背景上方
   const renderStaffVisualGroup = (staffIndex: number) => {
     return (
-      <div key={`staff-visual-${staffIndex}`} className="canvas-staff-visual-group" aria-hidden="true">
+      <div
+        key={`staff-visual-${staffIndex}`}
+        className="canvas-staff-visual-group"
+        aria-hidden={staffIndex === 0 ? undefined : true}
+      >
+        {staffIndex === 0 && selectedCharacters.length > 0 ? (
+          <button
+            type="button"
+            className="canvas-initial-controller-picker"
+            aria-label="选择初始主控干员"
+            title="选择初始主控干员"
+            disabled={isBrowseMode || !onConfigureInitialController}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onConfigureInitialController?.();
+            }}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M1.5 4h8V1.5L14.5 8l-5 6.5V12h-8z" />
+            </svg>
+            <span>主控</span>
+          </button>
+        ) : null}
         {LINE_ROW_INDICES.map((_, lineIndex) => {
           const character = selectedCharacters[lineIndex];
           const lineCenterY = getGridLineCenterY(lineIndex);
@@ -1024,16 +1056,25 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
             >
               <div className="canvas-staff-line" />
 
-              {staffIndex === 0 && lineIndex === 0 && character ? (
-                <svg
+              {staffIndex === 0
+              && character?.id === resolvedInitialControllerCharacterId ? (
+                <button
+                  type="button"
                   className="canvas-controlled-operator-marker"
-                  viewBox="0 0 25 16"
-                  role="img"
-                  aria-label={`${character.name} 为初始主控干员`}
+                  aria-label={`${character.name} 为初始主控干员；点击更换`}
+                  title={`${character.name} · 初始主控；点击更换`}
+                  disabled={isBrowseMode || !onConfigureInitialController}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onConfigureInitialController?.();
+                  }}
                 >
-                  <path d="M1 3.5h15.5V1l7 7-7 7v-2.5H1z" />
-                  <circle cx="7" cy="8" r="2.2" />
-                </svg>
+                  <svg viewBox="0 0 25 16" aria-hidden="true">
+                    <path d="M1 3.5h15.5V1l7 7-7 7v-2.5H1z" />
+                    <circle cx="7" cy="8" r="2.2" />
+                  </svg>
+                </button>
               ) : null}
 
               <div className="canvas-staff-line-label">

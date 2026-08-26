@@ -1,0 +1,271 @@
+/**
+ * App 根组件
+ * 路由页面按需执行；常用模块在浏览器空闲时依次抢跑，避免首次点击等待。
+ */
+
+import {
+  Component,
+  lazy,
+  Suspense,
+  useEffect,
+  useState,
+  type ErrorInfo,
+  type ReactNode,
+} from 'react';
+import { AppShell } from './components/WebApp/AppShell';
+import { DataWorkspacePage } from './components/WebApp/DataWorkspacePage';
+import { SettingsPage } from './components/WebApp/SettingsPage';
+import { ResourcePackagerPage } from './components/WebApp/ResourcePackagerPage';
+import { StartPage } from './components/WebApp/StartPage';
+import {
+  APP_ROUTE_PATHS,
+  getCurrentAppPath,
+  getTacticalShareId,
+  getTimelineSkillDetailButtonId,
+} from './utils/appRoute';
+import { getAppHostExtension } from './platform/host/appHost';
+import './styles/global.css';
+
+const loadWorkbenchFrame = () => import('./components/WorkbenchFrame');
+const loadOperatorDraftPage = () => import('./components/OperatorDraftPage');
+const loadBuffDraftPage = () => import('./components/BuffDraftPage');
+const loadWeaponDraftPage = () => import('./components/WeaponDraftPage');
+const loadEquipmentSheetPage = () => import('./components/EquipmentSheetPage');
+const loadDamageReportPptPage = () => import('./components/DamageReportPptPage');
+const loadDesktopTacticalSharePage = () => import('./components/DesktopTacticalSharePage');
+const loadImageManagerPage = () => import('./components/ImageManagerPage');
+const loadOperatorConfigPage = () => import('./components/OperatorConfigPage');
+
+const WorkbenchFrame = lazy(async () => ({
+  default: (await loadWorkbenchFrame()).WorkbenchFrame,
+}));
+const OperatorDraftPage = lazy(async () => ({
+  default: (await loadOperatorDraftPage()).OperatorDraftPage,
+}));
+const BuffDraftSheetPage = lazy(async () => ({
+  default: (await loadBuffDraftPage()).BuffDraftSheetPage,
+}));
+const WeaponDraftSheetPage = lazy(async () => ({
+  default: (await loadWeaponDraftPage()).WeaponDraftSheetPage,
+}));
+const EquipmentSheetPage = lazy(async () => ({
+  default: (await loadEquipmentSheetPage()).EquipmentSheetPage,
+}));
+const DamageReportPptPage = lazy(async () => ({
+  default: (await loadDamageReportPptPage()).DamageReportPptPage,
+}));
+const DesktopTacticalSharePage = lazy(async () => ({
+  default: (await loadDesktopTacticalSharePage()).DesktopTacticalSharePage,
+}));
+const ImageManagerPage = lazy(async () => ({
+  default: (await loadImageManagerPage()).ImageManagerPage,
+}));
+const OperatorConfigPage = lazy(async () => ({
+  default: (await loadOperatorConfigPage()).OperatorConfigPage,
+}));
+
+const routePreloaders = [
+  loadWorkbenchFrame,
+  loadOperatorConfigPage,
+  loadDamageReportPptPage,
+  loadOperatorDraftPage,
+  loadBuffDraftPage,
+  loadWeaponDraftPage,
+  loadEquipmentSheetPage,
+  loadImageManagerPage,
+] as const;
+
+function isOverlayPath(path: string): boolean {
+  return path === APP_ROUTE_PATHS.root
+    || path === APP_ROUTE_PATHS.welcome
+    || path === APP_ROUTE_PATHS.dataWorkspace
+    || path === APP_ROUTE_PATHS.settings
+    || path === APP_ROUTE_PATHS.resourcePackager;
+}
+
+function isWorkbenchPath(path: string): boolean {
+  return path === APP_ROUTE_PATHS.timelineWorkspace
+    || path.startsWith(`${APP_ROUTE_PATHS.timelineSkillDetail}/`)
+    || getAppHostExtension().routes?.isWorkspacePath?.(path) === true;
+}
+
+function PageLoadingFallback() {
+  return (
+    <main className="web-entry-screen app-route-loading" aria-live="polite">
+      <div className="boot-indicator">
+        <span />
+        <p>正在打开工作区</p>
+      </div>
+    </main>
+  );
+}
+
+function PageLoadFailure({ message }: { message: string }) {
+  const handleRecover = () => {
+    if (window.__DMG_RECOVER_STARTUP__) {
+      window.__DMG_RECOVER_STARTUP__();
+      return;
+    }
+    window.location.reload();
+  };
+
+  return (
+    <main className="web-entry-screen app-route-loading" role="alert">
+      <div className="boot-indicator">
+        <p>工作区模块没有完整载入</p>
+        <small>{message}</small>
+        <button type="button" onClick={handleRecover}>检查并重新载入</button>
+      </div>
+    </main>
+  );
+}
+
+class RouteLoadBoundary extends Component<
+  { children: ReactNode },
+  { message: string | null }
+> {
+  state = { message: null as string | null };
+
+  static getDerivedStateFromError(error: unknown) {
+    return {
+      message: error instanceof Error ? error.message : String(error),
+    };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('Route module failed to render.', error, info);
+  }
+
+  render() {
+    if (this.state.message) return <PageLoadFailure message={this.state.message} />;
+    return this.props.children;
+  }
+}
+
+function IdleWorkbenchBackdrop() {
+  return <div className="workbench-idle-backdrop" aria-hidden="true" />;
+}
+
+function App() {
+  const hostExtension = getAppHostExtension();
+  const [currentPath, setCurrentPath] = useState(() => {
+    if (typeof window === 'undefined') return APP_ROUTE_PATHS.root;
+    return getCurrentAppPath(window.location);
+  });
+  const [workspaceActivated, setWorkspaceActivated] = useState(
+    () => isWorkbenchPath(currentPath),
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const syncCurrentPath = () => {
+      setCurrentPath(getCurrentAppPath(window.location));
+    };
+
+    window.addEventListener('hashchange', syncCurrentPath);
+    window.addEventListener('popstate', syncCurrentPath);
+    syncCurrentPath();
+
+    return () => {
+      window.removeEventListener('hashchange', syncCurrentPath);
+      window.removeEventListener('popstate', syncCurrentPath);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isWorkbenchPath(currentPath)) setWorkspaceActivated(true);
+  }, [currentPath]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let idleHandle: number | null = null;
+    let timerHandle: ReturnType<typeof globalThis.setTimeout> | null = null;
+    let preloadIndex = 1;
+
+    const scheduleNext = () => {
+      if (cancelled || preloadIndex >= routePreloaders.length) return;
+      const run = () => {
+        if (cancelled) return;
+        const preload = routePreloaders[preloadIndex];
+        preloadIndex += 1;
+        void preload().catch(() => undefined).finally(scheduleNext);
+      };
+      const requestIdle = (window as unknown as {
+        requestIdleCallback?: Window['requestIdleCallback'];
+      }).requestIdleCallback;
+      if (typeof requestIdle === 'function') {
+        idleHandle = requestIdle.call(window, run, { timeout: 2_000 });
+      } else {
+        timerHandle = globalThis.setTimeout(run, 450);
+      }
+    };
+
+    // The timeline is the primary interaction target. Start its module fetch
+    // immediately; secondary pages can continue to use idle-time preloading.
+    void loadWorkbenchFrame().catch(() => undefined).finally(scheduleNext);
+    return () => {
+      cancelled = true;
+      const cancelIdle = (window as unknown as {
+        cancelIdleCallback?: Window['cancelIdleCallback'];
+      }).cancelIdleCallback;
+      if (idleHandle !== null && typeof cancelIdle === 'function') {
+        cancelIdle.call(window, idleHandle);
+      }
+      if (timerHandle !== null) globalThis.clearTimeout(timerHandle);
+    };
+  }, []);
+
+  const hostRoute = hostExtension.routes?.resolve?.(currentPath) ?? null;
+  if (hostRoute?.kind === 'exclusive') {
+    return (
+      <div className="app">
+        <RouteLoadBoundary key={hostRoute.boundaryKey || currentPath}>
+          <Suspense fallback={<PageLoadingFallback />}>{hostRoute.node}</Suspense>
+        </RouteLoadBoundary>
+      </div>
+    );
+  }
+
+  let page: ReactNode;
+  let overlay: ReactNode = null;
+  if (isOverlayPath(currentPath)) {
+    page = workspaceActivated ? <WorkbenchFrame /> : <IdleWorkbenchBackdrop />;
+    if (currentPath === APP_ROUTE_PATHS.dataWorkspace) overlay = <DataWorkspacePage />;
+    else if (currentPath === APP_ROUTE_PATHS.settings) overlay = <SettingsPage />;
+    else if (currentPath === APP_ROUTE_PATHS.resourcePackager) overlay = <ResourcePackagerPage />;
+    else overlay = <StartPage />;
+  } else if (currentPath === APP_ROUTE_PATHS.draft) {
+    page = <OperatorDraftPage />;
+  } else if (currentPath === APP_ROUTE_PATHS.buffSheet) {
+    page = <BuffDraftSheetPage />;
+  } else if (currentPath === APP_ROUTE_PATHS.weaponSheet) {
+    page = <WeaponDraftSheetPage />;
+  } else if (currentPath === APP_ROUTE_PATHS.equipmentSheet) {
+    page = <EquipmentSheetPage />;
+  } else if (currentPath === APP_ROUTE_PATHS.damageReportPpt) {
+    page = <DamageReportPptPage />;
+  } else if (getTacticalShareId(currentPath)) {
+    page = <DesktopTacticalSharePage />;
+  } else if (currentPath === APP_ROUTE_PATHS.imageManager) {
+    page = <ImageManagerPage />;
+  } else if (currentPath === APP_ROUTE_PATHS.operatorConfig) {
+    page = <OperatorConfigPage />;
+  } else if (hostRoute) {
+    page = hostRoute.node;
+  } else {
+    const activeSkillButtonId = getTimelineSkillDetailButtonId(currentPath);
+    page = <WorkbenchFrame activeSkillButtonId={activeSkillButtonId} />;
+  }
+
+  return (
+    <div className="app">
+      <AppShell currentPath={currentPath} overlay={overlay}>
+        <RouteLoadBoundary key={hostRoute?.boundaryKey || (isWorkbenchPath(currentPath) ? 'workbench' : currentPath)}>
+          <Suspense fallback={<PageLoadingFallback />}>{page}</Suspense>
+        </RouteLoadBoundary>
+      </AppShell>
+    </div>
+  );
+}
+
+export default App;

@@ -1,0 +1,227 @@
+import assert from 'node:assert/strict';
+import {
+  applyBuffCategory,
+  applyBuffEffectKind,
+  buildFallbackEffectDisplayName,
+  buildBuffDraftIdFromName,
+  buildBuffSheetRows,
+  createDefaultBuffEffect,
+  formatBuffEffectValueText,
+  formatEffectValueForDisplay,
+  getNextDraftId,
+  normalizeBuffDraft,
+  parseImportedBuffDraft,
+  reorderDraftStructure,
+  sanitizeExplicitEffectDisplayName,
+  setBuffMaxStacks,
+  setBuffMultiplierCoefficient,
+  type BuffDraft,
+} from './buffDraftModel';
+
+const legacyDraft = normalizeBuffDraft({
+  id: ' legacy-buff ',
+  name: ' 旧格式 Buff ',
+  sourceName: ' 测试来源 ',
+  source: ' local_custom ',
+  buffs: {
+    'buff-7': {
+      name: 'legacy_magic_vulnerability',
+      type: 'magicTakenDmgBonus',
+      value: 15,
+      category: 'positive' as never,
+      source: '',
+      sourceName: '',
+    },
+  },
+});
+
+assert.equal(legacyDraft.id, 'legacy-buff');
+assert.equal(legacyDraft.name, '旧格式 Buff');
+assert.equal(legacyDraft.sourceName, '测试来源');
+assert.deepEqual(Object.keys(legacyDraft.items), ['item-1']);
+
+const legacyEffect = legacyDraft.items['item-1'].effects['buff-7'];
+assert.equal(legacyEffect.id, 'buff-7');
+assert.equal(legacyEffect.type, 'magicVulnerability');
+assert.equal(legacyEffect.category, 'passive');
+assert.equal(legacyEffect.displayName, '15%法术脆弱');
+assert.equal(legacyEffect.sourceName, '测试来源');
+assert.deepEqual(normalizeBuffDraft(legacyDraft), legacyDraft, 'normalization must be idempotent');
+
+assert.equal(buildBuffDraftIdFromName('潮涌'), 'chaoyong');
+assert.equal(buildBuffDraftIdFromName('  '), '');
+assert.equal(getNextDraftId(['custom-buff-001', 'custom-buff-002']), 'custom-buff-003');
+
+assert.equal(formatEffectValueForDisplay({ type: 'physicalDmgBonus', value: 12.5 }), '12.5%');
+assert.equal(formatEffectValueForDisplay({ type: 'multiplierBonus', value: 1.25 }), '1.25x');
+assert.equal(formatEffectValueForDisplay({ type: 'multiplierBonus', value: 3 }), '3');
+assert.equal(formatEffectValueForDisplay({ type: 'flatAtk', value: 42 }), '42');
+assert.equal(formatEffectValueForDisplay({ type: 'flatAtk', value: 0 }), '');
+assert.equal(formatEffectValueForDisplay({ type: 'flatAtk', value: Number.NaN }), '');
+
+assert.equal(
+  sanitizeExplicitEffectDisplayName('说明，20%20%物理伤害加成', '物理伤害加成'),
+  '说明，物理伤害加成',
+  'repeated numeric prefixes before a type label must be removed once',
+);
+assert.equal(
+  sanitizeExplicitEffectDisplayName('说明：20%30%物理伤害加成 +5%', '物理伤害加成'),
+  '说明：物理伤害加成 +5%',
+  'concatenated natural-language values before a signed clause must be removed',
+);
+assert.equal(
+  sanitizeExplicitEffectDisplayName('自然语言物理伤害加成效果', '物理伤害加成'),
+  '自然语言物理伤害加成效果',
+  'ordinary user-authored display names must remain untouched',
+);
+assert.equal(
+  sanitizeExplicitEffectDisplayName('20%20%伤害(%)', '伤害(%)'),
+  '伤害(%)',
+  'type labels containing regular-expression characters must be escaped',
+);
+
+const generatedPhysicalName = buildFallbackEffectDisplayName('buff-7', {
+  displayName: 'Buff 效果 07',
+  name: 'custom_buff_007',
+  type: 'physicalDmgBonus',
+  value: 12,
+}, 'Buff 效果 07');
+assert.equal(generatedPhysicalName, '12%物理伤害加成');
+assert.equal(
+  buildFallbackEffectDisplayName('buff-7', {
+    displayName: '物理伤害加成',
+    type: 'physicalDmgBonus',
+    value: 12,
+  }, 'Buff 效果 07'),
+  generatedPhysicalName,
+  'a bare type label and a generated default must normalize identically',
+);
+assert.equal(
+  buildFallbackEffectDisplayName('buff-7', {
+    displayName: generatedPhysicalName,
+    type: 'physicalDmgBonus',
+    value: 12,
+  }, 'Buff 效果 07'),
+  generatedPhysicalName,
+  'generated display names must be idempotent',
+);
+assert.equal(
+  buildFallbackEffectDisplayName('buff-7', {
+    name: 'meaningful_internal_name',
+    type: '',
+  }, 'Buff 效果 07'),
+  'meaningful_internal_name',
+);
+assert.equal(
+  buildFallbackEffectDisplayName('buff-7', {
+    name: 'custom_buff_007',
+    description: '12345678901234567890',
+    type: '',
+  }, 'Buff 效果 07'),
+  '123456789012345678...',
+);
+
+assert.equal(formatBuffEffectValueText({ type: 'physicalAmplify', value: 12.5 }), '12.5%');
+assert.equal(formatBuffEffectValueText({ multiplier: { coefficient: 1.75 } }), '×1.75');
+assert.equal(formatBuffEffectValueText({
+  effectKind: 'extraHit',
+  extraHitConfig: { baseMultiplier: 3 } as never,
+}), '3x');
+
+const baseEffect = {
+  ...createDefaultBuffEffect('buff-3', '测试来源'),
+  type: 'physicalDmgBonus',
+  value: 20,
+  category: 'countable' as const,
+  maxStacks: 4,
+};
+const multiplierEffect = {
+  ...baseEffect,
+  category: 'condition' as const,
+  value: undefined,
+  multiplier: { coefficient: 1 },
+};
+assert.equal(multiplierEffect.effectKind, 'modifier');
+assert.equal(multiplierEffect.type, 'physicalDmgBonus');
+assert.equal(multiplierEffect.category, 'condition');
+assert.equal(multiplierEffect.value, undefined);
+assert.deepEqual(multiplierEffect.multiplier, { coefficient: 1 });
+
+const multiplierCannotBecomeCountable = applyBuffCategory(multiplierEffect, 'countable');
+assert.equal(multiplierCannotBecomeCountable.category, 'condition');
+assert.equal(multiplierCannotBecomeCountable.maxStacks, undefined);
+assert.deepEqual(setBuffMultiplierCoefficient(multiplierEffect, -3).multiplier, { coefficient: 1 });
+assert.deepEqual(setBuffMultiplierCoefficient(multiplierEffect, 1.75).multiplier, { coefficient: 1.75 });
+assert.equal(setBuffMaxStacks(baseEffect, 3.9).maxStacks, 3);
+assert.equal(setBuffMaxStacks(baseEffect, Number.NaN).maxStacks, 1);
+
+const extraHit = applyBuffEffectKind({
+  ...baseEffect,
+  category: 'condition',
+  multiplier: { coefficient: 1.5 },
+}, 'extraHit');
+assert.equal(extraHit.type, '');
+assert.equal(extraHit.value, 0);
+assert.equal(extraHit.category, 'condition');
+assert.equal(extraHit.multiplier, undefined);
+assert.deepEqual(extraHit.extraHitConfig, {
+  key: 'dianjian',
+  damageType: 'physical',
+  skillType: '',
+  baseMultiplier: 2.5,
+  imbalanceValue: 10,
+  cooldownSeconds: 15,
+  trigger: 'physicalAbnormal',
+  formulaMode: 'inherited',
+  levelCurve: 'physicalAnomaly',
+});
+const countableExtraHit = applyBuffCategory(extraHit, 'countable');
+assert.equal(countableExtraHit.category, 'countable');
+assert.equal(countableExtraHit.maxStacks, 1);
+assert.equal(applyBuffCategory(extraHit, 'condition').category, 'condition');
+assert.equal(applyBuffCategory(extraHit, 'passive').category, 'condition');
+
+const secondEffect = {
+  ...legacyEffect,
+  id: 'buff-2',
+  name: 'kept_name',
+  displayName: '保留名称',
+};
+const unorderedDraft: BuffDraft = {
+  ...legacyDraft,
+  items: {
+    'item-9': {
+      ...legacyDraft.items['item-1'],
+      id: 'item-9',
+      name: '',
+      sourceName: '',
+      effects: {
+        'buff-8': {
+          ...legacyEffect,
+          id: 'buff-8',
+          name: '',
+          displayName: '',
+          sourceName: '',
+        },
+        'buff-2': secondEffect,
+      },
+    },
+  },
+};
+const reordered = reorderDraftStructure(unorderedDraft);
+assert.deepEqual(Object.keys(reordered.items), ['item-1']);
+assert.deepEqual(Object.keys(reordered.items['item-1'].effects), ['buff-1', 'buff-2']);
+assert.equal(reordered.items['item-1'].id, 'item-1');
+assert.equal(reordered.items['item-1'].name, '自定义项 01');
+assert.equal(reordered.items['item-1'].sourceName, '测试来源');
+assert.equal(reordered.items['item-1'].effects['buff-1'].id, 'buff-1');
+assert.equal(reordered.items['item-1'].effects['buff-1'].displayName, 'Buff 效果 01');
+assert.equal(reordered.items['item-1'].effects['buff-1'].name, 'custom_buff_001');
+assert.equal(reordered.items['item-1'].effects['buff-2'].displayName, '保留名称');
+assert.deepEqual(Object.keys(unorderedDraft.items), ['item-9'], 'reorder must not mutate the source');
+
+assert.deepEqual(buildBuffSheetRows(reordered).map((row) => row.kind), ['group', 'item', 'effect', 'effect']);
+assert.throws(() => parseImportedBuffDraft('{}'), /JSON 缺少 id \/ name/);
+assert.equal(parseImportedBuffDraft(JSON.stringify(legacyDraft)).id, 'legacy-buff');
+
+console.log('Buff draft model characterization contract: PASS');

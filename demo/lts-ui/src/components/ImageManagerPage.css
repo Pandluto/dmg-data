@@ -1,0 +1,491 @@
+/* ── ImageManager: thin overrides on top of damage-sheet / buff-sheet system ── */
+
+/* 3-column workspace - ImageManager 专属布局 */
+.image-manager-workspace {
+  grid-template-columns: 220px minmax(0, 1fr) 280px;
+}
+
+/* ── Toast ── */
+.image-manager-toast {
+  position: fixed;
+  top: 68px;
+  right: 16px;
+  z-index: 3200;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 8px 12px;
+  border: 1px solid var(--office-border, #d1d1d1);
+  background: var(--ide-bg-hover, #edf5f0);
+  color: var(--excel-green-deep, #185c37);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.45;
+  box-shadow: 0 8px 24px rgba(23, 30, 44, 0.18);
+  pointer-events: none;
+}
+
+/* ── Explorer: sidebar hint ── */
+.image-manager-sidebar-hint {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 10px;
+  color: #8e7130;
+  border-top: 1px solid var(--office-border, #d1d1d1);
+  flex-shrink: 0;
+}
+
+/* ── Host status diagnostic (bottom of explorer sidebar) ── */
+.image-manager-host-status {
+  border-top: 1px solid var(--office-border, #d1d1d1);
+  flex-shrink: 0;
+}
+
+.image-manager-host-status-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  color: var(--text-muted, #5f6f65);
+  text-align: left;
+}
+
+.image-manager-host-status-toggle:hover {
+  background: var(--ide-bg-hover, #edf5f0);
+}
+
+.image-manager-host-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.image-manager-mode-browser-readonly { background: #8e908c; }
+.image-manager-mode-browser-backend { background: #4a90d9; }
+
+.image-manager-host-status-label {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.image-manager-host-status-warn {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #c44;
+  font-size: 9px;
+  min-width: 0;
+}
+
+.image-manager-host-status-detail {
+  padding: 4px 10px 8px;
+  font-size: 10px;
+  display: grid;
+  gap: 2px;
+}
+
+.image-manager-host-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.image-manager-host-status-key {
+  color: var(--text-muted, #5f6f65);
+}
+
+.image-manager-host-status-val {
+  color: var(--office-body, #333333);
+  font-weight: 600;
+}
+
+.image-manager-host-status-bool {
+  font-weight: 600;
+}
+
+.image-manager-host-status-bool.is-ok {
+  color: var(--excel-green-main, #217346);
+}
+
+.image-manager-host-status-bool.is-missing {
+  color: #c44;
+}
+
+/* ── Asset list table (default view) ── */
+.image-manager-asset-table-wrap {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+.image-manager-asset-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.image-manager-asset-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 6px 8px;
+  border-right: 1px solid var(--office-border, #d1d1d1);
+  border-bottom: 1px solid var(--office-border, #d1d1d1);
+  background: var(--office-workspace-panel-bg, #e8ebf0);
+  color: var(--text-muted, #5f6f65);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.image-manager-asset-table td {
+  padding: 4px 8px;
+  border-right: 1px solid var(--office-border, #d1d1d1);
+  border-bottom: 1px solid var(--office-border, #d1d1d1);
+  font-size: 11px;
+  color: var(--office-body, #333333);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.image-manager-asset-table tr:hover td {
+  background: var(--ide-bg-hover, #edf5f0);
+}
+
+.image-manager-asset-table tr.is-selected td {
+  background: var(--ide-bg-active, #e1f0e7);
+}
+
+.image-manager-asset-table .col-thumb { width: 56px; text-align: center; }
+.image-manager-asset-table .col-name  { width: auto; }
+.image-manager-asset-table .col-dir   { width: 120px; }
+.image-manager-asset-table .col-type  { width: 60px; text-align: center; }
+.image-manager-asset-table .col-size  { width: 80px; text-align: right; }
+.image-manager-asset-table .col-stat  { width: 60px; text-align: center; }
+
+.image-manager-table-thumb {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+.image-manager-table-thumb-box {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  background-color: #2a2a2a;
+  background-image:
+    linear-gradient(45deg, #3a3a3a 25%, transparent 25%),
+    linear-gradient(-45deg, #3a3a3a 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #3a3a3a 75%),
+    linear-gradient(-45deg, transparent 75%, #3a3a3a 75%);
+  background-size: 12px 12px;
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-manager-stat-writable { color: var(--excel-green-main, #217346); font-weight: 600; }
+.image-manager-stat-readonly { color: #8e7130; }
+
+/* ── Asset grid (secondary view) ── */
+.image-manager-asset-grid {
+  flex: 1;
+  overflow: auto;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 80px);
+  gap: 8px;
+  align-content: start;
+  justify-content: center;
+}
+
+.image-manager-grid-cell {
+  width: 80px;
+}
+
+.image-manager-grid-item {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--office-border, #d1d1d1);
+  background: var(--office-card-bg, #ffffff);
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  overflow: hidden;
+}
+
+.image-manager-grid-item:hover {
+  border-color: var(--excel-green-main, #217346);
+  background: var(--ide-bg-hover, #edf5f0);
+}
+
+.image-manager-grid-item.is-selected {
+  border-color: var(--excel-green-main, #217346);
+  background: var(--ide-bg-active, #e1f0e7);
+  box-shadow: 0 0 0 1px var(--excel-green-main, #217346);
+}
+
+.image-manager-grid-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: block;
+  overflow: hidden;
+  background-color: #2a2a2a;
+  background-image:
+    linear-gradient(45deg, #3a3a3a 25%, transparent 25%),
+    linear-gradient(-45deg, #3a3a3a 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #3a3a3a 75%),
+    linear-gradient(-45deg, transparent 75%, #3a3a3a 75%);
+  background-size: 12px 12px;
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
+}
+
+.image-manager-grid-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
+}
+
+.image-manager-grid-fallback {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #5f6f65;
+  z-index: 2;
+}
+
+.image-manager-grid-info {
+  padding: 2px 4px;
+  border-top: 1px solid var(--office-border, #d1d1d1);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.image-manager-grid-name {
+  display: block;
+  font-size: 10px;
+  color: var(--office-body, #333333);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.image-manager-grid-lock {
+  font-size: 9px;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+/* ── Preview panel (right sidebar) ── */
+.image-manager-preview-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  min-height: 0;
+}
+
+.image-manager-preview-image {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--office-border, #d1d1d1);
+  min-height: 160px;
+  max-height: 220px;
+  overflow: hidden;
+  background-color: #2a2a2a;
+  background-image:
+    linear-gradient(45deg, #3a3a3a 25%, transparent 25%),
+    linear-gradient(-45deg, #3a3a3a 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #3a3a3a 75%),
+    linear-gradient(-45deg, transparent 75%, #3a3a3a 75%);
+  background-size: 14px 14px;
+  background-position: 0 0, 0 7px, 7px -7px, -7px 0px;
+}
+
+.image-manager-preview-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
+}
+
+.image-manager-preview-fallback {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: #5f6f65;
+  z-index: 2;
+}
+
+.image-manager-preview-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px;
+  border-bottom: 1px solid var(--office-border, #d1d1d1);
+}
+
+.image-manager-preview-index {
+  font-size: 11px;
+  color: var(--text-muted, #5f6f65);
+  min-width: 50px;
+  text-align: center;
+}
+
+.image-manager-preview-meta {
+  padding: 8px 10px;
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.image-manager-preview-meta dt {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #5f6f65);
+  margin: 0;
+}
+
+.image-manager-preview-meta dd {
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: var(--office-body, #333333);
+  word-break: break-all;
+}
+
+.image-manager-preview-path {
+  font-size: 10px !important;
+  color: var(--text-muted, #5f6f65) !important;
+  font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", monospace;
+}
+
+/* ── Preview actions ── */
+.image-manager-preview-actions {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--office-border, #d1d1d1);
+}
+
+/* ── Rename modal input ── */
+.image-manager-rename-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--excel-green-main, #217346);
+  background: var(--office-card-bg, #ffffff);
+  color: var(--office-body, #333333);
+  font: inherit;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+
+.image-manager-rename-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(80, 200, 120, 0.28);
+}
+
+/* ── Empty state in excel shell ── */
+.image-manager-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted, #5f6f65);
+  font-size: 12px;
+}
+
+/* ── Directory context menu ── */
+.image-manager-ctx-menu-overlay {
+  display: block;
+  place-items: initial;
+  padding: 0;
+  background: transparent;
+}
+
+.image-manager-ctx-menu {
+  position: fixed;
+  z-index: 3001;
+  background: var(--office-card-bg, #ffffff);
+  border: 1px solid var(--office-border, #d1d1d1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 0;
+  min-width: 180px;
+}
+
+.image-manager-ctx-menu-header {
+  padding: 4px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted, #5f6f65);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--office-border, #d1d1d1);
+  white-space: nowrap;
+}
+
+.image-manager-ctx-menu button {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  background: none;
+  color: var(--office-body, #333333);
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.image-manager-ctx-menu button:hover:not(:disabled) {
+  background: var(--ide-bg-hover, #edf5f0);
+}
+
+.image-manager-ctx-menu button:disabled {
+  color: #b0b8b2;
+  cursor: not-allowed;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1280px) {
+  .image-manager-workspace {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}

@@ -1,0 +1,2121 @@
+.canvas-skill-button {
+  position: absolute;
+  cursor: grab;
+  z-index: 10;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  touch-action: none;
+}
+
+.canvas-skill-button:hover {
+  z-index: 20;
+}
+
+.canvas-skill-button.selected {
+  z-index: 30;
+}
+
+.canvas-skill-button.dragging {
+  cursor: grabbing;
+  z-index: 40;
+  opacity: 0.86;
+}
+
+.canvas-skill-button.is-browse-mode {
+  cursor: default;
+}
+
+.canvas-skill-button.is-drag-disabled {
+  cursor: default;
+  touch-action: auto;
+}
+
+.canvas-skill-button.is-basic-tail-bundled {
+  cursor: default;
+}
+
+.canvas-skill-button.is-basic-tail-bundled .skill-button-orb {
+  box-shadow:
+    0 0 0 2px rgba(245, 255, 253, 0.94),
+    0 0 0 4px rgba(33, 117, 125, 0.72),
+    0 0 14px rgba(61, 169, 174, 0.44);
+}
+
+.skill-button-tail-bundle-badge {
+  position: absolute;
+  left: 4px;
+  top: -58px;
+  z-index: 7;
+  min-width: 44px;
+  box-sizing: border-box;
+  padding: 3px 6px;
+  border: 1px solid rgba(30, 92, 99, 0.7);
+  border-radius: 999px;
+  background: rgba(231, 249, 247, 0.96);
+  color: #205d64;
+  font-size: 8px;
+  font-weight: 850;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 3px 10px rgba(23, 75, 80, 0.18);
+}
+
+.canvas-skill-button.is-timeline-module .skill-button-base {
+  border-color: rgba(0, 0, 0, 0.78);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: none;
+}
+
+.canvas-skill-button.is-timeline-module .skill-button-orb {
+  border-color: rgba(0, 0, 0, 0.82);
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.canvas-skill-button.is-timeline-module.is-forced-wait .skill-button-orb {
+  border-radius: 2px;
+}
+
+.canvas-skill-button.is-timeline-module.is-perfect-dodge .skill-button-base {
+  box-shadow: inset 0 -3px 0 #bc641b;
+}
+
+.canvas-skill-button.is-basic-tail-successor .skill-button-tail-bundle-badge {
+  background: rgba(35, 103, 111, 0.96);
+  color: #f3fffe;
+}
+
+.skill-button-anchor {
+  position: absolute;
+  left: var(--skill-button-radius);
+  top: var(--skill-button-radius);
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.skill-button-composite-outline {
+  position: absolute;
+  display: none;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.skill-button-composite-outline path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.skill-button-composite-outline-liquid-depth-path,
+.skill-button-composite-outline-liquid-path {
+  display: none;
+}
+
+.skill-button-base {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 80px;
+  height: 30px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  padding: 2px 10px 2px calc(var(--skill-button-radius) + 4px);
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.72);
+  border-radius: 0;
+  box-shadow: none;
+  transition:
+    border-color 0.14s ease,
+    box-shadow 0.14s ease,
+    filter 0.14s ease,
+    background-color 0.14s ease;
+}
+
+.skill-button-ake-runtime {
+  position: absolute;
+  left: 0;
+  top: 32px;
+  width: 80px;
+  min-height: 22px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 4px;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 2px 3px;
+  border: 1px solid rgba(0, 0, 0, 0.52);
+  background: rgba(255, 255, 255, 0.94);
+  color: #111;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 7px;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.skill-button-ake-time {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 800;
+}
+
+.skill-button-ake-atb-value {
+  white-space: nowrap;
+  font-size: 6px;
+  font-weight: 700;
+}
+
+.skill-button-ake-atb {
+  position: relative;
+  grid-column: 1 / -1;
+  height: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.42);
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.skill-button-ake-atb > i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.skill-button-ake-atb-ordinary {
+  left: 0;
+  background: #61a8d5;
+}
+
+.skill-button-ake-atb-returned {
+  background: #f1b84b;
+}
+
+.canvas-skill-button.is-ake-failed .skill-button-ake-runtime,
+.canvas-skill-button.is-ake-expired .skill-button-ake-runtime {
+  border-color: rgba(153, 43, 35, 0.8);
+  background: rgba(255, 238, 235, 0.96);
+  color: #842d26;
+}
+
+.canvas-skill-button.is-ake-queued-then-executed .skill-button-ake-runtime {
+  border-color: rgba(153, 105, 20, 0.76);
+  background: rgba(255, 249, 229, 0.96);
+}
+
+/* AKE 实时时序按钮：单格宽度，上格放圆形技能键，下格放一格高的时间光标。 */
+:root .canvas-skill-button.has-ake-preview {
+  z-index: 12;
+}
+
+:root .canvas-skill-button.has-ake-preview .skill-button-anchor {
+  left: 0;
+  top: 45px;
+}
+
+:root .canvas-skill-button.has-ake-preview .skill-button-composite-outline,
+:root .canvas-skill-button.has-ake-preview .skill-button-ake-runtime {
+  display: none !important;
+}
+
+/* The shared timeline owns both time flags; the button keeps only its orb and label. */
+:root .canvas-skill-button.has-ake-preview.uses-shared-projection .skill-button-base {
+  display: none !important;
+}
+
+:root .canvas-skill-button.has-ake-preview .skill-button-base {
+  --ake-time-cursor-inset: 4px;
+  --ake-time-cursor-color: #bff7ff;
+  --ake-time-cap-ink: #17546a;
+  left: 0;
+  top: -10px;
+  width: 80px;
+  height: 20px;
+  display: block;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  clip-path: none;
+}
+
+:root .canvas-skill-button.has-ake-preview .skill-button-base::before,
+:root .canvas-skill-button.has-ake-preview .skill-button-base::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  width: 3px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--ake-time-cursor-color);
+  box-shadow:
+    0 0 0 1px rgba(29, 92, 111, 0.68),
+    0 0 5px rgba(69, 206, 239, 0.92),
+    0 0 10px rgba(69, 206, 239, 0.4);
+  transform-origin: center;
+}
+
+:root .canvas-skill-button.has-ake-preview .skill-button-base::before {
+  left: var(--ake-time-cursor-inset);
+}
+
+:root .canvas-skill-button.has-ake-preview .skill-button-base::after {
+  right: var(--ake-time-cursor-inset);
+}
+
+/* 上格左半区放 24px 圆钮，右半区留给简短技能类型。 */
+:root .canvas-skill-button.has-ake-preview .skill-button-orb {
+  transform: translate(16px, -30px);
+  border-width: 1px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82), 0 0 0 2px rgba(30, 58, 68, 0.5);
+}
+
+:root .canvas-skill-button.has-ake-preview .skill-button-orb .skill-label {
+  font-size: 9px;
+}
+
+.skill-button-temporal-kind {
+  position: absolute;
+  left: 32px;
+  top: -43px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  width: 46px;
+  height: 26px;
+  overflow: hidden;
+  color: #263940;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.canvas-skill-button.is-ake-enhanced-form .skill-button-temporal-kind {
+  color: #674496;
+  font-size: 9px;
+  letter-spacing: -0.04em;
+}
+
+:root .canvas-skill-button.has-ake-preview .skill-button-name {
+  display: none;
+}
+
+.skill-button-temporal-energy,
+.skill-button-temporal-verdict {
+  position: absolute;
+  left: 108px;
+  width: 47px;
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9.5px;
+  font-weight: 800;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skill-button-temporal-energy {
+  top: 13px;
+  color: #69499a;
+}
+
+.skill-button-temporal-verdict {
+  top: 22px;
+  color: #247060;
+}
+
+:root .canvas-skill-button.has-ake-preview .skill-button-temporal-energy,
+:root .canvas-skill-button.has-ake-preview .skill-button-temporal-verdict {
+  display: none;
+}
+
+.canvas-skill-button.is-ake-verdict-queued .skill-button-temporal-verdict {
+  color: #9a6a16;
+}
+
+.canvas-skill-button.is-ake-verdict-invalid .skill-button-temporal-verdict {
+  color: #a13d33;
+}
+
+.canvas-skill-button.is-ake-verdict-unverified .skill-button-temporal-verdict {
+  color: #74499c;
+}
+
+.skill-button-temporal-meta {
+  position: absolute;
+  inset: 0;
+  color: #31434b;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9px;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.skill-button-temporal-meta b,
+.skill-button-temporal-meta i {
+  position: absolute;
+  top: -6px;
+  z-index: 2;
+  box-sizing: border-box;
+  min-width: 0;
+  height: 13px;
+  padding: 1px 0 2px;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ake-time-cap-ink);
+  font-style: normal;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 9px;
+  text-align: center;
+}
+
+.skill-button-temporal-meta b::after,
+.skill-button-temporal-meta i::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  width: 3px;
+  height: 4px;
+  background: var(--ake-time-cursor-color);
+  box-shadow: 0 0 4px color-mix(in srgb, var(--ake-time-cursor-color) 72%, transparent);
+}
+
+.skill-button-temporal-meta b {
+  left: var(--ake-time-cursor-inset);
+  font-weight: 900;
+}
+
+.skill-button-temporal-meta b::after {
+  left: -1px;
+}
+
+.skill-button-temporal-meta i {
+  right: var(--ake-time-cursor-inset);
+}
+
+.skill-button-temporal-meta i::after {
+  right: -1px;
+}
+
+:root .canvas-skill-button.has-ake-preview:is(.is-ake-preview-queued, .is-ake-preview-queued-then-executed) .skill-button-base {
+  --ake-time-cursor-color: #ffe79a;
+  --ake-time-cap-ink: #79500d;
+}
+
+:root .canvas-skill-button.has-ake-preview:is(.is-ake-preview-insufficient, .is-ake-preview-expired, .is-ake-preview-cooldown, .is-ake-preview-combo-not-ready, .is-ake-verdict-invalid) .skill-button-base {
+  --ake-time-cursor-color: #ffc0b6;
+  --ake-time-cap-ink: #8f342c;
+}
+
+:root .canvas-skill-button.has-ake-preview.is-ake-verdict-unverified .skill-button-base {
+  --ake-time-cursor-color: #d9c2f3;
+  --ake-time-cap-ink: #68418c;
+}
+
+:root .canvas-skill-button.has-ake-preview:is(.is-ake-preview-queued, .is-ake-preview-queued-then-executed) .skill-button-base::before,
+:root .canvas-skill-button.has-ake-preview:is(.is-ake-preview-queued, .is-ake-preview-queued-then-executed) .skill-button-base::after {
+  background: #ffe79a;
+  box-shadow:
+    0 0 0 1px rgba(130, 93, 20, 0.72),
+    0 0 5px rgba(239, 183, 58, 0.94),
+    0 0 10px rgba(239, 183, 58, 0.38);
+}
+
+:root .canvas-skill-button.has-ake-preview:is(.is-ake-preview-insufficient, .is-ake-preview-expired, .is-ake-preview-cooldown, .is-ake-preview-combo-not-ready, .is-ake-verdict-invalid) .skill-button-base::before,
+:root .canvas-skill-button.has-ake-preview:is(.is-ake-preview-insufficient, .is-ake-preview-expired, .is-ake-preview-cooldown, .is-ake-preview-combo-not-ready, .is-ake-verdict-invalid) .skill-button-base::after {
+  background: #ffc0b6;
+  box-shadow:
+    0 0 0 1px rgba(145, 55, 46, 0.78),
+    0 0 5px rgba(218, 78, 65, 0.9),
+    0 0 10px rgba(218, 78, 65, 0.35);
+}
+
+:root .canvas-skill-button.has-ake-preview.is-ake-verdict-unverified .skill-button-base::before,
+:root .canvas-skill-button.has-ake-preview.is-ake-verdict-unverified .skill-button-base::after {
+  background: #d9c2f3;
+  box-shadow:
+    0 0 0 1px rgba(100, 63, 137, 0.76),
+    0 0 5px rgba(142, 91, 194, 0.88),
+    0 0 10px rgba(142, 91, 194, 0.35);
+}
+
+:root .canvas-skill-button.has-ake-preview:hover .skill-button-base::before,
+:root .canvas-skill-button.has-ake-preview:hover .skill-button-base::after,
+:root .canvas-skill-button.has-ake-preview.selected .skill-button-base::before,
+:root .canvas-skill-button.has-ake-preview.selected .skill-button-base::after {
+  box-shadow:
+    0 0 0 1px rgba(18, 63, 78, 0.86),
+    0 0 7px rgba(69, 206, 239, 1),
+    0 0 14px rgba(69, 206, 239, 0.56);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root .canvas-skill-button.has-ake-preview .skill-button-base::before,
+  :root .canvas-skill-button.has-ake-preview .skill-button-base::after {
+    animation: ake-time-flag-in 150ms cubic-bezier(0.2, 0.72, 0.25, 1) both;
+  }
+}
+
+@keyframes ake-time-flag-in {
+  from { opacity: 0.45; transform: scaleY(0.2); }
+  to { opacity: 1; transform: scaleY(1); }
+}
+
+.skill-button-type {
+  color: #111111;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.skill-button-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: #111111;
+  line-height: 1.1;
+  white-space: normal;
+  word-break: break-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  width: 100%;
+}
+
+.skill-button-lock {
+  color: var(--theme-accent-strong);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.skill-button-orb {
+  position: absolute;
+  left: calc(-1 * var(--skill-button-radius));
+  top: calc(-1 * var(--skill-button-radius));
+  width: var(--skill-button-size);
+  height: var(--skill-button-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.72);
+  border-radius: 50%;
+  background: var(--skill-button-element-color);
+  box-shadow: none;
+  z-index: 2;
+  transition:
+    border-color 0.14s ease,
+    box-shadow 0.14s ease,
+    filter 0.14s ease;
+}
+
+.skill-button-orb .skill-icon {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.skill-button-orb .skill-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  color: #111111;
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  pointer-events: none;
+}
+
+.canvas-skill-button.is-browse-mode .skill-button-name {
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1;
+  -webkit-line-clamp: 1;
+  transform: translateY(-1px);
+}
+
+.canvas-skill-button.is-browse-dot .skill-button-orb {
+  opacity: 0;
+}
+
+.canvas-skill-button.is-inspect-mode .skill-button-orb {
+  opacity: 0;
+}
+
+.canvas-skill-button.is-inspect-mode .skill-button-base {
+  height: 60px;
+  padding: 0;
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.canvas-skill-button.is-inspect-mode .skill-button-name {
+  flex: 0 0 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 2px 10px 2px calc(var(--skill-button-radius) + 4px);
+}
+
+.skill-button-inspect-damage {
+  flex: 0 0 30px;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  box-sizing: border-box;
+  padding: 2px 4px;
+  border-top: 1px solid rgba(0, 0, 0, 0.18);
+  color: #111111;
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.skill-button-inspect-damage span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.skill-button-orb .skill-label.hidden {
+  display: none;
+}
+
+.canvas-skill-button:hover .skill-button-base {
+  border-color: rgba(0, 0, 0, 0.9);
+  filter: none;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.canvas-skill-button:hover .skill-button-orb {
+  border-color: rgba(0, 0, 0, 0.9);
+  filter: none;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.canvas-skill-button.selected .skill-button-base {
+  border: 1px solid rgba(0, 0, 0, 0.95);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.canvas-skill-button.selected .skill-button-orb {
+  border-color: rgba(0, 0, 0, 0.95);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.canvas-skill-button.dragging .skill-button-base,
+.canvas-skill-button.dragging .skill-button-orb {
+  filter: none;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+}
+
+.canvas-skill-button.locked .skill-button-base {
+  border-color: rgba(0, 0, 0, 0.72);
+}
+
+/* ==================== 弹窗标题区布局 ==================== */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #DEF;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #000;
+}
+
+/* ==================== 锁定控件样式 ==================== */
+.lock-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid #999;
+  background: #f5f5f5;
+  font-size: 11px;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.lock-control:hover {
+  background: #e8e8e8;
+  border-color: #666;
+}
+
+.lock-control:active {
+  background: #DEF;
+  transform: scale(0.98);
+}
+
+/* 已锁定状态 */
+.lock-control.is-locked {
+  background: #fff0f0;
+  border-color: #c00;
+  color: #900;
+}
+
+.lock-control.is-locked:hover {
+  background: #ffe0e0;
+  border-color: #a00;
+}
+
+.lock-control.is-locked:active {
+  background: #ffd0d0;
+}
+
+/* 锁定图标 */
+.lock-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* 锁定文字 */
+.lock-text {
+  font-size: 10px;
+}
+
+/* 技能等级徽章（当前技能） */
+.skill-level-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  background: #333;
+  color: #fff;
+  border-radius: 3px;
+  margin-left: 4px;
+}
+
+/* ==================== Buff 列表样式 ==================== */
+
+/* Buff 列表区域 */
+.skill-button-buff-section {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #000;
+}
+
+/* Buff 列表标题 */
+.skill-button-buff-section h5 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #000;
+}
+
+/* Buff 列表容器 */
+.skill-button-buff-list {
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* Buff 项 */
+.skill-button-buff-item {
+  padding: 4px 8px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #333;
+  background: #f5f5f5;
+  border: 1px solid #DEF;
+  cursor: context-menu;
+  min-height: 28px;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  transition: background-color 0.2s ease;
+}
+
+/* Buff 项悬停效果 */
+.skill-button-buff-item:hover {
+  background: rgba(0, 122, 255, 0.08);
+}
+
+/* Buff 列表空状态 */
+.skill-button-buff-empty {
+  padding: 8px;
+  font-size: 11px;
+  color: #999;
+  text-align: center;
+  font-style: italic;
+}
+
+.skill-button-resistance-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #bbb;
+  background: #f7f7f7;
+  color: #111;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.skill-button-resistance-toggle:hover {
+  background: #eeeeee;
+}
+
+.skill-button-resistance-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(48px, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.skill-button-resistance-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  font-size: 10px;
+  color: #333;
+}
+
+.skill-button-resistance-field input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid #999;
+  padding: 3px 4px;
+  font-size: 11px;
+  color: #111;
+  background: #fff;
+}
+
+.skill-button-anomaly-summary-section {
+  margin-top: 10px;
+}
+
+.skill-button-anomaly-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skill-button-anomaly-summary-card {
+  padding: 5px 7px;
+  border: 1px solid #DEF;
+  background: #f7f7f7;
+}
+
+.skill-button-anomaly-summary-card.is-state {
+  border-left: 3px solid var(--excel-green-main, #005ecb);
+}
+
+.skill-button-anomaly-summary-card.is-damage {
+  border-left: 3px solid #8b5e3c;
+}
+
+.anomaly-summary-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.anomaly-summary-kind {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 16px;
+  padding: 0 6px;
+  background: rgba(0, 122, 255, 0.12);
+  color: #fff;
+  color: var(--excel-green-deep, #005ecb);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.anomaly-summary-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #111;
+}
+
+.skill-button-anomaly-summary-card p {
+  margin: 2px 0;
+  font-size: 9px;
+  color: #444;
+}
+
+/* ==================== 技能伤害弹窗样式 ==================== */
+
+.skill-anomaly-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.skill-anomaly-state-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(210px, 3fr);
+  align-items: stretch;
+  gap: 10px;
+  min-height: 560px;
+}
+
+.skill-anomaly-state-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  gap: 8px;
+}
+
+.skill-anomaly-state-main .skill-anomaly-tree {
+  flex: 1 1 auto;
+  min-height: 330px;
+}
+
+.skill-anomaly-state-selected {
+  flex: 0 0 auto;
+}
+
+.skill-anomaly-cache-rail {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.skill-anomaly-cache-board {
+  flex: 1 1 auto;
+  min-height: 560px;
+}
+
+.skill-anomaly-cache-board,
+.skill-anomaly-cache-board .skill-anomaly-board-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.skill-anomaly-cache-board .skill-anomaly-board-section,
+.skill-anomaly-cache-list {
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.skill-anomaly-cache-list {
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.skill-anomaly-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.anomaly-category-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.anomaly-category-tab {
+  min-width: 82px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--office-border, #d7d7d7);
+  background: var(--office-card-bg, #fff);
+  font-size: 11px;
+  font-weight: 700;
+  color: #222;
+  cursor: pointer;
+}
+
+.anomaly-category-tab.is-active {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: var(--excel-green-main, #005ecb);
+  color: var(--excel-green-deep, #005ecb);
+  box-shadow: inset 0 0 0 1px rgba(0, 122, 255, 0.08);
+}
+
+.anomaly-button-strip {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 4px;
+  overflow: visible;
+  padding-bottom: 0;
+}
+
+.anomaly-strip-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 28px;
+  padding: 4px 6px;
+  border: 1px solid var(--ide-border-light, #d7d7d7);
+  background: #fff;
+  font-size: 9px;
+  line-height: 1.2;
+  color: #222;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.anomaly-strip-button.is-active {
+  border-color: var(--excel-green-main, #005ecb);
+  background: rgba(233, 241, 236, 0.92);
+}
+
+.anomaly-item-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid #DEF;
+  background: #fff;
+  font-size: 10px;
+  color: #222;
+  cursor: pointer;
+  text-align: left;
+}
+
+.anomaly-item-button.is-active {
+  border-color: var(--excel-green-main, #005ecb);
+  background: var(--ide-bg-hover, #eef3ef);
+}
+
+.anomaly-item-tag {
+  font-size: 9px;
+  color: #555;
+}
+
+.anomaly-inline-panel {
+  padding: 8px;
+  padding-top: 0px;
+  border-top: 1px solid var(--ide-border-light, #d7d7d7);
+  background: rgba(244, 247, 244, 0.96);
+  border: 1px solid var(--ide-border-light, #d7d7d7);
+}
+
+.anomaly-inline-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.anomaly-inline-control-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.anomaly-inline-control {
+  min-width: 0;
+  position: relative;
+}
+
+.anomaly-select-wrap {
+  position: relative;
+  min-height: 28px;
+}
+
+.anomaly-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--office-border, #d7d7d7);
+  background: rgba(255, 255, 255, 0.96);
+  color: #333;
+  cursor: pointer;
+  text-align: left;
+}
+
+.anomaly-select-value {
+  font-size: 10px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.anomaly-select-menu {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  z-index: 8;
+  border: 1px solid var(--office-border, #d7d7d7);
+  background: var(--office-card-bg, #fff);
+  box-shadow: 0 6px 16px rgba(26, 26, 26, 0.1);
+}
+
+.anomaly-select-option {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  background: transparent;
+  font-size: 10px;
+  color: #333;
+  cursor: pointer;
+  text-align: left;
+}
+
+.anomaly-select-option:first-child {
+  border-top: none;
+}
+
+.anomaly-select-option:hover {
+  background: rgba(233, 241, 236, 0.92);
+  color: var(--excel-green-deep, #005ecb);
+}
+
+.anomaly-select-arrow {
+  font-size: 9px;
+  color: #666;
+  flex: 0 0 auto;
+}
+
+.anomaly-select-wrap.is-disabled {
+  pointer-events: none;
+}
+
+.anomaly-select-wrap.is-disabled .anomaly-select-trigger {
+  cursor: default;
+  background: rgba(238, 240, 239, 0.94);
+}
+
+.skill-anomaly-config {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.skill-anomaly-config-card,
+.skill-anomaly-board {
+  border: 1px solid var(--office-border, #d7d7d7);
+  background: var(--office-card-bg, #fff);
+  padding: 8px;
+}
+
+.anomaly-config-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #111;
+}
+
+.anomaly-config-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 9px;
+  color: #555;
+}
+
+.anomaly-apply-btn {
+  min-width: 76px;
+  height: 26px;
+  border: 1px solid var(--office-border, #d7d7d7);
+  background: var(--office-card-bg, #fff);
+  color: var(--excel-green-deep, #005ecb);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.anomaly-config-section + .anomaly-config-section {
+  margin-top: 8px;
+}
+
+.anomaly-config-label {
+  margin: 0 0 6px 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: #111;
+}
+
+.anomaly-chip-row,
+.anomaly-duration-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.anomaly-chip {
+  min-width: 56px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--ide-border-light, #c9c9c9);
+  background: #fff;
+  font-size: 10px;
+  color: #222;
+  cursor: pointer;
+}
+
+.anomaly-chip.is-active {
+  border-color: var(--excel-green-main, #005ecb);
+  background: var(--ide-bg-hover, #eef3ef);
+  color: var(--excel-green-deep, #005ecb);
+  font-weight: 700;
+}
+
+.anomaly-live-preview {
+  margin-top: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--office-border, #d7d7d7);
+  background: var(--excel-gray-1, #f3f3f3);
+}
+
+.anomaly-live-line {
+  margin: 2px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+}
+
+.anomaly-inline-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.skill-anomaly-board {
+  background: var(--office-card-bg, #fff);
+}
+
+.skill-anomaly-board-fixed {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  box-shadow: 0 -4px 10px rgba(26, 26, 26, 0.04);
+}
+
+.skill-anomaly-board-section + .skill-anomaly-board-section {
+  margin-top: 8px;
+}
+
+.skill-anomaly-board-title {
+  margin: 0 0 6px 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--excel-green-deep, #005ecb);
+}
+
+.skill-anomaly-board-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.anomaly-board-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--office-border, #d7d7d7);
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  font-size: 9px;
+  color: #444;
+}
+
+.anomaly-board-card.is-state {
+  border-left: 3px solid var(--excel-green-main, #005ecb);
+}
+
+.anomaly-board-card.is-damage {
+  border-left: 3px solid #8b5e3c;
+}
+
+.anomaly-board-card-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #111;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.anomaly-board-card-topline {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.anomaly-board-card-delete-btn {
+  flex: 0 0 auto;
+  min-width: 38px;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid #d7b0b0;
+  background: #fff4f4;
+  color: #9b3f3f;
+  font-size: 10px;
+  line-height: 18px;
+  cursor: pointer;
+}
+
+.anomaly-board-card-delete-btn:disabled {
+  border-color: #dcdcdc;
+  background: #f5f5f5;
+  color: #a7a7a7;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1400px) {
+  .anomaly-inline-control-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hit-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hit-card-title-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.hit-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #000;
+}
+
+.hit-multiplier,
+.damage-expected,
+.damage-crit,
+.damage-non-crit,
+.buff-count {
+  font-size: 11px;
+  color: #333;
+}
+
+.hit-multiplier,
+.damage-expected,
+.damage-crit,
+.damage-non-crit {
+  font-weight: 700;
+  color: #111;
+}
+
+.hit-card-damage,
+.hit-card-buffs,
+.hit-detail-stats,
+.hit-detail-buffs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.hit-detail-buffs-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.buff-section-tip {
+  width: 100%;
+  margin: 0;
+  font-size: 10px;
+  color: #777;
+}
+
+.hit-card-damage {
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.damage-line {
+  font-size: 12px;
+  color: #444;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+.buff-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  font-size: 10px;
+  color: var(--theme-accent-strong);
+  background: rgba(0, 122, 255, 0.08);
+  border: 1px solid rgba(0, 122, 255, 0.24);
+}
+
+.buff-tag-selectable {
+  cursor: pointer;
+  margin-right: 6px;
+  margin-bottom: 6px;
+  border-radius: 0;
+}
+
+.buff-tag-selectable.is-selected {
+  background: rgba(0, 122, 255, 0.18);
+  border-width: 2px;
+  border-color: rgba(0, 122, 255, 0.5);
+  color: var(--theme-accent-strong);
+}
+
+.buff-reset-btn {
+  border: 1px solid rgba(0, 122, 255, 0.24);
+  background: #fff;
+  color: var(--theme-accent-strong);
+  border-radius: 0;
+  padding: 2px 8px;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.no-buff {
+  font-size: 10px;
+  color: #888;
+}
+
+.formula-buff-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.hit-label {
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 35px;
+}
+
+.hit-value {
+  font-size: 11px;
+}
+
+.hit-value.expected {
+  color: #000;
+}
+
+.hit-value.crit {
+  color: #000;
+}
+
+.hit-value.non-crit {
+  color: #000;
+}
+
+.skill-button-inline-buff-search-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: start center;
+  padding-top: 76px;
+  background: rgba(238, 247, 241, 0.18);
+}
+
+.skill-button-inline-buff-search {
+  width: min(1120px, calc(100vw - 80px));
+  min-height: min(680px, calc(100vh - 136px));
+  max-height: min(760px, calc(100vh - 136px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--ide-border-subtle);
+  border-radius: var(--ide-radius-lg);
+  background: var(--ide-acrylic-bg-strong);
+  box-shadow: var(--ide-shadow);
+  backdrop-filter: blur(18px) saturate(1.2);
+  overflow: hidden;
+}
+
+.skill-button-inline-buff-search.is-workbench-mode,
+.skill-button-inline-buff-search.is-anomaly-mode {
+  width: min(1120px, calc(100vw - 80px));
+  min-height: min(680px, calc(100vh - 136px));
+  max-height: min(760px, calc(100vh - 136px));
+  border: 1px solid #000;
+  box-shadow: var(--ide-shadow);
+  overflow: hidden;
+}
+
+.selected-buff-card {
+  position: relative;
+  padding-right: 30px;
+  cursor: default;
+}
+
+.buff-card-title-line {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.buff-card-source {
+  font-size: 9px;
+  font-weight: 400;
+  color: #555;
+}
+
+.selected-buff-card-remove {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #767676;
+  background: #fff;
+  border: 1px solid #d4d4d4;
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 120ms ease, color 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.selected-buff-card:hover .selected-buff-card-remove,
+.selected-buff-card-remove:focus-visible {
+  opacity: 1;
+}
+
+.selected-buff-card-remove:hover {
+  color: #fff;
+  background: #c43c3c;
+  border-color: #c43c3c;
+}
+
+.selected-buff-card-remove svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+  pointer-events: none;
+}
+
+.skill-button-buff-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(240px, 3fr);
+  gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.skill-button-buff-workbench.has-nearby-buffs {
+  grid-template-columns: minmax(0, 5fr) minmax(210px, 2.5fr) minmax(210px, 2.5fr);
+}
+
+.skill-button-buff-workbench-main,
+.skill-button-buff-resource-rail {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.skill-button-buff-workbench-main {
+  overflow: hidden;
+}
+
+.skill-button-buff-resource-rail .skill-anomaly-cache-board {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.nearby-buff-card {
+  appearance: none;
+}
+
+.nearby-buff-card:hover {
+  color: #005ecb;
+  border-color: #4f9168;
+  background: #eef7f1;
+}
+
+.skill-button-local-buff-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.skill-button-local-buff-panel .skill-button-inline-buff-search-results {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.skill-button-inline-buff-search.is-workbench-mode .skill-anomaly-layout,
+.skill-button-inline-buff-search.is-anomaly-mode .skill-anomaly-layout {
+  flex: 1 1 auto;
+  min-height: 560px;
+  overflow: hidden;
+}
+
+.skill-button-inline-buff-search.is-workbench-mode .skill-anomaly-tree,
+.skill-button-inline-buff-search.is-anomaly-mode .skill-anomaly-tree {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-bottom: 6px;
+}
+
+.skill-button-inline-buff-search.is-anomaly-mode .skill-anomaly-state-main .skill-anomaly-tree {
+  min-height: 330px;
+}
+
+.skill-button-inline-buff-search.is-workbench-mode .skill-anomaly-config,
+.skill-button-inline-buff-search.is-anomaly-mode .skill-anomaly-config {
+  flex: 0 0 auto;
+}
+
+.skill-button-inline-buff-search.is-workbench-mode .skill-anomaly-board-fixed,
+.skill-button-inline-buff-search.is-anomaly-mode .skill-anomaly-board-fixed {
+  position: static;
+  bottom: auto;
+  box-shadow: none;
+}
+
+.skill-button-inline-buff-search-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.skill-button-inline-buff-search-head h5 {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ide-text-main);
+}
+
+.skill-button-inline-buff-search-head span {
+  font-size: 11px;
+  color: var(--ide-text-muted);
+}
+
+.skill-button-inline-buff-search-modes {
+  display: flex;
+  gap: 6px;
+}
+
+.skill-button-inline-buff-search-mode {
+  border: 1px solid var(--ide-border-subtle);
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--ide-text-muted);
+  font: inherit;
+  font-size: 11px;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+
+.skill-button-inline-buff-search-mode.is-active {
+  background: rgba(232, 248, 238, 0.94);
+  color: var(--ide-accent-strong);
+  border-color: var(--ide-border-medium);
+}
+
+.skill-button-inline-buff-search-input {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--ide-border-subtle);
+  border-radius: var(--ide-radius-sm);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--ide-text-main);
+  font: inherit;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+
+.skill-button-inline-buff-search-bar {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.skill-button-inline-buff-search-bar.has-operator-filters {
+  gap: 8px;
+}
+
+.skill-button-inline-buff-search-bar.has-operator-filters .skill-button-inline-buff-search-input {
+  flex: 1 1 auto;
+  width: auto;
+}
+
+.operator-buff-search-filters,
+.operator-buff-character-filters,
+.operator-buff-group-filters {
+  display: flex;
+  align-items: center;
+}
+
+.operator-buff-search-filters {
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.operator-buff-character-filters,
+.operator-buff-group-filters {
+  gap: 4px;
+}
+
+.operator-buff-character-filter {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  overflow: hidden;
+  color: #444;
+  background: #fff;
+  border: 1px solid #000;
+  cursor: pointer;
+}
+
+.operator-buff-character-filter img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.operator-buff-character-filter span {
+  font-size: 10px;
+}
+
+.operator-buff-group-filters button {
+  height: 28px;
+  padding: 0 8px;
+  color: #555;
+  background: #fff;
+  border: 1px solid var(--ide-border-subtle);
+  font-size: 10px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.operator-buff-character-filter:hover,
+.operator-buff-character-filter.is-active,
+.operator-buff-group-filters button:hover,
+.operator-buff-group-filters button.is-active {
+  color: #005ecb;
+  background: #eef7f1;
+  border-color: #4f9168;
+}
+
+.operator-buff-character-filter.is-active {
+  box-shadow: inset 0 0 0 1px #005ecb;
+}
+
+.skill-button-inline-buff-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: auto;
+}
+
+.skill-button-inline-buff-search-item {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--ide-border-subtle);
+  border-radius: var(--ide-radius-sm);
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--ide-text-main);
+  text-align: left;
+  cursor: pointer;
+}
+
+.skill-button-inline-buff-search-item:hover {
+  border-color: var(--ide-border-medium);
+  background: rgba(232, 248, 238, 0.92);
+}
+
+.local-buff-search-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.local-buff-search-item-head strong {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ide-text-main);
+}
+
+.local-buff-search-item-head span,
+.skill-button-inline-buff-search-item p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--ide-text-muted);
+}
+
+.skill-button-inline-buff-search-item .local-buff-search-item-source {
+  font-size: 9px;
+  font-weight: 400;
+  color: #555;
+}
+
+.skill-button-inline-buff-search-empty {
+  padding: 12px;
+  border: 1px dashed var(--ide-border-subtle);
+  border-radius: var(--ide-radius-sm);
+  font-size: 12px;
+  color: var(--ide-text-muted);
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.formula-section-title {
+  font-weight: 700;
+  color: #000;
+  margin-top: 6px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #DEF;
+}
+
+.formula-zone-section {
+  margin-top: 6px;
+}
+
+.formula-zone-total {
+  margin-top: 4px !important;
+  font-weight: 700;
+  color: #222 !important;
+}
+
+.hit-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.hit-detail-head .hit-detail-title {
+  margin-bottom: 0;
+}
+
+.hit-toggle-btn {
+  flex: 0 0 auto;
+  border: 1px solid #b94a48;
+  background: #fff;
+  color: #8a2c2a;
+  border-radius: 0;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hit-toggle-btn.is-restore {
+  border-color: rgba(0, 122, 255, 0.38);
+  color: var(--theme-accent-strong);
+}
+
+.hit-toggle-btn:hover {
+  background: rgba(185, 74, 72, 0.08);
+}
+
+.hit-toggle-btn.is-restore:hover {
+  background: rgba(0, 122, 255, 0.1);
+}
+
+/* Excel Acrylic theme final overrides */
+.skill-button-buff-section h5,
+.formula-section-title {
+  color: var(--ide-text-main);
+  border-color: var(--ide-border-subtle);
+}
+
+.skill-button-buff-section {
+  border-color: var(--ide-border-subtle);
+}
+
+.skill-button-buff-item {
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--ide-text-main);
+  border-color: var(--ide-border-subtle);
+  border-radius: var(--ide-radius-sm);
+  box-shadow: inset 0 1px 0 var(--ide-acrylic-highlight);
+}
+
+.skill-button-buff-item:hover {
+  background: rgba(219, 243, 226, 0.84);
+  color: var(--ide-accent-strong);
+}
+
+.skill-button-buff-empty {
+  color: var(--ide-text-muted);
+}
+
+.hit-value.expected,
+.hit-value.crit,
+.hit-value.non-crit {
+  color: var(--ide-text-main);
+}
+
+/* Office 365 Excel theme final overrides */
+.skill-button-buff-section h5,
+.formula-section-title {
+  color: var(--ide-text-main);
+  border-color: var(--ide-border-light);
+}
+
+.skill-button-buff-item {
+  background: var(--excel-gray-1);
+  color: var(--ide-text-main);
+  border-color: var(--ide-border-light);
+  border-radius: var(--ide-radius-sm);
+  box-shadow: none;
+}
+
+.skill-button-buff-item:hover {
+  background: var(--ide-bg-hover);
+  color: var(--excel-green-deep);
+}
+
+/* Office 365 Excel modal and list mapping */
+.modal-header,
+.skill-button-buff-section {
+  border-color: var(--office-border);
+}
+
+.modal-title,
+.skill-button-buff-section h5,
+.formula-section-title {
+  color: var(--office-title);
+  font-weight: 700;
+}
+
+.lock-control {
+  background: var(--office-card-bg);
+  border: 1px solid var(--office-border);
+  border-radius: 0;
+  color: var(--office-body);
+}
+
+.lock-control:hover {
+  background: var(--ide-bg-hover);
+  border-color: var(--excel-green-main);
+  color: var(--excel-green-main);
+}
+
+.lock-control.is-locked {
+  background: var(--excel-green-main);
+  border-color: var(--excel-green-main);
+  color: var(--excel-white);
+}
+
+.skill-button-buff-item {
+  background: var(--office-card-bg);
+  border: 1px solid var(--office-border);
+  border-radius: 0;
+}
+
+.skill-button-buff-item:hover {
+  background: var(--ide-bg-hover);
+  color: var(--excel-green-main);
+}
+
+.hit-label {
+  color: var(--excel-green-deep);
+}
+
+/* ==================== 右键上下文菜单样式 ==================== */
+/* 继承技能按钮主题，像按钮延展层 */
+.skill-button-context-menu {
+  position: fixed;
+  z-index: 5000;
+  width: 80px;
+  /* 复用 skill-button-base 的边框、阴影语言 */
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.72);
+  box-shadow: none;
+}
+
+.context-menu-item {
+  display: block;
+  width: 100%;
+  height: 32px;
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 400;
+  text-align: center;
+  cursor: pointer;
+  color: #111111;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: filter 0.14s ease, background-color 0.14s ease;
+}
+
+.context-menu-item:hover {
+  filter: brightness(1.05);
+}
+
+.context-menu-item:active {
+  filter: brightness(0.95);
+}
+
+/* 危险项：在同一主题底上做强调，不是红色背景 */
+.context-menu-item-danger {
+  color: #8B0000;
+  text-shadow: none;
+}
+
+.context-menu-item-danger:hover {
+  background: rgba(139, 0, 0, 0.15);
+  filter: none;
+}
+
+/* ==================== 编辑子菜单样式 ==================== */
+.context-menu-item-submenu {
+  position: relative;
+}
+
+.context-menu-submenu-trigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.context-menu-submenu-arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 8px;
+  color: #555;
+  flex: 0 0 auto;
+}
+
+.context-menu-submenu {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: -1px;
+  width: 80px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.72);
+  box-shadow: none;
+  z-index: 1001;
+}
+
+.context-menu-item-submenu:hover .context-menu-submenu {
+  display: block;
+}
+
+.context-menu-submenu .context-menu-item {
+  display: block;
+  width: 100%;
+  min-height: 32px;
+  height: auto;
+  padding: 5px 6px;
+  border: none;
+  background: transparent;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.15;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+  cursor: pointer;
+  color: #111111;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: filter 0.14s ease, background-color 0.14s ease;
+}
+
+.context-menu-submenu .context-menu-item:hover {
+  filter: brightness(1.05);
+}
+
+.context-menu-submenu .context-menu-item:active {
+  filter: brightness(0.95);
+}

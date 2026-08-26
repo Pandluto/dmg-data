@@ -1,0 +1,380 @@
+<!doctype html>
+<html
+  lang="zh-CN"
+  data-terra-faction="blacksteel-contract"
+  data-terra-depth="complex"
+  data-terra-element="contract-readiness-lock"
+  data-terra-layout="protected-equipment-rack"
+  data-terra-interaction="industrial-lock-plate"
+  data-terra-control="equipment-bay-shutters"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#e9ecea" />
+    <meta name="description" content="终末地配装、排轴与伤害计算工作台" />
+    <meta name="dmg-app-shell-version" content="__DMG_APP_SHELL_VERSION__" />
+    <script>
+      (() => {
+        const pathname = window.location.pathname.replace(/\/+$/, '') || '/';
+        const isSharePath = /^\/share\/[A-Za-z0-9_-]{16}$/.test(pathname);
+        const prefersMobileShareEntry = isSharePath && (
+          /Android|iPhone|iPod|Mobile/i.test(navigator.userAgent)
+          || (navigator.maxTouchPoints > 0 && window.innerWidth <= 900)
+        );
+        window.__DMG_MOBILE_ENTRY__ = pathname === '/mobile'
+          || window.location.hash.startsWith('#/mobile')
+          || prefersMobileShareEntry;
+        if (window.__DMG_MOBILE_ENTRY__) {
+          document.documentElement.dataset.mobileEntry = 'true';
+          return;
+        }
+        const manifest = document.createElement('link');
+        manifest.rel = 'manifest';
+        manifest.href = '/manifest.webmanifest';
+        document.head.appendChild(manifest);
+      })();
+    </script>
+    <link rel="icon" href="./app-icon.png" type="image/png" />
+    <title>终末地伤害工作台</title>
+    <script>
+      (() => {
+        // Optional themes are installed by the application after its core UI
+        // has mounted. Starting from the bundled theme keeps a missing or slow
+        // theme package from leaving the browser on a background-only page.
+        document.documentElement.dataset.theme = 'office-excel';
+        document.documentElement.style.colorScheme = 'light';
+      })();
+    </script>
+    <script>
+      (() => {
+        if (window.__DMG_MOBILE_ENTRY__) return;
+        if (!('serviceWorker' in navigator)) return;
+
+        const recoveryShellVersions = new Set([
+          'e564a69322ae3fc8',
+          '79ce3dba11d89ada',
+          '7b6e63d83be550ff',
+          '581ba284e45339c7',
+        ]);
+        const targetShellVersion = document
+          .querySelector('meta[name="dmg-app-shell-version"]')
+          ?.getAttribute('content') || '';
+        const transactionTimeoutMs = 90_000;
+        let ensureInFlight = null;
+
+        const delay = (milliseconds) => new Promise((resolve) => {
+          window.setTimeout(resolve, milliseconds);
+        });
+
+        const readWorkerShellVersion = (worker) => new Promise((resolve) => {
+          if (!worker || typeof MessageChannel === 'undefined') {
+            resolve('');
+            return;
+          }
+          const channel = new MessageChannel();
+          const finish = (value) => {
+            window.clearTimeout(timeout);
+            channel.port1.close();
+            resolve(value);
+          };
+          const timeout = window.setTimeout(() => finish(''), 1_000);
+          channel.port1.onmessage = (event) => {
+            finish(String(event.data?.shellVersion || ''));
+          };
+          try {
+            worker.postMessage({ type: 'GET_PAGE_VERSION' }, [channel.port2]);
+          } catch {
+            finish('');
+          }
+        });
+
+        const waitForWorkerState = (worker, acceptedStates, timeoutMs) => {
+          if (acceptedStates.includes(worker.state)) return Promise.resolve(true);
+          if (worker.state === 'redundant') return Promise.resolve(false);
+          return new Promise((resolve) => {
+            const finish = (result) => {
+              window.clearTimeout(timeout);
+              worker.removeEventListener('statechange', handleStateChange);
+              resolve(result);
+            };
+            const handleStateChange = () => {
+              if (acceptedStates.includes(worker.state)) finish(true);
+              else if (worker.state === 'redundant') finish(false);
+            };
+            const timeout = window.setTimeout(
+              () => finish(acceptedStates.includes(worker.state)),
+              timeoutMs,
+            );
+            worker.addEventListener('statechange', handleStateChange);
+          });
+        };
+
+        const controllerMatchesTarget = async () => (
+          await readWorkerShellVersion(navigator.serviceWorker.controller)
+        ) === targetShellVersion;
+
+        const waitForTargetController = async (timeoutMs) => {
+          const deadline = Date.now() + timeoutMs;
+          while (Date.now() < deadline) {
+            if (await controllerMatchesTarget()) return true;
+            await delay(200);
+          }
+          return controllerMatchesTarget();
+        };
+
+        const activateMatchingWorker = async (registration) => {
+          const candidates = [...new Set([
+            registration.waiting,
+            registration.installing,
+            registration.active,
+          ].filter(Boolean))];
+          for (const worker of candidates) {
+            if (worker.state === 'installing') {
+              const installed = await waitForWorkerState(
+                worker,
+                ['installed', 'activated'],
+                transactionTimeoutMs,
+              );
+              if (!installed) continue;
+            }
+            if (await readWorkerShellVersion(worker) !== targetShellVersion) continue;
+            if (worker.state === 'installed') {
+              worker.postMessage({ type: 'SKIP_WAITING' });
+            }
+            if (worker.state === 'installed' || worker.state === 'activating') {
+              const activated = await waitForWorkerState(
+                worker,
+                ['activated'],
+                30_000,
+              );
+              if (!activated) continue;
+            }
+            if (worker.state === 'activated') {
+              return waitForTargetController(30_000);
+            }
+          }
+          return false;
+        };
+
+        const ensureTargetController = async () => {
+          if (await controllerMatchesTarget()) return true;
+          let registration = await navigator.serviceWorker.getRegistration('/');
+          if (!registration) {
+            registration = await navigator.serviceWorker.register('/sw.js', {
+              scope: '/',
+              updateViaCache: 'none',
+            });
+          }
+
+          const deadline = Date.now() + transactionTimeoutMs;
+          let retryDelay = 250;
+          while (Date.now() < deadline) {
+            if (await activateMatchingWorker(registration)) return true;
+            if (!navigator.onLine) return false;
+            try {
+              await registration.update();
+            } catch {
+              // A release may reach the page and worker edge routes a few
+              // seconds apart. Retry inside this single bounded transaction.
+            }
+            if (await activateMatchingWorker(registration)) return true;
+            await delay(retryDelay);
+            retryDelay = Math.min(retryDelay * 2, 4_000);
+          }
+          return controllerMatchesTarget();
+        };
+
+        window.__DMG_ENSURE_SERVICE_WORKER__ = () => {
+          if (!ensureInFlight) {
+            ensureInFlight = ensureTargetController()
+              .catch(() => false)
+              .finally(() => {
+                ensureInFlight = null;
+              });
+          }
+          return ensureInFlight;
+        };
+
+        void readWorkerShellVersion(navigator.serviceWorker.controller).then((shellVersion) => {
+          if (
+            recoveryShellVersions.has(shellVersion)
+            && shellVersion !== targetShellVersion
+          ) {
+            void window.__DMG_ENSURE_SERVICE_WORKER__();
+          }
+        });
+      })();
+    </script>
+    <script>
+      (() => {
+        const recoveryKey = 'dmg.sw-startup-recovery.v1';
+        const recoveryParam = '__sw_recovery';
+        let moduleReady = false;
+        let recoveryRunning = false;
+
+        const readRecoveryAttempt = () => {
+          try {
+            return Number(sessionStorage.getItem(recoveryKey) || '0');
+          } catch {
+            return 0;
+          }
+        };
+
+        const writeRecoveryAttempt = (value) => {
+          try {
+            sessionStorage.setItem(recoveryKey, String(value));
+          } catch {
+            // The recovery still works when session storage is unavailable.
+          }
+        };
+
+        const recoveryWorkerTimeoutMs = 60_000;
+        const waitForWorkerState = (worker, acceptedStates) => {
+          if (acceptedStates.includes(worker.state)) return Promise.resolve();
+          return new Promise((resolve, reject) => {
+            const finish = (error) => {
+              window.clearTimeout(timeout);
+              worker.removeEventListener('statechange', handleStateChange);
+              if (error) reject(error);
+              else resolve();
+            };
+            const handleStateChange = () => {
+              if (acceptedStates.includes(worker.state)) {
+                finish();
+              } else if (worker.state === 'redundant') {
+                finish(new Error('页面恢复文件安装失败。'));
+              }
+            };
+            const timeout = window.setTimeout(
+              () => finish(new Error('页面恢复文件安装超时。')),
+              recoveryWorkerTimeoutMs,
+            );
+            worker.addEventListener('statechange', handleStateChange);
+          });
+        };
+
+        const waitForActiveRegistration = () => Promise.race([
+          navigator.serviceWorker.ready,
+          new Promise((_, reject) => {
+            window.setTimeout(
+              () => reject(new Error('页面恢复服务启动超时。')),
+              recoveryWorkerTimeoutMs,
+            );
+          }),
+        ]);
+
+        const prepareRecoveryWorker = async () => {
+          if (window.__DMG_ENSURE_SERVICE_WORKER__) {
+            const controlled = await window.__DMG_ENSURE_SERVICE_WORKER__();
+            if (!controlled) throw new Error('页面恢复服务未能接管当前页面。');
+            return;
+          }
+          let registration = await navigator.serviceWorker.getRegistration('/');
+          if (!registration) {
+            registration = await navigator.serviceWorker.register('/sw.js', {
+              scope: '/',
+              updateViaCache: 'none',
+            });
+          } else if (navigator.onLine) {
+            await registration.update();
+          }
+
+          const installing = registration.installing;
+          if (installing) {
+            await waitForWorkerState(installing, ['installed', 'activated']);
+          }
+          const waiting = registration.waiting;
+          if (waiting) {
+            waiting.postMessage({ type: 'SKIP_WAITING' });
+            await waitForWorkerState(waiting, ['activated']);
+          }
+          if (!registration.active && !navigator.serviceWorker.controller) {
+            await waitForActiveRegistration();
+          }
+        };
+
+        const showRecovery = () => {
+          const root = document.getElementById('root');
+          if (!root || moduleReady) return;
+          root.innerHTML = `
+            <main style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#eef1ef;color:#1d1d1f;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','PingFang SC',sans-serif">
+              <section style="width:min(420px,100%);padding:28px;border:1px solid rgba(0,0,0,.08);border-radius:24px;background:rgba(255,255,255,.82);box-shadow:0 18px 60px rgba(18,26,22,.12);backdrop-filter:blur(24px)">
+                <p style="margin:0 0 8px;color:#6e746f;font-size:13px">启动保护</p>
+                <h1 style="margin:0 0 12px;font-size:24px">启动文件需要恢复</h1>
+                <p style="margin:0 0 20px;color:#5f655f;line-height:1.6">本地数据没有被删除。联网时会原子更新运行文件；离线时会继续尝试已安装的完整版本。</p>
+                <button id="dmg-startup-recover" type="button" style="width:100%;padding:12px 16px;border:0;border-radius:14px;background:#1d1d1f;color:#fff;font:inherit;cursor:pointer">检查并重新载入</button>
+              </section>
+            </main>
+          `;
+          document.getElementById('dmg-startup-recover')?.addEventListener('click', () => {
+            void recoverStartup(true);
+          });
+        };
+
+        const recoverStartup = async (manual = false) => {
+          if ((moduleReady && !manual) || recoveryRunning) return;
+          const attempt = readRecoveryAttempt();
+          if (attempt >= 1 && !manual) {
+            showRecovery();
+            return;
+          }
+          recoveryRunning = true;
+          writeRecoveryAttempt(attempt + 1);
+          try {
+            if ('serviceWorker' in navigator && !window.__DMG_MOBILE_ENTRY__) {
+              await prepareRecoveryWorker();
+            }
+            const target = new URL(window.location.href);
+            target.searchParams.set(recoveryParam, String(Date.now()));
+            window.location.replace(target.href);
+          } catch {
+            recoveryRunning = false;
+            showRecovery();
+          }
+        };
+
+        const shouldRecover = (event) => {
+          if (moduleReady) return false;
+          const message = String(event?.reason?.message || event?.message || '');
+          const filename = String(event?.filename || '');
+          return (
+            /requested module|module script|dynamically imported module|does not provide an export|loading chunk|unexpected token/i.test(message)
+            || (filename && filename.startsWith(window.location.origin))
+          );
+        };
+
+        window.__DMG_MARK_MODULE_READY__ = () => {
+          moduleReady = true;
+          try {
+            sessionStorage.removeItem(recoveryKey);
+          } catch {
+            // No-op when session storage is unavailable.
+          }
+          const target = new URL(window.location.href);
+          if (target.searchParams.delete(recoveryParam)) {
+            window.history.replaceState(
+              window.history.state,
+              '',
+              `${target.pathname}${target.search}${target.hash}`,
+            );
+          }
+        };
+        window.__DMG_RECOVER_STARTUP__ = () => recoverStartup(true);
+        window.addEventListener('error', (event) => {
+          if (shouldRecover(event)) void recoverStartup();
+        });
+        window.addEventListener('unhandledrejection', (event) => {
+          if (shouldRecover(event)) void recoverStartup();
+        });
+        window.setTimeout(() => {
+          if (!moduleReady) showRecovery();
+        }, 15000);
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

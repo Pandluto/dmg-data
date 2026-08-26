@@ -1,0 +1,68 @@
+import type { SkillType } from '../types';
+import { SKILL_NAMES } from '../types';
+import { resolveWebImageUrl } from '../platform/resources/webImageLibrary';
+
+function isExternalUrl(path: string): boolean {
+  return /^(?:[a-z]+:)?\/\//i.test(path) || /^(?:data|blob|file):/i.test(path);
+}
+
+export function resolvePublicPath(path: string): string {
+  if (!path) {
+    return path;
+  }
+
+  if (isExternalUrl(path)) {
+    return path;
+  }
+
+  const normalizedPath = path
+    .replace(/^\.\//, '')
+    .replace(/^\/+/, '');
+  const baseUrl = import.meta.env.BASE_URL || './';
+  const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+
+  return `${normalizedBaseUrl}${normalizedPath}`;
+}
+
+export function normalizeAssetUrl(path?: string | null): string {
+  if (!path) return '';
+  return resolveWebImageUrl(path) || (isExternalUrl(path) ? path : resolvePublicPath(path));
+}
+
+/**
+ * 角色头像资源路径解析
+ * 规范路径: /assets/images/img-operator/<characterName>.png
+ * @param characterName - 角色名称（URL 编码，兼容中文等特殊字符）
+ */
+export function resolveAvatarUrl(characterName: string): string {
+  return resolvePublicPath(`assets/images/img-operator/${encodeURIComponent(characterName)}.png`);
+}
+
+/**
+ * 技能图标资源路径解析
+ * 规范路径: /assets/images/img-operator/skiil-icon/<characterName>/<characterName><skillName>.png
+ * 技能类型 A/B/E/Q 对应 普通攻击/战技/连携技/终结技
+ * 注意：图片包目录名沿用上游资源的 "skiil-icon" 拼写。
+ * @param characterName - 角色名称
+ * @param skillType     - A | B | E | Q
+ */
+export function resolveSkillIconUrl(characterName: string, skillType: SkillType): string {
+  const skillName = SKILL_NAMES[skillType];
+  return resolvePublicPath(`assets/images/img-operator/skiil-icon/${encodeURIComponent(characterName)}/${encodeURIComponent(characterName)}${skillName}.png`);
+}
+
+/**
+ * 基于 element 属性返回半透明背景色
+ * 用于头像区域底色，适配半透明 PNG 贴图
+ * 严格遵循计划定义的 6 种 element 色值，禁止自行扩展
+ */
+export function getElementBackgroundColor(element: string): string {
+  const colorMap: Record<string, string> = {
+    physical:  '#E0D6C8',               // 物理主题灰
+    ice:       'rgba(200, 235, 255, 1)',   // 更浅冰蓝
+    fire:      'rgba(255, 210, 195, 1)',   // 更浅暖
+    electric:  'rgba(245, 245, 190, 1)',   // 更浅黄
+    nature:    'rgba(175, 225, 185, 1)',   // 更浅绿
+  };
+  return colorMap[element] ?? 'rgba(200, 200, 200, 0.75)';
+}

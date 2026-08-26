@@ -1,0 +1,1127 @@
+.buff-edit-layout {
+  background: var(--excel-gray-1);
+  /*
+   * Fake right column:
+   * keep the original 1200 + 240 workbench reference width so the left canvas
+   * preserves the same centering math as the main board.
+   */
+  grid-template-columns: minmax(1200px, 1fr) 240px;
+}
+
+.buff-edit-canvas {
+  position: relative;
+}
+
+.buff-edit-left-zone {
+  position: relative;
+  grid-column: 1;
+  min-width: 1200px;
+}
+
+.buff-edit-tool-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+}
+
+/* 左区右侧按钮区 */
+.buff-edit-secondary-button-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+}
+
+.buff-edit-secondary-button {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px dashed var(--office-border);
+  border-radius: 0;
+  box-shadow: 0 2px 8px rgba(26, 26, 26, 0.08);
+  opacity: 0.62;
+  cursor: pointer;
+  pointer-events: auto;
+  overflow: hidden;
+  color: var(--excel-green-deep);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.buff-edit-secondary-button.is-active {
+  opacity: 1;
+  background: #ffffff;
+  border-style: solid;
+  border-color: #8b5cf6;
+  box-shadow:
+    0 0 0 2px rgba(139, 92, 246, 0.28),
+    0 2px 8px rgba(26, 26, 26, 0.14);
+}
+
+.buff-edit-secondary-button img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.buff-edit-secondary-button span {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  line-height: 1;
+}
+
+.buff-edit-secondary-button svg {
+  width: 19px;
+  height: 19px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.buff-edit-box-select-button,
+.buff-edit-clear-selection-button,
+.buff-edit-filter-button,
+.buff-edit-mode-button,
+.buff-edit-add-button,
+.buff-edit-remove-button {
+  position: absolute;
+  left: 16px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--excel-green-deep);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--office-border);
+  border-radius: 0;
+  box-shadow: 0 2px 8px rgba(26, 26, 26, 0.12);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.buff-edit-box-select-button:disabled,
+.buff-edit-clear-selection-button:disabled,
+.buff-edit-filter-button:disabled,
+.buff-edit-mode-button:disabled,
+.buff-edit-add-button:disabled,
+.buff-edit-remove-button:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.buff-edit-box-select-button {
+  top: 48px;
+}
+
+.buff-edit-clear-selection-button {
+  top: 88px;
+}
+
+.buff-edit-filter-button {
+  top: 128px;
+}
+
+.buff-edit-mode-button {
+  top: 168px;
+}
+
+.buff-edit-add-button {
+  top: 208px;
+}
+
+.buff-edit-remove-button {
+  top: 248px;
+}
+
+.buff-edit-box-select-button:hover,
+.buff-edit-box-select-button.is-active,
+.buff-edit-clear-selection-button:hover,
+.buff-edit-filter-button:hover,
+.buff-edit-filter-button.is-active,
+.buff-edit-mode-button:hover,
+.buff-edit-mode-button.is-active,
+.buff-edit-add-button:hover,
+.buff-edit-remove-button:hover {
+  color: var(--excel-white);
+  background: var(--excel-green-main);
+  border-color: var(--excel-green-main);
+}
+
+.buff-edit-clear-selection-button.is-cancel-add {
+  color: #ffffff;
+  background: #c62828;
+  border-color: #c62828;
+}
+
+.buff-edit-clear-selection-button.is-cancel-remove {
+  color: #ffffff;
+  background: var(--excel-green-main);
+  border-color: var(--excel-green-main);
+}
+
+.buff-edit-add-button.is-confirm-add {
+  color: #ffffff;
+  background: var(--excel-green-main);
+  border-color: var(--excel-green-main);
+}
+
+.buff-edit-remove-button.is-confirm-remove {
+  color: #ffffff;
+  background: #c62828;
+  border-color: #c62828;
+}
+
+.buff-edit-mode-button.is-confirm-edit {
+  color: #ffffff;
+  background: var(--excel-green-main);
+  border-color: var(--excel-green-main);
+}
+
+.buff-edit-box-select-button svg,
+.buff-edit-clear-selection-button svg,
+.buff-edit-filter-button svg,
+.buff-edit-mode-button svg,
+.buff-edit-add-button svg,
+.buff-edit-remove-button svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  pointer-events: none;
+}
+
+.buff-edit-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: rgba(128, 128, 128, 0.58);
+  pointer-events: none;
+}
+
+.buff-edit-canvas .canvas-grid-shell,
+.buff-edit-canvas .canvas-grid-stack {
+  pointer-events: none;
+}
+
+.buff-edit-button-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+}
+
+.buff-edit-box-select-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  cursor: crosshair;
+}
+
+.buff-edit-box-select-layer.is-dragging {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.buff-edit-box-select-rect {
+  position: absolute;
+  box-sizing: border-box;
+  background: rgba(16, 124, 65, 0.16);
+  border: 1px dashed var(--excel-green-deep);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.36);
+  pointer-events: none;
+}
+
+.buff-batch-edit-workbench .canvas-skill-button {
+  position: absolute;
+  cursor: pointer;
+  z-index: 10;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  touch-action: none;
+}
+
+.buff-batch-edit-workbench .canvas-skill-button:hover {
+  z-index: 20;
+}
+
+.buff-batch-edit-workbench .canvas-skill-button.selected {
+  z-index: 30;
+}
+
+.buff-batch-edit-workbench .skill-button-anchor {
+  position: absolute;
+  left: var(--skill-button-radius);
+  top: var(--skill-button-radius);
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.buff-batch-edit-workbench .skill-button-base {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 80px;
+  height: 30px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  padding: 2px 10px 2px calc(var(--skill-button-radius) + 4px);
+  overflow: hidden;
+  background: var(--skill-button-element-color);
+  border: 1px solid rgba(24, 92, 55, 0.32);
+  border-radius: 0;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.78) inset,
+    0 2px 8px rgba(26, 26, 26, 0.12);
+  transition:
+    border-color 0.14s ease,
+    box-shadow 0.14s ease,
+    filter 0.14s ease,
+    background-color 0.14s ease;
+}
+
+.buff-batch-edit-workbench .skill-button-type {
+  color: #111111;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.buff-batch-edit-workbench .skill-button-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: #111111;
+  line-height: 1.1;
+  white-space: normal;
+  word-break: break-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  width: 100%;
+}
+
+.buff-batch-edit-workbench .skill-button-lock {
+  color: #185c37;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.buff-batch-edit-workbench .skill-button-orb {
+  position: absolute;
+  left: calc(-1 * var(--skill-button-radius));
+  top: calc(-1 * var(--skill-button-radius));
+  width: var(--skill-button-size);
+  height: var(--skill-button-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-radius: 50%;
+  background: var(--skill-button-element-color);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.72) inset,
+    0 2px 8px rgba(26, 26, 26, 0.16);
+  z-index: 2;
+  transition:
+    border-color 0.14s ease,
+    box-shadow 0.14s ease,
+    filter 0.14s ease;
+}
+
+.buff-batch-edit-workbench .skill-button-orb .skill-icon {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.buff-batch-edit-workbench .skill-button-orb .skill-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  color: #111111;
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  pointer-events: none;
+}
+
+.buff-batch-edit-workbench .skill-button-orb .skill-label.hidden {
+  display: none;
+}
+
+.buff-batch-edit-workbench .canvas-skill-button:hover .skill-button-base {
+  border-color: rgba(24, 92, 55, 0.68);
+  filter: brightness(1.05);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.82) inset,
+    0 3px 10px rgba(24, 92, 55, 0.22);
+}
+
+.buff-batch-edit-workbench .canvas-skill-button:hover .skill-button-orb {
+  border-color: #fff59d;
+  filter: brightness(1.04);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.82) inset,
+    0 3px 10px rgba(24, 92, 55, 0.24);
+}
+
+.buff-batch-edit-workbench .canvas-skill-button.selected .skill-button-base {
+  border: 2px solid #8b5cf6;
+  box-shadow:
+    0 0 0 1px rgba(109, 40, 217, 0.48),
+    0 3px 12px rgba(109, 40, 217, 0.34);
+}
+
+.buff-batch-edit-workbench .canvas-skill-button.selected .skill-button-orb {
+  border-color: #8b5cf6;
+  box-shadow:
+    0 0 0 2px rgba(109, 40, 217, 0.38),
+    0 3px 12px rgba(109, 40, 217, 0.34);
+}
+
+.buff-batch-edit-workbench.is-edit-mode .canvas-skill-button.selected .skill-button-base {
+  border: 2px solid #2563eb;
+  box-shadow:
+    0 0 0 1px rgba(37, 99, 235, 0.42),
+    0 3px 12px rgba(37, 99, 235, 0.28);
+}
+
+.buff-batch-edit-workbench.is-edit-mode .canvas-skill-button.selected .skill-button-orb {
+  border-color: #2563eb;
+  box-shadow:
+    0 0 0 2px rgba(37, 99, 235, 0.32),
+    0 3px 12px rgba(37, 99, 235, 0.28);
+}
+
+.buff-batch-edit-workbench.is-add-mode .canvas-skill-button {
+  cursor: copy;
+}
+
+.buff-batch-edit-workbench.is-remove-mode .canvas-skill-button {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23dc2626' d='M5 11h14v3H5z'/%3E%3C/svg%3E") 12 12, pointer;
+}
+
+.buff-batch-edit-workbench .canvas-skill-button.is-add-owned .skill-button-base {
+  border: 2px solid #2563eb;
+  box-shadow:
+    0 0 0 1px rgba(37, 99, 235, 0.42),
+    0 3px 12px rgba(37, 99, 235, 0.28);
+}
+
+.buff-batch-edit-workbench .canvas-skill-button.is-add-owned .skill-button-orb {
+  border-color: #2563eb;
+  box-shadow:
+    0 0 0 2px rgba(37, 99, 235, 0.32),
+    0 3px 12px rgba(37, 99, 235, 0.28);
+}
+
+.buff-batch-edit-workbench .canvas-skill-button.is-add-target .skill-button-base {
+  border: 2px solid #16a34a;
+  box-shadow:
+    0 0 0 1px rgba(22, 163, 74, 0.42),
+    0 3px 12px rgba(22, 163, 74, 0.28);
+}
+
+.buff-batch-edit-workbench .canvas-skill-button.is-add-target .skill-button-orb {
+  border-color: #16a34a;
+  box-shadow:
+    0 0 0 2px rgba(22, 163, 74, 0.32),
+    0 3px 12px rgba(22, 163, 74, 0.28);
+}
+
+.buff-batch-edit-workbench .canvas-skill-button.is-remove-target .skill-button-base {
+  border: 2px solid #dc2626;
+  box-shadow:
+    0 0 0 1px rgba(220, 38, 38, 0.42),
+    0 3px 12px rgba(220, 38, 38, 0.28);
+}
+
+.buff-batch-edit-workbench .canvas-skill-button.is-remove-target .skill-button-orb {
+  border-color: #dc2626;
+  box-shadow:
+    0 0 0 2px rgba(220, 38, 38, 0.32),
+    0 3px 12px rgba(220, 38, 38, 0.28);
+}
+
+.buff-batch-edit-workbench .canvas-skill-button.is-edit-add-target .skill-button-base::after,
+.buff-batch-edit-workbench .canvas-skill-button.is-edit-remove-target .skill-button-base::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 2px;
+  height: 3px;
+  background: #16a34a;
+  pointer-events: none;
+}
+
+.buff-batch-edit-workbench .canvas-skill-button.is-edit-remove-target .skill-button-base::after {
+  background: #dc2626;
+}
+
+.buff-batch-edit-workbench .canvas-skill-button.is-edit-mixed-target .skill-button-base::after {
+  background: #eab308;
+}
+
+.buff-edit-pending-add-count {
+  position: absolute;
+  left: 52px;
+  top: 50px;
+  z-index: 40;
+  min-width: 24px;
+  height: 16px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: #16a34a;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.buff-edit-pending-remove-count {
+  position: absolute;
+  left: 52px;
+  top: 50px;
+  z-index: 41;
+  min-width: 24px;
+  height: 16px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: #dc2626;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.buff-edit-pending-add-count + .buff-edit-pending-remove-count {
+  left: 82px;
+}
+
+.buff-edit-empty {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  z-index: 3;
+  transform: translate(-50%, -50%);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.buff-edit-right-zone {
+  /*
+   * Real right panel:
+   * float above the fake 240px grid column and visually cover 300px from the
+   * right edge. Do not let this panel participate in grid width calculation.
+   */
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 60px;
+  z-index: 12;
+  width: 300px;
+  min-width: 300px;
+  overflow: hidden;
+  background: #f7f8f9;
+  border-left: var(--border-width) solid var(--border-color);
+  box-shadow: -8px 0 18px rgba(26, 26, 26, 0.08);
+}
+
+.buff-edit-right-placeholder {
+  height: 100%;
+  overflow: auto;
+  background: #f7f8f9;
+}
+
+.buff-edit-right-panel {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 12px 160px;
+  box-sizing: border-box;
+  overflow: auto;
+  background: #f7f8f9;
+}
+
+.buff-edit-right-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid var(--office-border);
+  padding-bottom: 8px;
+}
+
+.buff-edit-right-head h3,
+.buff-edit-right-section h4 {
+  margin: 0;
+  color: var(--excel-green-deep);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.buff-edit-right-head span {
+  color: var(--ide-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.buff-edit-right-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.buff-edit-candidate-section {
+  border-top: 1px solid var(--office-border);
+  padding-top: 10px;
+}
+
+.buff-edit-candidate-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.buff-edit-candidate-head h4 {
+  margin: 0;
+}
+
+.buff-edit-candidate-head span,
+.buff-edit-candidate-empty {
+  color: var(--ide-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.buff-edit-candidate-adder {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid var(--office-border);
+}
+
+.buff-edit-candidate-adder-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.buff-edit-candidate-adder-head strong {
+  color: var(--office-body);
+  font-size: 12px;
+}
+
+.buff-edit-candidate-adder-head button {
+  height: 22px;
+  padding: 0 8px;
+  color: var(--office-body);
+  background: #ffffff;
+  border: 1px solid var(--office-border);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.buff-edit-candidate-search-input {
+  width: 100%;
+  height: 26px;
+  box-sizing: border-box;
+  padding: 4px 7px;
+  color: var(--office-body);
+  background: #ffffff;
+  border: 1px solid var(--office-border);
+  font-size: 12px;
+  outline: none;
+}
+
+.buff-edit-candidate-results {
+  max-height: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: auto;
+}
+
+.buff-edit-candidate-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px 7px;
+  color: #444444;
+  background: #ffffff;
+  border: 1px solid var(--office-border);
+  border-left: 3px solid var(--excel-green-main);
+  text-align: left;
+  cursor: pointer;
+}
+
+.buff-edit-candidate-result strong {
+  max-width: 100%;
+  color: #111111;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.buff-edit-candidate-result span {
+  max-width: 100%;
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.buff-batch-edit-workbench .skill-button-inline-buff-search-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 5000;
+  display: grid;
+  place-items: start center;
+  padding-top: 36px;
+  background: rgba(238, 247, 241, 0.18);
+}
+
+.buff-batch-edit-workbench .skill-button-inline-buff-search {
+  width: min(980px, 86vw);
+  min-height: min(680px, calc(100vh - 96px));
+  max-height: min(720px, 84vh);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--ide-border-subtle);
+  border-radius: var(--ide-radius-lg);
+  background: var(--ide-acrylic-bg-strong);
+  box-shadow: var(--ide-shadow);
+  backdrop-filter: blur(18px) saturate(1.2);
+  overflow: hidden;
+}
+
+.buff-batch-edit-workbench .skill-button-buff-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(240px, 3fr);
+  gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.buff-batch-edit-workbench .skill-button-buff-workbench-main,
+.buff-batch-edit-workbench .skill-button-buff-resource-rail,
+.buff-batch-edit-workbench .skill-button-local-buff-panel {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.buff-batch-edit-workbench .skill-button-buff-workbench-main {
+  overflow: hidden;
+}
+
+.buff-batch-edit-workbench .skill-button-local-buff-panel {
+  gap: 8px;
+  flex: 1 1 auto;
+}
+
+.buff-batch-edit-workbench .skill-button-inline-buff-search-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.buff-batch-edit-workbench .skill-button-inline-buff-search-head h5 {
+  margin: 0;
+  color: var(--excel-green-deep);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.buff-batch-edit-workbench .skill-button-inline-buff-search-head span {
+  color: var(--ide-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.buff-batch-edit-workbench .skill-button-inline-buff-search-modes {
+  display: flex;
+  gap: 6px;
+}
+
+.buff-batch-edit-workbench .skill-button-inline-buff-search-mode {
+  min-height: 24px;
+  padding: 0 8px;
+  color: var(--office-body);
+  background: #ffffff;
+  border: 1px solid var(--office-border);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.buff-batch-edit-workbench .skill-button-inline-buff-search-mode.is-active {
+  color: #ffffff;
+  background: var(--excel-green-main);
+  border-color: var(--excel-green-main);
+}
+
+.buff-batch-edit-workbench .skill-button-inline-buff-search-input {
+  width: 100%;
+  height: 30px;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  color: var(--office-body);
+  background: #ffffff;
+  border: 1px solid var(--office-border);
+  font-size: 12px;
+  outline: none;
+}
+
+.buff-batch-edit-workbench .skill-button-inline-buff-search-results {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: auto;
+}
+
+.buff-batch-edit-workbench .skill-button-inline-buff-search-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 7px 8px;
+  color: #444444;
+  background: #ffffff;
+  border: 1px solid var(--office-border);
+  border-left: 3px solid var(--excel-green-main);
+  text-align: left;
+  cursor: pointer;
+}
+
+.buff-batch-edit-workbench .local-buff-search-item-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.buff-batch-edit-workbench .local-buff-search-item-head strong {
+  color: #111111;
+  font-size: 12px;
+}
+
+.buff-batch-edit-workbench .local-buff-search-item-head span,
+.buff-batch-edit-workbench .skill-button-inline-buff-search-item p,
+.buff-batch-edit-workbench .skill-button-inline-buff-search-empty,
+.buff-batch-edit-workbench .skill-button-buff-empty {
+  margin: 0;
+  color: var(--ide-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.buff-batch-edit-workbench .skill-anomaly-config,
+.buff-batch-edit-workbench .skill-anomaly-board {
+  border: 1px solid var(--office-border);
+  background: #ffffff;
+  padding: 8px;
+}
+
+.buff-batch-edit-workbench .skill-anomaly-config {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow: auto;
+}
+
+.buff-batch-edit-workbench .skill-anomaly-board-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.buff-batch-edit-workbench .skill-anomaly-board-title,
+.buff-batch-edit-workbench .anomaly-config-title {
+  margin: 0 0 6px 0;
+  color: var(--excel-green-deep);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.buff-batch-edit-workbench .anomaly-config-subtitle,
+.buff-batch-edit-workbench .anomaly-live-line {
+  margin: 2px 0;
+  color: #555555;
+  font-size: 11px;
+}
+
+.buff-batch-edit-workbench .anomaly-board-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--office-border);
+  background: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  font-size: 9px;
+  color: #444444;
+}
+
+.buff-batch-edit-workbench .anomaly-board-card.is-state {
+  border-left: 3px solid var(--excel-green-main);
+}
+
+.buff-batch-edit-workbench .anomaly-board-card-title {
+  color: #111111;
+  font-size: 10px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.buff-batch-edit-workbench .anomaly-board-card-delete-text {
+  align-self: flex-end;
+  color: #c62828;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.buff-batch-edit-workbench .anomaly-strip-button,
+.buff-batch-edit-workbench .anomaly-chip,
+.buff-batch-edit-workbench .anomaly-apply-btn,
+.buff-batch-edit-workbench .anomaly-select-trigger {
+  min-height: 24px;
+  padding: 0 8px;
+  color: var(--office-body);
+  background: #ffffff;
+  border: 1px solid var(--office-border);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.buff-batch-edit-workbench .anomaly-strip-button.is-active,
+.buff-batch-edit-workbench .anomaly-chip.is-active {
+  color: var(--excel-green-deep);
+  background: var(--ide-bg-hover);
+  border-color: var(--excel-green-main);
+  font-weight: 700;
+}
+
+.buff-edit-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-content: flex-start;
+}
+
+.buff-edit-buff-card {
+  width: calc(50% - 3px);
+  min-width: 96px;
+  max-width: 100%;
+  height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 5px 7px;
+  box-sizing: border-box;
+  color: #444444;
+  background: #ffffff;
+  border: 1px solid var(--office-border);
+  border-left: 1px solid var(--office-border);
+  border-radius: 0;
+  font-size: 9px;
+  line-height: 1.15;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: none;
+}
+
+.buff-edit-buff-card:disabled {
+  cursor: default;
+}
+
+.buff-edit-buff-card.is-selected {
+  color: #444444;
+  background: #ffffff;
+  border-color: var(--office-border);
+  border-left: 3px solid var(--excel-green-main);
+  box-shadow: 0 2px 8px rgba(16, 124, 65, 0.18);
+}
+
+.buff-edit-buff-card.is-selected.is-add-intent {
+  border-color: #16a34a;
+  border-left-color: #16a34a;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.22);
+}
+
+.buff-edit-buff-card.is-selected.is-remove-intent {
+  border-color: #dc2626;
+  border-left-color: #dc2626;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.22);
+}
+
+.buff-edit-buff-card.is-white {
+  color: #444444;
+  background: #ffffff;
+  border-color: var(--office-border);
+  border-left-color: var(--office-border);
+}
+
+.buff-edit-buff-card.is-gray {
+  color: #555555;
+  background: #eceff1;
+  border-color: #d0d7de;
+  border-left-color: #d0d7de;
+}
+
+.buff-edit-buff-card-title {
+  max-width: 100%;
+  color: #111111;
+  font-size: 10px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.buff-edit-buff-card span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.buff-edit-buff-card.is-selected .buff-edit-buff-card-title {
+  color: #111111;
+}
+
+.buff-edit-selected-button-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.buff-edit-selected-button-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 8px;
+  background: #ffffff;
+  border: 1px solid var(--office-border);
+}
+
+.buff-edit-selected-button-card strong {
+  color: var(--office-body);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.buff-edit-selected-button-card span,
+.buff-edit-right-empty {
+  color: var(--ide-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.buff-edit-selection-counter {
+  min-width: 66px;
+  box-sizing: border-box;
+  color: #ffffff;
+  background: rgba(109, 40, 217, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(26, 26, 26, 0.18);
+  pointer-events: none;
+}
+
+/* Sync batch-workbench skill buttons with the main canvas button language. */
+.buff-batch-edit-workbench .skill-button-base {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.72);
+  box-shadow: none;
+}
+
+.buff-batch-edit-workbench .skill-button-orb {
+  border: 1px solid rgba(0, 0, 0, 0.72);
+  background: var(--skill-button-element-color);
+  box-shadow: none;
+}
+
+.buff-batch-edit-workbench .canvas-skill-button:hover .skill-button-base,
+.buff-batch-edit-workbench .canvas-skill-button:hover .skill-button-orb {
+  border-color: rgba(0, 0, 0, 0.9);
+  filter: none;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}

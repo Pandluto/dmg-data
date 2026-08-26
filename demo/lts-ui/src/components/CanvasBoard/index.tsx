@@ -1,0 +1,5260 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import { useAppContext } from '../../context/AppContext';
+import { loadLocalOperatorCharacters } from '../../core/services/localOperatorAdapter';
+import { SkillSandbox } from './SkillSandbox';
+import { BasicAttackCutDialog } from './BasicAttackCutDialog';
+import { ForcedWaitConfigDialog } from './ForcedWaitConfigDialog';
+import {
+  WorkNodeTreePanel,
+  type WorkbenchSelectedNodeContext,
+  type WorkNodeOmissionSelectionState,
+  type WorkNodeTreePanelHandle,
+} from './WorkNodeTreePanel';
+import { useCanvasWidth } from './hooks/useCanvasWidth';
+import { useSelectStart } from './hooks/useSelectStart';
+import { useCanvasDrag } from './hooks/useCanvasDrag';
+import { useTimelineData } from '../../hooks/useTimelineData';
+import { CanvasArea } from './components/CanvasArea';
+import { DraggingOverlay } from './components/DraggingOverlay';
+import { Toolbar } from './components/Toolbar';
+import {
+  Character,
+  BasicAttackTailBundle,
+  ForcedWaitConfig,
+  SandboxSkill,
+  SkillButton,
+  SkillButtonType,
+  SkillButtonSkillChangePayload,
+  SkillButtonSkillOption,
+  TimelineData,
+} from '../../types';
+import { resolveSkillIconUrl } from '../../utils/assetResolver';
+import { emitSkillButtonBuffAdded, onSkillButtonBuffAdded, onSkillButtonBuffRemoved } from '../../core/events/buffEvents';
+import { generateId } from '../../utils/helpers';
+import { calculateNodeNumber } from '../../utils/nodeNumbering';
+import { SKILL_BUTTON_BASELINE_OFFSET_Y } from '../../constants/canvas-layout';
+import {
+  clampGridNodeIndex,
+  clientToGridCoords,
+  findNearestStaffIndex,
+  getGridContentOffsetX,
+  getGridGroupTop,
+  getGridLineCenterY,
+  getGridNodeCenterX,
+  getOccupiedNodeIndicesForLine,
+  gridToCanvasContentCoords,
+  GRID_NODE_COUNT,
+  GRID_TIMELINE_WIDTH,
+  resolveSnappedGridNode,
+} from '../../core/calculators/gridSnapLayout';
+import {
+  getSkillButtonById,
+  getSkillButtonTable,
+  saveTimelineData as saveTimelineRepo,
+  setSkillButtonTable,
+  upsertSkillButton,
+} from '../../core/repositories';
+import {
+  addBuffToButton,
+  attachExistingBuffsToButton,
+  getBuffsByButtonId,
+  recomputeSkillButtonPanel,
+  removeBuffFromButton,
+} from '../../core/services/buffService';
+import { refreshAvailableCandidateBuffsForCharacters } from '../../core/services/operatorConfigCandidateBuffService';
+import {
+  applyOperatorEquipmentSelectionsToSnapshot,
+  DEFAULT_OPERATOR_SKILL_CONFIG,
+  DEFAULT_WEAPON_LEVEL,
+  DEFAULT_WEAPON_SKILL_LEVELS,
+  getWeaponSkill3PotentialBonus,
+  refreshOperatorConfigSnapshotsForCharacters,
+} from '../../core/services/operatorConfigSnapshotRefreshService';
+import { APP_ROUTE_PATHS, navigateToAppPath } from '../../utils/appRoute';
+import { STORAGE_KEYS } from '../../constants/storage-keys';
+import {
+  getOperatorConfigPageCache,
+  getRuntimeOperatorTemplateById,
+  safeSessionStorage,
+  setOperatorConfigPageCache,
+  setSelectedCharacterIds,
+} from '../../utils/storage';
+import {
+  applyTimelineSnapshotPayload,
+  buildTimelineBundleV2,
+  buildTimelineShareFileName,
+  createTimelineSnapshotEntry,
+  getCurrentTimelineSnapshotPayload,
+  listTimelineSnapshots,
+  parseTimelineShareFile,
+  parseTimelineBundleV2,
+  type TimelineSnapshotEntry,
+  type TimelineSnapshotPayload,
+  type TimelineBundleV2,
+  type TimelineShareFile,
+} from '../../utils/timelineSnapshotStorage';
+import { flushUserWorkspaceState, restoreUserWorkspaceSnapshot } from '../../utils/userWorkspaceBridge';
+import './CanvasBoard.css';
+import { resolveRuntimeTemplateSkill } from '../../core/services/skillDamageTemplateResolver';
+import { buildDamageReportSnapshot } from '../../core/services/damageReportService';
+import type { PersistedSkillButton } from '../../types/storage';
+import type { HitResistanceInput } from '../../types/storage';
+import DeferredNumberInput from '../DeferredNumberInput';
+import {
+  getPendingMainWorkbenchCommands,
+  enqueueMainWorkbenchCommand,
+  patchMainWorkbenchCommand,
+  pullRemoteMainWorkbenchCommands,
+  pushMainWorkbenchCommandResult,
+  pushMainWorkbenchSnapshot,
+  readMainWorkbenchSnapshot,
+  writeMainWorkbenchSnapshot,
+  type MainWorkbenchCommand,
+  type MainWorkbenchSnapshot,
+} from '../../utils/mainWorkbenchControl';
+import {
+  createAiTimelineWorkNodeClient,
+  diffTimelinePayloads,
+  applyTimelineWorkNodePatch,
+  validateTimelinePayload,
+} from '../../agentKernel/timelineWorktree';
+import { buildAiTimelineCheckoutDecision } from '../../agentKernel/timelineWorktree/checkoutDecision.mjs';
+import { planTimelineWorkNodeCheckoutLifecycle } from '../../agentKernel/timelineWorktree/checkoutLifecycle';
+import { DEFAULT_TIMELINE_ID } from '../../core/domain/timeline';
+import type { TimelineCheckoutRef, TimelineDocument } from '../../core/domain/timeline';
+import { createTimelineRepositoryClient, formatTimelineOperationError } from '../../agentKernel/timelineRepository/localTimelineClient';
+import type {
+  TimelineArchiveSummary,
+  TimelineRepositoryBundleWorkNode,
+  TimelineSqliteWorkspace,
+} from '../../agentKernel/timelineRepository/localTimelineClient';
+import { useTimelineSession } from '../../agentKernel/timelineRepository/useTimelineSession';
+import { shouldHydrateTimelineCheckoutOnCanvasMount } from '../../agentKernel/timelineRepository/timelineSession';
+import { runTimelineArchiveConversionForReload } from './timelineArchiveConversionFlow';
+import { hasTimelineCheckpointPayloadChanged } from '../../core/services/timelineCheckpointService';
+import { decodeMobileShareIdFromImage } from '../../mobile/mobileShare';
+import {
+  AKE_REPORT_UPDATED_EVENT,
+  readLatestAkeTeamReport,
+  runAkeTeamCalculation,
+  type AkeTeamReport,
+} from '../../integrations/ake/akeProvider';
+import { getInstalledAkeCatalog } from '../../integrations/ake/akeCatalogAdapter';
+import { buildAkeRealtimeTimeline } from '../../integrations/ake/akeRealtimeTimeline';
+import {
+  akeProfileToActionTailContract,
+  akeProfileToTailSuccessor,
+} from '../../integrations/ake/akeActionTailAdapter';
+import {
+  buildBasicAttackCutOptions,
+  debounceFramesForTickRate,
+  lockTailTransitionBundle,
+} from '../../core/domain/combatActionTailPlanner';
+import {
+  attachLegacyLanePredecessors,
+  getReleaseDeletionBlockers,
+} from '../../core/domain/releaseAnchorGraph';
+
+function getLegacySnapshotTimelineId(snapshotId: string): string {
+  return `timeline-document-${snapshotId}`;
+}
+
+async function ensureTimelineDocumentExists(
+  repository: ReturnType<typeof createTimelineRepositoryClient>,
+  timelineId: string,
+  label: string,
+) {
+  const existing = (await repository.listDocuments()).find((document) => document.id === timelineId);
+  return existing || repository.ensureDocument({ id: timelineId, label });
+}
+
+function checkoutIdentity(checkoutRef: TimelineCheckoutRef | null): string {
+  if (!checkoutRef) return 'none';
+  return `${checkoutRef.timelineId}:${checkoutRef.targetType}:${checkoutRef.targetId}`;
+}
+
+const EMPTY_BATCH_TARGET_RESISTANCE: Required<HitResistanceInput> = {
+  physicalResistance: 0,
+  fireResistance: 0,
+  electricResistance: 0,
+  iceResistance: 0,
+  natureResistance: 0,
+};
+
+const REFRESH_AVAILABLE_CANDIDATES_MIN_SPIN_MS = 920;
+
+const BATCH_RESISTANCE_FIELDS: Array<[keyof HitResistanceInput, string]> = [
+  ['physicalResistance', '物理'],
+  ['fireResistance', '灼热'],
+  ['electricResistance', '电磁'],
+  ['iceResistance', '寒冷'],
+  ['natureResistance', '自然'],
+];
+
+type PatchAiTimelineWorkNodeCommandResult =
+  | {
+      ok: true;
+      nodeId: string;
+      dryRun: boolean;
+      operationsApplied: number;
+      diff: unknown;
+      diffSummary?: string;
+      changedButtons?: ReturnType<typeof summarizeTimelineChangedButtons>;
+      currentCheckoutTouched?: false;
+      riskFlags: unknown[];
+      summary: string[];
+      status?: string;
+      checkoutDecision?: unknown;
+      path?: string;
+    }
+  | {
+      ok: false;
+      nodeId: string;
+      dryRun: boolean;
+      issues: Array<{ code: string; message: string; path?: string }>;
+      riskFlags: unknown[];
+    };
+
+function formatTimelineDiffSummary(diff: ReturnType<typeof diffTimelinePayloads>) {
+  const summary = diff.summary;
+  const parts: string[] = [];
+  if (summary.addedButtonCount) parts.push(`added ${summary.addedButtonCount} button(s)`);
+  if (summary.removedButtonCount) parts.push(`removed ${summary.removedButtonCount} button(s)`);
+  if (summary.changedButtonCount) parts.push(`changed ${summary.changedButtonCount} button(s)`);
+  if (summary.addedBuffCount) parts.push(`added ${summary.addedBuffCount} buff(s)`);
+  if (summary.removedBuffCount) parts.push(`removed ${summary.removedBuffCount} buff(s)`);
+  if (summary.changedCharacterInputCount) parts.push(`changed ${summary.changedCharacterInputCount} character loadout(s)`);
+  if (diff.selectedCharactersChanged) parts.push('selected characters changed');
+  return parts.length ? parts.join('; ') : 'no diff';
+}
+
+function summarizeTimelineChangedButtons(diff: ReturnType<typeof diffTimelinePayloads>) {
+  return [
+    ...diff.addedButtons.map((button) => ({
+      kind: 'added' as const,
+      buttonId: button.id,
+      label: button.label,
+      after: button,
+    })),
+    ...diff.removedButtons.map((button) => ({
+      kind: 'removed' as const,
+      buttonId: button.id,
+      label: button.label,
+      before: button,
+    })),
+    ...diff.changedButtons.map((change) => ({
+      kind: 'changed' as const,
+      buttonId: change.id,
+      beforeLabel: change.before.label,
+      afterLabel: change.after.label,
+      changes: change.changes,
+    })),
+  ];
+}
+
+function buildTimelineButtonTargets(payload: NonNullable<ReturnType<typeof getCurrentTimelineSnapshotPayload>>) {
+  return Object.values(payload.skillButtonTable || {})
+    .map((button) => ({
+      buttonId: button.id,
+      label: `${button.characterName}-${button.skillDisplayName || button.skillType}@${button.staffIndex + 1}-${(button.nodeIndex ?? 0) + 1}`,
+      characterName: button.characterName,
+      skillType: button.skillType,
+      skillDisplayName: button.skillDisplayName,
+      staffIndex: button.staffIndex,
+      nodeIndex: button.nodeIndex,
+    }))
+    .sort((left, right) => (left.staffIndex - right.staffIndex) || (left.nodeIndex - right.nodeIndex) || left.label.localeCompare(right.label));
+}
+
+function buildMainWorkbenchSnapshotSignature(
+  selectedCharacters: MainWorkbenchSnapshot['selectedCharacters'],
+  skillButtons: MainWorkbenchSnapshot['skillButtons'],
+  operatorConfigs: MainWorkbenchSnapshot['operatorConfigs'] = [],
+  skillCatalog: MainWorkbenchSnapshot['skillCatalog'] = [],
+): string {
+  return JSON.stringify({
+    selectedCharacters: selectedCharacters.map((character) => ({
+      id: character.id,
+      name: character.name,
+    })),
+    skillCatalog: [...skillCatalog]
+      .sort((a, b) => `${a.characterId}:${a.skillId}`.localeCompare(`${b.characterId}:${b.skillId}`))
+      .map((skill) => ({
+        characterId: skill.characterId,
+        characterName: skill.characterName,
+        skillId: skill.skillId,
+        skillType: skill.skillType,
+        skillDisplayName: skill.skillDisplayName,
+        source: skill.source,
+      })),
+    skillButtons: [...skillButtons]
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .map((button) => ({
+        id: button.id,
+        characterId: button.characterId,
+        characterName: button.characterName,
+        skillType: button.skillType,
+        runtimeSkillId: button.runtimeSkillId,
+        skillDisplayName: button.skillDisplayName,
+        staffIndex: button.staffIndex,
+        lineIndex: button.lineIndex,
+        persistenceStaffIndex: button.lineIndex,
+        persistenceNodeIndex: button.staffIndex * GRID_NODE_COUNT + (button.nodeIndex ?? 0),
+        nodeIndex: button.nodeIndex,
+        nodeNumber: button.nodeNumber,
+        selectedBuffIds: [...button.selectedBuffIds].sort(),
+      })),
+    operatorConfigs: [...operatorConfigs]
+      .sort((a, b) => a.characterId.localeCompare(b.characterId))
+      .map((config) => ({
+        characterId: config.characterId,
+        characterName: config.characterName,
+        weapon: config.weapon
+          ? {
+              id: config.weapon.id,
+              name: config.weapon.name,
+              level: config.weapon.level,
+              potential: config.weapon.potential,
+              attack: config.weapon.attack,
+            }
+          : null,
+        equipment: [...config.equipment]
+          .sort((a, b) => a.slotKey.localeCompare(b.slotKey))
+          .map((piece) => ({
+            slotKey: piece.slotKey,
+            equipmentId: piece.equipmentId,
+            name: piece.name,
+            part: piece.part,
+            effects: [...piece.effects]
+              .sort((a, b) => a.effectId.localeCompare(b.effectId))
+              .map((effect) => ({
+                effectId: effect.effectId,
+                typeKey: effect.typeKey,
+                level: effect.level,
+                value: effect.value,
+              })),
+          })),
+      })),
+  });
+}
+
+function clonePersistedSkillButtonConfig(button: PersistedSkillButton): Pick<
+  PersistedSkillButton,
+  'selectedBuff' | 'buffStackCounts' | 'anomalyConfig' | 'resistanceConfig' | 'panelConfig' | 'runtimeSnapshot'
+> {
+  return {
+    selectedBuff: [...(button.selectedBuff ?? [])],
+    buffStackCounts: { ...(button.buffStackCounts ?? {}) },
+    anomalyConfig: button.anomalyConfig
+      ? {
+          selectedStatuses: button.anomalyConfig.selectedStatuses.map((card) => ({
+            ...card,
+            selectedBuffIds: [...card.selectedBuffIds],
+          })),
+          selectedDamages: button.anomalyConfig.selectedDamages.map((card) => ({
+            ...card,
+            selectedBuffIds: [...card.selectedBuffIds],
+          })),
+          selectedStateSnapshotIds: [...button.anomalyConfig.selectedStateSnapshotIds],
+        }
+      : undefined,
+    resistanceConfig: button.resistanceConfig
+      ? {
+          targetResistance: { ...button.resistanceConfig.targetResistance },
+        }
+      : undefined,
+    panelConfig: button.panelConfig
+      ? {
+          ...button.panelConfig,
+          selectedBuff: [...button.panelConfig.selectedBuff],
+          globallyDisabledBuffIds: [...(button.panelConfig.globallyDisabledBuffIds ?? [])],
+          manualDisabledBuffIdsBySegmentKey: Object.fromEntries(
+            Object.entries(button.panelConfig.manualDisabledBuffIdsBySegmentKey ?? {}).map(([segmentKey, buffIds]) => [
+              segmentKey,
+              [...buffIds],
+            ])
+          ),
+          manualBuffStackCountsBySegmentKey: Object.fromEntries(
+            Object.entries(button.panelConfig.manualBuffStackCountsBySegmentKey ?? {}).map(([segmentKey, stackCounts]) => [
+              segmentKey,
+              { ...stackCounts },
+            ])
+          ),
+          manualDisabledHitKeys: [...(button.panelConfig.manualDisabledHitKeys ?? [])],
+          singleHitBuffTargetByBuffId: {
+            ...(button.panelConfig.singleHitBuffTargetByBuffId ?? {}),
+          },
+        }
+      : undefined,
+    runtimeSnapshot: button.runtimeSnapshot
+      ? {
+          ...button.runtimeSnapshot,
+          characterComputed: button.runtimeSnapshot.characterComputed
+            ? {
+                ...button.runtimeSnapshot.characterComputed,
+                panel: { ...button.runtimeSnapshot.characterComputed.panel },
+                damageBonus: { ...button.runtimeSnapshot.characterComputed.damageBonus },
+              }
+            : button.runtimeSnapshot.characterComputed,
+        }
+      : null,
+  };
+}
+
+function buildVisibleTimelineMirrors(
+  characters: Character[],
+  visibleButtons: SkillButton[],
+  previousPayload: TimelineSnapshotPayload,
+): Pick<TimelineSnapshotPayload, 'timelineData' | 'skillButtonTable'> {
+  const previousTable = previousPayload.skillButtonTable || {};
+  const now = Date.now();
+  const skillButtonTable = Object.fromEntries(visibleButtons.map((button) => {
+    const lineIndex = button.lineIndex;
+    const character = characters[lineIndex];
+    if (!character || character.id !== button.characterId || character.name !== button.characterName) {
+      throw new Error(`VISIBLE_TIMELINE_IDENTITY_MISMATCH: ${button.id} 无法解析到当前干员行。`);
+    }
+    const trustedSkill = resolveRuntimeTemplateSkill(button);
+    if (!button.timelineModuleKind && (!trustedSkill || trustedSkill.buttonType !== button.skillType)) {
+      throw new Error(`VISIBLE_TIMELINE_SKILL_UNTRUSTED: ${button.id} 的 ${button.skillType} 无法在干员技能目录中解析。`);
+    }
+    const previous = previousTable[button.id];
+    const persistentNodeIndex = button.staffIndex * GRID_NODE_COUNT + (button.nodeIndex ?? 0);
+    const selectedBuff = [...(previous?.selectedBuff ?? [])];
+    const persisted: PersistedSkillButton = {
+      id: button.id,
+      characterId: button.characterId,
+      characterName: button.characterName,
+      skillType: button.skillType,
+      staffIndex: lineIndex,
+      lineIndex,
+      nodeIndex: persistentNodeIndex,
+      nodeNumber: persistentNodeIndex + 1,
+      position: { ...button.position },
+      runtimeSkillId: button.timelineModuleKind ? button.runtimeSkillId : trustedSkill?.id,
+      skillDisplayName: button.timelineModuleKind ? button.skillDisplayName : trustedSkill?.displayName,
+      skillIconUrl: button.skillIconUrl,
+      customHits: button.customHits,
+      basicAttackStageCount: button.basicAttackStageCount,
+      basicAttackTailBundle: button.basicAttackTailBundle,
+      releaseAnchor: button.releaseAnchor,
+      timelineModuleKind: button.timelineModuleKind,
+      forcedWaitConfig: button.forcedWaitConfig,
+      selectedBuff,
+      ...(previous ? clonePersistedSkillButtonConfig(previous) : {}),
+      createdAt: previous?.createdAt ?? now,
+      updatedAt: now,
+    };
+    return [button.id, persisted];
+  }));
+  const timelineData: TimelineData = {
+    version: previousPayload.timelineData.version || '1.0.0',
+    createdAt: previousPayload.timelineData.createdAt || now,
+    updatedAt: now,
+    staffLines: characters.map((character, lineIndex) => {
+      const buttons = Object.values(skillButtonTable)
+        .filter((button) => button.staffIndex === lineIndex)
+        .map((button) => ({
+          id: button.id,
+          characterId: button.characterId || character.id,
+          characterName: button.characterName,
+          skillType: button.skillType as SkillButtonType,
+          staffIndex: lineIndex,
+          lineIndex,
+          nodeIndex: button.nodeIndex,
+          nodeNumber: button.nodeNumber,
+          position: { ...button.position },
+          runtimeSkillId: button.runtimeSkillId,
+          skillDisplayName: button.skillDisplayName,
+          skillIconUrl: button.skillIconUrl,
+          customHits: button.customHits,
+          basicAttackStageCount: button.basicAttackStageCount,
+          basicAttackTailBundle: button.basicAttackTailBundle,
+          releaseAnchor: button.releaseAnchor,
+          timelineModuleKind: button.timelineModuleKind,
+          forcedWaitConfig: button.forcedWaitConfig,
+          buffIds: [...button.selectedBuff],
+        }))
+        .sort((left, right) => left.nodeIndex - right.nodeIndex);
+      return {
+        staffIndex: lineIndex,
+        characterName: character.name,
+        occupiedNodes: buttons.map((button) => button.nodeIndex),
+        buttons,
+      };
+    }),
+  };
+  return { timelineData, skillButtonTable };
+}
+
+function buildSandboxSkillsFromRuntimeTemplate(characterId: string): SandboxSkill[] {
+  const template = getRuntimeOperatorTemplateById(characterId);
+  if (!template) {
+    return [];
+  }
+
+  return template.skills.map((skill) => ({
+    id: skill.id,
+    displayName: skill.displayName,
+    buttonType: skill.buttonType,
+    iconUrl: skill.iconUrl,
+    hitCount: skill.hitCount,
+    source: template.source,
+    customHits: skill.hits.map((hit) => ({
+      key: hit.key,
+      displayName: hit.displayName,
+      multiplier: hit.multiplier,
+      element: hit.element,
+      skillType: hit.skillType,
+    })),
+  }));
+}
+
+interface CanvasBoardProps {
+  activeSkillButtonId?: string | null;
+  isWorkbenchTopZoneOpen?: boolean;
+  onOpenOperatorConfig?: (characterId: string) => void;
+  workbenchControl?: React.ReactNode;
+  bottomRightControl?: React.ReactNode;
+}
+
+const EMPTY_WORK_NODE_OMISSION_STATE: WorkNodeOmissionSelectionState = {
+  selectedCount: 0,
+  canConfirm: false,
+  busy: false,
+  message: '点击两个端点，或在空白处拖拽框选；所选区间会标红。',
+};
+
+type TimelineNamePromptCopy = {
+  title: string;
+  description: string;
+  placeholder: string;
+  confirmLabel: string;
+};
+
+type PendingBasicAttackCut = {
+  predecessorButtonId: string;
+  successorButtonId: string;
+};
+
+const DEFAULT_TIMELINE_NAME_PROMPT: TimelineNamePromptCopy = {
+  title: '命名当前工作区',
+  description: '这是首次保存。名称会用于开始页、存档和工作节点记录。',
+  placeholder: '例如：别礼主力排轴',
+  confirmLabel: '保存并继续',
+};
+
+const MIN_STAFF_GROUP_COUNT = 2;
+const DEFAULT_MAX_STAFF_GROUP_COUNT = 24;
+
+export function CanvasBoard({
+  activeSkillButtonId = null,
+  isWorkbenchTopZoneOpen = false,
+  onOpenOperatorConfig,
+  workbenchControl,
+  bottomRightControl,
+}: CanvasBoardProps) {
+  const { state, dispatch, refreshSelectedCharacters } = useAppContext();
+  const { currentView, selectedCharacters, canvasConfig, skillButtons, loadedCharacters } = state;
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [staffCount, setStaffCount] = React.useState(canvasConfig.staffCount);
+  const [isSnapshotModalOpen, setIsSnapshotModalOpen] = useState(false);
+  const [isSaveSnapshotModalOpen, setIsSaveSnapshotModalOpen] = useState(false);
+  const [isTimelineNameModalOpen, setIsTimelineNameModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [snapshotDraftName, setSnapshotDraftName] = useState('');
+  const [timelineNameDraft, setTimelineNameDraft] = useState('');
+  const [timelineNameError, setTimelineNameError] = useState('');
+  const [timelineNamePromptCopy, setTimelineNamePromptCopy] = useState<TimelineNamePromptCopy>(DEFAULT_TIMELINE_NAME_PROMPT);
+  const [shareDraftName, setShareDraftName] = useState('');
+  const [shareScope, setShareScope] = useState<'snapshot' | 'branch' | 'document'>('snapshot');
+  const [shareBranchRootId, setShareBranchRootId] = useState('');
+  const [shareWorkNodes, setShareWorkNodes] = useState<TimelineRepositoryBundleWorkNode[]>([]);
+  const [projectionVisibilityRevision, setProjectionVisibilityRevision] = useState(0);
+  const [pendingImportShare, setPendingImportShare] = useState<TimelineShareFile | null>(null);
+  const [pendingImportBundle, setPendingImportBundle] = useState<TimelineBundleV2 | null>(null);
+  const [localTimelineArchives, setLocalTimelineArchives] = useState<TimelineArchiveSummary[]>([]);
+  const [sharedTimelineArchives, setSharedTimelineArchives] = useState<TimelineArchiveSummary[]>([]);
+  const [sqliteTimelineWorkspaces, setSqliteTimelineWorkspaces] = useState<TimelineSqliteWorkspace[]>([]);
+  const [restorePanelTab, setRestorePanelTab] = useState<'local' | 'shared' | 'sqlite'>('local');
+  const [isBrowseMode, setIsBrowseMode] = useState(false);
+  const [isInspectMode, setIsInspectMode] = useState(false);
+  const [isWorkNodePanelOpen, setIsWorkNodePanelOpen] = useState(false);
+  const [workNodeRefreshKey, setWorkNodeRefreshKey] = useState(0);
+  const [workNodeCameraResetKey, setWorkNodeCameraResetKey] = useState(0);
+  const [workNodeSaveNotice, setWorkNodeSaveNotice] = useState('');
+  const [pendingWorkNodeCheckoutId, setPendingWorkNodeCheckoutId] = useState('');
+  const [isWorkNodeOmissionMode, setIsWorkNodeOmissionMode] = useState(false);
+  const [workNodeOmissionState, setWorkNodeOmissionState] = useState<WorkNodeOmissionSelectionState>(EMPTY_WORK_NODE_OMISSION_STATE);
+  const [isRefreshingAvailableCandidates, setIsRefreshingAvailableCandidates] = useState(false);
+  const [isAkeCalculating, setIsAkeCalculating] = useState(false);
+  const [akeTeamReport, setAkeTeamReport] = useState<AkeTeamReport | null>(() => (
+    import.meta.env.VITE_AKE_DEMO === '1' ? readLatestAkeTeamReport() : null
+  ));
+  const [isDecodingTacticalShare, setIsDecodingTacticalShare] = useState(false);
+  const [isBatchResistanceModalOpen, setIsBatchResistanceModalOpen] = useState(false);
+  const [batchTargetResistance, setBatchTargetResistance] = useState<Required<HitResistanceInput>>(
+    EMPTY_BATCH_TARGET_RESISTANCE
+  );
+  const [resistanceRevision, setResistanceRevision] = useState(0);
+  const [pendingBasicAttackCut, setPendingBasicAttackCut] = useState<PendingBasicAttackCut | null>(null);
+  const [pendingForcedWaitButtonId, setPendingForcedWaitButtonId] = useState<string | null>(null);
+  const [selectedBasicAttackStageCount, setSelectedBasicAttackStageCount] = useState(0);
+  const [checkoutBootstrapRevision, setCheckoutBootstrapRevision] = useState(0);
+  const [checkoutRenderRevision, setCheckoutRenderRevision] = useState(0);
+  const [isTimelineSessionReady, setIsTimelineSessionReady] = useState(false);
+  const [timelineSessionError, setTimelineSessionError] = useState('');
+  const activeTimelineArchiveLibrary = restorePanelTab === 'local'
+    ? { title: '本地存档', emptyLabel: '本地', archives: localTimelineArchives, library: 'local' as const }
+    : restorePanelTab === 'shared'
+      ? { title: '共享存档', emptyLabel: '共享', archives: sharedTimelineArchives, library: 'shared' as const }
+      : null;
+  const {
+    activeTimelineId,
+    activeTimelineLabel,
+    activeTimelineIsTemporary,
+    checkoutRef: activeCheckoutRef,
+    workingPayload: activeWorkingPayload,
+    workingPayloadSource,
+    setWorkingPayload: setSessionWorkingPayload,
+    activate: activateTimeline,
+    refreshActiveDocument,
+  } = useTimelineSession();
+  const shareImportInputRef = useRef<HTMLInputElement>(null);
+  const workNodeTreePanelRef = useRef<WorkNodeTreePanelHandle>(null);
+  const tacticalShareImageInputRef = useRef<HTMLInputElement>(null);
+  const isProcessingWorkbenchCommandRef = useRef(false);
+  const isCheckoutMutationPendingRef = useRef(false);
+  const checkoutBootstrapIdentityRef = useRef<string | null>(null);
+  const isCheckoutBootstrapPendingRef = useRef(true);
+  const timelineNameRequestRef = useRef<Promise<string | null> | null>(null);
+  const timelineNameResolverRef = useRef<((value: string | null) => void) | null>(null);
+  const activeTimelineIdentityRef = useRef({
+    timelineId: activeTimelineId,
+    checkout: checkoutIdentity(activeCheckoutRef),
+    isTemporary: activeTimelineIsTemporary,
+  });
+  activeTimelineIdentityRef.current = {
+    timelineId: activeTimelineId,
+    checkout: checkoutIdentity(activeCheckoutRef),
+    isTemporary: activeTimelineIsTemporary,
+  };
+  const temporaryPromotionRef = useRef(activeTimelineIsTemporary);
+
+  const canvasWidth = useCanvasWidth(canvasConfig.canvasWidthPercent);
+  useSelectStart();
+
+  const openWorkNodePanel = async () => {
+    if (timelineSessionError) {
+      setWorkNodeSaveNotice(timelineSessionError);
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 4200);
+      return;
+    }
+    if (!await promoteTemporaryTimeline()) return;
+    setPendingWorkNodeCheckoutId('');
+    setIsWorkNodeOmissionMode(false);
+    setWorkNodeOmissionState(EMPTY_WORK_NODE_OMISSION_STATE);
+    setWorkNodeRefreshKey((current) => current + 1);
+    setIsWorkNodePanelOpen(true);
+  };
+
+  const handleWorkNodeSelection = useCallback((node: WorkbenchSelectedNodeContext | null) => {
+    setPendingWorkNodeCheckoutId(node?.nodeId || '');
+  }, []);
+
+  const handleWorkNodeOmissionComplete = useCallback((omittedCount: number) => {
+    setIsWorkNodeOmissionMode(false);
+    setWorkNodeOmissionState(EMPTY_WORK_NODE_OMISSION_STATE);
+    setPendingWorkNodeCheckoutId('');
+    setWorkNodeRefreshKey((current) => current + 1);
+    setWorkNodeSaveNotice(`已省略 ${omittedCount} 个工作节点，后续路径已重新接线`);
+    window.setTimeout(() => setWorkNodeSaveNotice(''), 2600);
+  }, []);
+
+  useEffect(() => {
+    temporaryPromotionRef.current = activeTimelineIsTemporary;
+  }, [activeTimelineIsTemporary]);
+
+  useEffect(() => () => {
+    timelineNameResolverRef.current?.(null);
+    timelineNameResolverRef.current = null;
+    timelineNameRequestRef.current = null;
+  }, []);
+
+  const closeWorkNodePanel = () => {
+    workNodeTreePanelRef.current?.resetOmission();
+    setIsWorkNodeOmissionMode(false);
+    setWorkNodeOmissionState(EMPTY_WORK_NODE_OMISSION_STATE);
+    setIsWorkNodePanelOpen(false);
+    if (!pendingWorkNodeCheckoutId) return;
+    enqueueMainWorkbenchCommand({
+      op: 'checkoutAiTimelineWorkNode',
+      nodeId: pendingWorkNodeCheckoutId,
+      reload: false,
+      approval: {
+        mode: 'manual',
+        approvedBy: 'user',
+        rationale: 'Selected from Work Node tree before closing.',
+      },
+    }, 'work-node-tree');
+    setPendingWorkNodeCheckoutId('');
+  };
+
+  const {
+    timelineData,
+    addSkillButton: addTimelineButton,
+    removeSkillButton: removeTimelineButton,
+    updateSkillButtonPosition,
+    moveSkillButtonToStaff,
+    saveTimelineData,
+    loadTimelineData,
+    replaceTimelineData,
+    normalizeTimelineData,
+    updateSkillButtonType: updateTimelineButtonType,
+    updateBasicAttackTailBundle,
+    updateForcedWaitConfig,
+  } = useTimelineData(selectedCharacters);
+
+  const requiredStaffCount = React.useMemo(() => {
+    const timelineNodeIndices = timelineData.staffLines.flatMap((staffLine) => (
+      (staffLine.buttons ?? []).map((button) => Number(button.nodeIndex))
+    ));
+    const runtimeNodeIndices = skillButtons.map((button) => (
+      button.staffIndex * GRID_NODE_COUNT + (button.nodeIndex ?? 0)
+    ));
+    const maxNodeIndex = [...timelineNodeIndices, ...runtimeNodeIndices]
+      .filter(Number.isFinite)
+      .reduce((maximum, nodeIndex) => Math.max(maximum, nodeIndex), -1);
+    return Math.max(
+      MIN_STAFF_GROUP_COUNT,
+      Math.ceil((maxNodeIndex + 1) / GRID_NODE_COUNT),
+    );
+  }, [skillButtons, timelineData]);
+  const maxStaffCount = Math.max(DEFAULT_MAX_STAFF_GROUP_COUNT, requiredStaffCount);
+
+  useEffect(() => {
+    setStaffCount((current) => Math.max(current, requiredStaffCount));
+  }, [requiredStaffCount]);
+
+  useEffect(() => {
+    if (import.meta.env.VITE_AKE_DEMO !== '1') return undefined;
+    const refreshReport = (event: Event) => {
+      const detail = (event as CustomEvent<AkeTeamReport>).detail;
+      setAkeTeamReport(detail ?? readLatestAkeTeamReport());
+    };
+    window.addEventListener(AKE_REPORT_UPDATED_EVENT, refreshReport);
+    return () => window.removeEventListener(AKE_REPORT_UPDATED_EVENT, refreshReport);
+  }, []);
+
+  const akeRealtimeTimeline = React.useMemo(() => (
+    import.meta.env.VITE_AKE_DEMO === '1'
+      ? buildAkeRealtimeTimeline({
+        timelineData,
+        selectedCharacters,
+        catalog: getInstalledAkeCatalog(),
+        staffCount,
+      })
+      : null
+  ), [selectedCharacters, staffCount, timelineData]);
+
+  const basicAttackCutDraft = React.useMemo(() => {
+    if (!pendingBasicAttackCut || !akeRealtimeTimeline) return null;
+    const predecessor = akeRealtimeTimeline.commands.find(command => (
+      command.commandId === pendingBasicAttackCut.predecessorButtonId
+    ));
+    const successor = akeRealtimeTimeline.commands.find(command => (
+      command.commandId === pendingBasicAttackCut.successorButtonId
+    ));
+    if (!predecessor || !successor) return null;
+    try {
+      const contract = akeProfileToActionTailContract({
+        actionId: predecessor.commandId,
+        profile: predecessor.profile,
+      });
+      if (contract.kind !== 'basic-attack' || !contract.basicCombo) return null;
+      const options = buildBasicAttackCutOptions({
+        predecessor: contract,
+        successor: akeProfileToTailSuccessor(successor.commandId, successor.profile),
+        boundary: 'append',
+        debounceFrames: debounceFramesForTickRate(akeRealtimeTimeline.tickRate),
+      });
+      if (options.length === 0 || options.every(option => (
+        option.transition.status === 'unverified'
+        || option.transition.status === 'selection-required'
+      ))) return null;
+      return { contract, options };
+    } catch {
+      return null;
+    }
+  }, [akeRealtimeTimeline, pendingBasicAttackCut]);
+
+  useEffect(() => {
+    if (!pendingBasicAttackCut || !basicAttackCutDraft) return;
+    setSelectedBasicAttackStageCount(current => (
+      current >= 1 && current <= basicAttackCutDraft.options.length
+        ? current
+        : basicAttackCutDraft.options.length
+    ));
+  }, [basicAttackCutDraft, pendingBasicAttackCut]);
+
+  const projectionStaffCount = React.useMemo(() => Math.max(
+    staffCount,
+    Math.ceil((akeRealtimeTimeline?.sharedVariableRateTimeline?.width ?? 0) / GRID_TIMELINE_WIDTH),
+  ), [akeRealtimeTimeline, staffCount]);
+  const akePlanAdmissionStatus = akeRealtimeTimeline
+    ?.sharedVariableRateTimeline?.admissionStatus ?? null;
+  const isAkePlanBlocked = akePlanAdmissionStatus !== null
+    && akePlanAdmissionStatus !== 'valid';
+
+  const activeAkeTeamReport = React.useMemo(() => {
+    if (!akeTeamReport || !akeRealtimeTimeline) return null;
+    const currentCommands = akeRealtimeTimeline.commands
+      .map(command => [command.commandId, command.requestedFrame] as const)
+      .sort((left, right) => left[0].localeCompare(right[0]));
+    const settledCommands = akeTeamReport.timeline.commands
+      .map(command => [command.commandId, command.requestedFrame] as const)
+      .sort((left, right) => left[0].localeCompare(right[0]));
+    const currentCharacters = selectedCharacters.map(character => character.id).sort();
+    const settledCharacters = akeTeamReport.characters
+      .map(character => character.localCharacterId).sort();
+    return JSON.stringify(currentCommands) === JSON.stringify(settledCommands)
+      && JSON.stringify(currentCharacters) === JSON.stringify(settledCharacters)
+      ? akeTeamReport
+      : null;
+  }, [akeRealtimeTimeline, akeTeamReport, selectedCharacters]);
+
+  const restoredSignatureRef = useRef<string | null>(null);
+  const previousViewRef = useRef(currentView);
+
+  const buildRuntimeSkillButtonsFromTimelineData = useCallback((dataToRestore: TimelineData, characters = selectedCharacters) => {
+    const restoredButtons: SkillButton[] = [];
+    const gridStackElement = canvasRef.current?.querySelector('.canvas-grid-stack');
+    const gridContentOffsetX = canvasRef.current && gridStackElement
+      ? getGridContentOffsetX(canvasRef.current, gridStackElement)
+      : 0;
+    dataToRestore.staffLines.forEach((staffLine) => {
+      const buttons = Array.isArray(staffLine.buttons) ? staffLine.buttons : [];
+      buttons.forEach((btn) => {
+        const character = characters.find((item) => item.name === btn.characterName || item.id === btn.characterId);
+        const lineIndex = characters.findIndex((item) => item.name === btn.characterName || item.id === btn.characterId);
+        if (!character || lineIndex < 0 || (btn.characterId && btn.characterId !== character.id) || btn.characterName !== character.name) {
+          throw new Error(`CHECKOUT_TIMELINE_IDENTITY_MISMATCH: ${btn.id} 无法解析到当前干员行。`);
+        }
+        const restoredLineIndex = lineIndex;
+        const timelineNodeIndex = typeof btn.nodeIndex === 'number' && Number.isFinite(btn.nodeIndex) ? btn.nodeIndex : 0;
+        // Persisted staffIndex identifies the character row. The horizontal
+        // Grid groups are encoded in global nodeIndex chunks of GRID_NODE_COUNT.
+        // Treating staffIndex as the group index produces the characteristic
+        // diagonal restore bug: character 1 only appears in group 1,
+        // character 2 in group 2, and later groups disappear off-canvas.
+        const restoredStaffIndex = Math.floor(timelineNodeIndex / GRID_NODE_COUNT);
+        const restoredNodeIndex = timelineNodeIndex % GRID_NODE_COUNT;
+        const position = {
+          x: gridContentOffsetX + getGridNodeCenterX(restoredNodeIndex),
+          y: getGridGroupTop(restoredStaffIndex) + getGridLineCenterY(restoredLineIndex) + SKILL_BUTTON_BASELINE_OFFSET_Y,
+        };
+        const restoredButtonCharacterId = character?.id ?? btn.characterId ?? btn.characterName;
+        const resolvedRuntimeSkill = resolveRuntimeTemplateSkill({
+          id: btn.id,
+          characterId: restoredButtonCharacterId,
+          characterName: btn.characterName,
+          skillType: btn.skillType,
+          position,
+          staffIndex: restoredStaffIndex,
+          lineIndex: restoredLineIndex,
+          isDragging: false,
+          isSelected: false,
+          isFromSandbox: true,
+          runtimeSkillId: btn.runtimeSkillId,
+          skillDisplayName: btn.skillDisplayName,
+          skillIconUrl: btn.skillIconUrl,
+          customHits: btn.customHits,
+          element: character?.element,
+        });
+        if (!btn.timelineModuleKind
+          && (!resolvedRuntimeSkill || resolvedRuntimeSkill.buttonType !== btn.skillType)) {
+          throw new Error(`CHECKOUT_TIMELINE_SKILL_UNTRUSTED: ${btn.id} 的 ${btn.skillType} 无法在 ${character.name} 的可信技能目录中解析。`);
+        }
+        restoredButtons.push({
+          id: btn.id,
+          characterId: restoredButtonCharacterId,
+          characterName: btn.characterName,
+          skillType: btn.skillType,
+          position,
+          staffIndex: restoredStaffIndex,
+          lineIndex: restoredLineIndex,
+          nodeIndex: restoredNodeIndex,
+          nodeNumber: calculateNodeNumber(restoredNodeIndex),
+          isDragging: false,
+          isSelected: false,
+          isFromSandbox: true,
+          runtimeSkillId: btn.timelineModuleKind ? btn.runtimeSkillId : resolvedRuntimeSkill?.id,
+          skillDisplayName: btn.timelineModuleKind ? btn.skillDisplayName : resolvedRuntimeSkill?.displayName,
+          skillIconUrl: btn.timelineModuleKind
+            ? undefined
+            : resolvedRuntimeSkill?.iconUrl ?? btn.skillIconUrl ?? resolveSkillIconUrl(btn.characterName, btn.skillType),
+          customHits: btn.customHits,
+          basicAttackStageCount: btn.basicAttackStageCount,
+          basicAttackTailBundle: btn.basicAttackTailBundle,
+          releaseAnchor: btn.releaseAnchor,
+          timelineModuleKind: btn.timelineModuleKind,
+          forcedWaitConfig: btn.forcedWaitConfig,
+          element: character?.element,
+        });
+      });
+    });
+    return restoredButtons;
+  }, [selectedCharacters]);
+
+  const hydrateCheckoutRuntime = useCallback((payload: TimelineSnapshotPayload, options: { flushRender?: boolean } = {}) => {
+    const validation = validateTimelinePayload(payload);
+    if (!validation.ok) {
+      throw new Error(`CHECKOUT_RUNTIME_HYDRATION_FAILED: ${validation.issues.map((issue) => issue.message).join('；')}`);
+    }
+    const restorableCharacterMap = new Map<string, Character>();
+    [...loadedCharacters, ...loadLocalOperatorCharacters()].forEach((character) => {
+      restorableCharacterMap.set(character.id, character);
+      restorableCharacterMap.set(character.name, character);
+    });
+    const resolvedCharacters = payload.selectedCharacters
+      .map((id) => restorableCharacterMap.get(id))
+      .filter((character): character is Character => Boolean(character));
+    if (resolvedCharacters.length !== payload.selectedCharacters.length) {
+      const resolvedIds = new Set(resolvedCharacters.flatMap((character) => [character.id, character.name]));
+      const missingIds = payload.selectedCharacters.filter((id) => !resolvedIds.has(id));
+      throw new Error(`CHECKOUT_RUNTIME_HYDRATION_FAILED: 无法解析 checkout 干员 ${missingIds.join('、') || 'unknown'}。`);
+    }
+    const normalizedSkillButtonTable = Object.fromEntries(
+      Object.entries(payload.skillButtonTable).map(([buttonId, button]) => {
+        const staffIndex = Number.isInteger(button.staffIndex)
+          && button.staffIndex >= 0
+          && button.staffIndex < resolvedCharacters.length
+          ? button.staffIndex
+          : resolvedCharacters.findIndex((character) => (
+            character.id === button.characterId || character.name === button.characterName
+          ));
+        return [buttonId, {
+          ...button,
+          staffIndex: staffIndex >= 0 ? staffIndex : button.staffIndex,
+          nodeNumber: calculateNodeNumber(button.nodeIndex),
+        }];
+      }),
+    );
+    const canonicalTimelineData: TimelineData = {
+      ...payload.timelineData,
+      staffLines: resolvedCharacters.map((character, staffIndex) => {
+        const buttons = Object.values(normalizedSkillButtonTable)
+          .filter((button) => button.staffIndex === staffIndex)
+          .map((button) => ({
+            id: button.id,
+            characterId: button.characterId || character.id,
+            characterName: button.characterName,
+            skillType: button.skillType as SkillButtonType,
+            staffIndex: button.staffIndex,
+            lineIndex: button.lineIndex ?? button.staffIndex,
+            nodeIndex: button.nodeIndex,
+            nodeNumber: calculateNodeNumber(button.nodeIndex),
+            position: button.position,
+            runtimeSkillId: button.runtimeSkillId,
+            skillDisplayName: button.skillDisplayName,
+            skillIconUrl: button.skillIconUrl,
+            customHits: button.customHits,
+            basicAttackStageCount: button.basicAttackStageCount,
+            basicAttackTailBundle: button.basicAttackTailBundle,
+            releaseAnchor: button.releaseAnchor,
+            timelineModuleKind: button.timelineModuleKind,
+            forcedWaitConfig: button.forcedWaitConfig,
+            buffIds: [...(button.selectedBuff || [])],
+          }))
+          .sort((left, right) => left.nodeIndex - right.nodeIndex);
+        return {
+          staffIndex,
+          characterName: character.name,
+          occupiedNodes: [...new Set(buttons.map((button) => button.nodeIndex))],
+          buttons,
+        };
+      }),
+    };
+    const normalizedTimelineData = normalizeTimelineData(canonicalTimelineData, resolvedCharacters);
+    // Build and validate every visible runtime button before mutating any
+    // sessionStorage or React state. A trusted-skill/identity failure must
+    // leave the previous checkout projection byte-for-byte intact.
+    const restoredButtons = buildRuntimeSkillButtonsFromTimelineData(normalizedTimelineData, resolvedCharacters);
+    setSessionWorkingPayload(payload, 'checkout');
+    applyTimelineSnapshotPayload(payload);
+    setSkillButtonTable(normalizedSkillButtonTable);
+    saveTimelineRepo(normalizedTimelineData);
+    const commitReactRuntime = () => {
+      replaceTimelineData(normalizedTimelineData);
+      dispatch({ type: 'SET_SELECTED_CHARACTERS', characters: resolvedCharacters });
+      dispatch({ type: 'SET_SKILL_BUTTONS', buttons: restoredButtons });
+    };
+    // Renderer commands run inside a long-lived async queue callback. React
+    // may otherwise retain these updates in its automatic batch while the
+    // command is already polling the DOM, producing a false 0/old-button
+    // postcondition and rolling the valid payload back. Only command-driven
+    // visible checkout uses flushSync; bootstrap/effect hydration stays
+    // deferred to avoid flushing from a lifecycle callback.
+    if (options.flushRender) flushSync(commitReactRuntime);
+    else commitReactRuntime();
+  }, [buildRuntimeSkillButtonsFromTimelineData, dispatch, loadedCharacters, normalizeTimelineData, replaceTimelineData, selectedCharacters, setSessionWorkingPayload]);
+
+  const readFormalCheckoutPayload = useCallback(async (
+    timelineId: string,
+    expectedCheckoutRef: TimelineCheckoutRef | null,
+  ) => {
+    if (!timelineId || !expectedCheckoutRef || expectedCheckoutRef.timelineId !== timelineId) {
+      throw new Error('当前正式 SQLite 没有可恢复的 checkout。');
+    }
+    const repository = createTimelineRepositoryClient();
+    const exported = await repository.exportDocumentBundle(timelineId);
+    if (exported.document.id !== timelineId || exported.document.isTemporary || exported.document.archivedAt) {
+      throw new Error('当前 SQLite 工作区不可恢复。');
+    }
+    const persistedCheckout = exported.checkoutRef;
+    if (!persistedCheckout || checkoutIdentity(persistedCheckout) !== checkoutIdentity(expectedCheckoutRef)) {
+      throw new Error('当前 checkout 已变化，请刷新后重试。');
+    }
+    const checkoutWorkNode = persistedCheckout.targetType === 'work-node'
+      ? exported.workNodes.find((node) => node.id === persistedCheckout.targetId)
+      : null;
+    const persistedPayload = persistedCheckout.targetType === 'snapshot'
+      ? exported.snapshots.find((snapshot) => snapshot.id === persistedCheckout.targetId)?.payload
+      : checkoutWorkNode?.workingPayload;
+    if (!persistedPayload) {
+      throw new Error('当前 checkout payload 不存在。');
+    }
+
+    const validation = validateTimelinePayload(persistedPayload);
+    if (validation.ok) {
+      return {
+        payload: persistedPayload,
+        checkoutRef: persistedCheckout,
+      };
+    }
+
+    // Only invalid historical checkouts enter the compatibility path. Healthy
+    // workspaces stay read-only during mount, while payloads affected by the old
+    // Buff-mirror bug are repaired in both the document tree and user.sqlite.
+    const applied = await repository.applySqliteWorkspace(timelineId, expectedCheckoutRef.updatedAt);
+    if (checkoutIdentity(applied.checkoutRef) !== checkoutIdentity(expectedCheckoutRef)) {
+      throw new Error('当前 checkout 已变化，请刷新后重试。');
+    }
+    return {
+      payload: applied.payload,
+      checkoutRef: applied.checkoutRef,
+    };
+  }, []);
+
+  const refreshWorkbenchAfterCheckout = useCallback(() => {
+    // Re-mount the data-bound canvas/sandbox once after checkout hydration so
+    // local layout caches cannot retain the previous operator set.
+    setCheckoutRenderRevision((revision) => revision + 1);
+    setWorkNodeRefreshKey((revision) => revision + 1);
+  }, []);
+
+  const waitForVisibleCanvasButtons = useCallback(async (expectedIds: string[], waitMs = 3000) => {
+    const expected = [...expectedIds].sort();
+    const deadline = Date.now() + waitMs;
+    let actual: string[] = [];
+    do {
+      await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+      actual = [...(canvasRef.current?.querySelectorAll<HTMLElement>('[data-skill-button-id]') ?? [])]
+        .map((element) => element.dataset.skillButtonId || '')
+        .filter(Boolean)
+        .sort();
+      if (JSON.stringify(actual) === JSON.stringify(expected)) {
+        return { pass: true, expected, actual };
+      }
+    } while (Date.now() < deadline && document.visibilityState === 'visible');
+    return { pass: false, expected, actual };
+  }, []);
+
+  useEffect(() => {
+    void refreshActiveDocument()
+      .then(() => setTimelineSessionError(''))
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        setTimelineSessionError(`无法读取正式 SQLite 工作区：${message}。请从桌面 Shell 的“打开浏览器 Web”进入工作台后重试。`);
+      })
+      .finally(() => setIsTimelineSessionReady(true));
+  }, [refreshActiveDocument]);
+
+  useEffect(() => {
+    if (!isTimelineSessionReady || loadedCharacters.length === 0) return;
+    const bootstrapIdentity = `${activeTimelineId}:${checkoutIdentity(activeCheckoutRef)}:${activeTimelineIsTemporary ? 'temporary' : 'formal'}`;
+    if (checkoutBootstrapIdentityRef.current === bootstrapIdentity) return;
+    checkoutBootstrapIdentityRef.current = bootstrapIdentity;
+    isCheckoutBootstrapPendingRef.current = true;
+    if (!shouldHydrateTimelineCheckoutOnCanvasMount(activeTimelineIsTemporary, workingPayloadSource)) {
+      // 临时 SQLite 和当前标签页内已修改的实时工作副本都以 user.sqlite
+      // 投影为准。路由返回时不能再用 checkout payload 覆盖未保存内容。
+      isCheckoutBootstrapPendingRef.current = false;
+      setCheckoutBootstrapRevision((revision) => revision + 1);
+      return;
+    }
+    void (async () => {
+      try {
+        const { payload } = await readFormalCheckoutPayload(activeTimelineId, activeCheckoutRef);
+        const currentIdentity = activeTimelineIdentityRef.current;
+        if (currentIdentity.timelineId === activeTimelineId
+          && currentIdentity.checkout === checkoutIdentity(activeCheckoutRef)
+          && !currentIdentity.isTemporary) {
+          hydrateCheckoutRuntime(payload);
+        }
+      } catch {
+        // A first-run document legitimately has no checkout to hydrate.
+      } finally {
+        if (checkoutBootstrapIdentityRef.current === bootstrapIdentity) {
+          isCheckoutBootstrapPendingRef.current = false;
+          setCheckoutBootstrapRevision((revision) => revision + 1);
+        }
+      }
+    })();
+  }, [activeCheckoutRef, activeTimelineId, activeTimelineIsTemporary, hydrateCheckoutRuntime, isTimelineSessionReady, loadedCharacters.length, readFormalCheckoutPayload, workingPayloadSource]);
+
+  const findCharacterForWorkbenchCommand = (command: Extract<MainWorkbenchCommand, { op: 'addSkillButton' | 'removeSkillButton' | 'addBuff' | 'removeBuff' | 'setOperatorWeapon' | 'setOperatorEquipment' | 'setOperatorConfig' }>) => {
+    if ('characterId' in command && command.characterId) {
+      const byId = selectedCharacters.find((character) => character.id === command.characterId);
+      if (byId) return byId;
+    }
+    if ('characterName' in command && command.characterName) {
+      const byName = selectedCharacters.find((character) => character.name === command.characterName);
+      if (byName) return byName;
+    }
+    return null;
+  };
+
+  const makeOperatorConfigCommandError = (code: string, message: string) => {
+    const error = new Error(message) as Error & { code?: string };
+    error.code = code;
+    return error;
+  };
+
+  const resolveOperatorCharacterForWorkbenchCommand = (command: Extract<MainWorkbenchCommand, { op: 'setOperatorWeapon' | 'setOperatorEquipment' | 'setOperatorConfig' }>) => {
+    const characterId = command.characterId?.trim() || '';
+    const characterName = command.characterName?.trim() || '';
+    if (!characterId && !characterName) {
+      throw makeOperatorConfigCommandError('operator-config-target-required', `${command.op} requires an exact characterId or characterName.`);
+    }
+    const idMatches = characterId ? selectedCharacters.filter((character) => character.id === characterId) : [];
+    const nameMatches = characterName ? selectedCharacters.filter((character) => character.name === characterName) : [];
+    if (characterId && idMatches.length !== 1) {
+      throw makeOperatorConfigCommandError('operator-config-target-not-found', `未找到已选干员 id: ${characterId}`);
+    }
+    if (characterName && nameMatches.length !== 1) {
+      throw makeOperatorConfigCommandError(
+        nameMatches.length > 1 ? 'operator-config-target-ambiguous' : 'operator-config-target-not-found',
+        `未找到唯一的已选干员名称: ${characterName}`,
+      );
+    }
+    const byId = idMatches[0];
+    const byName = nameMatches[0];
+    if (byId && byName && byId.id !== byName.id) {
+      throw makeOperatorConfigCommandError('operator-config-target-mismatch', `干员 id ${characterId} 与名称 ${characterName} 不属于同一已选干员。`);
+    }
+    return byId || byName;
+  };
+
+  const prepareOperatorConfigCheckout = async () => {
+    if (!activeCheckoutRef || activeCheckoutRef.targetType !== 'work-node') {
+      throw makeOperatorConfigCommandError('operator-config-checkout-unavailable', '当前角色配置只能写入一个已检出的 Work Node；未找到可持久化的 checkout。');
+    }
+    const client = createAiTimelineWorkNodeClient();
+    const { node } = await client.get(activeCheckoutRef.targetId);
+    if (node.timelineId !== activeTimelineId || node.id !== activeCheckoutRef.targetId) {
+      throw makeOperatorConfigCommandError('operator-config-checkout-conflict', '当前 Work Node checkout 已变化；请重新打开工作台后再应用角色配置。');
+    }
+    return node;
+  };
+
+  const persistOperatorConfigCheckout = async (checkoutNodeId: string) => {
+    // This pre-approved path performed an unconditional full payload update.
+    // Fail closed: typed DEF mutations must use preview -> child -> approval
+    // -> revision-checked apply, never silently overwrite a Work Node.
+    void checkoutNodeId;
+    throw makeOperatorConfigCommandError('operator-config-legacy-route-retired', '旧角色配置写入链路已停用；请使用带原生审批的 def_operator_config_patch。');
+  };
+
+  const normalizeWorkbenchWeaponPotential = (potential: string | undefined, fallback: string) => {
+    if (!potential) return fallback;
+    if (potential === 'P0') return '0潜';
+    if (potential === 'PMAX') return '满潜';
+    return potential;
+  };
+
+  const buildOperatorConfigPreviewFromWorkbenchCommand = async (
+    command: Extract<MainWorkbenchCommand, { op: 'setOperatorConfig' }>,
+  ) => {
+    const checkout = await prepareOperatorConfigCheckout();
+    const character = resolveOperatorCharacterForWorkbenchCommand(command);
+    const originalCache = getOperatorConfigPageCache();
+    const originalPayload = getCurrentTimelineSnapshotPayload();
+    if (!originalPayload) {
+      throw makeOperatorConfigCommandError('operator-config-payload-unavailable', '无法读取当前角色配置的完整 checkout payload。');
+    }
+    const originalTimelineValidation = validateTimelinePayload(originalPayload);
+    if (!originalTimelineValidation.ok) {
+      throw makeOperatorConfigCommandError(
+        'operator-config-timeline-invalid',
+        `当前 checkout 排轴镜像不一致：${originalTimelineValidation.issues.map((issue) => issue.message).join('；')}`,
+      );
+    }
+    const weaponName = command.weaponName?.trim() || '';
+    const hasEquipment = Boolean(command.equipments?.length || command.equipmentId || command.equipmentName || command.gearSetId || command.gearSetName);
+    const selections = hasEquipment
+      ? (command.equipments?.length
+        ? command.equipments.map((selection) => ({
+            ...selection,
+            gearSetId: selection.gearSetId ?? command.gearSetId,
+            gearSetName: selection.gearSetName ?? command.gearSetName,
+            entryLevel: selection.entryLevel ?? command.equipmentEntryLevel ?? command.entryLevel,
+            entryLevels: selection.entryLevels ?? command.equipmentEntryLevels ?? command.entryLevels,
+          }))
+        : [{
+            slotKey: command.slotKey,
+            part: command.part,
+            equipmentId: command.equipmentId,
+            equipmentName: command.equipmentName,
+            gearSetId: command.gearSetId,
+            gearSetName: command.gearSetName,
+            fillSlots: command.fillSlots,
+            entryLevel: command.equipmentEntryLevel ?? command.entryLevel,
+            entryLevels: command.equipmentEntryLevels ?? command.entryLevels,
+          }])
+      : [];
+
+    try {
+      // Refresh is used only to obtain the same canonical source data as the
+      // configuration page.  Its temporary cache write is restored before the
+      // preview command returns, so a preview cannot mutate live state.
+      await refreshOperatorConfigSnapshotsForCharacters([character]);
+      const snapshot = getOperatorConfigPageCache()[character.id];
+      if (!snapshot) throw makeOperatorConfigCommandError('operator-config-snapshot-unavailable', `未找到干员配置快照: ${character.name}`);
+
+      let nextSnapshot = snapshot;
+      if (weaponName) {
+        const potential = normalizeWorkbenchWeaponPotential(command.potential, '0潜');
+        const requestedSkills = command.weaponSkillLevels ?? command.skillLevels ?? {};
+        const skill3Base = requestedSkills.skill3 ?? DEFAULT_WEAPON_SKILL_LEVELS.skill3;
+        nextSnapshot = {
+          ...nextSnapshot,
+          weapon: {
+            ...nextSnapshot.weapon,
+            id: weaponName,
+            name: weaponName,
+            config: {
+              ...nextSnapshot.weapon.config,
+              level: command.weaponLevel ?? command.level ?? DEFAULT_WEAPON_LEVEL,
+              potential,
+              skillLevels: {
+                skill1: requestedSkills.skill1 ?? DEFAULT_WEAPON_SKILL_LEVELS.skill1,
+                skill2: requestedSkills.skill2 ?? DEFAULT_WEAPON_SKILL_LEVELS.skill2,
+                // skill3 is specified before potential.  Store the resolved
+                // UI value once, never add the bonus again during apply.
+                skill3: skill3Base + getWeaponSkill3PotentialBonus(potential),
+              },
+            },
+          },
+        };
+      }
+      const equipmentPatch = hasEquipment ? applyOperatorEquipmentSelectionsToSnapshot(nextSnapshot, selections) : null;
+      if (equipmentPatch) nextSnapshot = equipmentPatch.snapshot;
+      const operatorSkillLevels = {
+        ...DEFAULT_OPERATOR_SKILL_CONFIG,
+        ...(nextSnapshot.operator.skillConfig ?? {}),
+        ...(command.operatorSkillLevels ?? {}),
+      };
+      nextSnapshot = {
+        ...nextSnapshot,
+        operator: { ...nextSnapshot.operator, skillConfig: operatorSkillLevels },
+      };
+
+      // Let the canonical refresher resolve weapon data/equipment calculations
+      // against the page libraries, then immediately restore the live cache.
+      setOperatorConfigPageCache({ ...originalCache, [character.id]: nextSnapshot });
+      await refreshOperatorConfigSnapshotsForCharacters([character]);
+      const resolvedSnapshot = getOperatorConfigPageCache()[character.id] ?? nextSnapshot;
+      const preparedPayload = structuredClone(originalPayload);
+      preparedPayload.operatorConfigPageCache = {
+        ...preparedPayload.operatorConfigPageCache,
+        [character.id]: resolvedSnapshot,
+      };
+      preparedPayload.characterInputMap = {
+        ...preparedPayload.characterInputMap,
+        [character.id]: {
+          ...(preparedPayload.characterInputMap[character.id] ?? {}),
+          skillLevels: {
+            ...DEFAULT_OPERATOR_SKILL_CONFIG,
+            ...(preparedPayload.characterInputMap[character.id]?.skillLevels ?? {}),
+            ...operatorSkillLevels,
+          } as typeof preparedPayload.characterInputMap[string]['skillLevels'],
+        },
+      };
+      const preparedTimelineValidation = validateTimelinePayload(preparedPayload);
+      if (!preparedTimelineValidation.ok) {
+        throw makeOperatorConfigCommandError(
+          'operator-config-timeline-invalid',
+          `配置预览没有保留有效排轴：${preparedTimelineValidation.issues.map((issue) => issue.message).join('；')}`,
+        );
+      }
+      const finalConfig = {
+        characterId: character.id,
+        characterName: character.name,
+        weapon: {
+          id: resolvedSnapshot.weapon.id,
+          name: resolvedSnapshot.weapon.name,
+          level: resolvedSnapshot.weapon.config.level,
+          potential: resolvedSnapshot.weapon.config.potential,
+          skillLevels: resolvedSnapshot.weapon.config.skillLevels,
+        },
+        equipment: resolvedSnapshot.equipment.pieces.map((piece) => ({
+          slotKey: piece.slotKey,
+          equipmentId: piece.equipmentId,
+          name: piece.name,
+          effects: piece.effects.map((effect) => ({ effectId: effect.effectId, label: effect.label, level: effect.level, value: effect.value })),
+        })),
+        operatorSkillLevels: resolvedSnapshot.operator.skillConfig,
+      };
+      return {
+        parentNodeId: checkout.id,
+        parentRevision: Number(checkout.contentRevision || checkout.updatedAt),
+        preparedPayload,
+        finalConfig,
+      };
+    } finally {
+      setOperatorConfigPageCache(originalCache);
+    }
+  };
+
+  const applyPreparedOperatorConfigFromWorkbenchCommand = async (
+    command: Extract<MainWorkbenchCommand, { op: 'applyPreparedOperatorConfig' }>,
+  ) => {
+    if (activeCheckoutRef?.targetType !== 'work-node' || activeCheckoutRef.targetId !== command.parentNodeId) {
+      throw makeOperatorConfigCommandError('checkout-changed', '审批期间 checkout 已变化；未执行角色配置。');
+    }
+    const client = createAiTimelineWorkNodeClient();
+    const parent = await client.get(command.parentNodeId);
+    if (Number(parent.node.contentRevision || parent.node.updatedAt) !== Number(command.parentRevision)) {
+      throw makeOperatorConfigCommandError('checkout-changed', '审批期间 checkout revision 已变化；未执行角色配置。');
+    }
+    const child = await client.get(command.nodeId);
+    if (Number(child.node.contentRevision || child.node.updatedAt) !== Number(command.nodeRevision)) {
+      throw makeOperatorConfigCommandError('checkout-changed', '待审批 Work Node 已变化；未执行角色配置。');
+    }
+    const childTimelineValidation = validateTimelinePayload(child.node.workingPayload);
+    if (!childTimelineValidation.ok) {
+      throw makeOperatorConfigCommandError(
+        'operator-config-timeline-invalid',
+        `待审批配置分支排轴镜像不一致：${childTimelineValidation.issues.map((issue) => issue.message).join('；')}`,
+      );
+    }
+    applyTimelineSnapshotPayload(child.node.workingPayload);
+    setSessionWorkingPayload(child.node.workingPayload, 'checkout');
+    setResistanceRevision((value) => value + 1);
+    return {
+      nodeId: child.node.id,
+      nodeRevision: Number(child.node.contentRevision || child.node.updatedAt),
+      parentNodeId: parent.node.id,
+      parentRevision: Number(parent.node.contentRevision || parent.node.updatedAt),
+      appliedPayload: child.node.workingPayload,
+    };
+  };
+
+  const finalizePreparedOperatorConfigFromWorkbenchCommand = async (
+    command: Extract<MainWorkbenchCommand, { op: 'finalizePreparedOperatorConfig' }>,
+  ) => {
+    const client = createAiTimelineWorkNodeClient();
+    const { node } = await client.get(command.nodeId);
+    const commit = (await client.list()).commits.find((entry) => entry.id === command.commitId && entry.nodeId === node.id);
+    if (!commit?.checkoutApplied) {
+      throw makeOperatorConfigCommandError('checkout-changed', '审批后的 checkout commit 未处于已应用状态；未切换前端 checkout。');
+    }
+    const repository = createTimelineRepositoryClient();
+    const persistedCheckout = await repository.getCheckoutRef(node.timelineId || activeTimelineId);
+    if (persistedCheckout?.targetType !== 'work-node' || persistedCheckout.targetId !== node.id) {
+      throw makeOperatorConfigCommandError('checkout-changed', '审批期间 checkout 已变化；未切换前端 checkout。');
+    }
+    const document = node.timelineId === activeTimelineId
+      ? { id: activeTimelineId, label: activeTimelineLabel }
+      : (await repository.listDocuments()).find((entry) => entry.id === node.timelineId) || { id: node.timelineId, label: node.label };
+    activateTimeline({ document, checkoutRef: persistedCheckout, workingPayload: node.workingPayload });
+    hydrateCheckoutRuntime(node.workingPayload);
+    refreshWorkbenchAfterCheckout();
+    return { nodeId: node.id, commitId: commit.id, checkout: persistedCheckout, finalized: true };
+  };
+
+  const restoreAtomicTeamParentFromWorkbenchCommand = async (
+    command: Extract<MainWorkbenchCommand, { op: 'restoreAtomicTeamParent' }>,
+  ) => {
+    const client = createAiTimelineWorkNodeClient();
+    const { node: parent } = await client.get(command.parentNodeId);
+    const { node: candidate } = await client.get(command.candidateNodeId);
+    if (parent.timelineId !== command.expectedTimelineId
+      || Number(parent.contentRevision || parent.updatedAt) !== Number(command.parentRevision)) {
+      throw makeOperatorConfigCommandError('checkout-changed', 'Atomic team rollback parent changed; refusing to restore a different checkout.');
+    }
+    if (candidate.timelineId !== command.expectedTimelineId
+      || Number(candidate.contentRevision || candidate.updatedAt) !== Number(command.candidateRevision)) {
+      throw makeOperatorConfigCommandError('checkout-changed', 'Atomic team rollback candidate changed; refusing to restore a different checkout.');
+    }
+    const repository = createTimelineRepositoryClient();
+    const persistedCheckout = await repository.getCheckoutRef(command.expectedTimelineId);
+    if (persistedCheckout?.targetType !== 'work-node' || persistedCheckout.targetId !== command.expectedCheckoutNodeId
+      || activeTimelineId !== command.expectedTimelineId
+      || JSON.stringify(getCurrentTimelineSnapshotPayload()) !== JSON.stringify(candidate.workingPayload)) {
+      throw makeOperatorConfigCommandError('rollback-stale', 'Atomic team rollback no longer owns the live candidate or checkout; no restoration was performed.');
+    }
+    // Hydrate P before altering its persisted checkout. If the live/session
+    // payload is no longer exactly C, the check above exits without writes.
+    hydrateCheckoutRuntime(parent.workingPayload);
+    const sessionPayloadMatches = JSON.stringify(getCurrentTimelineSnapshotPayload()) === JSON.stringify(parent.workingPayload);
+    if (!sessionPayloadMatches) {
+      throw makeOperatorConfigCommandError('rollback-session-payload-mismatch', 'Atomic team rollback could not restore the session payload; checkout was left unchanged.');
+    }
+    const checkoutRef = {
+      timelineId: parent.timelineId || activeTimelineId,
+      targetType: 'work-node' as const,
+      targetId: parent.id,
+      updatedAt: Date.now(),
+    };
+    await repository.setCheckoutRef(checkoutRef);
+    const document = parent.timelineId === activeTimelineId
+      ? { id: activeTimelineId, label: activeTimelineLabel }
+      : (await repository.listDocuments()).find((entry) => entry.id === parent.timelineId) || { id: parent.timelineId, label: parent.label };
+    activateTimeline({ document, checkoutRef, workingPayload: parent.workingPayload });
+    refreshWorkbenchAfterCheckout();
+    return {
+      restored: true,
+      parentNodeId: parent.id,
+      parentRevision: Number(parent.contentRevision || parent.updatedAt),
+      candidateNodeId: candidate.id,
+      candidateRevision: Number(candidate.contentRevision || candidate.updatedAt),
+      checkout: checkoutRef,
+      sessionPayloadMatches,
+    };
+  };
+
+  const setOperatorWeaponFromWorkbenchCommand = async (command: Extract<MainWorkbenchCommand, { op: 'setOperatorWeapon' }>) => {
+    const weaponName = command.weaponName?.trim();
+    if (!weaponName) {
+      throw new Error('setOperatorWeapon requires weaponName');
+    }
+    const cache = getOperatorConfigPageCache();
+    const checkout = await prepareOperatorConfigCheckout();
+    const character = resolveOperatorCharacterForWorkbenchCommand(command);
+    try {
+      await refreshOperatorConfigSnapshotsForCharacters([character]);
+      const snapshot = getOperatorConfigPageCache()[character.id];
+      if (!snapshot) {
+        throw new Error(`未找到干员配置快照: ${character.name}`);
+      }
+
+      const nextSnapshot = {
+        ...snapshot,
+        weapon: {
+          ...snapshot.weapon,
+          id: weaponName,
+          name: weaponName,
+          config: {
+            ...snapshot.weapon.config,
+            level: command.level ?? snapshot.weapon.config.level,
+            potential: normalizeWorkbenchWeaponPotential(command.potential, snapshot.weapon.config.potential),
+            skillLevels: {
+              ...snapshot.weapon.config.skillLevels,
+              ...(command.skillLevels ?? {}),
+            },
+          },
+        },
+      };
+      setOperatorConfigPageCache({
+        ...getOperatorConfigPageCache(),
+        [character.id]: nextSnapshot,
+      });
+      const refreshResult = await refreshOperatorConfigSnapshotsForCharacters([character]);
+      await refreshAvailableCandidateBuffsForCharacters([character]);
+      const persistence = await persistOperatorConfigCheckout(checkout.id);
+      setResistanceRevision((value) => value + 1);
+      const refreshedSnapshot = getOperatorConfigPageCache()[character.id] ?? nextSnapshot;
+
+      return {
+        characterId: character.id,
+        characterName: character.name,
+        weapon: {
+          id: refreshedSnapshot.weapon.id,
+          name: refreshedSnapshot.weapon.name,
+          level: refreshedSnapshot.weapon.config.level,
+          potential: refreshedSnapshot.weapon.config.potential,
+          attack: refreshedSnapshot.weapon.attack,
+        },
+        refreshedCharacterIds: refreshResult.refreshedCharacterIds,
+        skippedCharacterIds: refreshResult.skippedCharacterIds,
+        persistence,
+      };
+    } catch (error) {
+      setOperatorConfigPageCache(cache);
+      await refreshAvailableCandidateBuffsForCharacters([character]);
+      throw error;
+    }
+  };
+
+  const setOperatorEquipmentFromWorkbenchCommand = async (command: Extract<MainWorkbenchCommand, { op: 'setOperatorEquipment' }>) => {
+    const cache = getOperatorConfigPageCache();
+    const checkout = await prepareOperatorConfigCheckout();
+    const character = resolveOperatorCharacterForWorkbenchCommand(command);
+
+    const selections = command.equipments?.length
+      ? command.equipments.map((selection) => ({
+          ...selection,
+          gearSetId: selection.gearSetId ?? command.gearSetId,
+          gearSetName: selection.gearSetName ?? command.gearSetName,
+          entryLevel: selection.entryLevel ?? command.entryLevel,
+          entryLevels: selection.entryLevels ?? command.entryLevels,
+        }))
+      : [{
+          slotKey: command.slotKey,
+          part: command.part,
+          equipmentId: command.equipmentId,
+          equipmentName: command.equipmentName,
+          gearSetId: command.gearSetId,
+          gearSetName: command.gearSetName,
+          fillSlots: command.fillSlots,
+          entryLevel: command.entryLevel,
+          entryLevels: command.entryLevels,
+        }];
+
+    try {
+      await refreshOperatorConfigSnapshotsForCharacters([character]);
+      const snapshot = getOperatorConfigPageCache()[character.id];
+      if (!snapshot) {
+        throw new Error(`未找到干员配置快照: ${character.name}`);
+      }
+
+      const patchResult = applyOperatorEquipmentSelectionsToSnapshot(snapshot, selections);
+      setOperatorConfigPageCache({
+        ...getOperatorConfigPageCache(),
+        [character.id]: patchResult.snapshot,
+      });
+      const refreshResult = await refreshOperatorConfigSnapshotsForCharacters([character]);
+      await refreshAvailableCandidateBuffsForCharacters([character]);
+      const persistence = await persistOperatorConfigCheckout(checkout.id);
+      setResistanceRevision((value) => value + 1);
+      const refreshedSnapshot = getOperatorConfigPageCache()[character.id] ?? patchResult.snapshot;
+
+      return {
+        characterId: character.id,
+        characterName: character.name,
+        equipment: refreshedSnapshot.equipment.pieces.map((piece) => ({
+          slotKey: piece.slotKey,
+          equipmentId: piece.equipmentId,
+          name: piece.name,
+          part: piece.part,
+          effects: piece.effects.map((effect) => ({
+            effectId: effect.effectId,
+            label: effect.label,
+            typeKey: effect.typeKey,
+            level: effect.level,
+            value: effect.value,
+          })),
+        })),
+        applied: patchResult.applied,
+        setBuffs: refreshedSnapshot.equipment.setBuffs.map((buff) => ({
+          gearSetId: buff.gearSetId,
+          gearSetName: buff.gearSetName,
+          effectId: buff.effectId,
+          label: buff.label,
+          typeKey: buff.typeKey,
+          value: buff.value,
+        })),
+        refreshedCharacterIds: refreshResult.refreshedCharacterIds,
+        skippedCharacterIds: refreshResult.skippedCharacterIds,
+        persistence,
+      };
+    } catch (error) {
+      setOperatorConfigPageCache(cache);
+      await refreshAvailableCandidateBuffsForCharacters([character]);
+      throw error;
+    }
+  };
+
+  const setOperatorConfigFromWorkbenchCommand = async (command: Extract<MainWorkbenchCommand, { op: 'setOperatorConfig' }>) => {
+    const cache = getOperatorConfigPageCache();
+    const checkout = await prepareOperatorConfigCheckout();
+    const character = resolveOperatorCharacterForWorkbenchCommand(command);
+    const weaponName = command.weaponName?.trim() || '';
+    const hasEquipment = Boolean(
+      command.equipments?.length
+      || command.equipmentId
+      || command.equipmentName
+      || command.gearSetId
+      || command.gearSetName,
+    );
+    const selections = hasEquipment
+      ? (command.equipments?.length
+        ? command.equipments.map((selection) => ({
+            ...selection,
+            gearSetId: selection.gearSetId ?? command.gearSetId,
+            gearSetName: selection.gearSetName ?? command.gearSetName,
+            entryLevel: selection.entryLevel ?? command.entryLevel,
+            entryLevels: selection.entryLevels ?? command.entryLevels,
+          }))
+        : [{
+            slotKey: command.slotKey,
+            part: command.part,
+            equipmentId: command.equipmentId,
+            equipmentName: command.equipmentName,
+            gearSetId: command.gearSetId,
+            gearSetName: command.gearSetName,
+            fillSlots: command.fillSlots,
+            entryLevel: command.entryLevel,
+            entryLevels: command.entryLevels,
+          }])
+      : [];
+
+    try {
+      await refreshOperatorConfigSnapshotsForCharacters([character]);
+      const snapshot = getOperatorConfigPageCache()[character.id];
+      if (!snapshot) {
+        throw makeOperatorConfigCommandError('operator-config-snapshot-unavailable', `未找到干员配置快照: ${character.name}`);
+      }
+
+      let nextSnapshot = snapshot;
+      if (weaponName) {
+        nextSnapshot = {
+          ...nextSnapshot,
+          weapon: {
+            ...nextSnapshot.weapon,
+            id: weaponName,
+            name: weaponName,
+            config: {
+              ...nextSnapshot.weapon.config,
+              level: command.level ?? nextSnapshot.weapon.config.level,
+              potential: normalizeWorkbenchWeaponPotential(command.potential, nextSnapshot.weapon.config.potential),
+              skillLevels: {
+                ...nextSnapshot.weapon.config.skillLevels,
+                ...(command.skillLevels ?? {}),
+              },
+            },
+          },
+        };
+      }
+      const equipmentPatch = hasEquipment
+        ? applyOperatorEquipmentSelectionsToSnapshot(nextSnapshot, selections)
+        : null;
+      if (equipmentPatch) nextSnapshot = equipmentPatch.snapshot;
+
+      // This is deliberately one cache update followed by one Work Node write.
+      // A combined weapon/loadout request can never persist a half-applied pair.
+      setOperatorConfigPageCache({
+        ...getOperatorConfigPageCache(),
+        [character.id]: nextSnapshot,
+      });
+      const refreshResult = await refreshOperatorConfigSnapshotsForCharacters([character]);
+      await refreshAvailableCandidateBuffsForCharacters([character]);
+      const persistence = await persistOperatorConfigCheckout(checkout.id);
+      setResistanceRevision((value) => value + 1);
+      const refreshedSnapshot = getOperatorConfigPageCache()[character.id] ?? nextSnapshot;
+
+      return {
+        characterId: character.id,
+        characterName: character.name,
+        ...(weaponName ? {
+          weapon: {
+            id: refreshedSnapshot.weapon.id,
+            name: refreshedSnapshot.weapon.name,
+            level: refreshedSnapshot.weapon.config.level,
+            potential: refreshedSnapshot.weapon.config.potential,
+            attack: refreshedSnapshot.weapon.attack,
+          },
+        } : {}),
+        ...(equipmentPatch ? {
+          equipment: refreshedSnapshot.equipment.pieces.map((piece) => ({
+            slotKey: piece.slotKey,
+            equipmentId: piece.equipmentId,
+            name: piece.name,
+            part: piece.part,
+            effects: piece.effects.map((effect) => ({
+              effectId: effect.effectId,
+              label: effect.label,
+              typeKey: effect.typeKey,
+              level: effect.level,
+              value: effect.value,
+            })),
+          })),
+          applied: equipmentPatch.applied,
+          setBuffs: refreshedSnapshot.equipment.setBuffs.map((buff) => ({
+            gearSetId: buff.gearSetId,
+            gearSetName: buff.gearSetName,
+            effectId: buff.effectId,
+            label: buff.label,
+            typeKey: buff.typeKey,
+            value: buff.value,
+          })),
+        } : {}),
+        refreshedCharacterIds: refreshResult.refreshedCharacterIds,
+        skippedCharacterIds: refreshResult.skippedCharacterIds,
+        persistence,
+      };
+    } catch (error) {
+      setOperatorConfigPageCache(cache);
+      await refreshAvailableCandidateBuffsForCharacters([character]);
+      throw error;
+    }
+  };
+
+  const resolveWorkbenchCommandSkill = (
+    character: Character,
+    command: Extract<MainWorkbenchCommand, { op: 'addSkillButton' }>
+  ): SandboxSkill => {
+    const skills = Array.isArray(character.sandboxSkills) && character.sandboxSkills.length > 0
+      ? character.sandboxSkills
+      : buildSandboxSkillsFromRuntimeTemplate(character.id);
+    const matched = skills.find((skill) => command.runtimeSkillId && skill.id === command.runtimeSkillId)
+      ?? skills.find((skill) => command.skillDisplayName && skill.displayName === command.skillDisplayName)
+      ?? skills.find((skill) => command.skillType && skill.buttonType === command.skillType)
+      ?? skills[0];
+
+    if (matched) {
+      return matched;
+    }
+
+    const fallbackSkillType = command.skillType ?? 'A';
+    return {
+      id: `fallback-${character.id}-${fallbackSkillType}`,
+      displayName: fallbackSkillType,
+      buttonType: fallbackSkillType,
+      iconUrl: character.skillIconMap?.[fallbackSkillType] ?? resolveSkillIconUrl(character.name, fallbackSkillType),
+      hitCount: 1,
+      source: character.librarySource ?? 'official',
+    };
+  };
+
+  const getWorkbenchGridContentOffsetX = () => {
+    const gridStackElement = canvasRef.current?.querySelector('.canvas-grid-stack');
+    return canvasRef.current && gridStackElement
+      ? getGridContentOffsetX(canvasRef.current, gridStackElement)
+      : 0;
+  };
+
+  const buildWorkbenchButtonPosition = (staffIndex: number, lineIndex: number, nodeIndex: number) => {
+    const gridStackElement = canvasRef.current?.querySelector('.canvas-grid-stack');
+    const gridY = getGridGroupTop(staffIndex) + getGridLineCenterY(lineIndex) + SKILL_BUTTON_BASELINE_OFFSET_Y;
+    const gridX = getGridNodeCenterX(nodeIndex);
+    if (canvasRef.current && gridStackElement) {
+      return gridToCanvasContentCoords(gridX, gridY, canvasRef.current, gridStackElement);
+    }
+    return { x: gridX, y: gridY };
+  };
+
+  const resolveWorkbenchNodeIndex = (staffIndex: number, lineIndex: number, requestedNodeIndex: unknown) => {
+    const requested = typeof requestedNodeIndex === 'number' && Number.isFinite(requestedNodeIndex)
+      ? clampGridNodeIndex(Math.floor(requestedNodeIndex))
+      : null;
+    const occupied = getOccupiedNodeIndicesForLine(
+      skillButtons,
+      staffIndex,
+      lineIndex,
+      null,
+      getWorkbenchGridContentOffsetX()
+    );
+    if (requested !== null && !occupied.has(requested)) {
+      return requested;
+    }
+    if (requested !== null && occupied.has(requested)) {
+      const snapped = resolveSnappedGridNode(getGridNodeCenterX(requested), occupied);
+      if (snapped) return snapped.nodeIndex;
+    }
+    for (let nodeIndex = 0; nodeIndex < GRID_NODE_COUNT; nodeIndex += 1) {
+      if (!occupied.has(nodeIndex)) return nodeIndex;
+    }
+    throw new Error(`第 ${staffIndex + 1} 组第 ${lineIndex + 1} 行已无空节点`);
+  };
+
+  const addSkillButtonFromWorkbenchCommand = (command: Extract<MainWorkbenchCommand, { op: 'addSkillButton' }>) => {
+    const character = findCharacterForWorkbenchCommand(command);
+    if (!character) {
+      throw new Error(`未找到已选干员: ${command.characterId || command.characterName || '(empty)'}`);
+    }
+    const lineIndex = selectedCharacters.findIndex((item) => item.id === character.id);
+    if (lineIndex < 0) {
+      throw new Error(`干员未在当前出战队列中: ${character.name}`);
+    }
+    const staffIndex = typeof command.staffIndex === 'number' && Number.isFinite(command.staffIndex)
+      ? Math.max(0, Math.min(staffCount - 1, Math.floor(command.staffIndex)))
+      : 0;
+    const nodeIndex = resolveWorkbenchNodeIndex(staffIndex, lineIndex, command.nodeIndex);
+    const position = buildWorkbenchButtonPosition(staffIndex, lineIndex, nodeIndex);
+    const skill = resolveWorkbenchCommandSkill(character, command);
+    const buttonId = command.buttonId?.trim() || generateId();
+    const skillIconUrl = skill.iconUrl ?? character.skillIconMap?.[skill.buttonType] ?? resolveSkillIconUrl(character.name, skill.buttonType);
+
+    const runtimeButton: SkillButton = {
+      id: buttonId,
+      characterId: character.id,
+      characterName: character.name,
+      skillType: skill.buttonType,
+      position,
+      staffIndex,
+      lineIndex,
+      nodeIndex,
+      nodeNumber: calculateNodeNumber(nodeIndex),
+      isDragging: false,
+      isSelected: Boolean(command.select),
+      isFromSandbox: true,
+      runtimeSkillId: skill.id,
+      skillDisplayName: skill.displayName,
+      skillIconUrl,
+      customHits: skill.customHits,
+      element: character.element,
+    };
+
+    if (!skillButtons.some((button) => button.id === buttonId)) {
+      dispatch({ type: 'ADD_SKILL_BUTTON', button: runtimeButton });
+      addTimelineButton({
+        characterId: character.id,
+        characterName: character.name,
+        skillType: skill.buttonType,
+        staffIndex,
+        nodeIndex,
+        position,
+        runtimeSkillId: skill.id,
+        skillDisplayName: skill.displayName,
+        skillIconUrl,
+        customHits: skill.customHits,
+      }, buttonId);
+    }
+
+    if (command.select) {
+      dispatch({ type: 'SELECT_SKILL_BUTTON', buttonId });
+      safeSessionStorage.setItem(STORAGE_KEYS.SELECTED_SKILL_BUTTON, buttonId);
+    }
+
+    return {
+      buttonId,
+      characterId: character.id,
+      characterName: character.name,
+      skillType: skill.buttonType,
+      runtimeSkillId: skill.id,
+      staffIndex,
+      lineIndex,
+      nodeIndex,
+    };
+  };
+
+  const formatWorkbenchButtonLabel = (button: Pick<SkillButton, 'characterName' | 'skillDisplayName' | 'skillType' | 'staffIndex' | 'nodeIndex'>) => (
+    `${button.characterName}-${button.skillDisplayName || button.skillType}@${button.staffIndex + 1}-${(button.nodeIndex ?? 0) + 1}`
+  );
+
+  const getWorkbenchButtonReferenceScope = () => {
+    const byId = new Map(skillButtons.map((button) => [button.id, button]));
+    timelineData.staffLines.forEach((staffLine) => {
+      const buttons = Array.isArray(staffLine.buttons) ? staffLine.buttons : [];
+      buttons.forEach((button) => {
+        if (byId.has(button.id)) return;
+        const character = selectedCharacters.find((item) => item.name === button.characterName || item.id === button.characterId);
+        const lineIndex = selectedCharacters.findIndex((item) => item.name === button.characterName || item.id === button.characterId);
+        const nodeIndex = typeof button.nodeIndex === 'number' && Number.isFinite(button.nodeIndex) ? button.nodeIndex : 0;
+        const staffIndex = typeof button.staffIndex === 'number' ? button.staffIndex : staffLine.staffIndex;
+        byId.set(button.id, {
+          id: button.id,
+          characterId: character?.id ?? button.characterId ?? button.characterName,
+          characterName: button.characterName,
+          skillType: button.skillType as SkillButtonType,
+          position: button.position ?? buildWorkbenchButtonPosition(staffIndex, lineIndex >= 0 ? lineIndex : 0, nodeIndex),
+          staffIndex,
+          lineIndex: lineIndex >= 0 ? lineIndex : 0,
+          nodeIndex,
+          nodeNumber: button.nodeNumber ?? calculateNodeNumber(nodeIndex),
+          isDragging: false,
+          isSelected: false,
+          isFromSandbox: true,
+          runtimeSkillId: button.runtimeSkillId,
+          skillDisplayName: button.skillDisplayName,
+          skillIconUrl: button.skillIconUrl,
+          customHits: button.customHits,
+          basicAttackStageCount: button.basicAttackStageCount,
+          basicAttackTailBundle: button.basicAttackTailBundle,
+          releaseAnchor: button.releaseAnchor,
+          timelineModuleKind: button.timelineModuleKind,
+          forcedWaitConfig: button.forcedWaitConfig,
+          element: character?.element,
+        });
+      });
+    });
+    Object.values(getSkillButtonTable()).forEach((button) => {
+      if (byId.has(button.id)) return;
+      const character = selectedCharacters.find((item) => item.name === button.characterName || item.id === button.characterId);
+      const lineIndex = selectedCharacters.findIndex((item) => item.name === button.characterName || item.id === button.characterId);
+      const nodeIndex = typeof button.nodeIndex === 'number' && Number.isFinite(button.nodeIndex) ? button.nodeIndex : 0;
+      const staffIndex = typeof button.staffIndex === 'number' ? button.staffIndex : 0;
+      byId.set(button.id, {
+        id: button.id,
+        characterId: character?.id ?? button.characterId ?? button.characterName,
+        characterName: button.characterName,
+        skillType: button.skillType as SkillButtonType,
+        position: button.position ?? buildWorkbenchButtonPosition(staffIndex, lineIndex >= 0 ? lineIndex : 0, nodeIndex),
+        staffIndex,
+        lineIndex: lineIndex >= 0 ? lineIndex : 0,
+        nodeIndex,
+        nodeNumber: button.nodeNumber ?? calculateNodeNumber(nodeIndex),
+        isDragging: false,
+        isSelected: false,
+        isFromSandbox: true,
+        runtimeSkillId: button.runtimeSkillId,
+        skillDisplayName: button.skillDisplayName,
+        skillIconUrl: button.skillIconUrl,
+        customHits: button.customHits,
+        basicAttackStageCount: button.basicAttackStageCount,
+        basicAttackTailBundle: button.basicAttackTailBundle,
+        releaseAnchor: button.releaseAnchor,
+        timelineModuleKind: button.timelineModuleKind,
+        forcedWaitConfig: button.forcedWaitConfig,
+        element: character?.element,
+      });
+    });
+    return [...byId.values()];
+  };
+
+  const resolveWorkbenchButtonIdReference = (buttonId: string, scope = getWorkbenchButtonReferenceScope()) => {
+    const normalizedButtonId = buttonId.trim();
+    if (!normalizedButtonId) return null;
+    const exactId = scope.find((button) => button.id === normalizedButtonId);
+    if (exactId) return exactId;
+    const labelMatches = scope.filter((button) => formatWorkbenchButtonLabel(button) === normalizedButtonId);
+    if (labelMatches.length === 1) return labelMatches[0];
+    if (labelMatches.length > 1) {
+      throw new Error(`技能按钮标签不唯一: ${normalizedButtonId}`);
+    }
+    throw new Error(`技能按钮不存在: ${normalizedButtonId}`);
+  };
+
+  const findWorkbenchButtonId = (command: Extract<MainWorkbenchCommand, { op: 'addBuff' | 'removeBuff' }>) => {
+    const buttonScope = getWorkbenchButtonReferenceScope();
+    if (command.buttonId) {
+      return resolveWorkbenchButtonIdReference(command.buttonId, buttonScope)?.id ?? null;
+    }
+    const character = findCharacterForWorkbenchCommand(command);
+    const candidates = buttonScope.filter((button) => {
+      if (character && button.characterId !== character.id && button.characterName !== character.name) return false;
+      if (command.skillType && button.skillType !== command.skillType) return false;
+      if (typeof command.nodeIndex === 'number' && button.nodeIndex !== command.nodeIndex) return false;
+      return true;
+    });
+    if (candidates.length > 1) {
+      throw new Error(`技能按钮定位不唯一: ${candidates.map(formatWorkbenchButtonLabel).join('、')}`);
+    }
+    return candidates[0]?.id ?? null;
+  };
+
+  const findWorkbenchBuffsForRemove = (buttonId: string, command: Extract<MainWorkbenchCommand, { op: 'removeBuff' }>) => {
+    const buffs = getBuffsByButtonId(buttonId);
+    const targetDisplayName = command.displayName || command.buffDisplayName;
+    const hasSelector = Boolean(command.buffId || targetDisplayName || command.name);
+    if (!hasSelector && !command.all) {
+      throw new Error('removeBuff requires buffId/displayName/name/buffDisplayName, or all:true to remove every Buff on the button');
+    }
+    if (command.all) {
+      const ordered = command.latest ? [...buffs].reverse() : buffs;
+      const count = typeof command.count === 'number'
+        ? Math.max(1, Math.min(command.count, ordered.length))
+        : ordered.length;
+      return ordered.slice(0, count);
+    }
+    const matched = buffs.filter((buff) => {
+      if (command.buffId && buff.id !== command.buffId) return false;
+      if (targetDisplayName && buff.displayName !== targetDisplayName) return false;
+      if (command.name && buff.name !== command.name) return false;
+      return true;
+    });
+    const ordered = command.latest ? [...matched].reverse() : matched;
+    const count = Math.max(1, Math.min(command.count ?? 1, ordered.length));
+    return ordered.slice(0, count);
+  };
+
+  const findWorkbenchButtonForRemove = (command: Extract<MainWorkbenchCommand, { op: 'removeSkillButton' }>) => {
+    if (command.buttonId) {
+      return resolveWorkbenchButtonIdReference(command.buttonId);
+    }
+    const character = findCharacterForWorkbenchCommand(command);
+    const candidates = skillButtons.filter((button) => {
+      if (character && button.characterId !== character.id && button.characterName !== character.name) return false;
+      if (command.skillType && button.skillType !== command.skillType) return false;
+      if (typeof command.nodeIndex === 'number' && button.nodeIndex !== command.nodeIndex) return false;
+      return true;
+    });
+    if (candidates.length > 1 && !command.latest) {
+      throw new Error(`技能按钮定位不唯一: ${candidates.map(formatWorkbenchButtonLabel).join('、')}`);
+    }
+    const sorted = [...candidates].sort((a, b) =>
+      (b.staffIndex - a.staffIndex)
+      || (b.lineIndex - a.lineIndex)
+      || ((b.nodeIndex ?? 0) - (a.nodeIndex ?? 0))
+    );
+    return command.latest ? sorted[0] ?? null : candidates[0] ?? null;
+  };
+
+  const createAiTimelineWorkNodeFromCurrentCommand = async (
+    command: Extract<MainWorkbenchCommand, { op: 'createAiTimelineWorkNodeFromCurrent' }>,
+  ) => {
+    saveTimelineData();
+    setSelectedCharacterIds(selectedCharacters.map((character) => character.id));
+    const payload = getCurrentTimelineSnapshotPayload();
+    if (!payload) {
+      throw new Error('当前没有可创建 AI work node 的排轴迁出态');
+    }
+    const validation = validateTimelinePayload(payload);
+    if (!validation.ok) {
+      throw new Error(`当前排轴 payload 校验失败：${validation.issues.map((issue) => issue.message).join('；')}`);
+    }
+    const now = Date.now();
+    const client = createAiTimelineWorkNodeClient();
+    const hasParentNodeInput = Object.prototype.hasOwnProperty.call(command, 'parentNodeId');
+    const created = await client.create({
+      timelineId: command.timelineId?.trim() || activeTimelineId,
+      branchId: command.branchId?.trim() || `main-workbench-${now}`,
+      ...(hasParentNodeInput ? {
+        parentNodeId: command.parentNodeId === null ? null : (command.parentNodeId?.trim() || null),
+      } : {}),
+      label: command.label?.trim() || `Main Workbench ${new Date(now).toLocaleString()}`,
+      description: command.description?.trim() || '',
+      basePayload: payload,
+      workingPayload: payload,
+      approvalPolicy: command.approvalPolicy || 'auto-low-risk',
+      riskFlags: [],
+    });
+    return {
+      nodeId: created.node.id,
+      timelineId: created.node.timelineId,
+      branchId: created.node.branchId,
+      label: created.node.label,
+      status: created.node.status,
+      baseSummary: created.node.baseSummary,
+      workingSummary: created.node.workingSummary,
+      buttonTargets: buildTimelineButtonTargets(payload),
+      path: created.path,
+    };
+  };
+
+  const checkoutAiTimelineWorkNodeFromCommand = async (
+    command: Extract<MainWorkbenchCommand, { op: 'checkoutAiTimelineWorkNode' }>,
+  ) => {
+    const nodeId = command.nodeId?.trim();
+    if (!nodeId) {
+      throw new Error('checkoutAiTimelineWorkNode requires nodeId');
+    }
+    const client = createAiTimelineWorkNodeClient();
+    const { node } = await client.get(nodeId);
+    const riskFlags = Array.isArray(node.riskFlags) ? node.riskFlags : [];
+    const isManualApproval = command.approval?.mode === 'manual';
+    const nodeDiff = diffTimelinePayloads(node.basePayload, node.workingPayload);
+    const checkoutDecision = buildAiTimelineCheckoutDecision({
+      approvalPolicy: node.approvalPolicy,
+      riskFlags,
+      diff: nodeDiff,
+    }) as {
+      status: 'auto' | 'needs-manual-approval' | 'blocked';
+      approvalMode: 'auto' | 'manual';
+      canAutoApprove: boolean;
+      requiresManualApproval: boolean;
+      rationale: string;
+      reasons: string[];
+    };
+    if (!checkoutDecision.canAutoApprove && !isManualApproval) {
+      throw new Error(`AI work node 需要 manual approval 后才能 checkout：${checkoutDecision.rationale}`);
+    }
+
+    const validation = validateTimelinePayload(node.workingPayload);
+    if (!validation.ok) {
+      throw new Error(`AI work node payload 校验失败：${validation.issues.map((issue) => issue.message).join('；')}`);
+    }
+
+    saveTimelineData();
+    setSelectedCharacterIds(selectedCharacters.map((character) => character.id));
+    const currentPayload = getCurrentTimelineSnapshotPayload();
+    if (!currentPayload) {
+      throw new Error('当前 Canvas runtime payload 不可用，checkout 未应用');
+    }
+    const currentDiff = currentPayload ? diffTimelinePayloads(currentPayload, node.workingPayload).summary : null;
+    const commits = (await client.list()).commits
+      .filter((commit) => commit.nodeId === node.id)
+      .sort((left, right) => right.createdAt - left.createdAt);
+    const lifecyclePlan = planTimelineWorkNodeCheckoutLifecycle({
+      nodeStatus: node.status,
+      commits,
+      requestedCommitId: command.commitId,
+    });
+    let commit = lifecyclePlan.commit;
+    if (lifecyclePlan.createCommit) {
+      const approvalMode = isManualApproval ? 'manual' : 'auto';
+      const approval = {
+        mode: approvalMode,
+        approvedAt: Date.now(),
+        approvedBy: command.approval?.approvedBy || (approvalMode === 'manual' ? 'user' : 'ai'),
+        rationale: command.approval?.rationale || checkoutDecision.rationale,
+      } as const;
+      const committed = await client.commit(node.id, {
+        label: `Checkout ${node.label}`,
+        riskFlags,
+        approval,
+      });
+      commit = committed.commit;
+    }
+
+    if (!commit) {
+      throw new Error(`AI work node checkout commit missing: ${node.id}`);
+    }
+
+    if (document.visibilityState !== 'visible') {
+      throw new Error('workbench-renderer-not-visible: 前台 Canvas 不可见，checkout 未应用');
+    }
+    const repository = createTimelineRepositoryClient();
+    const previousCheckoutRef = activeCheckoutRef ? { ...activeCheckoutRef } : null;
+    const previousDocument = { id: activeTimelineId, label: activeTimelineLabel };
+    const expectedVisibleIds = Object.keys(node.workingPayload.skillButtonTable || {}).sort();
+    let checkoutRefUpdated = false;
+    let applied: Awaited<ReturnType<ReturnType<typeof createAiTimelineWorkNodeClient>['markCheckoutApplied']>> | null = null;
+    let checkoutMarkError: string | undefined;
+    let visiblePostcondition = { pass: false, expected: expectedVisibleIds, actual: [] as string[] };
+    let checkoutApplied = false;
+    isCheckoutMutationPendingRef.current = true;
+    try {
+      // First prove that the foreground Canvas can hydrate and render the exact
+      // reviewed ids. SQLite checkout/applied state is written only after this
+      // visible postcondition succeeds.
+      hydrateCheckoutRuntime(node.workingPayload, { flushRender: true });
+      refreshWorkbenchAfterCheckout();
+      visiblePostcondition = await waitForVisibleCanvasButtons(expectedVisibleIds);
+      if (!visiblePostcondition.pass || document.visibilityState !== 'visible') {
+        throw new Error(`checkout-visible-postcondition-failed: expected=${visiblePostcondition.expected.join(',')} actual=${visiblePostcondition.actual.join(',')}`);
+      }
+      const checkoutRef = {
+        timelineId: node.timelineId || activeTimelineId,
+        targetType: 'work-node',
+        targetId: node.id,
+        updatedAt: Date.now(),
+      } as const;
+      await repository.setCheckoutRef(checkoutRef);
+      checkoutRefUpdated = true;
+      const documentEntry = node.timelineId === activeTimelineId
+        ? previousDocument
+        : (await repository.listDocuments()).find((entry) => entry.id === node.timelineId)
+          || { id: node.timelineId, label: node.label };
+      activateTimeline({ document: documentEntry, checkoutRef, workingPayload: node.workingPayload });
+      if (lifecyclePlan.markCheckoutApplied) {
+        applied = await client.markCheckoutApplied(node.id, {
+          commitId: commit.id,
+          // Checkout identity includes updatedAt.  Reusing the exact value
+          // already persisted above keeps the renderer projection and SQLite
+          // checkout on one immutable identity.
+          appliedAt: checkoutRef.updatedAt,
+          appliedBy: command.approval?.approvedBy || (isManualApproval ? 'user' : 'ai'),
+          rationale: command.approval?.rationale || 'Foreground renderer hydrated and displayed the exact reviewed timeline.',
+        });
+        if (Number(applied?.commit.checkout?.appliedAt) !== checkoutRef.updatedAt) {
+          throw new Error('checkout-identity-drift: SQLite checkout did not retain the renderer checkout revision');
+        }
+      }
+      checkoutApplied = lifecyclePlan.reuseAppliedCommit || Boolean(applied?.commit.checkoutApplied);
+      if (!checkoutApplied) throw new Error('checkout-applied-record-missing: visible Canvas was restored but SQLite apply record did not commit');
+    } catch (error) {
+      checkoutMarkError = error instanceof Error ? error.message : String(error);
+      if (checkoutRefUpdated && previousCheckoutRef) {
+        await repository.setCheckoutRef(previousCheckoutRef).catch(() => undefined);
+      }
+      activateTimeline({ document: previousDocument, checkoutRef: previousCheckoutRef, workingPayload: currentPayload });
+      hydrateCheckoutRuntime(currentPayload, { flushRender: true });
+      refreshWorkbenchAfterCheckout();
+      await waitForVisibleCanvasButtons(Object.keys(currentPayload.skillButtonTable || {}));
+      throw error;
+    } finally {
+      isCheckoutMutationPendingRef.current = false;
+      setProjectionVisibilityRevision((revision) => revision + 1);
+    }
+
+    if (command.reload === true) {
+      window.setTimeout(() => window.location.reload(), 80);
+    }
+
+    return {
+      nodeId: applied?.node.id || node.id,
+      commitId: applied?.commit.id || commit.id,
+      status: applied?.node.status || node.status,
+      checkoutApplied,
+      checkoutMarkError,
+      visiblePostcondition,
+      reloaded: command.reload === true,
+      riskFlags: riskFlags.map((risk) => ({ severity: risk.severity, code: risk.code, message: risk.message })),
+      checkoutDecision,
+      currentDiff,
+    };
+  };
+
+  const ensureTimelineDocumentBaselineWorkNode = async (
+    timelineId: string,
+    payload: TimelineSnapshotPayload,
+    documentLabel: string,
+  ) => {
+    const repository = createTimelineRepositoryClient();
+    const existingNodes = await repository.listWorkNodes(timelineId);
+    if (existingNodes.length > 0) {
+      return existingNodes.find((node) => !node.parentNodeId) || existingNodes[0];
+    }
+
+    const createdAt = Date.now();
+    const created = await createAiTimelineWorkNodeClient().create({
+      timelineId,
+      parentNodeId: null,
+      branchId: `baseline-${createdAt}`,
+      label: `[baseline] ${documentLabel}`,
+      basePayload: payload,
+      workingPayload: payload,
+      approvalPolicy: 'auto-low-risk',
+      riskFlags: [],
+    });
+    const checkout = await checkoutAiTimelineWorkNodeFromCommand({
+      op: 'checkoutAiTimelineWorkNode',
+      nodeId: created.node.id,
+      reload: false,
+      approval: {
+        mode: 'manual',
+        approvedBy: 'user',
+        rationale: 'Created the baseline Work Node for a restored timeline document.',
+      },
+    });
+    if (!checkout.checkoutApplied) {
+      throw new Error(checkout.checkoutMarkError || '基线工作节点创建后未能完成 checkout');
+    }
+    return created.node;
+  };
+
+  const patchAiTimelineWorkNodeFromCommand = async (
+    command: Extract<MainWorkbenchCommand, { op: 'patchAiTimelineWorkNode' }>,
+  ): Promise<PatchAiTimelineWorkNodeCommandResult> => {
+    const nodeId = command.nodeId?.trim();
+    if (!nodeId) {
+      throw new Error('patchAiTimelineWorkNode requires nodeId');
+    }
+    const client = createAiTimelineWorkNodeClient();
+    const { node } = await client.get(nodeId);
+    const patchResult = applyTimelineWorkNodePatch(node.workingPayload, command.patch, { dryRun: command.dryRun });
+    if (!patchResult.ok) {
+      return {
+        nodeId,
+        dryRun: command.dryRun === true,
+        ok: false,
+        issues: patchResult.issues,
+        riskFlags: patchResult.riskFlags,
+      };
+    }
+    const nextRiskFlags = [
+      ...(Array.isArray(node.riskFlags) ? node.riskFlags : []),
+      ...patchResult.riskFlags,
+    ];
+    if (command.dryRun === true) {
+      return {
+        nodeId,
+        dryRun: true,
+        ok: true,
+        operationsApplied: patchResult.operationsApplied,
+        diff: patchResult.diff,
+        diffSummary: formatTimelineDiffSummary(patchResult.diff),
+        changedButtons: summarizeTimelineChangedButtons(patchResult.diff),
+        currentCheckoutTouched: false,
+        riskFlags: nextRiskFlags,
+        summary: patchResult.summary,
+      };
+    }
+    const updated = await client.update(nodeId, {
+      workingPayload: patchResult.workingPayload,
+      expectedContentRevision: Number(node.contentRevision || node.updatedAt),
+      status: 'ready',
+      riskFlags: nextRiskFlags,
+    });
+    const checkoutDecision = buildAiTimelineCheckoutDecision({
+      approvalPolicy: updated.node.approvalPolicy,
+      riskFlags: nextRiskFlags,
+      diff: patchResult.diff,
+    });
+    return {
+      nodeId: updated.node.id,
+      dryRun: false,
+      ok: true,
+      status: updated.node.status,
+      operationsApplied: patchResult.operationsApplied,
+      diff: patchResult.diff,
+      diffSummary: formatTimelineDiffSummary(patchResult.diff),
+      changedButtons: summarizeTimelineChangedButtons(patchResult.diff),
+      currentCheckoutTouched: false,
+      riskFlags: nextRiskFlags.map((risk) => ({ severity: risk.severity, code: risk.code, message: risk.message })),
+      checkoutDecision,
+      summary: patchResult.summary,
+      path: updated.path,
+    };
+  };
+
+  const patchAndValidateAiTimelineWorkNodeFromCommand = async (
+    command: Extract<MainWorkbenchCommand, { op: 'patchAndValidateAiTimelineWorkNode' }>,
+  ) => {
+    if ((command as { checkout?: boolean }).checkout === true) {
+      throw new Error('patchAndValidateAiTimelineWorkNode does not support checkout:true');
+    }
+    let created: Awaited<ReturnType<typeof createAiTimelineWorkNodeFromCurrentCommand>> | null = null;
+    let nodeId = command.nodeId?.trim() || '';
+    if (!nodeId) {
+      created = await createAiTimelineWorkNodeFromCurrentCommand({
+        op: 'createAiTimelineWorkNodeFromCurrent',
+        timelineId: command.timelineId,
+        branchId: command.branchId,
+        ...(Object.prototype.hasOwnProperty.call(command, 'parentNodeId') ? { parentNodeId: command.parentNodeId } : {}),
+        label: command.label,
+        approvalPolicy: command.approvalPolicy,
+      });
+      nodeId = created.nodeId;
+    }
+
+    const patchResult = await patchAiTimelineWorkNodeFromCommand({
+      op: 'patchAiTimelineWorkNode',
+      nodeId,
+      patch: command.patch,
+      dryRun: command.dryRun,
+    });
+    if (!patchResult.ok) {
+      return {
+        ok: false,
+        nodeId,
+        created,
+        dryRun: command.dryRun === true,
+        patchApplied: false,
+        validation: {
+          ok: false,
+          issues: patchResult.issues,
+        },
+        checkout: false,
+        currentCheckoutTouched: false,
+        completedSteps: created ? ['create-node', 'patch-failed'] : ['patch-failed'],
+        issues: patchResult.issues,
+        riskFlags: patchResult.riskFlags,
+      };
+    }
+
+    const client = createAiTimelineWorkNodeClient();
+    const { node } = await client.get(nodeId);
+    const validation = validateTimelinePayload(command.dryRun === true ? node.workingPayload : node.workingPayload);
+    const diff = patchResult.diff as ReturnType<typeof diffTimelinePayloads>;
+    return {
+      ok: validation.ok,
+      nodeId,
+      created,
+      dryRun: command.dryRun === true,
+      patchApplied: command.dryRun !== true,
+      operationsApplied: patchResult.operationsApplied,
+      validation,
+      diffSummary: patchResult.diffSummary || formatTimelineDiffSummary(diff),
+      diff: {
+        summary: diff.summary,
+        selectedCharactersChanged: diff.selectedCharactersChanged,
+      },
+      changedButtons: patchResult.changedButtons || summarizeTimelineChangedButtons(diff),
+      checkout: false,
+      currentCheckoutTouched: false,
+      pollutionCheck: {
+        pass: true,
+        method: 'front-end work node update only; checkout path disabled',
+      },
+      riskFlags: patchResult.riskFlags,
+      checkoutDecision: patchResult.checkoutDecision,
+      completedSteps: created ? ['create-node', 'patch', 'validate', 'diff', 'pollution-check'] : ['patch', 'validate', 'diff', 'pollution-check'],
+      nextActions: ['Use checkoutAiTimelineWorkNode only if the user explicitly wants to apply this work node.'],
+    };
+  };
+
+  const restoreAiTimelineWorkNodeBaseFromCommand = async (
+    command: Extract<MainWorkbenchCommand, { op: 'restoreAiTimelineWorkNodeBase' }>,
+  ) => {
+    const nodeId = command.nodeId?.trim();
+    if (!nodeId) {
+      throw new Error('restoreAiTimelineWorkNodeBase requires nodeId');
+    }
+    const client = createAiTimelineWorkNodeClient();
+    const { node } = await client.get(nodeId);
+    const validation = validateTimelinePayload(node.basePayload);
+    if (!validation.ok) {
+      throw new Error(`AI work node basePayload 校验失败：${validation.issues.map((issue) => issue.message).join('；')}`);
+    }
+
+    saveTimelineData();
+    setSelectedCharacterIds(selectedCharacters.map((character) => character.id));
+    const currentPayload = getCurrentTimelineSnapshotPayload();
+    const currentDiff = currentPayload ? diffTimelinePayloads(currentPayload, node.basePayload).summary : null;
+    hydrateCheckoutRuntime(node.basePayload);
+
+    let rollbackApplied: Awaited<ReturnType<ReturnType<typeof createAiTimelineWorkNodeClient>['markRollbackApplied']>> | null = null;
+    let rollbackMarkError: string | undefined;
+    try {
+      rollbackApplied = await client.markRollbackApplied(node.id, {
+        appliedAt: Date.now(),
+        appliedBy: command.approval?.approvedBy || 'ai',
+        rationale: command.approval?.rationale || 'Renderer rollback applied from AI timeline work node basePayload.',
+      });
+    } catch (error) {
+      rollbackMarkError = error instanceof Error ? error.message : String(error);
+    }
+
+    if (command.reload === true) {
+      window.setTimeout(() => window.location.reload(), 80);
+    }
+
+    return {
+      nodeId: rollbackApplied?.node.id || node.id,
+      status: rollbackApplied?.node.status || 'rolled-back-unrecorded',
+      rollbackApplied: Boolean(rollbackApplied),
+      rollbackMarkError,
+      reloaded: command.reload === true,
+      currentDiff,
+    };
+  };
+
+  const processMainWorkbenchCanvasCommand = async () => {
+    // Only the foreground Workbench may claim renderer commands. Hidden tabs
+    // can carry stale sessionStorage and must never advance SQLite checkout.
+    if (document.visibilityState !== 'visible') {
+      return;
+    }
+    if (isProcessingWorkbenchCommandRef.current) {
+      return;
+    }
+    isProcessingWorkbenchCommandRef.current = true;
+    try {
+      await pullRemoteMainWorkbenchCommands();
+      const commandEntry = getPendingMainWorkbenchCommands([
+        'addSkillButton',
+        'removeSkillButton',
+        'addBuff',
+        'addBuffToButtons',
+        'removeBuff',
+        'setTargetResistance',
+        'calculateDamage',
+        'saveTimelineSnapshot',
+        'restoreTimelineSnapshot',
+        'listTimelineSnapshots',
+        'createAiTimelineWorkNodeFromCurrent',
+        'diffAiTimelineWorkNode',
+        'patchAiTimelineWorkNode',
+        'patchAndValidateAiTimelineWorkNode',
+        'checkoutAiTimelineWorkNode',
+        'restoreAiTimelineWorkNodeBase',
+        'refreshOperatorConfig',
+        'setOperatorWeapon',
+        'setOperatorEquipment',
+        'setOperatorConfig',
+        'previewOperatorConfig',
+        'applyPreparedOperatorConfig',
+        'finalizePreparedOperatorConfig',
+        'restoreAtomicTeamParent',
+        'refreshSnapshot',
+      ])[0];
+      if (!commandEntry) {
+        return;
+      }
+
+      patchMainWorkbenchCommand(commandEntry.id, { status: 'running' });
+      const command = commandEntry.command;
+      const settleCommand = (patch: Parameters<typeof patchMainWorkbenchCommand>[1]) => {
+        const settledEntry = patchMainWorkbenchCommand(commandEntry.id, patch);
+        if (settledEntry) void pushMainWorkbenchCommandResult(settledEntry);
+      };
+      try {
+        if (command.op === 'addSkillButton') {
+          const result = addSkillButtonFromWorkbenchCommand(command);
+          settleCommand({ status: 'done', result });
+          return;
+        }
+
+        if (command.op === 'removeSkillButton') {
+          const button = findWorkbenchButtonForRemove(command);
+          if (!button) {
+            throw new Error('未找到可回退的技能按钮');
+          }
+          const releaseDependents = getReleaseDeletionBlockers(
+            attachLegacyLanePredecessors(skillButtons),
+            button.id,
+          );
+          if (releaseDependents.length > 0) {
+            throw new Error(`只能从分支末端删除；${releaseDependents.length} 个后继仍依赖 ${formatWorkbenchButtonLabel(button)}`);
+          }
+          removeTimelineButton(button.lineIndex, button.id);
+          dispatch({ type: 'REMOVE_SKILL_BUTTON', buttonId: button.id });
+          settleCommand({
+            status: 'done',
+            result: {
+              buttonId: button.id,
+              label: formatWorkbenchButtonLabel(button),
+              characterName: button.characterName,
+              skillType: button.skillType,
+              skillDisplayName: button.skillDisplayName,
+              staffIndex: button.staffIndex,
+              lineIndex: button.lineIndex,
+              nodeIndex: button.nodeIndex,
+            },
+          });
+          return;
+        }
+
+        if (command.op === 'addBuff') {
+          if (!command.buff || typeof command.buff !== 'object') {
+            throw new Error('addBuff requires buff');
+          }
+          const buttonId = findWorkbenchButtonId(command);
+          if (!buttonId) {
+            throw new Error('未找到可添加 Buff 的技能按钮');
+          }
+          const result = addBuffToButton(buttonId, { ...command.buff, refCount: command.buff.refCount ?? 1 });
+          if (!result.success) {
+            throw new Error(`Buff 添加失败: ${command.buff.displayName || command.buff.name || '未命名 Buff'}`);
+          }
+          recomputeSkillButtonPanel(buttonId);
+          setResistanceRevision((value) => value + 1);
+          if (result.buffId) {
+            emitSkillButtonBuffAdded(buttonId, result.buffId);
+          }
+          if (command.select) {
+            dispatch({ type: 'SELECT_SKILL_BUTTON', buttonId });
+            safeSessionStorage.setItem(STORAGE_KEYS.SELECTED_SKILL_BUTTON, buttonId);
+          }
+          settleCommand({
+            status: 'done',
+            result: { buttonId, buffId: result.buffId, duplicate: result.isDuplicate },
+          });
+          return;
+        }
+
+        if (command.op === 'addBuffToButtons') {
+          if (!command.buff || typeof command.buff !== 'object') {
+            throw new Error('addBuffToButtons requires buff');
+          }
+          const targetButtons = command.buttonIds.map((buttonId) => {
+            const button = resolveWorkbenchButtonIdReference(buttonId);
+            if (!button) {
+              throw new Error(`技能按钮不存在: ${buttonId}`);
+            }
+            return button;
+          });
+          const results = targetButtons.map((button) => {
+            const result = addBuffToButton(button.id, { ...command.buff, refCount: command.buff.refCount ?? 1 });
+            if (!result.success) {
+              throw new Error(`Buff 添加失败: ${formatWorkbenchButtonLabel(button)} / ${command.buff.displayName || command.buff.name || '未命名 Buff'}`);
+            }
+            recomputeSkillButtonPanel(button.id);
+            if (result.buffId) {
+              emitSkillButtonBuffAdded(button.id, result.buffId);
+            }
+            return {
+              buttonId: button.id,
+              label: formatWorkbenchButtonLabel(button),
+              buffId: result.buffId,
+              duplicate: result.isDuplicate,
+            };
+          });
+          setResistanceRevision((value) => value + 1);
+          settleCommand({
+            status: 'done',
+            result: {
+              requestedCount: command.buttonIds.length,
+              appliedCount: results.filter((item) => !item.duplicate).length,
+              duplicateCount: results.filter((item) => item.duplicate).length,
+              results,
+            },
+          });
+          return;
+        }
+
+        if (command.op === 'removeBuff') {
+          const buttonId = findWorkbenchButtonId(command);
+          if (!buttonId) {
+            throw new Error('未找到可回退 Buff 的技能按钮');
+          }
+          const buffs = findWorkbenchBuffsForRemove(buttonId, command);
+          if (buffs.length === 0) {
+            throw new Error('未找到可回退的 Buff');
+          }
+          buffs.forEach((buff) => removeBuffFromButton(buttonId, buff.id));
+          recomputeSkillButtonPanel(buttonId);
+          setResistanceRevision((value) => value + 1);
+          settleCommand({
+            status: 'done',
+            result: {
+              buttonId,
+              removedBuffIds: buffs.map((buff) => buff.id),
+              removedBuffNames: buffs.map((buff) => buff.displayName || buff.name),
+            },
+          });
+          return;
+        }
+
+        if (command.op === 'setTargetResistance') {
+          const persistedButton = getSkillButtonById(command.buttonId);
+          if (!persistedButton) {
+            throw new Error(`技能按钮不存在: ${command.buttonId}`);
+          }
+          const nextResistance = {
+            ...EMPTY_BATCH_TARGET_RESISTANCE,
+            ...Object.fromEntries(
+              Object.entries(command.targetResistance).filter(([, value]) => typeof value === 'number' && Number.isFinite(value))
+            ),
+          };
+          upsertSkillButton({
+            ...persistedButton,
+            resistanceConfig: { targetResistance: nextResistance },
+            updatedAt: Date.now(),
+          });
+          recomputeSkillButtonPanel(command.buttonId);
+          setResistanceRevision((value) => value + 1);
+          settleCommand({
+            status: 'done',
+            result: { buttonId: command.buttonId, targetResistance: nextResistance },
+          });
+          return;
+        }
+
+        if (command.op === 'saveTimelineSnapshot') {
+          saveTimelineData();
+          setSelectedCharacterIds(selectedCharacters.map((character) => character.id));
+          const snapshot = createTimelineSnapshotEntry(command.label);
+          if (!snapshot) {
+            throw new Error('当前没有可保存的排轴数据');
+          }
+          const repository = await saveLegacySnapshotsToRepository();
+          await ensureTimelineDocumentExists(repository, activeTimelineId, snapshot.label || '主排轴');
+          await repository.saveSnapshot({
+            id: snapshot.id,
+            timelineId: activeTimelineId,
+            label: snapshot.label,
+            payload: snapshot.payload,
+            createdAt: snapshot.createdAt,
+          });
+          settleCommand({
+            status: 'done',
+            result: {
+              snapshotId: snapshot.id,
+              label: snapshot.label,
+              summary: snapshot.summary,
+            },
+          });
+          return;
+        }
+
+        if (command.op === 'restoreTimelineSnapshot') {
+          const repository = await saveLegacySnapshotsToRepository();
+          const documents = await repository.listDocuments();
+          const sourceTimelineIds = [
+            activeTimelineId,
+            ...documents.map((document) => document.id).filter((timelineId) => timelineId !== activeTimelineId),
+          ];
+          const snapshots = (await Promise.all(sourceTimelineIds.map(async (timelineId) => (
+            (await repository.listSnapshots(timelineId)).map((entry) => ({ ...entry, timelineId }))
+          )))).flat().map((entry) => {
+            const payload = entry.payload!;
+            return {
+              id: entry.id,
+              timelineId: entry.timelineId,
+              label: entry.label,
+              createdAt: entry.createdAt,
+              payload,
+              summary: {
+                characterCount: payload.selectedCharacters.length,
+                buttonCount: Object.keys(payload.skillButtonTable).length,
+                buffCount: payload.allBuffList.length,
+              },
+            };
+          });
+          const snapshot = command.snapshotId
+            ? snapshots.find((entry) => entry.id === command.snapshotId)
+            : command.label
+              ? snapshots.find((entry) => entry.label === command.label)
+              : command.latest
+                ? snapshots[0]
+                : null;
+          if (!snapshot) {
+            throw new Error('未找到可恢复的排轴快照');
+          }
+          const targetTimelineId = snapshot.timelineId === DEFAULT_TIMELINE_ID
+            ? getLegacySnapshotTimelineId(snapshot.id)
+            : snapshot.timelineId;
+          await ensureTimelineDocumentExists(repository, targetTimelineId, snapshot.label);
+          const persisted = await repository.saveSnapshot({
+            id: snapshot.id,
+            timelineId: targetTimelineId,
+            label: snapshot.label,
+            payload: snapshot.payload,
+            createdAt: snapshot.createdAt,
+          });
+          const restored = await restoreUserWorkspaceSnapshot({
+            timelineId: targetTimelineId,
+            snapshotId: persisted.snapshot.id,
+            updatedAt: Date.now(),
+          });
+          const restoredPayload = restored.payload as TimelineSnapshotPayload;
+          const restoredCheckoutRef = restored.checkoutRef as TimelineCheckoutRef;
+          activateTimeline({
+            document: { id: targetTimelineId, label: snapshot.label },
+            checkoutRef: restoredCheckoutRef,
+            workingPayload: restoredPayload,
+          });
+          hydrateCheckoutRuntime(restoredPayload);
+          await ensureTimelineDocumentBaselineWorkNode(targetTimelineId, restoredPayload, snapshot.label);
+          settleCommand({
+            status: 'done',
+            result: { snapshotId: snapshot.id, label: snapshot.label, reloaded: command.reload !== false },
+          });
+          if (command.reload !== false) {
+            window.setTimeout(() => window.location.reload(), 80);
+          }
+          return;
+        }
+
+        if (command.op === 'listTimelineSnapshots') {
+          const repository = await saveLegacySnapshotsToRepository();
+          const documents = await repository.listDocuments();
+          const snapshots = (await Promise.all(documents.map(async (document) => (
+            (await repository.listSnapshots(document.id)).map((snapshot) => ({ ...snapshot, timelineId: document.id }))
+          )))).flat().map((snapshot) => ({
+            id: snapshot.id,
+            timelineId: snapshot.timelineId,
+            label: snapshot.label,
+            createdAt: snapshot.createdAt,
+            summary: {
+              characterCount: snapshot.payload?.selectedCharacters.length || 0,
+              buttonCount: Object.keys(snapshot.payload?.skillButtonTable || {}).length,
+              buffCount: snapshot.payload?.allBuffList.length || 0,
+            },
+          }));
+          settleCommand({ status: 'done', result: { snapshots } });
+          return;
+        }
+
+        if (command.op === 'createAiTimelineWorkNodeFromCurrent') {
+          const result = await createAiTimelineWorkNodeFromCurrentCommand(command);
+          settleCommand({ status: 'done', result });
+          return;
+        }
+
+        if (command.op === 'diffAiTimelineWorkNode') {
+          const result = await createAiTimelineWorkNodeClient().diff(command.nodeId);
+          settleCommand({ status: 'done', result });
+          return;
+        }
+
+        if (command.op === 'patchAiTimelineWorkNode') {
+          const result = await patchAiTimelineWorkNodeFromCommand(command);
+          if ('issues' in result) {
+            settleCommand({
+              status: 'error',
+              result,
+              error: result.issues.map((issue) => issue.message).join('；'),
+            });
+            return;
+          }
+          settleCommand({ status: 'done', result });
+          return;
+        }
+
+        if (command.op === 'patchAndValidateAiTimelineWorkNode') {
+          const result = await patchAndValidateAiTimelineWorkNodeFromCommand(command);
+          settleCommand({
+            status: result.ok ? 'done' : 'error',
+            result,
+            ...(result.ok ? {} : { error: result.issues?.map((issue) => issue.message).join('；') || 'patch_and_validate failed' }),
+          });
+          return;
+        }
+
+        if (command.op === 'checkoutAiTimelineWorkNode') {
+          const result = await checkoutAiTimelineWorkNodeFromCommand(command);
+          settleCommand({ status: 'done', result });
+          return;
+        }
+
+        if (command.op === 'restoreAiTimelineWorkNodeBase') {
+          const result = await restoreAiTimelineWorkNodeBaseFromCommand(command);
+          settleCommand({ status: 'done', result });
+          return;
+        }
+
+        if (command.op === 'refreshOperatorConfig') {
+          await handleRefreshAvailableCandidates();
+          settleCommand({
+            status: 'done',
+            result: { refreshed: true, characterCount: selectedCharacters.length },
+          });
+          return;
+        }
+
+        if (command.op === 'setOperatorWeapon') {
+          const result = await setOperatorWeaponFromWorkbenchCommand(command);
+          settleCommand({ status: 'done', result });
+          return;
+        }
+
+        if (command.op === 'setOperatorEquipment') {
+          const result = await setOperatorEquipmentFromWorkbenchCommand(command);
+          settleCommand({ status: 'done', result });
+          return;
+        }
+
+        if (command.op === 'setOperatorConfig') {
+          const result = await setOperatorConfigFromWorkbenchCommand(command);
+          settleCommand({ status: 'done', result });
+          return;
+        }
+
+        if (command.op === 'previewOperatorConfig') {
+          const result = await buildOperatorConfigPreviewFromWorkbenchCommand(command.request);
+          settleCommand({ status: 'done', result });
+          return;
+        }
+
+        if (command.op === 'applyPreparedOperatorConfig') {
+          const result = await applyPreparedOperatorConfigFromWorkbenchCommand(command);
+          settleCommand({ status: 'done', result });
+          return;
+        }
+
+        if (command.op === 'finalizePreparedOperatorConfig') {
+          const result = await finalizePreparedOperatorConfigFromWorkbenchCommand(command);
+          settleCommand({ status: 'done', result });
+          return;
+        }
+
+        if (command.op === 'restoreAtomicTeamParent') {
+          const result = await restoreAtomicTeamParentFromWorkbenchCommand(command);
+          settleCommand({ status: 'done', result });
+          return;
+        }
+
+        if (command.op === 'refreshSnapshot') {
+          const snapshot = readMainWorkbenchSnapshot();
+          if (snapshot) {
+            await pushMainWorkbenchSnapshot(snapshot);
+          }
+          settleCommand({
+            status: 'done',
+            result: {
+              refreshed: true,
+              updatedAt: snapshot?.updatedAt ?? Date.now(),
+              selectedCharacterCount: snapshot?.selectedCharacters.length ?? selectedCharacters.length,
+              skillButtonCount: snapshot?.skillButtons.length ?? skillButtons.length,
+            },
+          });
+          return;
+        }
+
+        let timelineSkillButtonIds = timelineData.staffLines.flatMap((staffLine) =>
+          (Array.isArray(staffLine.buttons) ? staffLine.buttons : []).map((button) => button.id)
+        );
+        const mirroredSnapshot = readMainWorkbenchSnapshot();
+        const mirroredSkillButtons = Array.isArray(mirroredSnapshot?.skillButtons) ? mirroredSnapshot.skillButtons : [];
+        if (timelineSkillButtonIds.length === 0 && mirroredSkillButtons.length > 0) {
+          const mirroredSkillButtonTable = Object.fromEntries(mirroredSkillButtons.map((button) => [button.id, {
+            id: button.id,
+            characterId: button.characterId,
+            characterName: button.characterName,
+            skillType: button.skillType,
+            staffIndex: button.persistenceStaffIndex,
+            lineIndex: button.persistenceStaffIndex,
+            nodeIndex: button.persistenceNodeIndex,
+            nodeNumber: button.persistenceNodeIndex + 1,
+            position: { x: 80 + (button.nodeIndex ?? 0) * 22, y: 60 + button.lineIndex * 300 },
+            runtimeSkillId: button.runtimeSkillId,
+            skillDisplayName: button.skillDisplayName,
+            selectedBuff: [...(button.selectedBuffIds ?? [])],
+            panelConfig: { selectedBuff: [...(button.selectedBuffIds ?? [])] },
+            runtimeSnapshot: null,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          }]));
+          const repairedTimelineData: TimelineData = {
+            version: '1.0.0',
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            staffLines: selectedCharacters.map((character, index) => {
+              const buttons = mirroredSkillButtons
+                .filter((button) => button.persistenceStaffIndex === index && button.characterId === character.id)
+                .map((button) => ({
+                  id: button.id,
+                  characterId: button.characterId,
+                  characterName: button.characterName,
+                  skillType: button.skillType as SkillButtonType,
+                  staffIndex: button.persistenceStaffIndex,
+                  lineIndex: button.persistenceStaffIndex,
+                  nodeIndex: button.persistenceNodeIndex,
+                  nodeNumber: button.persistenceNodeIndex + 1,
+                  position: { x: 80 + (button.nodeIndex ?? 0) * 22, y: 60 + button.lineIndex * 300 },
+                  runtimeSkillId: button.runtimeSkillId,
+                  skillDisplayName: button.skillDisplayName,
+                  buffIds: [...(button.selectedBuffIds ?? [])],
+                }))
+                .sort((left, right) => left.nodeIndex - right.nodeIndex);
+              return {
+                staffIndex: index,
+                characterName: character.name,
+                occupiedNodes: buttons.map((button) => button.nodeIndex).sort((left, right) => left - right),
+                buttons,
+              };
+            }),
+          };
+          setSkillButtonTable(mirroredSkillButtonTable);
+          saveTimelineRepo(repairedTimelineData);
+          timelineSkillButtonIds = repairedTimelineData.staffLines.flatMap((staffLine) => staffLine.buttons.map((button) => button.id));
+        }
+        const persistedSkillButtonTable = getSkillButtonTable();
+        const persistedSkillButtonIds = Object.keys(persistedSkillButtonTable);
+        if (timelineSkillButtonIds.length === 0 && persistedSkillButtonIds.length > 0) {
+          const repairedTimelineData: TimelineData = {
+            version: '1.0.0',
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            staffLines: selectedCharacters.map((character, index) => {
+              const buttons = Object.values(persistedSkillButtonTable)
+                .filter((button) => button.staffIndex === index || button.characterId === character.id || button.characterName === character.name)
+                .map((button) => ({
+                  id: button.id,
+                  characterId: button.characterId,
+                  characterName: button.characterName,
+                  skillType: button.skillType as SkillButtonType,
+                  staffIndex: button.staffIndex,
+                  lineIndex: button.lineIndex ?? button.staffIndex,
+                  nodeIndex: button.nodeIndex,
+                  nodeNumber: button.nodeNumber,
+                  position: button.position,
+                  runtimeSkillId: button.runtimeSkillId,
+                  skillDisplayName: button.skillDisplayName,
+                  skillIconUrl: button.skillIconUrl,
+                  customHits: button.customHits,
+                  basicAttackStageCount: button.basicAttackStageCount,
+                  basicAttackTailBundle: button.basicAttackTailBundle,
+                  releaseAnchor: button.releaseAnchor,
+                  timelineModuleKind: button.timelineModuleKind,
+                  forcedWaitConfig: button.forcedWaitConfig,
+                  buffIds: [...(button.selectedBuff ?? [])],
+                }))
+                .sort((left, right) => left.nodeIndex - right.nodeIndex);
+              return {
+                staffIndex: index,
+                characterName: character.name,
+                occupiedNodes: buttons.map((button) => button.nodeIndex).sort((left, right) => left - right),
+                buttons,
+              };
+            }),
+          };
+          saveTimelineRepo(repairedTimelineData);
+          timelineSkillButtonIds = repairedTimelineData.staffLines.flatMap((staffLine) => staffLine.buttons.map((button) => button.id));
+        }
+        const currentSkillButtonIds = skillButtons.length > 0
+          ? skillButtons.map((button) => button.id)
+          : timelineSkillButtonIds.length > 0
+            ? timelineSkillButtonIds
+            : persistedSkillButtonIds;
+        const snapshot = buildDamageReportSnapshot({ buttonIds: currentSkillButtonIds });
+        const result = command.op === 'calculateDamage' && command.buttonId
+          ? {
+              ...snapshot,
+              buttons: snapshot.buttons.filter((button) => button.id === command.buttonId),
+            }
+          : snapshot;
+        settleCommand({ status: 'done', result });
+      } catch (error) {
+        const errorCode = typeof error === 'object' && error && 'code' in error && typeof error.code === 'string'
+          ? error.code
+          : '';
+        settleCommand({
+          status: 'error',
+          error: `${errorCode ? `[${errorCode}] ` : ''}${error instanceof Error ? error.message : String(error)}`,
+        });
+      }
+    } finally {
+      isProcessingWorkbenchCommandRef.current = false;
+    }
+  };
+
+  useEffect(() => {
+    const selectedCharacterSignature = selectedCharacters.map((character) => character.id).join('|');
+    const isEnteringCanvas = previousViewRef.current !== 'canvas' && currentView === 'canvas';
+    previousViewRef.current = currentView;
+
+    if (selectedCharacters.length === 0) {
+      restoredSignatureRef.current = null;
+      dispatch({ type: 'CLEAR_SKILL_BUTTONS' });
+      return;
+    }
+
+    if (currentView !== 'canvas') {
+      return;
+    }
+
+    if (restoredSignatureRef.current === selectedCharacterSignature && !isEnteringCanvas) {
+      return;
+    }
+    restoredSignatureRef.current = selectedCharacterSignature;
+
+    const loadedData = loadTimelineData();
+    if (!loadedData) {
+      dispatch({ type: 'CLEAR_SKILL_BUTTONS' });
+      return;
+    }
+
+    let dataToRestore = loadedData;
+    if (loadedData.staffLines.length < selectedCharacters.length) {
+      dataToRestore = normalizeTimelineData(loadedData, selectedCharacters);
+    }
+
+    const gridStackElement = canvasRef.current?.querySelector('.canvas-grid-stack');
+    const restoredGridContentOffsetX =
+      canvasRef.current && gridStackElement
+        ? getGridContentOffsetX(canvasRef.current, gridStackElement)
+        : null;
+
+    const restoredButtons: SkillButton[] = [];
+    const nextTimelineData = {
+      ...dataToRestore,
+      staffLines: dataToRestore.staffLines.map((staffLine) => ({
+        ...staffLine,
+        buttons: Array.isArray(staffLine.buttons) ? [...staffLine.buttons] : [],
+      })),
+    };
+    const currentSkillButtonTable = getSkillButtonTable();
+    const nextSkillButtonTable = { ...currentSkillButtonTable };
+    let hasMetadataSync = false;
+
+    dataToRestore.staffLines.forEach((staffLine, staffLineIndex) => {
+      const buttons = Array.isArray(staffLine.buttons) ? staffLine.buttons : [];
+      buttons.forEach((btn, buttonIndex) => {
+        const character = selectedCharacters.find((item) => item.name === btn.characterName);
+        const lineIndex = selectedCharacters.findIndex(
+          character => character.name === btn.characterName
+        );
+        const restoredGroupIndex =
+          typeof btn.nodeIndex === 'number' && Number.isFinite(btn.nodeIndex)
+            ? Math.floor(btn.nodeIndex / GRID_NODE_COUNT)
+            : 0;
+        const restoredNodeIndex =
+          typeof btn.nodeIndex === 'number' && Number.isFinite(btn.nodeIndex)
+            ? btn.nodeIndex % GRID_NODE_COUNT
+            : 0;
+        const restoredLineIndex = lineIndex >= 0 ? lineIndex : 0;
+        const normalizedPositionY =
+          getGridGroupTop(restoredGroupIndex) +
+          getGridLineCenterY(restoredLineIndex) +
+          SKILL_BUTTON_BASELINE_OFFSET_Y;
+        const normalizedPositionX =
+          restoredGridContentOffsetX !== null
+            ? restoredGridContentOffsetX + getGridNodeCenterX(restoredNodeIndex)
+            : btn.position.x;
+        const position = { x: normalizedPositionX, y: normalizedPositionY };
+        const restoredButtonCharacterId = character?.id ?? btn.characterId ?? btn.characterName;
+        const resolvedRuntimeSkill = resolveRuntimeTemplateSkill({
+          id: btn.id,
+          characterId: restoredButtonCharacterId,
+          characterName: btn.characterName,
+          skillType: btn.skillType,
+          position,
+          staffIndex: restoredGroupIndex,
+          lineIndex: lineIndex >= 0 ? lineIndex : 0,
+          isDragging: false,
+          isSelected: false,
+          isFromSandbox: true,
+          runtimeSkillId: btn.runtimeSkillId,
+          skillDisplayName: btn.skillDisplayName,
+          skillIconUrl: btn.skillIconUrl,
+          customHits: btn.customHits,
+          element: character?.element,
+        });
+        const nextRuntimeSkillId = resolvedRuntimeSkill?.id ?? btn.runtimeSkillId;
+        const nextSkillDisplayName = resolvedRuntimeSkill?.displayName || btn.skillDisplayName;
+        const nextSkillIconUrl = btn.timelineModuleKind
+          ? undefined
+          : resolvedRuntimeSkill?.iconUrl
+            ?? btn.skillIconUrl
+            ?? resolveSkillIconUrl(btn.characterName, btn.skillType);
+
+        if (
+          btn.runtimeSkillId !== nextRuntimeSkillId
+          || btn.skillDisplayName !== nextSkillDisplayName
+          || btn.skillIconUrl !== nextSkillIconUrl
+        ) {
+          hasMetadataSync = true;
+          nextTimelineData.staffLines[staffLineIndex].buttons[buttonIndex] = {
+            ...btn,
+            runtimeSkillId: nextRuntimeSkillId,
+            skillDisplayName: nextSkillDisplayName,
+            skillIconUrl: nextSkillIconUrl,
+          };
+          const persistedButton = nextSkillButtonTable[btn.id];
+          if (persistedButton) {
+            nextSkillButtonTable[btn.id] = {
+              ...persistedButton,
+              runtimeSkillId: nextRuntimeSkillId,
+              skillDisplayName: nextSkillDisplayName,
+              skillIconUrl: nextSkillIconUrl,
+              updatedAt: Date.now(),
+            };
+          }
+        }
+
+        restoredButtons.push({
+          id: btn.id,
+          characterId: restoredButtonCharacterId,
+          characterName: btn.characterName,
+          skillType: btn.skillType,
+          position,
+          staffIndex: restoredGroupIndex,
+          lineIndex: lineIndex >= 0 ? lineIndex : 0,
+          nodeIndex: restoredNodeIndex,
+          nodeNumber: calculateNodeNumber(restoredNodeIndex),
+          isDragging: false,
+          isSelected: false,
+          isFromSandbox: true,
+          runtimeSkillId: nextRuntimeSkillId,
+          skillDisplayName: nextSkillDisplayName,
+          skillIconUrl: nextSkillIconUrl,
+          customHits: btn.customHits,
+          basicAttackStageCount: btn.basicAttackStageCount,
+          basicAttackTailBundle: btn.basicAttackTailBundle,
+          releaseAnchor: btn.releaseAnchor,
+          timelineModuleKind: btn.timelineModuleKind,
+          forcedWaitConfig: btn.forcedWaitConfig,
+          element: character?.element,
+        });
+      });
+    });
+
+    if (hasMetadataSync) {
+      saveTimelineRepo(nextTimelineData);
+      setSkillButtonTable(nextSkillButtonTable);
+    }
+
+    dispatch({ type: 'CLEAR_SKILL_BUTTONS' });
+    restoredButtons.forEach((button) => {
+      dispatch({ type: 'ADD_SKILL_BUTTON', button });
+    });
+  }, [currentView, dispatch, loadTimelineData, normalizeTimelineData, selectedCharacters]);
+
+  useEffect(() => {
+    return onSkillButtonBuffAdded(({ buttonId, buffId }) => {
+      if (!buttonId || !buffId) return;
+      const payload = getCurrentTimelineSnapshotPayload();
+      if (payload) setSessionWorkingPayload(payload, 'runtime');
+    });
+  }, [setSessionWorkingPayload]);
+
+  useEffect(() => {
+    return onSkillButtonBuffRemoved(({ buttonId, buffId }) => {
+      if (!buttonId || !buffId) return;
+      const payload = getCurrentTimelineSnapshotPayload();
+      if (payload) setSessionWorkingPayload(payload, 'runtime');
+    });
+  }, [setSessionWorkingPayload]);
+
+  const handleNewTimelineButtonCommitted = useCallback((newButton: SkillButton) => {
+    if (import.meta.env.VITE_AKE_DEMO !== '1') return;
+    if (newButton.timelineModuleKind) return;
+    const newNodeIndex = newButton.nodeIndex ?? -1;
+    const predecessor = skillButtons
+      .filter(button => (
+        button.staffIndex === newButton.staffIndex
+        && button.lineIndex === newButton.lineIndex
+        && (button.nodeIndex ?? -1) < newNodeIndex
+      ))
+      .sort((left, right) => (
+        (right.nodeIndex ?? -1) - (left.nodeIndex ?? -1)
+      ))[0];
+    if (!predecessor
+      || predecessor.skillType !== 'A'
+      || predecessor.basicAttackTailBundle) return;
+    setSelectedBasicAttackStageCount(0);
+    setPendingBasicAttackCut({
+      predecessorButtonId: predecessor.id,
+      successorButtonId: newButton.id,
+    });
+  }, [skillButtons]);
+
+  const handleTimelineInteractionRejected = useCallback((message: string) => {
+    setWorkNodeSaveNotice(message);
+    window.setTimeout(() => setWorkNodeSaveNotice(''), 3000);
+  }, []);
+
+  const {
+    draggingState,
+    dropTarget,
+    snapTargets,
+    mousePosition,
+    handleSandboxDragStart,
+    handleButtonMouseDown,
+  } = useCanvasDrag({
+    disabled: false,
+    config: canvasConfig,
+    canvasWidth,
+    staffCount: projectionStaffCount,
+    selectedCharacters,
+    skillButtons,
+    akeRealtimeTimeline,
+    canvasRef,
+    dispatch,
+    addTimelineButton,
+    updateSkillButtonPosition,
+    moveTimelineButtonToStaff: moveSkillButtonToStaff,
+    onNewButtonCommitted: handleNewTimelineButtonCommitted,
+    onInteractionRejected: handleTimelineInteractionRejected,
+  });
+
+  useEffect(() => {
+    if (currentView !== 'canvas' || selectedCharacters.length === 0) {
+      return undefined;
+    }
+    void processMainWorkbenchCanvasCommand();
+    const handleControlEvent = () => {
+      void processMainWorkbenchCanvasCommand();
+    };
+    const timer = window.setInterval(() => {
+      void processMainWorkbenchCanvasCommand();
+    }, 1200);
+    window.addEventListener('def-main-workbench-control', handleControlEvent);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('def-main-workbench-control', handleControlEvent);
+    };
+  }, [currentView, selectedCharacters, skillButtons, staffCount]);
+
+  useEffect(() => {
+    const publishWhenVisible = () => {
+      if (document.visibilityState === 'visible') setProjectionVisibilityRevision((revision) => revision + 1);
+    };
+    document.addEventListener('visibilitychange', publishWhenVisible);
+    return () => document.removeEventListener('visibilitychange', publishWhenVisible);
+  }, []);
+
+  useEffect(() => {
+    if (currentView !== 'canvas') {
+      return;
+    }
+    // Multiple local Workbench tabs may remain mounted. Only the foreground
+    // tab may publish the canonical projection; otherwise a hidden stale tab
+    // can overwrite the active timeline and trip every session gate mid-turn.
+    if (document.visibilityState !== 'visible') return;
+    const timelineButtons = timelineData.staffLines.flatMap((staffLine) =>
+      (Array.isArray(staffLine.buttons) ? staffLine.buttons : []).map((button) => ({
+        ...button,
+        staffIndex: staffLine.staffIndex,
+      }))
+    );
+    const currentSkillButtonIds = skillButtons.length > 0
+      ? skillButtons.map((button) => button.id)
+      : timelineButtons.map((button) => button.id);
+    const computedDamageReport = buildDamageReportSnapshot({ buttonIds: currentSkillButtonIds });
+    const operatorConfigCache = getOperatorConfigPageCache();
+    const persistedButtonTable = getSkillButtonTable();
+    const mirroredButtons: MainWorkbenchSnapshot['skillButtons'] = skillButtons.length > 0
+      ? skillButtons.map((button) => {
+          const persistedButton = persistedButtonTable[button.id];
+          return {
+            id: button.id,
+            characterId: button.characterId,
+            characterName: button.characterName,
+            skillType: button.skillType,
+            runtimeSkillId: button.runtimeSkillId,
+            skillDisplayName: button.skillDisplayName,
+            staffIndex: button.staffIndex,
+            lineIndex: button.lineIndex,
+            persistenceStaffIndex: button.lineIndex,
+            persistenceNodeIndex: button.staffIndex * GRID_NODE_COUNT + (button.nodeIndex ?? 0),
+            nodeIndex: button.nodeIndex,
+            nodeNumber: button.nodeNumber,
+            selectedBuffIds: [...(persistedButton?.selectedBuff ?? [])],
+            selectedBuffs: getBuffsByButtonId(button.id).map((buff) => ({
+              id: buff.id,
+              name: buff.name,
+              displayName: buff.displayName,
+              sourceName: buff.sourceName,
+              level: buff.level,
+              type: buff.type,
+              value: buff.value,
+              description: buff.description,
+              source: buff.source,
+              condition: buff.condition,
+              category: buff.category,
+              effectKind: buff.effectKind,
+            })),
+          };
+        })
+      : timelineButtons.length > 0
+        ? timelineButtons.map((button) => {
+          const persistedButton = persistedButtonTable[button.id];
+          return {
+            id: button.id,
+            characterId: persistedButton?.characterId ?? button.characterName,
+            characterName: button.characterName,
+            skillType: button.skillType as SkillButtonType,
+            runtimeSkillId: button.runtimeSkillId,
+            skillDisplayName: button.skillDisplayName,
+            staffIndex: Math.floor(button.nodeIndex / GRID_NODE_COUNT),
+            lineIndex: button.staffIndex,
+            persistenceStaffIndex: button.staffIndex,
+            persistenceNodeIndex: button.nodeIndex,
+            nodeIndex: button.nodeIndex % GRID_NODE_COUNT,
+            nodeNumber: calculateNodeNumber(button.nodeIndex % GRID_NODE_COUNT),
+            selectedBuffIds: [...(persistedButton?.selectedBuff ?? [])],
+            selectedBuffs: getBuffsByButtonId(button.id).map((buff) => ({
+              id: buff.id,
+              name: buff.name,
+              displayName: buff.displayName,
+              sourceName: buff.sourceName,
+              level: buff.level,
+              type: buff.type,
+              value: buff.value,
+              description: buff.description,
+              source: buff.source,
+              condition: buff.condition,
+              category: buff.category,
+              effectKind: buff.effectKind,
+            })),
+          };
+        })
+      : [];
+    const mirroredSelectedCharacters: MainWorkbenchSnapshot['selectedCharacters'] = selectedCharacters.map((character) => ({
+      id: character.id,
+      name: character.name,
+      element: character.element,
+      profession: character.profession,
+      librarySource: character.librarySource,
+    }));
+    const mirroredSkillCatalog: NonNullable<MainWorkbenchSnapshot['skillCatalog']> = selectedCharacters.flatMap((character) => {
+      const skills = buildSandboxSkillsFromRuntimeTemplate(character.id);
+      return skills.map((skill) => ({
+        characterId: character.id,
+        characterName: character.name,
+        skillId: skill.id,
+        skillType: skill.buttonType,
+        skillDisplayName: skill.displayName,
+        source: skill.source,
+      }));
+    });
+    const mirroredOperatorConfigs: MainWorkbenchSnapshot['operatorConfigs'] = selectedCharacters.flatMap((character) => {
+      const configSnapshot = operatorConfigCache[character.id];
+      if (!configSnapshot) return [];
+      return [{
+        characterId: character.id,
+        characterName: character.name,
+        weapon: {
+          id: configSnapshot.weapon.id,
+          name: configSnapshot.weapon.name,
+          level: configSnapshot.weapon.config.level,
+          potential: configSnapshot.weapon.config.potential,
+          skillLevels: configSnapshot.weapon.config.skillLevels,
+          attack: configSnapshot.weapon.attack,
+        },
+        equipment: configSnapshot.equipment.pieces.map((piece) => ({
+          slotKey: piece.slotKey,
+          equipmentId: piece.equipmentId,
+          name: piece.name,
+          part: piece.part,
+          effects: piece.effects.map((effect) => ({
+            effectId: effect.effectId,
+            label: effect.label,
+            typeKey: effect.typeKey,
+            level: effect.level,
+            value: effect.value,
+          })),
+        })),
+        setBuffs: configSnapshot.equipment.setBuffs.map((buff) => ({
+          gearSetId: buff.gearSetId,
+          gearSetName: buff.gearSetName,
+          effectId: buff.effectId,
+          label: buff.label,
+          typeKey: buff.typeKey,
+          value: buff.value,
+          category: buff.category,
+          effectKind: buff.effectKind,
+        })),
+        operatorSkillLevels: configSnapshot.operator.skillConfig,
+      }];
+    });
+    if (isCheckoutBootstrapPendingRef.current || isCheckoutMutationPendingRef.current) return;
+    const previousSnapshot = readMainWorkbenchSnapshot();
+    const currentSignature = buildMainWorkbenchSnapshotSignature(mirroredSelectedCharacters, mirroredButtons, mirroredOperatorConfigs, mirroredSkillCatalog);
+    const previousSignature = previousSnapshot
+      ? buildMainWorkbenchSnapshotSignature(previousSnapshot.selectedCharacters, previousSnapshot.skillButtons, previousSnapshot.operatorConfigs, previousSnapshot.skillCatalog)
+      : '';
+    const canReusePreviousDamageReport = computedDamageReport.buttonCount === 0 &&
+      mirroredButtons.length > 0 &&
+      previousSnapshot?.damageReport &&
+      previousSnapshot.damageReport.buttonCount === mirroredButtons.length &&
+      previousSignature === currentSignature;
+    const damageReport = canReusePreviousDamageReport && previousSnapshot?.damageReport
+      ? previousSnapshot.damageReport
+      : computedDamageReport;
+    const snapshot = {
+      schemaVersion: 1 as const,
+      updatedAt: Date.now(),
+      source: 'app' as const,
+      timelineId: activeTimelineId,
+      activeTimelineId,
+      checkout: activeCheckoutRef ? {
+        targetType: activeCheckoutRef.targetType,
+        targetId: activeCheckoutRef.targetId,
+        updatedAt: activeCheckoutRef.updatedAt,
+      } : null,
+      currentView,
+      selectedCharacters: mirroredSelectedCharacters,
+      skillCatalog: mirroredSkillCatalog,
+      skillButtons: mirroredButtons,
+      damageReport: {
+        generatedAt: damageReport.generatedAt,
+        totalExpected: damageReport.totalExpected,
+        totalNonCrit: damageReport.totalNonCrit,
+        buttonCount: damageReport.buttonCount,
+        buttons: damageReport.buttons,
+      },
+      operatorConfigs: mirroredOperatorConfigs,
+    };
+    writeMainWorkbenchSnapshot(snapshot);
+    void pushMainWorkbenchSnapshot(snapshot);
+  }, [activeCheckoutRef, activeTimelineId, checkoutBootstrapRevision, currentView, projectionVisibilityRevision, selectedCharacters, skillButtons, timelineData, resistanceRevision]);
+
+  useEffect(() => {
+    if (isCheckoutBootstrapPendingRef.current || currentView !== 'canvas') return undefined;
+    const timer = window.setTimeout(() => {
+      const payload = getCurrentTimelineSnapshotPayload();
+      if (payload) setSessionWorkingPayload(payload, 'runtime');
+    }, 380);
+    return () => window.clearTimeout(timer);
+  }, [checkoutBootstrapRevision, currentView, resistanceRevision, selectedCharacters, setSessionWorkingPayload, skillButtons, timelineData]);
+
+  const [contextMenuState, setContextMenuState] = useState<{
+    buttonId: string;
+    position: { x: number; y: number };
+  } | null>(null);
+
+  const [pendingCopy, setPendingCopy] = useState<{
+    sourceButtonId: string;
+    sourceButtonRuntime: SkillButton;
+    sourceButtonConfig: ReturnType<typeof clonePersistedSkillButtonConfig>;
+  } | null>(null);
+
+  const [copyHintMousePosition, setCopyHintMousePosition] = useState({ x: 0, y: 0 });
+
+  const findCharacterForButton = (button: SkillButton): Character | undefined => {
+    return selectedCharacters.find((character) => character.id === button.characterId)
+      ?? selectedCharacters.find((character) => character.name === button.characterName);
+  };
+
+  const getCharacterSkillList = (button: SkillButton): SandboxSkill[] => {
+    const character = findCharacterForButton(button);
+    if (Array.isArray(character?.sandboxSkills) && character.sandboxSkills.length > 0) {
+      return character.sandboxSkills;
+    }
+
+    const runtimeSkills = buildSandboxSkillsFromRuntimeTemplate(character?.id ?? button.characterId);
+    if (runtimeSkills.length > 0) {
+      return runtimeSkills;
+    }
+
+    if (!character) {
+      return [];
+    }
+
+    return (['A', 'B', 'E', 'Q'] as const).map((skillType) => ({
+      id: `fallback-${character.id}-${skillType}`,
+      displayName: skillType,
+      buttonType: skillType,
+      iconUrl: character.skillIconMap?.[skillType] ?? resolveSkillIconUrl(character.name, skillType),
+      hitCount: 1,
+      source: character.librarySource ?? 'official',
+    }));
+  };
+
+  const isSameSkillOption = (button: SkillButton, option: SkillButtonSkillOption): boolean => {
+    if (button.runtimeSkillId && option.nextRuntimeSkillId) {
+      return button.runtimeSkillId === option.nextRuntimeSkillId;
+    }
+
+    if (button.skillDisplayName && option.nextSkillDisplayName) {
+      return button.skillType === option.nextSkillType && button.skillDisplayName === option.nextSkillDisplayName;
+    }
+
+    return button.skillType === option.nextSkillType && !button.runtimeSkillId;
+  };
+
+  const getSkillChangeOptions = (button: SkillButton): SkillButtonSkillOption[] => {
+    if (button.basicAttackTailBundle) return [];
+    const character = findCharacterForButton(button);
+    return getCharacterSkillList(button)
+      .map((skill) => ({
+        nextSkillType: skill.buttonType,
+        nextRuntimeSkillId: skill.id,
+        nextSkillDisplayName: skill.displayName,
+        nextSkillIconUrl: skill.iconUrl
+          ?? character?.skillIconMap?.[skill.buttonType]
+          ?? resolveSkillIconUrl(button.characterName, skill.buttonType),
+        nextCustomHits: skill.customHits,
+      }))
+      .filter((option) => !isSameSkillOption(button, option));
+  };
+
+  useEffect(() => {
+    if (!pendingCopy) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      setCopyHintMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [pendingCopy]);
+
+  const handleCancelBasicAttackCut = useCallback(() => {
+    if (!pendingBasicAttackCut) return;
+    const successor = skillButtons.find(button => (
+      button.id === pendingBasicAttackCut.successorButtonId
+    ));
+    if (successor?.lineIndex !== undefined) {
+      removeTimelineButton(successor.lineIndex, successor.id);
+    }
+    if (successor) {
+      dispatch({ type: 'REMOVE_SKILL_BUTTON', buttonId: successor.id });
+    }
+    setPendingBasicAttackCut(null);
+    setSelectedBasicAttackStageCount(0);
+  }, [dispatch, pendingBasicAttackCut, removeTimelineButton, skillButtons]);
+
+  const handleConfirmBasicAttackCut = useCallback(() => {
+    if (!pendingBasicAttackCut || !basicAttackCutDraft) return;
+    const selected = basicAttackCutDraft.options.find(option => (
+      option.stageCount === selectedBasicAttackStageCount
+    ));
+    if (!selected) return;
+    try {
+      const locked = lockTailTransitionBundle({
+        id: `basic-tail:${pendingBasicAttackCut.predecessorButtonId}:${pendingBasicAttackCut.successorButtonId}`,
+        predecessorActionId: pendingBasicAttackCut.predecessorButtonId,
+        successorActionId: pendingBasicAttackCut.successorButtonId,
+        transition: selected.transition,
+      });
+      const bundle: BasicAttackTailBundle = {
+        id: locked.id,
+        predecessorButtonId: locked.predecessorActionId,
+        successorButtonId: locked.successorActionId,
+        selectedStageCount: selected.stageCount,
+        blockingEndOffsetFrames: locked.blockingEndOffsetFrames,
+        immutable: true,
+        editPolicy: locked.editPolicy,
+      };
+      updateBasicAttackTailBundle(bundle);
+      dispatch({
+        type: 'SET_BASIC_ATTACK_TAIL_BUNDLE',
+        buttonId: bundle.predecessorButtonId,
+        bundle,
+        stageCount: bundle.selectedStageCount,
+      });
+      dispatch({
+        type: 'SET_BASIC_ATTACK_TAIL_BUNDLE',
+        buttonId: bundle.successorButtonId,
+        bundle,
+        stageCount: null,
+      });
+      setPendingBasicAttackCut(null);
+      setSelectedBasicAttackStageCount(0);
+      setWorkNodeSaveNotice(`已锁定：普攻 ${bundle.selectedStageCount} 段后衔接后继动作`);
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2200);
+    } catch (error) {
+      setWorkNodeSaveNotice(`普攻拼接失败：${error instanceof Error ? error.message : String(error)}`);
+    }
+  }, [
+    basicAttackCutDraft,
+    dispatch,
+    pendingBasicAttackCut,
+    selectedBasicAttackStageCount,
+    updateBasicAttackTailBundle,
+  ]);
+
+  const handleConfirmRemoveSkillButton = () => {
+    if (!contextMenuState) return;
+    const { buttonId } = contextMenuState;
+    const button = skillButtons.find(item => item.id === buttonId);
+    if (button?.isLocked) {
+      return;
+    }
+    const releaseDependents = getReleaseDeletionBlockers(
+      attachLegacyLanePredecessors(skillButtons),
+      buttonId,
+    );
+    if (releaseDependents.length > 0) {
+      setContextMenuState(null);
+      setWorkNodeSaveNotice(
+        `该动作不是分支末端；请先删除后面的 ${releaseDependents.length} 个依赖动作。`,
+      );
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2800);
+      return;
+    }
+    const tailBundle = button?.basicAttackTailBundle;
+    if (tailBundle?.predecessorButtonId === buttonId) {
+      setContextMenuState(null);
+      setWorkNodeSaveNotice('普攻截段已锁定；请右键删除它后面的动作，系统会自动恢复完整普攻。');
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2800);
+      return;
+    }
+    if (button && button.lineIndex !== undefined) {
+      removeTimelineButton(button.lineIndex, buttonId);
+    }
+    if (tailBundle) {
+      dispatch({
+        type: 'SET_BASIC_ATTACK_TAIL_BUNDLE',
+        buttonId: tailBundle.predecessorButtonId,
+        bundle: null,
+        stageCount: null,
+      });
+    }
+    dispatch({ type: 'REMOVE_SKILL_BUTTON', buttonId });
+    setContextMenuState(null);
+  };
+
+  const handleCloseButtonContextMenu = () => {
+    setContextMenuState(null);
+  };
+
+  const handleConfigureTimelineModule = useCallback((button: SkillButton) => {
+    if (button.timelineModuleKind === 'forced-wait') {
+      setPendingForcedWaitButtonId(button.id);
+      return;
+    }
+    setWorkNodeSaveNotice(
+      button.timelineModuleKind === 'perfect-dodge'
+        ? '极限闪避配置要等待权威判定窗与技力返还规则接入。'
+        : '闪避配置要等待权威持续时间与无敌窗规则接入。',
+    );
+    window.setTimeout(() => setWorkNodeSaveNotice(''), 2800);
+  }, []);
+
+  const handleConfirmForcedWaitConfig = useCallback((config: ForcedWaitConfig) => {
+    if (!pendingForcedWaitButtonId) return;
+    try {
+      updateForcedWaitConfig(pendingForcedWaitButtonId, config);
+      dispatch({
+        type: 'SET_FORCED_WAIT_CONFIG',
+        buttonId: pendingForcedWaitButtonId,
+        config,
+      });
+      setPendingForcedWaitButtonId(null);
+      setWorkNodeSaveNotice(
+        config.mode === 'fixed-duration'
+          ? `强制等待已设为 ${config.durationSeconds} 秒。`
+          : '强制等待已设为零时长封组。',
+      );
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2200);
+    } catch (error) {
+      setWorkNodeSaveNotice(`强制等待配置失败：${error instanceof Error ? error.message : String(error)}`);
+    }
+  }, [dispatch, pendingForcedWaitButtonId, updateForcedWaitConfig]);
+
+  const handleCopySkillButton = () => {
+    if (!contextMenuState) return;
+    const { buttonId } = contextMenuState;
+    const buttonRuntime = skillButtons.find(item => item.id === buttonId);
+    if (!buttonRuntime) return;
+    if (buttonRuntime.basicAttackTailBundle) {
+      setContextMenuState(null);
+      setWorkNodeSaveNotice('锁定拼接不能单独复制；删除后继并重新吸附后再复制。');
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2400);
+      return;
+    }
+
+    const buttonStorage = getSkillButtonById(buttonId);
+    if (!buttonStorage) return;
+
+    setPendingCopy({
+      sourceButtonId: buttonId,
+      sourceButtonRuntime: buttonRuntime,
+      sourceButtonConfig: clonePersistedSkillButtonConfig(buttonStorage),
+    });
+    setContextMenuState(null);
+  };
+
+  const handleBack = () => {
+    dispatch({ type: 'SET_VIEW', view: 'selection' });
+    dispatch({ type: 'SELECT_SKILL_BUTTON', buttonId: null });
+    setPendingCopy(null);
+  };
+
+  const handleAddStaffGroup = () => {
+    if (staffCount < maxStaffCount) {
+      setStaffCount(prev => prev + 1);
+    }
+  };
+
+  const handleRemoveStaffGroup = () => {
+    if (staffCount > requiredStaffCount) {
+      setStaffCount(prev => prev - 1);
+    }
+  };
+
+  const handleButtonContextMenu = (event: React.MouseEvent, buttonId: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const button = skillButtons.find(item => item.id === buttonId);
+    if (button?.isLocked) {
+      return;
+    }
+
+    dispatch({ type: 'SELECT_SKILL_BUTTON', buttonId });
+    setContextMenuState({
+      buttonId,
+      position: { x: event.clientX, y: event.clientY },
+    });
+  };
+
+  const handleChangeSkillType = (payload: SkillButtonSkillChangePayload) => {
+    const button = skillButtons.find(item => item.id === payload.buttonId);
+    if (!button) return;
+
+    const resolvedTarget = getSkillChangeOptions(button).find((option) => {
+      if (payload.nextRuntimeSkillId && option.nextRuntimeSkillId) {
+        return option.nextRuntimeSkillId === payload.nextRuntimeSkillId;
+      }
+      if (payload.nextSkillDisplayName && option.nextSkillDisplayName) {
+        return option.nextSkillType === payload.nextSkillType && option.nextSkillDisplayName === payload.nextSkillDisplayName;
+      }
+      return option.nextSkillType === payload.nextSkillType;
+    });
+
+    if (!resolvedTarget) {
+      console.warn(`[改类型] 失败: 按钮 ${payload.buttonId} 未找到目标技能项`);
+      return;
+    }
+
+    const result = updateTimelineButtonType({
+      buttonId: payload.buttonId,
+      ...resolvedTarget,
+    });
+    if (!result) {
+      console.warn(`[改类型] 失败: 按钮 ${payload.buttonId} 不存在于 timelineData`);
+      return;
+    }
+
+    dispatch({
+      type: 'UPDATE_SKILL_BUTTON_TYPE',
+      buttonId: payload.buttonId,
+      skillType: result.skillType ?? resolvedTarget.nextSkillType,
+      runtimeSkillId: result.runtimeSkillId,
+      skillDisplayName: result.skillDisplayName,
+      skillIconUrl: result.skillIconUrl,
+      customHits: result.customHits,
+    });
+
+  };
+
+  const handleCanvasClick = () => {
+    dispatch({ type: 'SELECT_SKILL_BUTTON', buttonId: null });
+    setContextMenuState(null);
+  };
+
+  const handleCanvasPlaceCopy = (e: React.MouseEvent) => {
+    if (!pendingCopy) {
+      dispatch({ type: 'SELECT_SKILL_BUTTON', buttonId: null });
+      setContextMenuState(null);
+      return;
+    }
+    if (!canvasRef.current) return;
+
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    const gridStackEl = canvasRef.current.querySelector('.canvas-grid-stack');
+    if (!gridStackEl) return;
+
+    const gridStackRect = gridStackEl.getBoundingClientRect();
+    const { gridX, gridY } = clientToGridCoords(e.clientX, e.clientY, canvasRect, gridStackRect);
+
+    const sourceLineIndex = pendingCopy.sourceButtonRuntime.lineIndex;
+    const staffIndex = findNearestStaffIndex(gridY, staffCount);
+    const lineY = getGridGroupTop(staffIndex) + getGridLineCenterY(sourceLineIndex);
+
+    const gridContentOffsetX = getGridContentOffsetX(canvasRef.current, gridStackEl);
+    const occupiedNodeIndices = getOccupiedNodeIndicesForLine(
+      skillButtons,
+      staffIndex,
+      sourceLineIndex,
+      null,
+      gridContentOffsetX
+    );
+
+    const snappedResult = resolveSnappedGridNode(gridX, occupiedNodeIndices);
+    if (!snappedResult) {
+      setPendingCopy(null);
+      return;
+    }
+
+    const { nodeIndex: snappedNodeIndex, nodeCenterX } = snappedResult;
+
+    const snappedPosition = gridToCanvasContentCoords(
+      nodeCenterX,
+      lineY,
+      canvasRef.current,
+      gridStackEl
+    );
+
+    handlePlaceCopiedButton(staffIndex, sourceLineIndex, snappedNodeIndex, snappedPosition);
+  };
+
+  const handlePlaceCopiedButton = (
+    targetStaffIndex: number,
+    targetLineIndex: number,
+    targetNodeIndex: number,
+    targetPosition: { x: number; y: number }
+  ) => {
+    if (!pendingCopy) return;
+
+    const { sourceButtonRuntime, sourceButtonConfig } = pendingCopy;
+    const newButtonId = generateId();
+
+    const newButtonRuntime: SkillButton = {
+      ...sourceButtonRuntime,
+      id: newButtonId,
+      staffIndex: targetStaffIndex,
+      lineIndex: targetLineIndex,
+      nodeIndex: targetNodeIndex,
+      nodeNumber: calculateNodeNumber(targetNodeIndex),
+      position: targetPosition,
+      isDragging: false,
+      isSelected: false,
+    };
+
+    dispatch({ type: 'ADD_SKILL_BUTTON', button: newButtonRuntime });
+
+    const persistenceStaffIndex = targetLineIndex;
+    const persistenceNodeIndex = targetStaffIndex * GRID_NODE_COUNT + targetNodeIndex;
+    addTimelineButton({
+      characterId: sourceButtonRuntime.characterId,
+      characterName: sourceButtonRuntime.characterName,
+      skillType: sourceButtonRuntime.skillType,
+      staffIndex: persistenceStaffIndex,
+      nodeIndex: persistenceNodeIndex,
+      position: targetPosition,
+      runtimeSkillId: sourceButtonRuntime.runtimeSkillId,
+      skillDisplayName: sourceButtonRuntime.skillDisplayName,
+      skillIconUrl: sourceButtonRuntime.skillIconUrl,
+      customHits: sourceButtonRuntime.customHits,
+    }, newButtonId);
+
+    if (sourceButtonConfig.selectedBuff.length > 0) {
+      attachExistingBuffsToButton(newButtonId, sourceButtonConfig.selectedBuff);
+    }
+
+    const createdButton = getSkillButtonById(newButtonId);
+    if (createdButton) {
+      upsertSkillButton({
+        ...createdButton,
+        selectedBuff: [...sourceButtonConfig.selectedBuff],
+        buffStackCounts: { ...(sourceButtonConfig.buffStackCounts ?? {}) },
+        anomalyConfig: sourceButtonConfig.anomalyConfig,
+        resistanceConfig: sourceButtonConfig.resistanceConfig,
+        panelConfig: sourceButtonConfig.panelConfig
+          ? {
+              ...sourceButtonConfig.panelConfig,
+              selectedBuff: [...sourceButtonConfig.selectedBuff],
+            }
+          : {
+              selectedBuff: [...sourceButtonConfig.selectedBuff],
+            },
+        runtimeSnapshot: sourceButtonConfig.runtimeSnapshot,
+        updatedAt: Date.now(),
+      });
+      recomputeSkillButtonPanel(newButtonId);
+    }
+
+    setPendingCopy(null);
+  };
+
+  const handleAvatarDoubleClick = (characterId: string) => {
+    safeSessionStorage.setItem(STORAGE_KEYS.OPERATOR_CONFIG_ACTIVE_CHARACTER, characterId);
+    if (onOpenOperatorConfig) {
+      onOpenOperatorConfig(characterId);
+      return;
+    }
+    navigateToAppPath(APP_ROUTE_PATHS.operatorConfig);
+  };
+
+  const handleOpenBatchResistanceModal = () => {
+    const firstButton = skillButtons[0] ? getSkillButtonById(skillButtons[0].id) : null;
+    setBatchTargetResistance({
+      ...EMPTY_BATCH_TARGET_RESISTANCE,
+      ...(firstButton?.resistanceConfig?.targetResistance ?? {}),
+    });
+    setIsBatchResistanceModalOpen(true);
+  };
+
+  const handleCloseBatchResistanceModal = () => {
+    setIsBatchResistanceModalOpen(false);
+  };
+
+  const handleApplyBatchResistance = () => {
+    const currentTable = getSkillButtonTable();
+    const updatedAt = Date.now();
+    const targetResistance = { ...batchTargetResistance };
+    let updatedCount = 0;
+
+    skillButtons.forEach((button) => {
+      const persistedButton = currentTable[button.id];
+      if (!persistedButton) {
+        return;
+      }
+      currentTable[button.id] = {
+        ...persistedButton,
+        resistanceConfig: { targetResistance: { ...targetResistance } },
+        updatedAt,
+      };
+      updatedCount += 1;
+    });
+
+    if (updatedCount > 0) {
+      setSkillButtonTable(currentTable);
+      setResistanceRevision((revision) => revision + 1);
+    }
+    setIsBatchResistanceModalOpen(false);
+  };
+
+  const refreshTimelineArchiveLibrary = async () => {
+    const repository = createTimelineRepositoryClient();
+    try {
+      const [localArchives, sharedArchives, workspaces] = await Promise.all([
+        repository.listTimelineArchives('local'),
+        repository.listTimelineArchives('shared'),
+        repository.listSqliteWorkspaces(),
+      ]);
+      setLocalTimelineArchives(localArchives);
+      setSharedTimelineArchives(sharedArchives);
+      setSqliteTimelineWorkspaces(workspaces.sort((left, right) => (
+        Number(right.document.id === activeTimelineId) - Number(left.document.id === activeTimelineId)
+        || right.document.updatedAt - left.document.updatedAt
+      )));
+    } catch (error) {
+      setLocalTimelineArchives([]);
+      setSharedTimelineArchives([]);
+      setSqliteTimelineWorkspaces([]);
+      throw error;
+    }
+  };
+
+  const saveLegacySnapshotsToRepository = async () => {
+    const repository = createTimelineRepositoryClient();
+    await repository.ensureDocument({ id: DEFAULT_TIMELINE_ID, label: '主排轴' });
+    const legacySnapshots = listTimelineSnapshots();
+    for (const legacySnapshot of legacySnapshots) {
+      await repository.saveSnapshot({
+        id: legacySnapshot.id,
+        timelineId: DEFAULT_TIMELINE_ID,
+        label: legacySnapshot.label,
+        payload: legacySnapshot.payload,
+        createdAt: legacySnapshot.createdAt,
+      });
+    }
+    // Keep browser-era media untouched after importing it. The data-management
+    // migration records and backup policy own its eventual retirement.
+    return repository;
+  };
+
+  async function promoteTemporaryTimeline(): Promise<boolean> {
+    if (!temporaryPromotionRef.current) return true;
+
+    const label = await requestTimelineName();
+    if (!label) return false;
+
+    try {
+      const document = await createTimelineRepositoryClient().ensureDocument({
+        id: activeTimelineId,
+        label,
+        isTemporary: false,
+      });
+      temporaryPromotionRef.current = false;
+      activateTimeline({
+        document,
+        checkoutRef: activeCheckoutRef,
+        workingPayload: activeWorkingPayload,
+      });
+      return true;
+    } catch (error) {
+      alert(`SQLite 工作区转正失败：${formatTimelineOperationError(error)}`);
+      return false;
+    }
+  }
+
+  function requestTimelineName(options: {
+    initialValue?: string;
+    copy?: TimelineNamePromptCopy;
+  } = {}): Promise<string | null> {
+    if (timelineNameRequestRef.current) return timelineNameRequestRef.current;
+    setTimelineNameDraft(options.initialValue || '');
+    setTimelineNameError('');
+    setTimelineNamePromptCopy(options.copy || DEFAULT_TIMELINE_NAME_PROMPT);
+    setIsTimelineNameModalOpen(true);
+    const request = new Promise<string | null>((resolve) => {
+      timelineNameResolverRef.current = (value) => {
+        timelineNameResolverRef.current = null;
+        timelineNameRequestRef.current = null;
+        resolve(value);
+      };
+    });
+    timelineNameRequestRef.current = request;
+    return request;
+  }
+
+  function closeTimelineNameModal(): void {
+    setIsTimelineNameModalOpen(false);
+    setTimelineNameError('');
+    setTimelineNamePromptCopy(DEFAULT_TIMELINE_NAME_PROMPT);
+    timelineNameResolverRef.current?.(null);
+  }
+
+  function confirmTimelineName(): void {
+    const label = timelineNameDraft.trim();
+    if (!label) {
+      setTimelineNameError('请输入工作区名称。');
+      return;
+    }
+    setIsTimelineNameModalOpen(false);
+    setTimelineNameError('');
+    setTimelineNamePromptCopy(DEFAULT_TIMELINE_NAME_PROMPT);
+    timelineNameResolverRef.current?.(label);
+  }
+
+  const handleSaveWorkNodeCheckpoint = async (): Promise<boolean> => {
+    if (!await promoteTemporaryTimeline()) return false;
+    setSelectedCharacterIds(selectedCharacters.map((character) => character.id));
+    saveTimelineData();
+    const currentPayload = getCurrentTimelineSnapshotPayload();
+    if (!currentPayload) {
+      alert('当前没有可保存到工作树的排轴数据');
+      return false;
+    }
+
+    let payload: TimelineSnapshotPayload;
+    try {
+      // Always rebuild both persistence mirrors from the currently visible
+      // Canvas. Existing checkouts can carry the same stale Buff mirror as a
+      // first save, so they must not bypass this canonicalization step.
+      const visibleMirrors = buildVisibleTimelineMirrors(selectedCharacters, skillButtons, currentPayload);
+      payload = { ...currentPayload, ...visibleMirrors };
+      const validation = validateTimelinePayload(payload);
+      if (!validation.ok) {
+        throw new Error(validation.issues.map((issue) => issue.message).join('；'));
+      }
+      setSkillButtonTable(visibleMirrors.skillButtonTable);
+      saveTimelineRepo(visibleMirrors.timelineData);
+      replaceTimelineData(visibleMirrors.timelineData);
+      setSessionWorkingPayload(payload, 'runtime');
+      // Commit the live working copy to user.sqlite before touching the Work
+      // Node tree. A later checkout/storage failure must not erase this edit.
+      await flushUserWorkspaceState();
+    } catch (error) {
+      // Even an invalid checkout must keep the user's latest working draft.
+      await flushUserWorkspaceState().catch(() => undefined);
+      alert(`工作节点保存失败：${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    }
+
+    try {
+      const repository = createTimelineRepositoryClient();
+      await ensureTimelineDocumentExists(repository, activeTimelineId, activeTimelineLabel);
+      const [documentBundle, checkoutRef] = await Promise.all([
+        repository.exportDocumentBundle(activeTimelineId),
+        repository.getCheckoutRef(activeTimelineId),
+      ]);
+      const nodes = documentBundle.workNodes;
+      const checkoutPayload = checkoutRef?.targetType === 'work-node'
+        ? nodes.find((node) => node.id === checkoutRef.targetId)?.workingPayload
+        : checkoutRef?.targetType === 'snapshot'
+          ? documentBundle.snapshots.find((snapshot) => snapshot.id === checkoutRef.targetId)?.payload
+          : undefined;
+      if (nodes.length > 0 && checkoutPayload && !hasTimelineCheckpointPayloadChanged(checkoutPayload, payload)) {
+        setWorkNodeSaveNotice('当前工作区没有新改动，未新增工作节点');
+        window.setTimeout(() => setWorkNodeSaveNotice(''), 2200);
+        return true;
+      }
+      const checkoutParent = checkoutRef?.targetType === 'work-node'
+        ? nodes.find((node) => node.id === checkoutRef.targetId)
+        : undefined;
+      const baselineParent = [...nodes]
+        .filter((node) => !node.parentNodeId)
+        .sort((left, right) => left.createdAt - right.createdAt)[0];
+      const latestParent = [...nodes].sort((left, right) => right.updatedAt - left.updatedAt)[0];
+      const parent = checkoutParent || baselineParent || latestParent;
+      const createdAt = Date.now();
+      const created = await createAiTimelineWorkNodeClient().create({
+        timelineId: activeTimelineId,
+        ...(parent ? { parentNodeId: parent.id } : { parentNodeId: null }),
+        branchId: `manual-save-${createdAt}`,
+        label: parent
+          ? `[save] ${new Date(createdAt).toLocaleString('zh-CN', { hour12: false })}`
+          : `[save] ${activeTimelineLabel} ${new Date(createdAt).toLocaleString('zh-CN', { hour12: false })}`,
+        basePayload: parent?.workingPayload || payload,
+        workingPayload: payload,
+        approvalPolicy: 'auto-low-risk',
+        riskFlags: [],
+      });
+      const checkout = await checkoutAiTimelineWorkNodeFromCommand({
+        op: 'checkoutAiTimelineWorkNode',
+        nodeId: created.node.id,
+        reload: false,
+        approval: {
+          mode: 'manual',
+          approvedBy: 'user',
+          rationale: 'Saved from the main workbench disk button.',
+        },
+      });
+      if (!checkout.checkoutApplied) {
+        throw new Error(checkout.checkoutMarkError || '工作节点已创建，但 checkout 持久化失败');
+      }
+      setWorkNodeRefreshKey((current) => current + 1);
+      setWorkNodeSaveNotice(parent ? '已保存为当前工作树的子节点' : '已保存为当前工作树的首个节点');
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2200);
+      return true;
+    } catch (error) {
+      alert(`工作节点保存失败：${formatTimelineOperationError(error)}`);
+      return false;
+    }
+  };
+
+  const handleForkWorkNodeAsSqlite = async (node: WorkbenchSelectedNodeContext) => {
+    setPendingWorkNodeCheckoutId('');
+    const label = await requestTimelineName({
+      initialValue: `${node.name} · 独立存档`,
+      copy: {
+        title: '以此节点新建 SQLite',
+        description: '新工作区只以所选节点的完整状态作为根；原 SQLite 节点树不会改变。',
+        placeholder: '例如：第二套独立排轴',
+        confirmLabel: '新建并切换',
+      },
+    });
+    if (!label) return;
+    if (!await handleSaveWorkNodeCheckpoint()) return;
+
+    const repository = createTimelineRepositoryClient();
+    let forked: Awaited<ReturnType<typeof repository.forkTimelineWorkspaceFromWorkNode>>;
+    try {
+      forked = await repository.forkTimelineWorkspaceFromWorkNode({
+        timelineId: activeTimelineId,
+        nodeId: node.nodeId,
+        label,
+        createdAt: Date.now(),
+      });
+    } catch (error) {
+      alert(`新建独立 SQLite 失败：${formatTimelineOperationError(error)}`);
+      return;
+    }
+
+    try {
+      const applied = await repository.applySqliteWorkspace(forked.document.id, Date.now());
+      setIsWorkNodeOmissionMode(false);
+      setWorkNodeOmissionState(EMPTY_WORK_NODE_OMISSION_STATE);
+      setPendingWorkNodeCheckoutId('');
+      setIsWorkNodePanelOpen(false);
+      activateTimeline({
+        document: applied.document as TimelineDocument,
+        checkoutRef: applied.checkoutRef,
+        workingPayload: applied.payload,
+      });
+      window.location.reload();
+    } catch (error) {
+      await refreshTimelineArchiveLibrary().catch(() => undefined);
+      alert(`独立 SQLite 已创建，但自动切换失败：${formatTimelineOperationError(error)}。请从 SQLite 列表手动应用。`);
+    }
+  };
+
+  const handleOpenSaveSnapshotModal = async () => {
+    // 本地存档必须基于当前工作树的最新 checkpoint。点击入口时立即保存，
+    // 即使用户随后取消导出，也不会让当前排轴停留在未落盘状态。
+    if (!await handleSaveWorkNodeCheckpoint()) return;
+    setSnapshotDraftName('');
+    setIsSaveSnapshotModalOpen(true);
+  };
+
+  const handleCloseSaveSnapshotModal = () => {
+    setIsSaveSnapshotModalOpen(false);
+    setSnapshotDraftName('');
+  };
+
+  const handleSaveTimelineSnapshot = async () => {
+    saveTimelineData();
+    setSelectedCharacterIds(selectedCharacters.map((character) => character.id));
+    try {
+      // 点击入口时已经保存了当前工作节点；此处只导出该 SQLite 工作区。
+      const result = await createTimelineRepositoryClient().exportSqliteWorkspaceArchive({
+        timelineId: activeTimelineId,
+        kind: 'local',
+        label: snapshotDraftName.trim() || activeTimelineLabel,
+      });
+      await refreshTimelineArchiveLibrary();
+      handleCloseSaveSnapshotModal();
+      setWorkNodeSaveNotice(`已导出本地存档：${result.archive.label}`);
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2200);
+    } catch (error) {
+      alert(`导出本地存档失败：${formatTimelineOperationError(error)}`);
+    }
+  };
+
+  const handleOpenSnapshotModal = () => {
+    setRestorePanelTab('local');
+    void refreshTimelineArchiveLibrary().catch((error) => {
+      setWorkNodeSaveNotice(`读取数据管理库失败：${formatTimelineOperationError(error)}`);
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2600);
+    });
+    setIsSnapshotModalOpen(true);
+  };
+
+  const handleCloseSnapshotModal = () => {
+    setIsSnapshotModalOpen(false);
+  };
+
+  const handleTacticalShareImageSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    if (!file || isDecodingTacticalShare) return;
+    setIsDecodingTacticalShare(true);
+    try {
+      const shareId = await decodeMobileShareIdFromImage(file);
+      setIsSnapshotModalOpen(false);
+      navigateToAppPath(`${APP_ROUTE_PATHS.tacticalShare}/${shareId}`);
+    } catch (error) {
+      alert(`二维码识别失败：${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      input.value = '';
+      setIsDecodingTacticalShare(false);
+    }
+  };
+
+  const handleConvertTimelineArchive = async (archive: TimelineArchiveSummary, payloadOnly = false) => {
+    const repository = createTimelineRepositoryClient();
+    const outcome = await runTimelineArchiveConversionForReload({
+      convert: () => repository.convertTimelineArchive({
+        source: archive.library,
+        archiveId: archive.archiveId,
+        payloadOnly,
+        updatedAt: Date.now(),
+      }),
+      activate: (converted) => {
+        activateTimeline({
+          document: converted.document as TimelineDocument,
+          checkoutRef: converted.checkoutRef,
+          workingPayload: converted.payload,
+        });
+      },
+      // 转换接口已经把 checkout 的完整工作副本写入 user.sqlite。
+      // 与“应用 SQLite 工作区”保持同一路径，让 AppContext 在新页面里
+      // 根据新选中干员重建可信技能目录，避免旧运行时目录误拒绝有效技能。
+      reload: () => window.location.reload(),
+    });
+    if (outcome.status === 'reloading') {
+      return;
+    }
+    if (outcome.status === 'conversion-failed') {
+      alert(`存档转换 SQLite 失败：${formatTimelineOperationError(outcome.error)}`);
+      return;
+    }
+
+    // SQLite 已经创建成功；若活动工作区切换异常，仍刷新列表并明确
+    // 告知用户数据已落盘，不能再误报成“转换失败”。
+    try {
+      await refreshTimelineArchiveLibrary();
+      setRestorePanelTab('sqlite');
+    } catch {
+      // 下面的主错误已经足够指导用户刷新后从 SQLite 列表继续应用。
+    }
+    alert(`SQLite 工作区已创建，但自动应用失败：${formatTimelineOperationError(outcome.error)}。请刷新后从 SQLite 标签页继续应用。`);
+  };
+
+  const handleApplySqliteWorkspace = async (workspace: TimelineSqliteWorkspace) => {
+    try {
+      const repository = createTimelineRepositoryClient();
+      const applied = await repository.applySqliteWorkspace(workspace.document.id, Date.now());
+      activateTimeline({ document: applied.document as TimelineDocument, checkoutRef: applied.checkoutRef, workingPayload: applied.payload });
+      // 应用接口已将完整工作副本写入 user.sqlite；直接刷新可让 AppContext、
+      // Canvas 与技能按钮从同一份持久化数据重新初始化。
+      window.location.reload();
+    } catch (error) {
+      alert(`应用 SQLite 工作区失败：${formatTimelineOperationError(error)}`);
+    }
+  };
+
+  const handleExportSqliteWorkspace = async (workspace: TimelineSqliteWorkspace, kind: 'local' | 'shared') => {
+    try {
+      // 非当前工作区的 checkout 已是其权威状态；当前工作区则可能还有
+      // 尚未写入节点树的编辑，导出前必须先建立 checkpoint。
+      if (workspace.document.id === activeTimelineId && !await handleSaveWorkNodeCheckpoint()) {
+        return;
+      }
+      const result = await createTimelineRepositoryClient().exportSqliteWorkspaceArchive({
+        timelineId: workspace.document.id,
+        kind,
+      });
+      await refreshTimelineArchiveLibrary();
+      setWorkNodeSaveNotice(kind === 'shared'
+        ? `已预存到共享存档：${result.archive.label}`
+        : `已导出本地存档：${result.archive.label}`);
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2400);
+    } catch (error) {
+      alert(`导出存档失败：${formatTimelineOperationError(error)}`);
+    }
+  };
+
+  const handleTransferTimelineArchive = async (archive: TimelineArchiveSummary, to: 'local' | 'shared') => {
+    const targetLabel = to === 'local' ? '本地存档' : '共享存档';
+    const confirmed = window.confirm(`将“${archive.label}”转换为${targetLabel}？转换后会从原存档库移除。`);
+    if (!confirmed) return;
+    try {
+      await createTimelineRepositoryClient().transferTimelineArchive({
+        from: archive.library,
+        to,
+        archiveId: archive.archiveId,
+      });
+      await refreshTimelineArchiveLibrary();
+      setWorkNodeSaveNotice(`已转换为${targetLabel}：${archive.label}`);
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2200);
+    } catch (error) {
+      alert(`存档转换失败：${formatTimelineOperationError(error)}`);
+    }
+  };
+
+  const handleDeleteTimelineArchive = async (archive: TimelineArchiveSummary) => {
+    const libraryLabel = archive.library === 'shared' ? '共享存档' : '本地存档';
+    const confirmed = window.confirm(`删除${libraryLabel}“${archive.label}”？此操作不会影响 SQLite 工作区，也不能撤销。`);
+    if (!confirmed) return;
+    try {
+      await createTimelineRepositoryClient().deleteTimelineArchive({ library: archive.library, archiveId: archive.archiveId });
+      await refreshTimelineArchiveLibrary();
+      setWorkNodeSaveNotice(`已删除${libraryLabel}：${archive.label}`);
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2200);
+    } catch (error) {
+      alert(`删除存档失败：${formatTimelineOperationError(error)}`);
+    }
+  };
+
+  const handleDeleteSqliteWorkspace = async (workspace: TimelineSqliteWorkspace) => {
+    if (workspace.document.id === activeTimelineId) {
+      alert('当前正在应用此 SQLite 工作区。请先应用另一工作区，再删除它。');
+      return;
+    }
+    const confirmed = window.confirm(`删除 SQLite 工作区“${workspace.document.label}”？其节点、恢复点和审计记录会一并删除；本地/共享存档不会受影响。`);
+    if (!confirmed) return;
+    try {
+      await createTimelineRepositoryClient().deleteSqliteWorkspace(workspace.document.id);
+      await refreshTimelineArchiveLibrary();
+      setWorkNodeRefreshKey((current) => current + 1);
+      setWorkNodeSaveNotice(`已删除 SQLite 工作区：${workspace.document.label}`);
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2200);
+    } catch (error) {
+      alert(`删除 SQLite 工作区失败：${formatTimelineOperationError(error)}`);
+    }
+  };
+
+  const handleOpenShareModal = () => {
+    // New exports are TimelineArchive files. The old browser JSON share flow
+    // stays as a hidden compatibility reader only; it must not become a new
+    // direct-apply path around SQLite.
+    setRestorePanelTab('sqlite');
+    setShareWorkNodes([]);
+    void refreshTimelineArchiveLibrary().catch((error) => {
+      setWorkNodeSaveNotice(`读取 SQLite 工作区失败：${formatTimelineOperationError(error)}`);
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2600);
+    });
+    setIsSnapshotModalOpen(true);
+  };
+
+  const handleCloseShareModal = () => {
+    setIsShareModalOpen(false);
+    setPendingImportShare(null);
+    setPendingImportBundle(null);
+    if (shareImportInputRef.current) {
+      shareImportInputRef.current.value = '';
+    }
+  };
+
+  const handleExportTimelineJson = async () => {
+    saveTimelineData();
+    setSelectedCharacterIds(selectedCharacters.map((character) => character.id));
+
+    const snapshot = createTimelineSnapshotEntry(shareDraftName);
+    if (!snapshot) {
+      alert('当前没有可导出的排轴数据');
+      return;
+    }
+    if (shareScope === 'branch' && !shareBranchRootId) {
+      alert('请选择要导出的 AI 分支根节点。');
+      return;
+    }
+    let shareFile;
+    try {
+      const exported = await createTimelineRepositoryClient().exportDocumentBundle(activeTimelineId);
+      const snapshots = exported.snapshots.map((item) => ({
+        id: item.id,
+        label: item.label,
+        createdAt: item.createdAt,
+        payload: item.payload,
+        summary: { characterCount: 0, buttonCount: 0, buffCount: 0 },
+      } as TimelineSnapshotEntry));
+      const branchNodeIds = new Set<string>();
+      if (shareScope === 'branch' && shareBranchRootId) {
+        const pendingNodeIds = [shareBranchRootId];
+        while (pendingNodeIds.length) {
+          const nodeId = pendingNodeIds.pop()!;
+          if (branchNodeIds.has(nodeId)) continue;
+          branchNodeIds.add(nodeId);
+          exported.workNodes.filter((node) => node.parentNodeId === nodeId).forEach((node) => pendingNodeIds.push(node.id));
+        }
+      }
+      const workNodes = shareScope === 'document'
+        ? exported.workNodes
+        : shareScope === 'branch'
+        ? exported.workNodes
+          .filter((node) => branchNodeIds.has(node.id))
+          .map((node) => node.id === shareBranchRootId ? { ...node, parentNodeId: undefined } : node)
+          : [];
+      const includedNodeIds = new Set(workNodes.map((node) => node.id));
+      const commits = shareScope === 'snapshot'
+        ? []
+        : exported.commits.filter((commit) => includedNodeIds.has(commit.nodeId));
+      const bundledSnapshots = shareScope === 'document' && snapshots.length ? snapshots : [snapshot];
+      const checkoutRef = shareScope === 'snapshot'
+        ? { targetType: 'snapshot' as const, targetId: snapshot.id, updatedAt: snapshot.createdAt }
+        : exported.checkoutRef && (
+          exported.checkoutRef.targetType === 'snapshot'
+            ? (shareScope === 'document' && snapshots.some((entry) => entry.id === exported.checkoutRef!.targetId))
+            : includedNodeIds.has(exported.checkoutRef.targetId)
+        )
+          ? { targetType: exported.checkoutRef.targetType, targetId: exported.checkoutRef.targetId, updatedAt: exported.checkoutRef.updatedAt }
+          : workNodes[0]
+            ? { targetType: 'work-node' as const, targetId: workNodes[0].id, updatedAt: workNodes[0].updatedAt }
+            : { targetType: 'snapshot' as const, targetId: bundledSnapshots[0].id, updatedAt: bundledSnapshots[0].createdAt };
+      shareFile = await buildTimelineBundleV2({
+        timelineId: activeTimelineId,
+        label: shareDraftName,
+        snapshot,
+        snapshots: bundledSnapshots,
+        ...(workNodes.length ? { workNodes } : {}),
+        ...(commits.length ? { commits } : {}),
+        checkoutRef,
+        scope: shareScope,
+      });
+    } catch {
+      if (shareScope !== 'snapshot') {
+        alert('当前无法读取排轴文档，不能导出 AI 分支或完整文档。');
+        return;
+      }
+      shareFile = await buildTimelineBundleV2({ timelineId: activeTimelineId, label: shareDraftName, snapshot });
+    }
+
+    const blob = new Blob([JSON.stringify(shareFile, null, 2)], {
+      type: 'application/json;charset=utf-8',
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = buildTimelineShareFileName(shareFile.manifest.label, shareFile.manifest.exportedAt);
+    link.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleOpenShareImportPicker = () => {
+    shareImportInputRef.current?.click();
+  };
+
+  const handleShareFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const rawText = await file.text();
+    const bundle = await parseTimelineBundleV2(rawText);
+    if (bundle) {
+      const snapshot = bundle.snapshots[0];
+      const payload = bundle.payloads[snapshot.payloadIndex];
+      setPendingImportShare({ type: 'timeline-share.v1', exportedAt: bundle.manifest.exportedAt, label: bundle.manifest.label, payload });
+      setPendingImportBundle(bundle);
+      event.target.value = '';
+      return;
+    }
+    const parsed = parseTimelineShareFile(rawText);
+    if (!parsed) {
+      alert('导入失败：文件不是有效的排轴分享 JSON');
+      event.target.value = '';
+      return;
+    }
+
+    setPendingImportShare(parsed);
+    setPendingImportBundle(null);
+    event.target.value = '';
+  };
+
+  const handleCancelImportShare = () => {
+    setPendingImportShare(null);
+    setPendingImportBundle(null);
+  };
+
+  const handleConfirmImportShare = async () => {
+    if (!pendingImportShare) {
+      return;
+    }
+
+    const importedAt = Date.now();
+    const bundle = pendingImportBundle || {
+      type: 'dmg.timeline-bundle.v2' as const,
+      schemaVersion: 2 as const,
+      manifest: {
+        exportedAt: pendingImportShare.exportedAt,
+        scope: 'snapshot' as const,
+        timelineId: `legacy-share-${importedAt}`,
+        label: pendingImportShare.label,
+        payloadHash: 'legacy-timeline-share',
+      },
+      document: { id: `legacy-share-${importedAt}`, label: pendingImportShare.label },
+      payloads: [pendingImportShare.payload],
+      snapshots: [{ id: `legacy-share-snapshot-${importedAt}`, label: pendingImportShare.label, createdAt: pendingImportShare.exportedAt, payloadIndex: 0 }],
+    };
+    try {
+      const imported = await createTimelineRepositoryClient().importLegacyTimelineBundle({ bundle, sourceName: `${pendingImportShare.label}.json` });
+      setPendingImportShare(null);
+      setPendingImportBundle(null);
+      setIsShareModalOpen(false);
+      setWorkNodeSaveNotice(`已归档为本地存档：${imported.archive.label}；请在恢复 → 存档库中转换为 SQLite`);
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 3200);
+    } catch (error) {
+      alert(`导入存档失败：${formatTimelineOperationError(error)}`);
+    }
+  };
+
+  const handleOpenDamageReport = async () => {
+    if (import.meta.env.VITE_AKE_DEMO === '1') {
+      if (isAkeCalculating) return;
+      if (isAkePlanBlocked) {
+        setWorkNodeSaveNotice(akePlanAdmissionStatus === 'unverified'
+          ? '当前排轴仍有未验证的状态机规则，不能作为可执行结算提交。'
+          : '当前排轴存在无法释放的同帧批次，请先调整技能或加入等待。');
+        return;
+      }
+      setIsAkeCalculating(true);
+      setWorkNodeSaveNotice('AKE 正在按当前排轴、武器、四件装备与面板执行时序结算…');
+      try {
+        const report = await runAkeTeamCalculation({
+          timelineData,
+          selectedCharacters,
+        });
+        const failed = report.characters.filter((character) => character.status === 'error').length;
+        setWorkNodeSaveNotice(failed > 0
+          ? `AKE 已完成；${failed} 名干员结算失败，报表中保留了原因。`
+          : `AKE 已完成：${report.summary.successfulCommands} 个输入执行，${report.summary.failedCommands} 个失败。`);
+      } catch (error) {
+        setWorkNodeSaveNotice(`AKE 结算失败：${error instanceof Error ? error.message : String(error)}`);
+      } finally {
+        setIsAkeCalculating(false);
+      }
+    }
+    navigateToAppPath(APP_ROUTE_PATHS.damageReportPpt);
+  };
+
+  const handleRefreshAvailableCandidates = async () => {
+    if (isRefreshingAvailableCandidates) {
+      return;
+    }
+    const spinStartTime = Date.now();
+    setIsRefreshingAvailableCandidates(true);
+    try {
+      const refreshedCharacters = await refreshSelectedCharacters();
+      const charactersForRefresh = refreshedCharacters.length > 0 ? refreshedCharacters : selectedCharacters;
+      await refreshOperatorConfigSnapshotsForCharacters(charactersForRefresh);
+      await refreshAvailableCandidateBuffsForCharacters(
+        charactersForRefresh.map((character) => ({
+          id: character.id,
+          name: character.name,
+        })),
+      );
+    } catch (error) {
+      console.error('刷新干员/武器/装备可用候选内容失败:', error);
+    } finally {
+      const remainingSpinTime = REFRESH_AVAILABLE_CANDIDATES_MIN_SPIN_MS - (Date.now() - spinStartTime);
+      if (remainingSpinTime > 0) {
+        await new Promise((resolve) => window.setTimeout(resolve, remainingSpinTime));
+      }
+      setIsRefreshingAvailableCandidates(false);
+    }
+  };
+
+  const canvasBoardClassName = [
+    'canvas-board',
+    isWorkbenchTopZoneOpen ? 'has-top-zone' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const draggingAkeCommand = draggingState
+    ? akeRealtimeTimeline?.commands.find(command => command.commandId === draggingState.id) ?? null
+    : null;
+  const pendingForcedWaitButton = pendingForcedWaitButtonId
+    ? skillButtons.find(button => button.id === pendingForcedWaitButtonId) ?? null
+    : null;
+
+  const rightWorkbenchContent = (
+    <SkillSandbox
+      key={`checkout-${checkoutRenderRevision}`}
+      selectedCharacters={selectedCharacters}
+      onDragStart={handleSandboxDragStart}
+      onAvatarDoubleClick={handleAvatarDoubleClick}
+      onSave={handleSaveWorkNodeCheckpoint}
+      onOpenResistance={handleOpenBatchResistanceModal}
+      onRefreshAvailableCandidates={handleRefreshAvailableCandidates}
+      isRefreshingAvailableCandidates={isRefreshingAvailableCandidates}
+      isBrowseMode={isBrowseMode}
+      onToggleBrowseMode={() => setIsBrowseMode((prev) => !prev)}
+      isInspectMode={isInspectMode}
+      onInspectStart={() => setIsInspectMode(true)}
+      onInspectEnd={() => setIsInspectMode(false)}
+      onOpenWorkNodePanel={openWorkNodePanel}
+    />
+  );
+
+  return (
+    <div className={canvasBoardClassName}>
+      {workNodeSaveNotice && <div className="canvas-work-node-save-notice" role="status">{workNodeSaveNotice}</div>}
+      <div className="canvas-layout">
+        <div className="canvas-background-layer">
+          <div className="skew-panel" />
+          <div className="skew-panel-bottom" />
+        </div>
+
+        <div className="canvas-left-zone">
+          <CanvasArea
+            key={`checkout-${checkoutRenderRevision}`}
+            ref={canvasRef}
+            activeSkillButtonId={activeSkillButtonId}
+            config={canvasConfig}
+            staffCount={projectionStaffCount}
+            selectedCharacters={selectedCharacters}
+            skillButtons={skillButtons}
+            onButtonMouseDown={handleButtonMouseDown}
+            onButtonContextMenu={handleButtonContextMenu}
+            onCanvasClick={handleCanvasClick}
+            onCanvasPlaceCopy={handleCanvasPlaceCopy}
+            timelineData={timelineData}
+            contextMenuState={contextMenuState}
+            onConfirmRemove={handleConfirmRemoveSkillButton}
+            onCloseContextMenu={handleCloseButtonContextMenu}
+            onCopy={handleCopySkillButton}
+            onChangeSkillType={handleChangeSkillType}
+            onConfigureTimelineModule={handleConfigureTimelineModule}
+            getSkillChangeOptions={getSkillChangeOptions}
+            isDraggingActive={Boolean(draggingState)}
+            isBrowseMode={isBrowseMode}
+            isInspectMode={isInspectMode}
+            isDragDisabled={false}
+            resistanceRevision={resistanceRevision}
+            akeTimeline={activeAkeTeamReport?.timeline ?? null}
+            akeRealtimeTimeline={akeRealtimeTimeline}
+            dropTarget={dropTarget}
+            snapTargets={snapTargets}
+          />
+        </div>
+
+        <aside className="canvas-right-zone is-skill-sandbox">
+          {rightWorkbenchContent}
+        </aside>
+
+        <div className="canvas-bottom-zone">
+          <div className="canvas-bottom-zone-left">
+            {workbenchControl}
+            <Toolbar
+              staffCount={staffCount}
+              minStaffCount={requiredStaffCount}
+              maxStaffCount={maxStaffCount}
+              onBack={handleBack}
+              onAddGroup={handleAddStaffGroup}
+              onRemoveGroup={handleRemoveStaffGroup}
+              onSave={handleOpenSaveSnapshotModal}
+              onRestore={handleOpenSnapshotModal}
+              onShare={handleOpenShareModal}
+              onCalculate={handleOpenDamageReport}
+              calculateLabel={isAkeCalculating
+                ? 'AKE 结算中…'
+                : akePlanAdmissionStatus === 'unverified'
+                  ? '排轴待核'
+                  : akePlanAdmissionStatus === 'invalid' ? '排轴不可执行' : undefined}
+              calculateDisabled={isAkeCalculating || isAkePlanBlocked}
+            />
+          </div>
+          <div className="canvas-bottom-zone-center" />
+          <div className="canvas-bottom-zone-right">{bottomRightControl}</div>
+        </div>
+      </div>
+
+      {isWorkNodePanelOpen && (
+        <div className="work-node-modal-overlay" onClick={closeWorkNodePanel}>
+          <div className="work-node-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="work-node-modal-head">
+              <div className="work-node-modal-actions">
+                <h3>Work Node 节点树 · {activeTimelineLabel}</h3>
+                <p>{isWorkNodeOmissionMode
+                  ? workNodeOmissionState.message
+                  : '查看 AI 与人工 checkpoint 的节点、差异、风险和 checkout / restore 证据。'}</p>
+              </div>
+              <div className="work-node-modal-head-actions">
+                <button
+                  type="button"
+                  className={`modal-close-btn${isWorkNodeOmissionMode ? ' is-danger' : ''}`}
+                  disabled={isWorkNodeOmissionMode && !workNodeOmissionState.canConfirm}
+                  onClick={() => {
+                    if (!isWorkNodeOmissionMode) {
+                      setPendingWorkNodeCheckoutId('');
+                      setWorkNodeOmissionState(EMPTY_WORK_NODE_OMISSION_STATE);
+                      setIsWorkNodeOmissionMode(true);
+                      return;
+                    }
+                    void workNodeTreePanelRef.current?.confirmOmission();
+                  }}
+                >
+                  {isWorkNodeOmissionMode
+                    ? `确认省略${workNodeOmissionState.selectedCount ? `（${workNodeOmissionState.selectedCount}）` : ''}`
+                    : '省略'}
+                </button>
+                {isWorkNodeOmissionMode ? (
+                  <button
+                    type="button"
+                    className="modal-close-btn"
+                    disabled={workNodeOmissionState.busy}
+                    onClick={() => {
+                      workNodeTreePanelRef.current?.resetOmission();
+                      setIsWorkNodeOmissionMode(false);
+                      setWorkNodeOmissionState(EMPTY_WORK_NODE_OMISSION_STATE);
+                    }}
+                  >
+                    取消省略
+                  </button>
+                ) : null}
+                <button type="button" className="modal-close-btn" onClick={() => setWorkNodeCameraResetKey((current) => current + 1)}>
+                  归正
+                </button>
+                <button type="button" className="modal-close-btn" onClick={closeWorkNodePanel}>
+                  关闭
+                </button>
+              </div>
+            </div>
+            <WorkNodeTreePanel
+              ref={workNodeTreePanelRef}
+              timelineId={activeTimelineId}
+              refreshKey={workNodeRefreshKey}
+              cameraResetKey={workNodeCameraResetKey}
+              omissionMode={isWorkNodeOmissionMode}
+              onSelectedNodeChange={handleWorkNodeSelection}
+              onOmissionSelectionChange={setWorkNodeOmissionState}
+              onOmissionComplete={handleWorkNodeOmissionComplete}
+              onForkAsSqlite={(node) => void handleForkWorkNodeAsSqlite(node)}
+            />
+          </div>
+        </div>
+      )}
+
+      <DraggingOverlay
+        draggingState={draggingState ? { id: draggingState.id, skillType: draggingState.skillType } : null}
+        mousePosition={mousePosition}
+        startFrame={draggingAkeCommand?.actualFrame ?? draggingAkeCommand?.requestedFrame ?? null}
+        endFrame={draggingAkeCommand?.endFrame
+          ?? draggingAkeCommand?.naturalEndFrame
+          ?? draggingAkeCommand?.tailEndFrame
+          ?? null}
+        tickRate={akeRealtimeTimeline?.tickRate ?? 30}
+      />
+
+      {isBatchResistanceModalOpen && (
+        <div className="timeline-snapshot-modal-overlay" onClick={handleCloseBatchResistanceModal}>
+          <div
+            className="timeline-snapshot-confirm-modal batch-resistance-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="timeline-snapshot-modal-head">
+              <div>
+                <h3>批量设置敌方抗性</h3>
+                <p>确认后将覆盖当前排轴中全部 {skillButtons.length} 个技能按钮的目标抗性。</p>
+              </div>
+              <button type="button" className="modal-close-btn" onClick={handleCloseBatchResistanceModal}>
+                关闭
+              </button>
+            </div>
+
+            <div className="batch-resistance-fields">
+              {BATCH_RESISTANCE_FIELDS.map(([key, label]) => (
+                <label key={key}>
+                  <span>{label}</span>
+                  <DeferredNumberInput
+                    step="1"
+                    value={batchTargetResistance[key]}
+                    onCommit={(value) => {
+                      setBatchTargetResistance((current) => ({
+                        ...current,
+                        [key]: value ?? 0,
+                      }));
+                    }}
+                  />
+                </label>
+              ))}
+            </div>
+
+            <div className="timeline-snapshot-form-actions">
+              <button type="button" className="btn-calculate" onClick={handleCloseBatchResistanceModal}>
+                取消
+              </button>
+              <button
+                type="button"
+                className="btn-save"
+                onClick={handleApplyBatchResistance}
+                disabled={skillButtons.length === 0}
+              >
+                应用到全部按钮
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isSnapshotModalOpen && (
+        <div className="timeline-snapshot-modal-overlay" onClick={handleCloseSnapshotModal}>
+          <div className="timeline-snapshot-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="timeline-snapshot-modal-head">
+              <div>
+                <h3>恢复排轴</h3>
+                <p>存档不是可直接应用的状态：先转换为 SQLite 工作区；只有 SQLite 工作区可以直接应用。节点树仅显示数量。</p>
+              </div>
+              <div className="timeline-snapshot-modal-head-actions">
+                <button
+                  type="button"
+                  className="btn-save"
+                  disabled={isDecodingTacticalShare}
+                  onClick={() => tacticalShareImageInputRef.current?.click()}
+                >
+                  {isDecodingTacticalShare ? '正在识别…' : '扫码导入'}
+                </button>
+                <button type="button" className="modal-close-btn" onClick={handleCloseSnapshotModal}>
+                  关闭
+                </button>
+              </div>
+            </div>
+
+            <input
+              ref={tacticalShareImageInputRef}
+              className="timeline-share-file-input"
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/*"
+              onChange={(event) => void handleTacticalShareImageSelected(event)}
+            />
+
+            <div className="timeline-restore-tabs" role="tablist" aria-label="恢复来源">
+              {([
+                ['local', '本地存档'],
+                ['shared', '共享存档'],
+                ['sqlite', 'SQLite'],
+              ] as const).map(([tab, label]) => (
+                <button
+                  key={tab}
+                  type="button"
+                  role="tab"
+                  aria-selected={restorePanelTab === tab}
+                  className={restorePanelTab === tab ? 'is-active' : ''}
+                  onClick={() => setRestorePanelTab(tab)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {activeTimelineArchiveLibrary && (
+              <div className="timeline-snapshot-list timeline-document-list">
+                <div className="timeline-snapshot-empty">{activeTimelineArchiveLibrary.title}</div>
+                {activeTimelineArchiveLibrary.archives.length === 0 ? (
+                  <div className="timeline-snapshot-empty">暂无{activeTimelineArchiveLibrary.emptyLabel}存档。</div>
+                ) : activeTimelineArchiveLibrary.archives.map((archive) => (
+                  <div key={`${activeTimelineArchiveLibrary.library}-${archive.archiveId}`} className="timeline-snapshot-item timeline-document-item">
+                    <div className="timeline-snapshot-item-main">
+                      <strong>{archive.label}</strong>
+                      <span>{archive.summary.characterCount} 干员 / {archive.summary.buttonCount} 按钮 / {archive.summary.buffCount} Buff</span>
+                      <span>{archive.nodeCount} 个节点{archive.hasCurrentNode ? ' / 含当前节点定位' : ''}{archive.releaseId ? ` / 发布 ${archive.releaseId}` : ''}</span>
+                      {archive.worktreeDiagnostic && <span>节点树兼容问题：{archive.worktreeDiagnostic.message}</span>}
+                      {archive.invalid && <span>存档无效：{archive.invalid.message}</span>}
+                    </div>
+                    <div className="timeline-snapshot-item-actions">
+                      <button
+                        type="button"
+                        className="btn-save"
+                        disabled={Boolean(archive.invalid)}
+                        onClick={() => void handleConvertTimelineArchive(archive)}
+                      >
+                        转换为 SQLite
+                      </button>
+                      {archive.worktreeDiagnostic && (
+                        <button type="button" className="btn-calculate" onClick={() => void handleConvertTimelineArchive(archive, true)}>
+                          仅导入内容
+                        </button>
+                      )}
+                      {archive.library === 'local' && (
+                        <button type="button" className="btn-calculate" disabled={Boolean(archive.invalid)} onClick={() => void handleTransferTimelineArchive(archive, 'shared')}>
+                          转为共享
+                        </button>
+                      )}
+                      {archive.library === 'shared' && (
+                        <button type="button" className="btn-calculate" disabled={Boolean(archive.invalid)} onClick={() => void handleTransferTimelineArchive(archive, 'local')}>
+                          转为本地
+                        </button>
+                      )}
+                      <button type="button" className="btn-calculate" onClick={() => void handleDeleteTimelineArchive(archive)}>
+                        删除
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {restorePanelTab === 'sqlite' && (sqliteTimelineWorkspaces.length === 0 ? (
+              <div className="timeline-snapshot-empty">
+                SQLite 中还没有可直接应用的工作区。请先从存档库转换，或继续编辑当前工作区。
+              </div>
+            ) : (
+              <div className="timeline-snapshot-list timeline-document-list">
+                {sqliteTimelineWorkspaces.map((workspace) => (
+                  <div
+                    key={workspace.document.id}
+                    className={`timeline-snapshot-item timeline-document-item${workspace.document.id === activeTimelineId ? ' is-active' : ''}`}
+                  >
+                    <div className="timeline-snapshot-item-main">
+                      <strong>{workspace.document.label}{workspace.document.isTemporary ? '（临时）' : ''}</strong>
+                      <span>
+                        {workspace.summary.characterCount} 干员 / {workspace.summary.buttonCount} 按钮 / {workspace.summary.buffCount} Buff
+                      </span>
+                      <span>
+                        {workspace.nodeCount} 个节点
+                        {workspace.document.id === activeTimelineId ? ' / 当前应用' : ''}
+                      </span>
+                      {workspace.invalid && <span>工作区异常：{workspace.invalid.message}</span>}
+                    </div>
+                    <div className="timeline-snapshot-item-actions">
+                      <button
+                        type="button"
+                        className="btn-save"
+                        disabled={Boolean(workspace.invalid)}
+                        onClick={() => void handleApplySqliteWorkspace(workspace)}
+                      >
+                        应用
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-calculate"
+                        disabled={Boolean(workspace.invalid)}
+                        onClick={() => void handleExportSqliteWorkspace(workspace, 'local')}
+                      >
+                        导出本地存档
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-calculate"
+                        disabled={Boolean(workspace.invalid)}
+                        onClick={() => void handleExportSqliteWorkspace(workspace, 'shared')}
+                      >
+                        预存到共享存档
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-calculate"
+                        disabled={workspace.document.id === activeTimelineId}
+                        title={workspace.document.id === activeTimelineId ? '请先应用另一工作区，再删除当前工作区。' : undefined}
+                        onClick={() => void handleDeleteSqliteWorkspace(workspace)}
+                      >
+                        删除
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {isTimelineNameModalOpen && (
+        <div className="timeline-snapshot-modal-overlay" onClick={closeTimelineNameModal}>
+          <form
+            className="timeline-snapshot-modal timeline-snapshot-save-modal"
+            onClick={(event) => event.stopPropagation()}
+            onSubmit={(event) => {
+              event.preventDefault();
+              confirmTimelineName();
+            }}
+          >
+            <div className="timeline-snapshot-modal-head">
+              <div>
+                <h3>{timelineNamePromptCopy.title}</h3>
+                <p>{timelineNamePromptCopy.description}</p>
+              </div>
+              <button type="button" className="modal-close-btn" onClick={closeTimelineNameModal}>
+                关闭
+              </button>
+            </div>
+
+            <label className="timeline-snapshot-form-label" htmlFor="timeline-workspace-name">
+              工作区名称
+            </label>
+            <input
+              id="timeline-workspace-name"
+              className="timeline-snapshot-name-input"
+              type="text"
+              value={timelineNameDraft}
+              onChange={(event) => {
+                setTimelineNameDraft(event.target.value);
+                if (timelineNameError) setTimelineNameError('');
+              }}
+              placeholder={timelineNamePromptCopy.placeholder}
+              maxLength={60}
+              autoFocus
+            />
+            {timelineNameError && <p className="form-error" role="alert">{timelineNameError}</p>}
+
+            <div className="timeline-snapshot-form-actions">
+              <button type="button" className="btn-calculate" onClick={closeTimelineNameModal}>
+                取消
+              </button>
+              <button type="submit" className="btn-save">
+                {timelineNamePromptCopy.confirmLabel}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {isSaveSnapshotModalOpen && (
+        <div className="timeline-snapshot-modal-overlay" onClick={handleCloseSaveSnapshotModal}>
+          <div className="timeline-snapshot-modal timeline-snapshot-save-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="timeline-snapshot-modal-head">
+              <div>
+                <h3>导出本地存档</h3>
+                <p>当前工作节点已自动保存，可从 SQLite 工作区导出本地存档。</p>
+              </div>
+              <button type="button" className="modal-close-btn" onClick={handleCloseSaveSnapshotModal}>
+                关闭
+              </button>
+            </div>
+
+            <label className="timeline-snapshot-form-label" htmlFor="timeline-snapshot-name">
+              存档名称
+            </label>
+            <input
+              id="timeline-snapshot-name"
+              className="timeline-snapshot-name-input"
+              type="text"
+              value={snapshotDraftName}
+              onChange={(event) => setSnapshotDraftName(event.target.value)}
+              placeholder="留空则使用当前工作区名称"
+              maxLength={60}
+            />
+
+            <div className="timeline-snapshot-form-actions">
+              <button type="button" className="btn-calculate" onClick={handleCloseSaveSnapshotModal}>
+                取消
+              </button>
+              <button type="button" className="btn-save" onClick={handleSaveTimelineSnapshot}>
+                导出本地存档
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isShareModalOpen && (
+        <div className="timeline-snapshot-modal-overlay" onClick={handleCloseShareModal}>
+          <div className="timeline-snapshot-modal timeline-snapshot-share-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="timeline-snapshot-modal-head">
+              <div>
+                <h3>排轴分享</h3>
+                <p>导出当前排轴 JSON，用于分享或外部留档。</p>
+              </div>
+              <button type="button" className="modal-close-btn" onClick={handleCloseShareModal}>
+                关闭
+              </button>
+            </div>
+
+            <div className="timeline-snapshot-confirm-body">
+              <strong>当前排轴导出</strong>
+              <span>{selectedCharacters.length} 干员 / {skillButtons.length} 运行时按钮 / 导出 4 项恢复数据</span>
+            </div>
+
+            <label className="timeline-snapshot-form-label" htmlFor="timeline-share-name">
+              导出文件名
+            </label>
+            <input
+              id="timeline-share-name"
+              className="timeline-snapshot-name-input"
+              type="text"
+              value={shareDraftName}
+              onChange={(event) => setShareDraftName(event.target.value)}
+              placeholder="留空则使用未命名"
+              maxLength={60}
+            />
+
+            <label className="timeline-snapshot-form-label" htmlFor="timeline-share-scope">
+              导出范围
+            </label>
+            <select
+              id="timeline-share-scope"
+              className="timeline-snapshot-name-input"
+              value={shareScope}
+              onChange={(event) => setShareScope(event.target.value as 'snapshot' | 'branch' | 'document')}
+            >
+              <option value="snapshot">当前排轴</option>
+              <option value="branch" disabled={shareWorkNodes.length === 0}>指定 AI 分支</option>
+              <option value="document" disabled={shareWorkNodes.length === 0}>完整排轴文档</option>
+            </select>
+
+            {shareScope === 'branch' && (
+              <>
+                <label className="timeline-snapshot-form-label" htmlFor="timeline-share-branch">
+                  AI 分支根节点
+                </label>
+                <select
+                  id="timeline-share-branch"
+                  className="timeline-snapshot-name-input"
+                  value={shareBranchRootId}
+                  onChange={(event) => setShareBranchRootId(event.target.value)}
+                >
+                  {shareWorkNodes.map((node) => (
+                    <option key={node.id} value={node.id}>{node.parentNodeId ? `↳ ${node.label}` : node.label}</option>
+                  ))}
+                </select>
+              </>
+            )}
+
+            <input
+              ref={shareImportInputRef}
+              className="timeline-share-file-input"
+              type="file"
+              accept="application/json,.json"
+              onChange={handleShareFileSelected}
+            />
+
+            <div className="timeline-snapshot-form-actions">
+              <button type="button" className="btn-save" onClick={handleOpenShareImportPicker}>
+                导入分享
+              </button>
+              <button type="button" className="btn-calculate" onClick={handleCloseShareModal}>
+                取消
+              </button>
+              <button type="button" className="btn-save" onClick={handleExportTimelineJson}>
+                一键导出 JSON
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pendingImportShare && (
+        <div className="timeline-snapshot-modal-overlay" onClick={handleCancelImportShare}>
+          <div className="timeline-snapshot-confirm-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="timeline-snapshot-modal-head">
+              <div>
+                <h3>确认导入分享</h3>
+                <p>导入会创建新的本地排轴文档，不会覆盖当前排轴。</p>
+              </div>
+              <button type="button" className="modal-close-btn" onClick={handleCancelImportShare}>
+                关闭
+              </button>
+            </div>
+
+            <div className="timeline-snapshot-confirm-body">
+              <strong>{pendingImportShare.label}</strong>
+              <span>
+                {pendingImportShare.payload.selectedCharacters.length} 干员 / {pendingImportShare.payload.allBuffList.length} Buff / 分享时间 {new Date(pendingImportShare.exportedAt).toLocaleString()}
+                {pendingImportBundle ? ` / v${pendingImportBundle.schemaVersion} / ${pendingImportBundle.snapshots.length} 快照 / ${pendingImportBundle.workNodes?.length || 0} 节点` : ' / 旧版单快照文件'}
+              </span>
+            </div>
+
+            <div className="timeline-snapshot-form-actions">
+              <button type="button" className="btn-calculate" onClick={handleCancelImportShare}>
+                取消
+              </button>
+              <button type="button" className="btn-save" onClick={handleConfirmImportShare}>
+                确认导入
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pendingBasicAttackCut && basicAttackCutDraft && (
+        <BasicAttackCutDialog
+          predecessorLabel={(() => {
+            const button = skillButtons.find(item => item.id === pendingBasicAttackCut.predecessorButtonId);
+            return button?.skillDisplayName || `${button?.characterName ?? ''} 普攻`;
+          })()}
+          successorLabel={(() => {
+            const button = skillButtons.find(item => item.id === pendingBasicAttackCut.successorButtonId);
+            return button?.skillDisplayName || button?.skillType || '后继动作';
+          })()}
+          contract={basicAttackCutDraft.contract}
+          options={basicAttackCutDraft.options}
+          selectedStageCount={selectedBasicAttackStageCount || basicAttackCutDraft.options.length}
+          tickRate={akeRealtimeTimeline?.tickRate ?? 30}
+          onSelectedStageCountChange={setSelectedBasicAttackStageCount}
+          onCancel={handleCancelBasicAttackCut}
+          onConfirm={handleConfirmBasicAttackCut}
+        />
+      )}
+      {pendingForcedWaitButton && (
+        <ForcedWaitConfigDialog
+          initialConfig={pendingForcedWaitButton.forcedWaitConfig}
+          tickRate={akeRealtimeTimeline?.tickRate ?? 30}
+          onCancel={() => setPendingForcedWaitButtonId(null)}
+          onConfirm={handleConfirmForcedWaitConfig}
+        />
+      )}
+      {pendingBasicAttackCut && !basicAttackCutDraft && (
+        <div className="basic-cut-overlay" role="presentation">
+          <section className="basic-cut-dialog" role="dialog" aria-modal="true">
+            <header className="basic-cut-header">
+              <div>
+                <span className="basic-cut-eyebrow">普攻提前衔接</span>
+                <h3>正在解析普攻节点</h3>
+                <p>尚未取得可验证的分段时间；不会用动画总长或猜测值替代。</p>
+              </div>
+            </header>
+            <footer className="basic-cut-actions">
+              <button type="button" className="basic-cut-secondary" onClick={handleCancelBasicAttackCut}>
+                取消并移除后继
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
+
+      {pendingCopy && (
+        <div
+          style={{
+            position: 'fixed',
+            left: copyHintMousePosition.x + 16,
+            top: copyHintMousePosition.y + 16,
+            background: 'rgba(0, 0, 0, 0.8)',
+            color: '#fff',
+            padding: '8px 12px',
+            borderRadius: 4,
+            fontSize: 13,
+            pointerEvents: 'none',
+            zIndex: 9999,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          已复制，点击目标位置放置
+        </div>
+      )}
+    </div>
+  );
+}

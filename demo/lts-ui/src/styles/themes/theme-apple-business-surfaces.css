@@ -1,0 +1,3864 @@
+/*
+ * Complete business-surface bridge for the alternate application themes.
+ *
+ * The legacy workbench contains several self-contained editors whose original
+ * CSS intentionally hard-codes a white Office palette. This layer maps those
+ * business surfaces to the shared theme contract without changing the default
+ * white theme or their layout and interaction model.
+ */
+
+/* Skill detail, Buff list and the adjacent "add Buff" workbench. */
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .skill-button-inline-buff-search-mask
+) {
+  background: var(--theme-overlay-bg);
+  backdrop-filter: blur(18px) saturate(0.92);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .skill-button-inline-buff-search.is-workbench-mode,
+  .skill-button-inline-buff-search.is-anomaly-mode
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface-raised);
+  box-shadow: var(--theme-shadow-window);
+  backdrop-filter: blur(24px) saturate(1.08);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .modal-title,
+  .skill-button-buff-section h5,
+  .formula-section-title,
+  .skill-button-inline-buff-search-head h5,
+  .local-buff-search-item-head strong,
+  .anomaly-summary-title,
+  .anomaly-config-title,
+  .skill-anomaly-board-title,
+  .anomaly-board-card-title
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .skill-button-resistance-field,
+  .skill-button-anomaly-summary-card,
+  .skill-anomaly-config-card,
+  .skill-anomaly-board,
+  .anomaly-inline-panel,
+  .anomaly-live-preview,
+  .skill-button-buff-item,
+  .selected-buff-card,
+  .nearby-buff-card
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-soft);
+  border-radius: 10px;
+  background: var(--theme-surface-muted);
+  box-shadow: none;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .skill-button-buff-empty,
+  .no-buff,
+  .buff-section-tip,
+  .skill-button-inline-buff-search-head span,
+  .skill-button-inline-buff-search-item p,
+  .local-buff-search-item-head span,
+  .local-buff-search-item-source,
+  .buff-card-source,
+  .anomaly-config-subtitle,
+  .anomaly-live-line
+) {
+  color: var(--theme-text-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .lock-control,
+  .skill-button-resistance-toggle,
+  .hit-toggle-btn,
+  .anomaly-category-tab,
+  .anomaly-strip-button,
+  .anomaly-item-button,
+  .anomaly-select-trigger,
+  .anomaly-apply-btn,
+  .anomaly-chip,
+  .anomaly-board-card-delete-btn,
+  .selected-buff-card-remove
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  border-radius: 8px;
+  background: var(--theme-control-bg);
+  box-shadow: none;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .lock-control,
+  .skill-button-resistance-toggle,
+  .hit-toggle-btn,
+  .anomaly-category-tab,
+  .anomaly-strip-button,
+  .anomaly-item-button,
+  .anomaly-select-trigger,
+  .anomaly-apply-btn,
+  .anomaly-chip
+):hover:not(:disabled) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-strong);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .lock-control.is-locked,
+  .anomaly-category-tab.is-active,
+  .anomaly-strip-button.is-active,
+  .anomaly-item-button.is-active,
+  .anomaly-chip.is-active
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-border-medium);
+  background: var(--theme-accent-soft);
+  box-shadow: inset 0 0 0 0.5px var(--theme-border-medium);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .skill-button-resistance-field input,
+  .skill-button-inline-buff-search-input
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-regular);
+  border-radius: 8px;
+  background: var(--theme-control-bg);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .skill-level-badge,
+  .anomaly-summary-kind,
+  .anomaly-item-tag,
+  .buff-tag
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  border-radius: 999px;
+  background: var(--theme-fill-subtle);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .skill-button-buff-item:hover,
+  .selected-buff-card:hover,
+  .nearby-buff-card:hover
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-strong);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-tag-selectable.is-selected
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-accent-main);
+  background: var(--theme-accent-soft);
+  box-shadow: none;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .hit-name,
+  .formula-zone-total,
+  .damage-line,
+  .hit-value.expected,
+  .hit-value.crit,
+  .hit-value.non-crit
+) {
+  color: var(--theme-text-title);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .anomaly-select-menu {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  border-radius: 10px;
+  background: var(--theme-surface-raised);
+  box-shadow: var(--theme-shadow-float);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .anomaly-select-option {
+  color: var(--theme-text-body);
+  background: transparent;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .anomaly-select-option:hover {
+  color: var(--theme-text-title);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .skill-button-buff-workbench-main,
+  .skill-button-buff-resource-rail,
+  .skill-button-local-buff-panel
+) {
+  color: var(--theme-text-body);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .skill-button-inline-buff-search-mode,
+  .operator-buff-character-filter,
+  .operator-buff-group-filters button,
+  .skill-button-inline-buff-search-item,
+  .skill-button-inline-buff-search-empty
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  border-radius: 9px;
+  background: var(--theme-surface-muted);
+  box-shadow: none;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .skill-button-inline-buff-search-mode,
+  .operator-buff-character-filter,
+  .operator-buff-group-filters button,
+  .skill-button-inline-buff-search-item
+):hover {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-strong);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .skill-button-inline-buff-search-mode.is-active,
+  .operator-buff-character-filter.is-active,
+  .operator-buff-group-filters button.is-active
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-border-medium);
+  background: var(--theme-accent-soft);
+  box-shadow: none;
+}
+
+/* Full-page timeline detail opened by double-clicking a skill button. */
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .timeline-detail-layer {
+  color: var(--theme-text-body);
+  background: var(--theme-bg-content);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .timeline-detail-canvas {
+  color: var(--theme-text-body);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .timeline-detail-heading strong,
+  .timeline-detail-card h3,
+  .timeline-buff-main strong,
+  .timeline-summary-formula-parts strong,
+  .timeline-calculation-summary > strong,
+  .timeline-calculation-detail > header strong,
+  .timeline-calculation-detail-rows strong,
+  .timeline-calculation-buff-row strong,
+  .timeline-info-card pre
+) {
+  color: var(--theme-text-title);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .timeline-detail-heading span,
+  .timeline-detail-hit em,
+  .timeline-detail-hit small,
+  .timeline-resistance-fields label,
+  .timeline-buff-main span,
+  .timeline-status-list small,
+  .timeline-tuning-card p,
+  .timeline-summary-card small,
+  .timeline-summary-formula-parts span,
+  .timeline-calculation-summary > span,
+  .timeline-calculation-detail > header span,
+  .timeline-calculation-detail-rows span,
+  .timeline-calculation-buffs > span,
+  .timeline-calculation-buff-row small,
+  .timeline-calculation-buff-row em,
+  .timeline-detail-empty
+) {
+  color: var(--theme-text-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .timeline-detail-utility-panel,
+  .timeline-detail-card,
+  .timeline-tuning-card,
+  .timeline-calculation-summary,
+  .timeline-calculation-detail,
+  .timeline-summary-formula-parts,
+  .timeline-calculation-buff-row
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  border-radius: 12px;
+  background: var(--theme-surface-regular);
+  box-shadow: var(--theme-shadow-panel);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .timeline-detail-heading button,
+  .timeline-detail-expand-all-button,
+  .timeline-tuning-card button,
+  .timeline-calculation-card button,
+  .timeline-buff-bulk-actions button,
+  .timeline-status-list button,
+  .timeline-tuning-list button,
+  .timeline-tuning-inline-actions button,
+  .timeline-buff-stack button,
+  .timeline-buff-delete,
+  .timeline-calculation-inline-toggle
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  border-radius: 8px;
+  background: var(--theme-control-bg);
+  box-shadow: none;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .timeline-detail-heading button,
+  .timeline-detail-expand-all-button,
+  .timeline-tuning-card button,
+  .timeline-calculation-card button,
+  .timeline-buff-bulk-actions button,
+  .timeline-status-list button,
+  .timeline-tuning-list button,
+  .timeline-tuning-inline-actions button
+):hover:not(:disabled) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-strong);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .timeline-detail-heading button.is-active,
+  .timeline-detail-expand-all-button.is-active,
+  .timeline-tuning-list button.is-active,
+  .timeline-tuning-inline-actions button.is-active
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-border-medium);
+  background: var(--theme-accent-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .timeline-detail-hit,
+  .timeline-buff-row,
+  .timeline-tuning-inline-item,
+  .timeline-summary-formula-parts > div,
+  .timeline-calculation-detail-rows > div
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-soft);
+  border-radius: 9px;
+  background: var(--theme-surface-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .timeline-detail-hit:hover,
+  .timeline-buff-row:hover
+) {
+  border-color: var(--theme-line-strong);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .timeline-detail-hit.is-selected {
+  border-color: var(--theme-accent-main);
+  background: var(--theme-accent-soft);
+  box-shadow: none;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .timeline-detail-hit.is-disabled,
+  .timeline-buff-row.is-disabled,
+  .timeline-tuning-inline-item:not(.is-active)
+) {
+  color: var(--theme-text-muted);
+  background: var(--theme-fill-subtle);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .timeline-resistance-fields input,
+  .timeline-buff-list-head select,
+  .timeline-tuning-inline-stack
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-regular);
+  border-radius: 8px;
+  background: var(--theme-control-bg);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .timeline-buff-stack,
+  .timeline-calculation-detail > header
+) {
+  border-color: var(--theme-line-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .timeline-buff-stack span {
+  color: var(--theme-text-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .timeline-tuning-inline-actions button.is-danger {
+  color: var(--theme-danger);
+  border-color: color-mix(in srgb, var(--theme-danger) 30%, transparent);
+  background: var(--theme-danger-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .timeline-detail-canvas,
+  .timeline-detail-hit-list,
+  .timeline-detail-middle,
+  .timeline-detail-right-column,
+  .timeline-buff-rows,
+  .timeline-calculation-detail,
+  .timeline-calculation-zone-scroll
+) {
+  scrollbar-color: var(--theme-line-strong) transparent;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .timeline-calculation-zone-node rect {
+  fill: var(--theme-surface-muted);
+  stroke: var(--theme-line-regular);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .timeline-calculation-zone-node:hover rect,
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .timeline-calculation-zone-node:focus rect {
+  fill: var(--theme-fill-hover);
+  stroke: var(--theme-line-strong);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .timeline-calculation-zone-node.is-selected rect {
+  fill: var(--theme-accent-soft);
+  stroke: var(--theme-accent-main);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .zone-node-label,
+  .zone-node-value,
+  .zone-node-order
+) {
+  fill: var(--theme-text-body);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .zone-node-link,
+  .zone-node-arrow
+) {
+  stroke: var(--theme-line-strong);
+}
+
+/* Batch Buff workbench and all of its add/remove candidate surfaces. */
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-edit-layout,
+  .buff-edit-canvas,
+  .buff-edit-left-zone,
+  .buff-batch-edit-workbench
+) {
+  color: var(--theme-text-body);
+  background: var(--theme-bg-grid-area);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-edit-mask {
+  background: var(--theme-fill-subtle);
+  backdrop-filter: none;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-edit-right-zone,
+  .buff-edit-right-panel,
+  .buff-edit-right-placeholder,
+  .buff-edit-candidate-section,
+  .buff-edit-candidate-adder,
+  .buff-batch-edit-workbench .skill-anomaly-config,
+  .buff-batch-edit-workbench .skill-anomaly-board
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-soft);
+  border-radius: 12px;
+  background: var(--theme-surface-regular);
+  box-shadow: none;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-edit-right-zone {
+  border: 1px solid var(--theme-line-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-edit-right-head h3,
+  .buff-edit-right-section h4,
+  .buff-edit-candidate-head h4,
+  .buff-edit-candidate-adder-head strong,
+  .buff-edit-candidate-result strong,
+  .buff-edit-buff-card-title,
+  .buff-edit-selected-button-card strong,
+  .buff-batch-edit-workbench .skill-button-inline-buff-search-head h5,
+  .buff-batch-edit-workbench .local-buff-search-item-head strong,
+  .buff-batch-edit-workbench .skill-anomaly-board-title,
+  .buff-batch-edit-workbench .anomaly-config-title,
+  .buff-batch-edit-workbench .anomaly-board-card-title
+) {
+  color: var(--theme-text-title);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-edit-right-head span,
+  .buff-edit-candidate-head span,
+  .buff-edit-candidate-empty,
+  .buff-edit-candidate-result span,
+  .buff-edit-buff-card span,
+  .buff-edit-selected-button-card span,
+  .buff-edit-right-empty,
+  .buff-batch-edit-workbench .skill-button-inline-buff-search-head span,
+  .buff-batch-edit-workbench .skill-button-inline-buff-search-item p,
+  .buff-batch-edit-workbench .skill-button-inline-buff-search-empty,
+  .buff-batch-edit-workbench .skill-button-buff-empty,
+  .buff-batch-edit-workbench .anomaly-config-subtitle,
+  .buff-batch-edit-workbench .anomaly-live-line
+) {
+  color: var(--theme-text-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-edit-secondary-button,
+  .buff-edit-box-select-button,
+  .buff-edit-clear-selection-button,
+  .buff-edit-filter-button,
+  .buff-edit-mode-button,
+  .buff-edit-add-button,
+  .buff-edit-remove-button,
+  .buff-edit-candidate-adder-head button,
+  .buff-batch-edit-workbench .skill-button-inline-buff-search-mode,
+  .buff-batch-edit-workbench .anomaly-strip-button,
+  .buff-batch-edit-workbench .anomaly-chip,
+  .buff-batch-edit-workbench .anomaly-apply-btn,
+  .buff-batch-edit-workbench .anomaly-select-trigger
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  border-radius: 9px;
+  background: var(--theme-control-bg);
+  box-shadow: var(--theme-shadow-panel);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-edit-secondary-button,
+  .buff-edit-box-select-button,
+  .buff-edit-clear-selection-button,
+  .buff-edit-filter-button,
+  .buff-edit-mode-button,
+  .buff-edit-add-button,
+  .buff-edit-remove-button,
+  .buff-edit-candidate-adder-head button,
+  .buff-batch-edit-workbench .skill-button-inline-buff-search-mode,
+  .buff-batch-edit-workbench .anomaly-strip-button,
+  .buff-batch-edit-workbench .anomaly-chip,
+  .buff-batch-edit-workbench .anomaly-apply-btn,
+  .buff-batch-edit-workbench .anomaly-select-trigger
+):hover:not(:disabled) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-strong);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-edit-secondary-button.is-active,
+  .buff-edit-box-select-button.is-active,
+  .buff-edit-filter-button.is-active,
+  .buff-edit-mode-button.is-active,
+  .buff-batch-edit-workbench .skill-button-inline-buff-search-mode.is-active,
+  .buff-batch-edit-workbench .anomaly-strip-button.is-active,
+  .buff-batch-edit-workbench .anomaly-chip.is-active
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-border-medium);
+  background: var(--theme-accent-soft);
+  box-shadow: inset 0 0 0 0.5px var(--theme-border-medium);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-edit-candidate-search-input,
+  .buff-batch-edit-workbench .skill-button-inline-buff-search-input
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-regular);
+  border-radius: 8px;
+  background: var(--theme-control-bg);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-edit-candidate-result,
+  .buff-edit-buff-card,
+  .buff-edit-buff-card.is-white,
+  .buff-edit-buff-card.is-gray,
+  .buff-edit-selected-button-card,
+  .buff-batch-edit-workbench .skill-button-inline-buff-search-item,
+  .buff-batch-edit-workbench .anomaly-board-card
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-soft);
+  border-radius: 9px;
+  background: var(--theme-surface-muted);
+  box-shadow: none;
+}
+
+/*
+ * Rounded Apple surfaces use the whole perimeter for emphasis.
+ * Keep the legacy left rail only on square, spreadsheet-style rows.
+ */
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .skill-button-anomaly-summary-card.is-state,
+  .skill-button-anomaly-summary-card.is-damage,
+  .buff-edit-candidate-result,
+  .buff-batch-edit-workbench .skill-button-inline-buff-search-item,
+  .buff-batch-edit-workbench .anomaly-board-card.is-state,
+  .buff-batch-edit-workbench .anomaly-board-card.is-damage
+) {
+  border-left-width: 1px;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-edit-candidate-result,
+  .buff-edit-buff-card,
+  .buff-batch-edit-workbench .skill-button-inline-buff-search-item,
+  .buff-batch-edit-workbench .anomaly-board-card
+):hover:not(:disabled) {
+  border-color: var(--theme-line-strong);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-edit-buff-card.is-selected {
+  color: var(--theme-text-title);
+  border: 1px solid var(--theme-border-medium);
+  background: var(--theme-accent-soft);
+  box-shadow: none;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-edit-buff-card.is-selected.is-add-intent {
+  border-color: var(--theme-success);
+  background: var(--theme-success-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-edit-buff-card.is-selected.is-remove-intent {
+  border-color: var(--theme-danger);
+  background: var(--theme-danger-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-edit-clear-selection-button.is-cancel-remove,
+  .buff-edit-add-button.is-confirm-add,
+  .buff-edit-mode-button.is-confirm-edit
+) {
+  color: var(--theme-text-on-accent);
+  border-color: var(--theme-success);
+  background: var(--theme-success);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-edit-clear-selection-button.is-cancel-add,
+  .buff-edit-remove-button.is-confirm-remove
+) {
+  color: var(--theme-text-on-accent);
+  border-color: var(--theme-danger);
+  background: var(--theme-danger);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-batch-edit-workbench .skill-button-base {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-strong);
+  background: var(--theme-surface-solid);
+  box-shadow: var(--theme-shadow-panel);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-batch-edit-workbench .skill-button-orb {
+  border-color: var(--theme-line-strong);
+  background: var(--skill-button-element-color);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-batch-edit-workbench .canvas-skill-button:hover .skill-button-base,
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-batch-edit-workbench .canvas-skill-button:hover .skill-button-orb {
+  border-color: var(--theme-text-muted);
+  box-shadow: 0 0 0 2px var(--theme-fill-hover);
+}
+
+/* Buff effect editor drawer used by operator and Buff data editors. */
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-editor-drawer-mask {
+  background: var(--theme-overlay-bg);
+  backdrop-filter: blur(12px);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-editor-drawer {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface-raised);
+  box-shadow: var(--theme-shadow-window);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-editor-drawer-header,
+  .buff-editor-drawer-levels,
+  .buff-editor-drawer footer
+) {
+  color: var(--theme-text-muted);
+  border-color: var(--theme-line-soft);
+  background: var(--theme-surface-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-editor-drawer-header strong {
+  color: var(--theme-text-title);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-editor-drawer-header span,
+  .buff-editor-drawer-header small,
+  .buff-editor-drawer-grid label
+) {
+  color: var(--theme-text-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-editor-drawer-header button,
+  .buff-editor-drawer-levels button
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  border-radius: 8px;
+  background: var(--theme-control-bg);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-editor-drawer-levels button.is-active {
+  color: var(--theme-text-title);
+  border-color: var(--theme-accent-main);
+  background: var(--theme-accent-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-editor-drawer-body section {
+  border-color: var(--theme-line-soft);
+  border-radius: 10px;
+  background: var(--theme-surface-regular);
+  overflow: hidden;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-editor-drawer-body h4 {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-soft);
+  background: var(--theme-surface-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-editor-drawer-grid :where(
+  input,
+  select,
+  textarea
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-regular);
+  border-radius: 7px;
+  background: var(--theme-control-bg);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-editor-drawer-readonly {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-soft);
+  border-radius: 7px;
+  background: var(--theme-fill-subtle);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-editor-drawer footer button {
+  color: var(--theme-text-on-accent);
+  border-color: var(--theme-accent-main);
+  border-radius: 8px;
+  background: var(--theme-accent-main);
+}
+
+/* Operator/Buff editors and spreadsheet-like data workspaces. */
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-draft-page {
+  color: var(--theme-text-body);
+  background: var(--theme-bg-content);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-draft-page :where(
+  .operator-draft-command-panel,
+  .operator-draft-nav-panel,
+  .operator-draft-basic-panel,
+  .operator-draft-skill-list,
+  .operator-draft-skill-detail,
+  .operator-draft-hit-detail,
+  .operator-draft-buff-panel,
+  .operator-draft-json-panel,
+  .operator-draft-history-side,
+  .operator-draft-markdown-panel,
+  .operator-draft-modal
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-soft);
+  border-radius: 10px;
+  background: var(--theme-surface-regular);
+  box-shadow: var(--theme-shadow-panel);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-draft-page :where(
+  .operator-draft-section-header,
+  .operator-draft-inline-actions,
+  .operator-draft-buff-actions,
+  .operator-draft-skill-filters,
+  .operator-draft-buff-tabs
+) {
+  border-color: var(--theme-line-soft);
+  background: var(--theme-surface-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-draft-page :where(
+  .operator-draft-command-input,
+  .operator-draft-reference-box select,
+  .operator-draft-reference-box textarea,
+  .operator-draft-basic-grid input,
+  .operator-draft-basic-grid select,
+  .operator-draft-skill-form input,
+  .operator-draft-skill-form select,
+  .operator-draft-hit-detail-card input,
+  .operator-draft-hit-detail-card select,
+  .operator-draft-buff-form input,
+  .operator-draft-buff-form select,
+  .operator-draft-buff-form textarea,
+  .extra-hit-config-bar input,
+  .extra-hit-config-bar select,
+  .operator-draft-share-textarea
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-regular);
+  border-radius: 7px;
+  background: var(--theme-control-bg);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-draft-page :where(
+  .operator-draft-ghost-button,
+  .operator-draft-chip,
+  .operator-draft-skill-filter,
+  .operator-draft-buff-tab,
+  .operator-draft-share-tab
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  border-radius: 8px;
+  background: var(--theme-control-bg);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-draft-page :where(
+  .operator-draft-run-button,
+  .operator-draft-copy-button
+) {
+  color: var(--theme-text-on-accent);
+  border-color: var(--theme-accent-main);
+  border-radius: 8px;
+  background: var(--theme-accent-main);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-draft-page :where(
+  .operator-draft-skill-item,
+  .operator-draft-hit-item,
+  .operator-draft-attribute-cell,
+  .operator-draft-buff-item,
+  .operator-draft-local-library-item,
+  .operator-draft-searchable-option,
+  .extra-hit-config-bar
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-soft);
+  border-radius: 8px;
+  background: var(--theme-surface-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-draft-page :where(
+  .operator-draft-skill-item.is-active,
+  .operator-draft-hit-item.is-active,
+  .operator-draft-buff-item.is-active,
+  .operator-draft-local-library-item.is-active,
+  .operator-draft-searchable-option.is-active,
+  .operator-draft-skill-filter.is-active,
+  .operator-draft-buff-tab.is-active,
+  .operator-draft-share-tab.is-active
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-accent-main);
+  background: var(--theme-accent-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-draft-page :where(
+  .operator-draft-avatar,
+  .operator-draft-avatar-fallback,
+  .operator-draft-skill-icon,
+  .operator-draft-skill-icon-fallback,
+  .operator-draft-skill-hero-icon
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  background: var(--theme-surface-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-draft-page :where(
+  .operator-draft-markdown-body code,
+  .operator-draft-hit-badge,
+  .operator-draft-skill-filter strong,
+  .operator-draft-buff-tab strong
+) {
+  color: var(--theme-text-body);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-draft-page :where(
+  .operator-draft-section-header,
+  .operator-draft-skill-hero,
+  .operator-draft-skill-filters,
+  .operator-draft-buff-tabs,
+  .operator-draft-buff-actions,
+  .operator-draft-buff-list,
+  .operator-draft-buff-summary
+) {
+  border-color: var(--theme-line-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-draft-page :where(
+  .operator-draft-latest-message,
+  .operator-draft-context p,
+  .operator-draft-markdown-body p,
+  .operator-draft-markdown-body li,
+  .operator-draft-section-header span,
+  .operator-draft-basic-grid label,
+  .operator-draft-skill-form label,
+  .operator-draft-hit-detail-card label,
+  .operator-draft-skill-meta span,
+  .operator-draft-inline-actions,
+  .operator-draft-hit-item span,
+  .operator-draft-empty,
+  .operator-draft-skill-filter-note,
+  .operator-draft-buff-item span,
+  .operator-draft-buff-form label,
+  .operator-draft-buff-summary span,
+  .operator-draft-buff-summary p
+) {
+  color: var(--theme-text-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-draft-page :where(
+  .operator-draft-buff-multiplier-toggle,
+  .operator-draft-buff-unit-lock,
+  .operator-draft-buff-summary
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-soft);
+  background: var(--theme-surface-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-draft-page .operator-draft-buff-summary strong {
+  color: var(--theme-text-title);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .operator-draft-modal-overlay,
+  .buff-draft-modal-mask,
+  .buff-sheet-share-modal-mask
+) {
+  background: var(--theme-overlay-bg);
+  backdrop-filter: blur(14px);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-draft-undo-menu,
+  .buff-draft-modal,
+  .buff-sheet-share-modal,
+  .buff-sheet-context-menu,
+  .damage-sheet-undo-menu
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  border-radius: 12px;
+  background: var(--theme-surface-raised);
+  box-shadow: var(--theme-shadow-float);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-draft-undo-item,
+  .buff-sheet-context-menu-item,
+  .damage-sheet-undo-item
+) {
+  color: var(--theme-text-body);
+  border-color: transparent;
+  border-radius: 7px;
+  background: transparent;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-draft-undo-item,
+  .buff-sheet-context-menu-item,
+  .damage-sheet-undo-item
+):hover {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-soft);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-draft-quick-text,
+  .buff-draft-value-editor small,
+  .buff-draft-undo-item span,
+  .buff-sheet-share-modal-copyhint,
+  .buff-sheet-share-import-meta
+) {
+  color: var(--theme-text-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-draft-quick-text strong,
+  .buff-sheet-share-import-title
+) {
+  color: var(--theme-text-title);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-draft-type-picker input,
+  .buff-draft-type-picker select,
+  .buff-sheet-search-input,
+  .buff-sheet-formula-input,
+  .buff-sheet-share-textarea,
+  .weapon-sheet-inline-input
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-regular);
+  border-radius: 7px;
+  background: var(--theme-control-bg);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-sheet-explorer-row,
+  .buff-sheet-explorer-child,
+  .buff-sheet-explorer-effect,
+  .weapon-sheet-image-option,
+  .weapon-sheet-growth-inline-item
+) {
+  color: var(--theme-text-body);
+  border-color: transparent;
+  border-radius: 7px;
+  background: transparent;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-sheet-explorer-row:hover,
+  .buff-sheet-explorer-child:hover,
+  .buff-sheet-explorer-effect:hover,
+  .buff-sheet-explorer-row.is-active,
+  .buff-sheet-explorer-child.is-active,
+  .buff-sheet-explorer-effect.is-active,
+  .weapon-sheet-image-option:hover,
+  .weapon-sheet-image-option.is-active
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-regular);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-sheet-tool-button,
+  .buff-sheet-share-modal-tab,
+  .buff-sheet-share-modal-close,
+  .buff-sheet-share-action
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  border-radius: 8px;
+  background: var(--theme-control-bg);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-sheet-tool-button:hover,
+  .buff-sheet-tool-button.is-active,
+  .buff-sheet-share-modal-tab:hover,
+  .buff-sheet-share-modal-tab.is-active,
+  .buff-sheet-share-modal-close:hover,
+  .buff-sheet-share-action:hover
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-strong);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .buff-sheet-share-action.is-primary {
+  color: var(--theme-text-on-accent);
+  border-color: var(--theme-accent-main);
+  background: var(--theme-accent-main);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .buff-sheet-share-modal-header,
+  .damage-sheet-topbar,
+  .damage-sheet-ribbon,
+  .damage-sheet-sidebar
+) {
+  border-color: var(--theme-line-soft);
+  background: var(--theme-bg-workspace-panel);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .damage-sheet-formula-bar,
+  .damage-sheet-formula-address,
+  .damage-sheet-back-button,
+  .damage-sheet-action-button
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  border-radius: 8px;
+  background: var(--theme-control-bg);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .damage-sheet-back-button,
+  .damage-sheet-action-button
+):hover {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-strong);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .damage-sheet-excel-scroll,
+  .damage-sheet-excel-cell
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-border-grid);
+  background: var(--theme-bg-grid-area);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .damage-sheet-excel-row-number {
+  color: var(--theme-text-muted);
+  border-color: var(--theme-border-grid);
+  background: var(--theme-bg-workspace-panel);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .damage-sheet-excel-row.is-group .damage-sheet-excel-cell {
+  color: var(--theme-text-title);
+  background: var(--theme-bg-nav);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .damage-sheet-excel-row.is-header .damage-sheet-excel-cell {
+  color: var(--theme-text-title);
+  background: var(--theme-surface-regular);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .damage-sheet-excel-row.is-character .damage-sheet-excel-cell {
+  color: var(--theme-text-title);
+  background: var(--theme-accent-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .damage-sheet-excel-row.is-button .damage-sheet-excel-cell {
+  color: var(--theme-text-title);
+  background: var(--theme-bg-workspace-panel);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .damage-sheet-excel-cell:hover {
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .damage-sheet-excel-cell.is-active {
+  color: var(--theme-text-title);
+  background: var(--theme-accent-soft);
+  box-shadow: inset 0 0 0 2px var(--theme-accent-main);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .damage-sheet-excel-cell.is-buff-linked,
+  .damage-sheet-excel-cell.is-buff-linked-muted
+)::before {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-accent-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .damage-sheet-excel-cell.is-buff-linked-muted::before {
+  border-color: var(--theme-line-regular);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .damage-sheet-excel-cell.is-buff-linked-muted::after {
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0 6px,
+    var(--theme-fill-subtle) 6px 12px
+  );
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .weapon-sheet-page .damage-sheet-excel-row.weapon-sheet-row-skill :where(
+  .damage-sheet-excel-row-number,
+  .damage-sheet-excel-cell
+) {
+  color: var(--theme-text-title);
+  background: var(--theme-accent-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .weapon-sheet-page .damage-sheet-excel-row.weapon-sheet-row-weapon :where(
+  .damage-sheet-excel-row-number,
+  .damage-sheet-excel-cell
+) {
+  color: var(--theme-text-title);
+  background: var(--theme-bg-workspace-panel);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .weapon-sheet-page .damage-sheet-excel-row:is(
+  .weapon-sheet-row-level,
+  .weapon-sheet-row-effect,
+  .weapon-sheet-row-growth
+) :where(
+  .damage-sheet-excel-row-number,
+  .damage-sheet-excel-cell
+) {
+  color: var(--theme-text-body);
+  background: var(--theme-bg-grid-area);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .image-manager-grid-item,
+  .image-manager-grid-info,
+  .image-manager-preview-image,
+  .image-manager-preview-fallback,
+  .image-manager-preview-meta,
+  .image-manager-preview-actions
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-soft);
+  border-radius: 9px;
+  background: var(--theme-surface-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .image-manager-grid-name,
+  .image-manager-preview-meta dd
+) {
+  color: var(--theme-text-title);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .image-manager-grid-info,
+  .image-manager-preview-index,
+  .image-manager-preview-meta dt,
+  .image-manager-preview-path,
+  .image-manager-empty
+) {
+  color: var(--theme-text-muted);
+}
+
+/* Keep report geometry stable; theme-specific skins may recolour without changing layout. */
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .report-ppt-page {
+  color: var(--theme-text-body);
+  background: var(--theme-bg-content);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .report-ppt-toolbar {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-soft);
+  background: var(--theme-bg-nav);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .report-ppt-toolbar button {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  border-radius: 8px;
+  background: var(--theme-control-bg);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .report-ppt-toolbar button:hover {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-strong);
+  background: var(--theme-fill-hover);
+}
+
+/* Graphite-specific restraint: neutral structure, blue only for real selection. */
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .dashboard-actions > button:not(.dashboard-primary-button) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-regular);
+  background: var(--theme-control-bg);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .workflow-grid {
+  border-color: var(--theme-line-soft);
+  background: var(--theme-line-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .workflow-grid > button {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-soft);
+  background: var(--theme-surface-regular);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .workflow-grid > button:hover:not(:disabled) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-regular);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .workflow-grid strong {
+  color: var(--theme-text-title);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .workflow-grid small {
+  color: var(--theme-text-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .data-package-facts {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-soft);
+  background: var(--theme-surface-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .data-package-facts div {
+  border-color: var(--theme-line-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .data-package-facts dt {
+  color: var(--theme-text-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .data-package-facts dd {
+  color: var(--theme-text-title);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .data-package-actions > button:not(.dashboard-primary-button) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-regular);
+  background: var(--theme-control-bg);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .data-library-tabs {
+  border-color: var(--theme-line-soft);
+  background: var(--theme-fill-subtle);
+  box-shadow: inset 0 0 0 0.5px var(--theme-line-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .data-library-tabs button {
+  color: var(--theme-text-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .data-library-tabs button.is-active {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-soft);
+  background: var(--theme-surface-raised);
+  box-shadow: var(--theme-shadow-panel);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .data-library-list > button {
+  color: var(--theme-text-body);
+  border-color: transparent;
+  background: var(--theme-surface-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .data-library-list > button:hover:not(:disabled) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-regular);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .data-library-list > button.is-selected {
+  color: var(--theme-text-title);
+  border-color: var(--theme-border-medium);
+  background: var(--theme-accent-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .data-library-inspector dl div {
+  color: var(--theme-text-body);
+  border: 0.5px solid var(--theme-line-soft);
+  background: var(--theme-control-bg);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .data-library-inspector dt {
+  color: var(--theme-text-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .data-library-inspector dd {
+  color: var(--theme-text-title);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .data-tool-card:hover:not(:disabled) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-regular);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .skill-button-base,
+  .skill-button-orb,
+  .dragging-skill-button-base,
+  .dragging-skill-button-orb,
+  .sandbox-skill-button,
+  .sandbox-characters::before,
+  .sandbox-characters-extra-spacer,
+  .canvas-left-top-spacer,
+  .canvas-staff-avatar,
+  .canvas-staff-avatar-placeholder
+) {
+  border-color: var(--theme-graphic-line);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .skill-button-type,
+  .skill-button-name,
+  .skill-button-inspect-damage,
+  .dragging-skill-button-base span,
+  .sandbox-pager-button,
+  .sandbox-reserved-action,
+  .sandbox-avatar-config-popover,
+  .sandbox-character-name,
+  .sandbox-expand-indicator,
+  .sandbox-skill-tag
+) {
+  color: var(--theme-text-title);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .sandbox-character-count,
+  .sandbox-skill-name,
+  .sandbox-skill-hit-count
+) {
+  color: var(--theme-text-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .canvas-skill-button:hover .skill-button-base,
+  .canvas-skill-button:hover .skill-button-orb,
+  .canvas-skill-button.selected .skill-button-base,
+  .canvas-skill-button.selected .skill-button-orb
+) {
+  border-color: var(--theme-graphic-line-strong);
+}
+
+/*
+ * Work Node tree
+ *
+ * The tree is a self-contained graph surface, so merely recolouring its SVG
+ * connectors leaves the original Office canvas, cards and callouts exposed.
+ * These tokens keep the default white theme intact while giving every
+ * alternate theme a complete graph-state grammar.
+ */
+:root[data-theme="apple-midnight"] .work-node-tree-panel {
+  --work-node-tree-canvas: #111216;
+  --work-node-tree-grid: rgba(255, 255, 255, 0.045);
+  --work-node-tree-card: rgba(30, 31, 36, 0.97);
+  --work-node-tree-card-hover: rgba(39, 40, 46, 0.99);
+  --work-node-tree-card-active: rgba(42, 43, 49, 0.99);
+  --work-node-tree-floating: rgba(35, 36, 41, 0.96);
+  --work-node-tree-chip: rgba(255, 255, 255, 0.055);
+  --work-node-tree-chip-strong: rgba(255, 255, 255, 0.12);
+  --work-node-tree-line: rgba(255, 255, 255, 0.17);
+  --work-node-tree-line-strong: rgba(255, 255, 255, 0.52);
+  --work-node-tree-path: #f5f5f7;
+  --work-node-tree-path-soft: rgba(245, 245, 247, 0.54);
+  --work-node-tree-shadow: 0 12px 30px rgba(0, 0, 0, 0.26);
+  --work-node-tree-action-hover: #f5f5f7;
+  --work-node-tree-action-hover-text: #17181c;
+  --work-node-tree-card-radius: 13px;
+  --work-node-tree-control-radius: 8px;
+  --work-node-tree-badge-radius: 999px;
+}
+
+:root[data-theme="apple-warm"] .work-node-tree-panel {
+  --work-node-tree-canvas: #eee7dd;
+  --work-node-tree-grid: rgba(83, 65, 50, 0.075);
+  --work-node-tree-card: rgba(255, 252, 247, 0.96);
+  --work-node-tree-card-hover: #fffdf9;
+  --work-node-tree-card-active: #fffdf9;
+  --work-node-tree-floating: rgba(255, 252, 247, 0.96);
+  --work-node-tree-chip: rgba(94, 72, 53, 0.055);
+  --work-node-tree-chip-strong: rgba(165, 94, 45, 0.12);
+  --work-node-tree-line: rgba(83, 65, 50, 0.2);
+  --work-node-tree-line-strong: rgba(83, 65, 50, 0.48);
+  --work-node-tree-path: #8c4c24;
+  --work-node-tree-path-soft: rgba(140, 76, 36, 0.5);
+  --work-node-tree-shadow: 0 12px 30px rgba(69, 49, 34, 0.13);
+  --work-node-tree-action-hover: #8c4c24;
+  --work-node-tree-action-hover-text: #fffdf9;
+  --work-node-tree-card-radius: 13px;
+  --work-node-tree-control-radius: 8px;
+  --work-node-tree-badge-radius: 999px;
+}
+
+:root[data-theme="lieflat-mono"] .work-node-tree-panel {
+  --work-node-tree-canvas: #eee9df;
+  --work-node-tree-grid: rgba(166, 109, 92, 0.11);
+  --work-node-tree-card: rgba(251, 249, 243, 0.98);
+  --work-node-tree-card-hover: #fffdf8;
+  --work-node-tree-card-active: #fffdf8;
+  --work-node-tree-floating: rgba(251, 249, 243, 0.98);
+  --work-node-tree-chip: rgba(166, 109, 92, 0.065);
+  --work-node-tree-chip-strong: rgba(156, 70, 59, 0.1);
+  --work-node-tree-line: var(--ink-outline-soft);
+  --work-node-tree-line-strong: var(--ink-outline-structural);
+  --work-node-tree-path: var(--ink-outline-selected);
+  --work-node-tree-path-soft: rgba(156, 70, 59, 0.48);
+  --work-node-tree-shadow: 0 12px 28px rgba(38, 35, 30, 0.12);
+  --work-node-tree-action-hover: var(--ink-outline-selected);
+  --work-node-tree-action-hover-text: var(--ink-paper-hi);
+  --work-node-tree-card-radius: 4px 15px 4px 4px;
+  --work-node-tree-control-radius: 4px 9px 4px 4px;
+  --work-node-tree-badge-radius: 3px 8px 3px 3px;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-modal {
+  overflow: hidden;
+  border-width: 0.5px;
+  background: var(--theme-surface-raised);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-modal-overlay {
+  z-index: 5000;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-modal-head {
+  align-items: center;
+  gap: 16px;
+  padding: 13px 15px;
+  border-bottom-color: var(--theme-line-regular);
+  background: var(--theme-surface-solid);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-modal-actions {
+  display: grid;
+  align-items: initial;
+  gap: 2px;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-modal-head h3 {
+  margin: 0;
+  color: var(--theme-text-title);
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-modal-head p {
+  color: var(--theme-text-muted);
+  font-size: 10.5px;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-modal-head > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-modal-head .modal-close-btn {
+  min-width: 52px;
+  height: 30px;
+  padding: 0 11px;
+  color: var(--theme-text-body);
+  border: 0.5px solid var(--theme-line-regular);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-control-bg);
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.12);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-modal-head .modal-close-btn:hover {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-strong);
+  background: var(--theme-fill-hover);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-panel {
+  --work-node-path-color: var(--work-node-tree-path);
+  color: var(--theme-text-body);
+  background-color: var(--work-node-tree-canvas);
+  background-image:
+    linear-gradient(var(--work-node-tree-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--work-node-tree-grid) 1px, transparent 1px);
+  background-size: 28px 28px;
+  scrollbar-color: var(--work-node-tree-line-strong) transparent;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-count {
+  top: 12px;
+  right: 14px;
+  padding: 5px 9px;
+  color: var(--theme-text-muted);
+  border: 0.5px solid var(--work-node-tree-line);
+  border-radius: var(--work-node-tree-badge-radius);
+  background: var(--work-node-tree-floating);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(18px) saturate(1.05);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-empty {
+  color: var(--theme-text-muted);
+  border-color: var(--work-node-tree-line);
+  border-radius: var(--work-node-tree-control-radius);
+  background: var(--work-node-tree-floating);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-connectors line {
+  stroke: var(--work-node-tree-line-strong);
+  stroke-width: 1;
+  opacity: 0.72;
+  shape-rendering: auto;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-connectors .is-path {
+  stroke: var(--work-node-tree-path);
+  stroke-width: 1.75;
+  opacity: 1;
+  filter: none;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-node {
+  color: var(--theme-text-body);
+  border: 0.75px solid var(--work-node-tree-line);
+  border-radius: var(--work-node-tree-card-radius);
+  background: var(--work-node-tree-card);
+  box-shadow:
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.1),
+    0 4px 14px rgba(0, 0, 0, 0.09);
+  backdrop-filter: blur(14px) saturate(1.04);
+  transition:
+    opacity 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-node::before {
+  display: none;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-node.is-muted {
+  opacity: 0.58;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-node:hover {
+  opacity: 1;
+  border-color: var(--work-node-tree-line-strong);
+  background: var(--work-node-tree-card-hover);
+  box-shadow: var(--work-node-tree-shadow);
+  transform: translateY(-1px);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-node.is-path {
+  opacity: 1;
+  border-color: var(--work-node-tree-path-soft);
+  box-shadow:
+    inset 0 0 0 0.5px var(--work-node-tree-path-soft),
+    0 5px 16px rgba(0, 0, 0, 0.11);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-node.is-active {
+  opacity: 1;
+  border-color: var(--work-node-tree-path);
+  background: var(--work-node-tree-card-active);
+  box-shadow:
+    inset 0 0 0 0.5px var(--work-node-tree-path),
+    0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .work-node-tree-node.is-blocked,
+  .work-node-tree-node.is-checked-out,
+  .work-node-tree-node.is-restored
+) {
+  background: var(--work-node-tree-card);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .work-node-tree-source,
+  .work-node-tree-status
+) {
+  padding: 2px 5px;
+  color: var(--theme-text-muted);
+  border: 0.5px solid var(--work-node-tree-line);
+  border-radius: var(--work-node-tree-badge-radius);
+  background: var(--work-node-tree-chip);
+  font-size: 8px;
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: 0.025em;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-status {
+  color: var(--theme-text-title);
+  border-color: var(--work-node-tree-line-strong);
+  background: var(--work-node-tree-chip-strong);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-node.is-active .work-node-tree-status {
+  color: var(--work-node-tree-action-hover-text);
+  border-color: var(--work-node-tree-path);
+  background: var(--work-node-tree-path);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-node.is-blocked .work-node-tree-status {
+  color: var(--theme-danger);
+  border-color: color-mix(in srgb, var(--theme-danger) 52%, transparent);
+  background: var(--theme-danger-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-node.is-discarded .work-node-tree-status {
+  color: var(--theme-text-muted);
+  border-color: var(--work-node-tree-line);
+  background: transparent;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-node strong {
+  margin-top: 1px;
+  color: var(--theme-text-title);
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-meta {
+  gap: 3px;
+  margin-top: 5px;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-meta span {
+  padding: 2px 4px;
+  color: var(--theme-text-muted);
+  border: 0.5px solid var(--work-node-tree-line);
+  border-radius: calc(var(--work-node-tree-control-radius) - 3px);
+  background: var(--work-node-tree-chip);
+  font-size: 7.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-title-form input {
+  height: 18px;
+  color: var(--theme-text-title);
+  border: 0.5px solid var(--work-node-tree-path);
+  border-radius: calc(var(--work-node-tree-control-radius) - 3px);
+  background: var(--theme-control-bg);
+  box-shadow: 0 0 0 2px var(--theme-accent-soft);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .work-node-tree-hover-card,
+  .work-node-tree-detail
+) {
+  color: var(--theme-text-body);
+  border: 0.5px solid var(--work-node-tree-line-strong);
+  border-left-width: 0.5px;
+  border-radius: var(--work-node-tree-card-radius);
+  background: var(--work-node-tree-floating);
+  box-shadow: var(--work-node-tree-shadow);
+  backdrop-filter: blur(20px) saturate(1.06);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-hover-card {
+  gap: 5px;
+  padding: 9px 11px;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-detail {
+  left: 14px;
+  bottom: 14px;
+  gap: 4px;
+  padding: 10px 12px;
+  font-size: 10px;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .work-node-tree-hover-card strong,
+  .work-node-tree-detail strong
+) {
+  color: var(--theme-text-title);
+  font-weight: 650;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-actions {
+  left: calc(100% + 7px);
+  gap: 4px;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-actions button {
+  width: 24px;
+  height: 24px;
+  color: var(--theme-text-body);
+  border: 0.5px solid var(--work-node-tree-line-strong);
+  border-radius: var(--work-node-tree-control-radius);
+  background: var(--work-node-tree-floating);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(16px);
+  transition:
+    color 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease,
+    transform 140ms ease;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-actions button:hover:not(:disabled) {
+  color: var(--work-node-tree-action-hover-text);
+  border-color: var(--work-node-tree-action-hover);
+  background: var(--work-node-tree-action-hover);
+  transform: translateX(1px);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-actions button:first-child:hover:not(:disabled) {
+  color: var(--theme-text-on-accent);
+  border-color: var(--theme-danger);
+  background: var(--theme-danger);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-actions button:disabled,
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .work-node-tree-actions button:disabled:hover {
+  color: var(--theme-text-placeholder);
+  border-color: var(--work-node-tree-line);
+  background: var(--work-node-tree-chip);
+  box-shadow: none;
+  transform: none;
+}
+
+:root[data-theme="lieflat-mono"] .work-node-tree-connectors line {
+  stroke-dasharray: 2 4;
+}
+
+:root[data-theme="lieflat-mono"] .work-node-tree-connectors .is-path {
+  stroke-dasharray: none;
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-config-page-root :where(
+  .config-weapon-config-text,
+  .config-weapon-config-text-3,
+  .config-weapon-config-button-row,
+  .config-weapon-config-button,
+  .operator-config-page-equip-button-textdiv,
+  .operator-config-page-equip-tooltip,
+  .operator-config-page-equip-button-row,
+  .operator-config-page-equip-button,
+  .operator-config-page-equip-circle,
+  .operator-config-page-stat-item,
+  .operator-config-page-favor-input-layer,
+  .operator-config-page-favor-input,
+  .operator-config-page-role-meta-box,
+  .operator-config-page-skill-card-group,
+  .operator-config-page-skill-card-icon,
+  .operator-config-page-skill-card-icon-fallback,
+  .operator-config-page-picker-modal,
+  .operator-config-page-picker-close,
+  .operator-config-page-picker-option,
+  .operator-config-page-panel-detail-modal,
+  .operator-config-page-panel-detail-close,
+  .operator-config-page-skill-modal
+) {
+  border-color: var(--theme-line-strong);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-config-page-root :where(
+  .config-weapon-choose-meta-line,
+  .config-weapon-choose-content-button,
+  .config-weapon-config-value,
+  .config-weapon-config-summary,
+  .config-weapon-config-summary-line,
+  .operator-config-page-equip-set-title,
+  .operator-config-page-panel-title-button,
+  .operator-config-page-stat-label,
+  .operator-config-page-stat-value,
+  .operator-config-page-track-heading,
+  .operator-config-page-track-key,
+  .operator-config-page-track-label,
+  .operator-config-page-skill-modal-title,
+  .operator-config-page-skill-card-meta strong,
+  .operator-config-page-skill-hit-card,
+  .operator-config-page-picker-title,
+  .operator-config-page-picker-option-fallback,
+  .operator-config-page-picker-option-name,
+  .operator-config-page-panel-detail-title,
+  .operator-config-page-panel-detail-content
+) {
+  color: var(--theme-text-title);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-config-page-root :where(
+  .operator-config-page-equip-button-textdiv.is-disabled,
+  .operator-config-page-equip-set-empty
+) {
+  color: var(--theme-text-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) .operator-config-page-root
+  .operator-config-page-track-hex-svg polygon {
+  stroke: var(--theme-graphic-line);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"]) .operator-config-page-root
+  .operator-config-page-weapon-star-svg polygon {
+  stroke: var(--theme-graphic-line);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .timeline-snapshot-modal-head h3,
+  .timeline-snapshot-form-label,
+  .timeline-snapshot-item-main strong,
+  .timeline-snapshot-hover-card,
+  .timeline-snapshot-confirm-body strong,
+  .batch-resistance-fields label,
+  .batch-resistance-fields input
+) {
+  color: var(--theme-text-title);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .timeline-snapshot-modal-head p,
+  .timeline-snapshot-empty,
+  .timeline-snapshot-item-main span,
+  .timeline-snapshot-hover-section,
+  .timeline-snapshot-confirm-body span
+) {
+  color: var(--theme-text-muted);
+}
+
+:root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+  .timeline-snapshot-name-input,
+  .batch-resistance-fields input
+) {
+  border-color: var(--theme-line-regular);
+  border-radius: 8px;
+  background: var(--theme-control-bg);
+}
+
+:root[data-theme="apple-midnight"] .theme-option.is-apple-midnight .theme-option-preview {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: #0e0f11;
+}
+
+:root[data-theme="apple-midnight"] .theme-option.is-apple-midnight .theme-option-sidebar {
+  background: #292a30;
+}
+
+:root[data-theme="apple-midnight"] .theme-option.is-apple-midnight .theme-option-canvas {
+  background: #151619;
+}
+
+:root[data-theme="apple-midnight"] :where(
+  .canvas-grid-group,
+  .buff-edit-canvas .canvas-grid-group
+) {
+  border-color: var(--theme-line-strong);
+  outline-color: var(--theme-line-regular);
+  background: rgba(255, 255, 255, 0.008);
+}
+
+:root[data-theme="apple-midnight"] .canvas-staff-line {
+  background: var(--theme-line-regular);
+}
+
+:root[data-theme="apple-midnight"] :where(
+  .skill-button-base,
+  .skill-button-orb,
+  .dragging-skill-button-base,
+  .dragging-skill-button-orb,
+  .sandbox-skill-button,
+  .canvas-staff-avatar,
+  .canvas-staff-avatar-placeholder
+) {
+  border-color: var(--theme-graphic-line);
+}
+
+:root[data-theme="apple-midnight"] .sandbox-character {
+  border-color: var(--theme-line-strong);
+}
+
+:root[data-theme="apple-midnight"] .sandbox-character--expanded .sandbox-character-header {
+  border-bottom-color: var(--theme-line-regular);
+}
+
+:root[data-theme="apple-midnight"] .sandbox-avatar {
+  box-shadow: inset 0 0 0 1px var(--theme-graphic-line);
+}
+
+:root[data-theme="apple-midnight"] .sandbox-avatar:hover {
+  box-shadow: inset 0 0 0 1px var(--theme-graphic-line-strong);
+}
+
+:root[data-theme="apple-midnight"] .sandbox-skill-button {
+  border-color: var(--theme-graphic-line);
+  background: #292a2f !important;
+  box-shadow: none;
+}
+
+:root[data-theme="apple-midnight"] .sandbox-skill-button:hover {
+  border-color: var(--theme-graphic-line-strong);
+  background: #34353b !important;
+  box-shadow: 0 0 0 1px var(--theme-line-soft);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .sandbox-skill-button .skill-icon,
+  .skill-button-orb .skill-icon
+) {
+  opacity: 0.9;
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .sandbox-skill-tag,
+  .sandbox-skill-name,
+  .sandbox-skill-hit-count
+) {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
+:root[data-theme="apple-midnight"] .sandbox-skill-tag {
+  color: var(--theme-text-body);
+  font-weight: 600;
+}
+
+:root[data-theme="apple-midnight"] .sandbox-skill-name {
+  color: var(--theme-text-muted);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+:root[data-theme="apple-midnight"] :where(
+  .buff-edit-right-zone
+) {
+  background: var(--theme-surface-regular);
+}
+
+:root[data-theme="apple-midnight"] :where(
+  .skill-button-orb,
+  .dragging-skill-button-orb,
+  .skill-button-orb .skill-label,
+  .dragging-skill-button-orb span
+) {
+  color: rgba(20, 20, 24, 0.88);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .config-weapon-config-button,
+  .operator-config-page-equip-button
+).is-lit {
+  border-color: var(--theme-line-strong);
+  background: var(--theme-fill-hover);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .config-weapon-config-button,
+  .operator-config-page-equip-button
+).is-current {
+  border-color: var(--theme-accent-main);
+  background: var(--theme-accent-main);
+}
+
+/*
+ * Apple midnight uses luminance steps, not a blanket graphite wash:
+ * near-black content, quietly elevated panels, then brighter transient controls.
+ */
+:root[data-theme="apple-midnight"] .web-shell-overlay {
+  background: rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(22px) saturate(0.78);
+}
+
+:root[data-theme="apple-midnight"] body,
+:root[data-theme="apple-midnight"] :is(
+  button,
+  input,
+  select,
+  textarea
+) {
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  text-shadow: none;
+}
+
+:root[data-theme="apple-midnight"] .web-shell-window {
+  border: 1px solid var(--theme-line-regular);
+  background: rgba(28, 29, 34, 0.97);
+  box-shadow:
+    0 44px 124px rgba(0, 0, 0, 0.62),
+    0 10px 34px rgba(0, 0, 0, 0.42),
+    inset 0 0.5px 0 var(--theme-line-soft);
+  backdrop-filter: blur(38px) saturate(1.16);
+}
+
+:root[data-theme="apple-midnight"] .web-shell-window-bar {
+  border-bottom-color: var(--theme-line-regular);
+  background: rgba(28, 29, 34, 0.9);
+  backdrop-filter: blur(30px) saturate(1.12);
+}
+
+:root[data-theme="apple-midnight"] .web-shell-window-content {
+  background: var(--theme-bg-content);
+}
+
+:root[data-theme="apple-midnight"] .web-shell-window-tabs {
+  background: rgba(0, 0, 0, 0.24);
+  box-shadow: inset 0 0 0 1px var(--theme-line-regular);
+}
+
+:root[data-theme="apple-midnight"] .web-shell-window-tabs button.is-active {
+  background: #303137;
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.34),
+    inset 0 0 0 1px var(--theme-line-strong);
+}
+
+:root[data-theme="apple-midnight"] :where(
+  .dashboard-hero,
+  .data-package-panel,
+  .data-tool-card,
+  .data-library-section,
+  .data-library-inspector,
+  .settings-section
+) {
+  border: 1px solid var(--theme-line-regular);
+  background: var(--theme-surface-regular);
+  box-shadow: inset 0 0.5px 0 var(--theme-line-soft);
+}
+
+:root[data-theme="apple-midnight"] :where(
+  .theme-option,
+  .settings-card,
+  .data-library-card,
+  .selection-slot,
+  .selection-character-card
+) {
+  border-color: var(--theme-line-regular);
+  box-shadow: inset 0 0.5px 0 var(--theme-line-soft);
+}
+
+/*
+ * Carry the same outline hierarchy into the dense secondary workspaces:
+ * structural panels use a readable white rule, controls stay quieter, and
+ * image/SVG-bearing frames get the strongest neutral edge.
+ */
+:root[data-theme="apple-midnight"] .operator-draft-page :where(
+  .operator-draft-command-panel,
+  .operator-draft-nav-panel,
+  .operator-draft-basic-panel,
+  .operator-draft-skill-list,
+  .operator-draft-skill-detail,
+  .operator-draft-hit-detail,
+  .operator-draft-buff-panel,
+  .operator-draft-json-panel,
+  .operator-draft-history-side,
+  .operator-draft-markdown-panel,
+  .operator-draft-modal
+) {
+  border-color: var(--theme-line-regular);
+  box-shadow: inset 0 0.5px 0 var(--theme-line-soft);
+}
+
+:root[data-theme="apple-midnight"] .operator-draft-page :where(
+  .operator-draft-avatar,
+  .operator-draft-avatar-fallback,
+  .operator-draft-skill-icon,
+  .operator-draft-skill-icon-fallback,
+  .operator-draft-skill-hero-icon
+) {
+  border-color: var(--theme-graphic-line);
+}
+
+:root[data-theme="apple-midnight"] :where(
+  .buff-sheet-share-modal-header,
+  .damage-sheet-topbar,
+  .damage-sheet-ribbon,
+  .damage-sheet-sidebar
+) {
+  border-color: var(--theme-line-regular);
+}
+
+:root[data-theme="apple-midnight"] :where(
+  .image-manager-grid-item,
+  .image-manager-grid-info,
+  .image-manager-preview-meta,
+  .image-manager-preview-actions
+) {
+  border-color: var(--theme-line-regular);
+}
+
+:root[data-theme="apple-midnight"] :where(
+  .image-manager-preview-image,
+  .image-manager-preview-fallback
+) {
+  border-color: var(--theme-graphic-line);
+}
+
+:root[data-theme="apple-midnight"] .theme-option.is-selected {
+  border-color: rgba(64, 156, 255, 0.72);
+  background: rgba(10, 132, 255, 0.14);
+  box-shadow:
+    0 0 0 1px rgba(10, 132, 255, 0.08),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.045);
+}
+
+:root[data-theme="apple-midnight"] .selection-character-card:disabled {
+  color: var(--theme-text-muted);
+  border-color: var(--theme-line-soft);
+  background: rgba(255, 255, 255, 0.025);
+  opacity: 1;
+}
+
+:root[data-theme="apple-midnight"] .selection-character-card:disabled :is(
+  .selection-character-main,
+  .selection-element-pill
+) {
+  opacity: 0.5;
+}
+
+:root[data-theme="apple-midnight"] .selection-character-card:disabled .selection-character-avatar-image {
+  filter: none !important;
+  opacity: 1;
+}
+
+:root[data-theme="apple-midnight"] .workbench-top-zone {
+  background: rgba(25, 26, 30, 0.9);
+  backdrop-filter: blur(24px) saturate(1.08);
+}
+
+:root[data-theme="apple-midnight"] .canvas-bottom-zone {
+  background: rgba(25, 26, 30, 0.94);
+  box-shadow: 0 -1px 0 var(--theme-line-soft);
+  backdrop-filter: blur(24px) saturate(1.06);
+}
+
+:root[data-theme="apple-midnight"] :where(
+  .btn-back,
+  .btn-save,
+  .btn-calculate,
+  .btn-add-group,
+  .btn-remove-group,
+  .workbench-drawer-tab,
+  .workbench-top-trigger
+) {
+  box-shadow:
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.045),
+    0 1px 2px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .skill-button-base,
+  .dragging-skill-button-base
+),
+:root[data-theme="apple-midnight"] .buff-batch-edit-workbench .skill-button-base {
+  color: var(--theme-text-title);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(42, 43, 49, 0.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 5px 14px rgba(0, 0, 0, 0.24);
+  -webkit-backdrop-filter: blur(18px) saturate(1.08);
+  backdrop-filter: blur(18px) saturate(1.08);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .skill-button-type,
+  .skill-button-name,
+  .skill-button-inspect-damage,
+  .dragging-skill-button-base span
+) {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  text-shadow: none;
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .skill-button-type,
+  .dragging-skill-button-base span
+) {
+  color: var(--theme-text-title);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+:root[data-theme="apple-midnight"] .skill-button-name {
+  color: var(--theme-text-body);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+:root[data-theme="apple-midnight"] .skill-button-inspect-damage {
+  color: var(--theme-text-body);
+  font-weight: 400;
+  border-top-color: var(--theme-line-regular);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .skill-button-orb,
+  .dragging-skill-button-orb
+),
+:root[data-theme="apple-midnight"] .buff-batch-edit-workbench .skill-button-orb {
+  color: var(--theme-text-title);
+  border: 0;
+  background: #292a2f;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .skill-button-orb .skill-label,
+  .dragging-skill-button-orb span
+) {
+  color: var(--theme-text-title);
+  font-weight: 600;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  text-shadow: none;
+}
+
+:root[data-theme="apple-midnight"] .canvas-skill-button:hover .skill-button-base {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(52, 53, 59, 0.84);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 7px 18px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="apple-midnight"] .canvas-skill-button:hover .skill-button-orb {
+  border: 0;
+  background: #34353b;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.34);
+}
+
+:root[data-theme="apple-midnight"] .canvas-skill-button.selected .skill-button-base {
+  border-color: var(--theme-accent-bright);
+  background: rgba(36, 49, 63, 0.9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 0 0 2px var(--theme-accent-soft),
+    0 7px 18px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="apple-midnight"] .canvas-skill-button.selected .skill-button-orb {
+  border: 0;
+  filter: brightness(1.08);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.34);
+}
+
+:root[data-theme="apple-midnight"] .canvas-skill-button.dragging .skill-button-orb {
+  border: 0;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-theme="apple-midnight"] :is(
+    .skill-button-base,
+    .dragging-skill-button-base
+  ),
+  :root[data-theme="apple-midnight"] .buff-batch-edit-workbench .skill-button-base {
+    background: #25262b;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+:root[data-theme="apple-midnight"] .timeline-tuning-inline-item.is-active > button:first-child {
+  color: var(--theme-text-body);
+}
+
+:root[data-theme="apple-midnight"] .timeline-tuning-inline-item:not(.is-active) {
+  color: var(--theme-text-placeholder);
+  border-color: var(--theme-line-soft);
+  background: rgba(255, 255, 255, 0.025);
+  filter: none;
+  opacity: 1;
+}
+
+:root[data-theme="apple-midnight"] .timeline-tuning-inline-item:not(.is-active) > button:first-child,
+:root[data-theme="apple-midnight"] .timeline-tuning-inline-item:not(.is-active) .timeline-tuning-inline-stack {
+  color: var(--theme-text-placeholder);
+}
+
+:root[data-theme="apple-midnight"] .timeline-calculation-buffs > p {
+  color: var(--theme-text-muted);
+  border: 1px solid var(--theme-line-soft);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .report-ppt-potential-star,
+  .operator-config-page-level-badge-svg,
+  .operator-config-page-weapon-star-svg
+) polygon[fill="#FFF000"] {
+  fill: var(--theme-accent-main) !important;
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .report-ppt-potential-star,
+  .operator-config-page-level-badge-svg,
+  .operator-config-page-weapon-star-svg
+) polygon[fill="#FFFFFF"] {
+  fill: #e5e5ea !important;
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .report-ppt-potential-star,
+  .operator-config-page-level-badge-svg,
+  .operator-config-page-weapon-star-svg
+) polygon[fill="#C7C7C7"] {
+  fill: #54545a !important;
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .operator-config-page-level-badge-svg,
+  .operator-config-page-weapon-star-svg
+) polygon[fill="#FFF59D"] {
+  fill: #3a3a40 !important;
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .report-ppt-potential-star-wrap.is-max,
+  .operator-config-page-level-badge-box.is-max,
+  .operator-config-page-weapon-star-square-box.is-max
+) polygon {
+  filter:
+    drop-shadow(0 0 2px rgba(100, 210, 255, 0.8))
+    drop-shadow(0 0 7px rgba(10, 132, 255, 0.42)) !important;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-track-hex-svg polygon[fill="#edf7ff"] {
+  fill: #303138 !important;
+  stroke: #686870 !important;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-track-hex-svg polygon[fill="#b9ddf7"] {
+  fill: rgba(10, 132, 255, 0.82) !important;
+  stroke: #64d2ff !important;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-slide-inner {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  background: var(--theme-surface-muted);
+  box-shadow:
+    0 24px 72px rgba(0, 0, 0, 0.32),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.035);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-slide-head {
+  border-bottom-color: var(--theme-line-regular);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-slide-head span {
+  color: var(--theme-text-placeholder);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .report-ppt-slide-head h1,
+  .report-ppt-operator-main h2,
+  .report-ppt-weapon-block strong,
+  .report-ppt-weapon-name,
+  .report-ppt-equipment-name,
+  .report-ppt-level-row strong,
+  .report-ppt-axis-group h2,
+  .report-ppt-chart-card h2,
+  .report-ppt-legend-row strong,
+  .report-ppt-chart-total
+) {
+  color: var(--theme-text-title);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .report-ppt-operator-row,
+  .report-ppt-weapon-block,
+  .report-ppt-equipment-block,
+  .report-ppt-skill-levels,
+  .report-ppt-axis-group,
+  .report-ppt-chart-card
+) {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-regular);
+  background: var(--theme-surface-regular);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .report-ppt-operator-level,
+  .report-ppt-weapon-level
+) {
+  color: var(--theme-text-title);
+  border-color: var(--theme-line-regular);
+  background: rgba(27, 28, 32, 0.86);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-potential-star-wrap::before {
+  background: rgba(10, 132, 255, 0.18);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .report-ppt-operator-main,
+  .report-ppt-weapon-name,
+  .report-ppt-equipment-name
+) {
+  color: var(--theme-text-title);
+  background: rgba(27, 28, 32, 0.88);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .report-ppt-avatar-frame,
+  .report-ppt-weapon-image,
+  .report-ppt-equipment-icon
+) {
+  border-color: var(--theme-line-regular);
+  background: var(--theme-surface-solid);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .report-ppt-avatar-frame,
+  .report-ppt-weapon-image-frame,
+  .report-ppt-weapon-image,
+  .report-ppt-equipment-icon,
+  .report-ppt-axis-label,
+  .report-ppt-axis-button-orb
+)::after {
+  color: var(--theme-text-muted);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-toolbar span {
+  color: var(--theme-text-muted);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-skill-levels span {
+  color: var(--theme-text-body);
+  border-color: var(--theme-line-soft);
+  background: var(--theme-fill-subtle);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .report-ppt-equipment-icons > strong,
+  .report-ppt-equipment-icon span,
+  .report-ppt-equipment-set-name,
+  .report-ppt-legend-row em
+) {
+  color: var(--theme-text-muted);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-equipment-set-name,
+:root[data-theme="apple-midnight"] .report-ppt-chart-total {
+  border-color: var(--theme-line-regular);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-level-capsule i {
+  border-color: var(--theme-graphic-line);
+  background: #35363c;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-level-capsule i.is-active {
+  border-color: #64d2ff;
+  background: var(--theme-accent-main);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-axis-label img {
+  border-color: var(--theme-line-regular);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-axis-track {
+  border-color: var(--theme-line-soft);
+  background:
+    repeating-linear-gradient(
+      to right,
+      transparent 0,
+      transparent calc(100% / 7 - 1px),
+      var(--theme-line-soft) calc(100% / 7 - 1px),
+      var(--theme-line-soft) calc(100% / 7)
+    );
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-axis-button-body {
+  color: var(--theme-text-title);
+  border-color: var(--theme-graphic-line);
+  background: var(--theme-control-bg);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-axis-button-orb {
+  color: var(--theme-text-title);
+  border-color: var(--theme-graphic-line);
+  background: color-mix(
+    in srgb,
+    var(--skill-button-element-color, var(--theme-control-bg)) 68%,
+    var(--theme-control-bg)
+  );
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-petal-base {
+  fill: var(--theme-fill-subtle);
+  stroke: var(--theme-line-regular);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-petal-value {
+  stroke: var(--theme-surface-regular);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-petal-hub {
+  fill: var(--theme-surface-solid);
+  stroke: var(--theme-line-regular);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-petal-label {
+  fill: var(--theme-text-title);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-petal-label.is-on-value {
+  fill: #111111;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-share-color.is-segment-0 {
+  color: #f5f5f7;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-share-color.is-segment-1 {
+  color: #8e8e93;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-share-color.is-segment-2 {
+  color: #5a5a60;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-share-color.is-segment-3 {
+  color: #35363c;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-share-color.is-segment-4 {
+  color: #73737a;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-legend-row:nth-child(1) span {
+  background: #f5f5f7 !important;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-legend-row:nth-child(2) span {
+  background: #8e8e93 !important;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-legend-row:nth-child(3) span {
+  background: #5a5a60 !important;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-legend-row:nth-child(4) span {
+  background: #35363c !important;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-line path:first-of-type {
+  stroke: var(--theme-line-strong) !important;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-line path:last-of-type {
+  stroke: #e5e5ea !important;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-line circle {
+  fill: var(--theme-surface-regular) !important;
+  stroke: var(--theme-accent-bright) !important;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-line-label {
+  fill: var(--theme-text-muted);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-empty-chart {
+  color: var(--theme-text-muted);
+  border-color: var(--theme-line-regular);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .report-ppt-avatar,
+  .report-ppt-weapon-image img,
+  .report-ppt-equipment-icon img,
+  .report-ppt-axis-label img
+) {
+  filter: none !important;
+  opacity: 1;
+  mix-blend-mode: normal;
+}
+
+/*
+ * Apple Midnight — immersive timeline shell
+ *
+ * The approved direction keeps the business geometry intact while replacing
+ * the legacy edge-to-edge tool panels with quiet, flat Liquid Glass groups.
+ * Surface fills intentionally use one colour per state: grid gradients remain
+ * only where they describe the timeline coordinate system.
+ */
+:root[data-theme="apple-midnight"] .workbench-frame:has(.canvas-board) {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 18px;
+  background: #101114;
+  box-shadow:
+    inset 0 0 0 7px rgba(255, 255, 255, 0.012),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .canvas-board,
+  .canvas-layout,
+  .canvas-left-zone,
+  .canvas-container,
+  .canvas-area
+) {
+  background-color: #101114;
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .skew-panel,
+  .skew-panel-bottom
+) {
+  display: none;
+}
+
+:root[data-theme="apple-midnight"] .canvas-left-top-spacer {
+  align-self: flex-end;
+  flex-basis: 38px;
+  width: calc(100% - 88px);
+  height: 38px;
+  margin-right: 0;
+  margin-bottom: 26px;
+  margin-left: auto;
+  border: 1px solid var(--theme-line-regular);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.018);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+:root[data-theme="apple-midnight"] .canvas-grid-group {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  outline: 1px solid rgba(255, 255, 255, 0.045);
+  outline-offset: -2px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.01);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.018);
+  overflow: hidden;
+}
+
+:root[data-theme="apple-midnight"] .canvas-staff-line {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme="apple-midnight"] .canvas-right-zone.is-skill-sandbox {
+  top: 8px;
+  right: 8px;
+  bottom: 72px;
+  width: 300px;
+  min-width: 300px;
+  max-width: 300px;
+  height: auto;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 16px;
+  background: rgba(23, 24, 28, 0.94);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 18px 44px rgba(0, 0, 0, 0.22);
+  -webkit-backdrop-filter: blur(24px) saturate(1.04);
+  backdrop-filter: blur(24px) saturate(1.04);
+}
+
+:root[data-theme="apple-midnight"] .canvas-right-zone.is-skill-sandbox .skill-sandbox {
+  height: 100%;
+  padding: 10px 11px;
+  border-radius: 15px;
+  background: transparent;
+}
+
+:root[data-theme="apple-midnight"] .canvas-right-zone.is-skill-sandbox .sandbox-characters {
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 8px;
+}
+
+:root[data-theme="apple-midnight"] .sandbox-characters::before {
+  flex-basis: 36px;
+  height: 36px;
+  border: 1px solid var(--theme-line-regular);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.018);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+:root[data-theme="apple-midnight"] .sandbox-characters-extra-spacer {
+  flex-basis: 40px;
+  height: 40px;
+  gap: 6px;
+  padding: 5px 7px;
+  border: 1px solid var(--theme-line-regular);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.028);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+:root[data-theme="apple-midnight"] .sandbox-reserved-action {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--theme-text-body);
+  box-shadow: none;
+}
+
+:root[data-theme="apple-midnight"] .sandbox-reserved-action:hover:not(:disabled) {
+  border: 0;
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--theme-text-title);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .sandbox-reserved-action--inspect.is-active,
+  .sandbox-reserved-action--browse.is-active,
+  .sandbox-reserved-action--refresh.is-loading,
+  .sandbox-reserved-action--refresh.is-loading:disabled
+) {
+  border: 0;
+  background: var(--theme-accent-main);
+  color: var(--theme-text-on-accent);
+}
+
+:root[data-theme="apple-midnight"] .sandbox-character {
+  min-height: 62px;
+  border: 1px solid var(--theme-line-regular);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.032);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 8px 22px rgba(0, 0, 0, 0.13);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .sandbox-character--hoverable:hover,
+  .sandbox-character--hoverable:focus-within
+) {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 10px 24px rgba(0, 0, 0, 0.16);
+}
+
+:root[data-theme="apple-midnight"] .sandbox-character-header {
+  min-height: 60px;
+  gap: 9px;
+  padding: 8px 9px;
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .sandbox-avatar,
+  .sandbox-avatar-preview-anchor
+) {
+  width: 40px;
+  height: 40px;
+}
+
+:root[data-theme="apple-midnight"] .sandbox-avatar {
+  border-radius: 9px;
+  box-shadow: inset 0 0 0 1px var(--theme-graphic-line);
+}
+
+:root[data-theme="apple-midnight"] .sandbox-character-name {
+  color: var(--theme-text-title);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+:root[data-theme="apple-midnight"] .sandbox-character-count {
+  color: var(--theme-text-muted);
+  font-size: 10px;
+}
+
+:root[data-theme="apple-midnight"] .sandbox-expand-indicator {
+  width: 24px;
+  height: 24px;
+  border-color: var(--theme-line-regular);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--theme-text-title);
+}
+
+:root[data-theme="apple-midnight"] .canvas-bottom-zone {
+  right: 8px;
+  bottom: 8px;
+  left: 8px;
+  width: auto;
+  height: 44px;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 16px;
+  background: rgba(24, 25, 29, 0.94);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 14px 34px rgba(0, 0, 0, 0.24);
+  -webkit-backdrop-filter: blur(24px) saturate(1.04);
+  backdrop-filter: blur(24px) saturate(1.04);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .canvas-bottom-zone-left,
+  .canvas-bottom-zone-center,
+  .canvas-bottom-zone-right,
+  .toolbar
+) {
+  height: 32px;
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .toolbar,
+  .toolbar-right,
+  .workbench-bottom-actions
+) {
+  gap: 5px;
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .btn-back,
+  .btn-save,
+  .btn-calculate,
+  .workbench-top-trigger
+) {
+  min-height: 32px;
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--theme-line-regular);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--theme-text-body);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  line-height: 30px;
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .btn-back,
+  .btn-save,
+  .btn-calculate,
+  .workbench-top-trigger
+):hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--theme-text-title);
+}
+
+:root[data-theme="apple-midnight"] .staff-group-controls {
+  height: 32px;
+  gap: 0;
+  padding: 0 2px;
+  border: 1px solid var(--theme-line-regular);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+:root[data-theme="apple-midnight"] .staff-group-count {
+  min-width: 54px;
+  height: 30px;
+  color: var(--theme-text-title);
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .staff-group-controls .btn-add-group,
+  .staff-group-controls .btn-remove-group
+) {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  flex-basis: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
+  line-height: 28px;
+}
+
+:root[data-theme="apple-midnight"] :is(
+  .staff-group-controls .btn-add-group,
+  .staff-group-controls .btn-remove-group
+):hover:not(:disabled) {
+  border: 0;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+:root[data-theme="apple-midnight"] .workbench-bottom-actions .workbench-bottom-nav-button.is-active {
+  border-color: rgba(64, 156, 255, 0.72) !important;
+  background: rgba(10, 132, 255, 0.14) !important;
+  color: var(--theme-accent-bright) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 1px rgba(10, 132, 255, 0.08) !important;
+}
+
+:root[data-theme="apple-midnight"] .web-shell-menu-button {
+  width: 52px;
+  height: 52px;
+  border-color: rgba(255, 255, 255, 0.32);
+  border-radius: 15px;
+  background: rgba(31, 32, 37, 0.94);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 10px 24px rgba(0, 0, 0, 0.28);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+
+/*
+ * Apple Midnight — operator configuration
+ *
+ * Configuration state is deliberately monochrome: the same state gets the
+ * same luminance treatment in equipment, skills, character and weapon tracks.
+ * Source artwork keeps its native colour.
+ */
+:root[data-theme="apple-midnight"] .operator-config-page-root {
+  --operator-config-ink: #f5f5f7;
+  --operator-config-muted: #98989f;
+  --operator-config-line: rgba(255, 255, 255, 0.28);
+  --operator-config-line-soft: rgba(255, 255, 255, 0.1);
+  --operator-config-blue: #f5f5f7;
+  --operator-config-blue-soft: rgba(255, 255, 255, 0.14);
+  --operator-config-paper: #17181b;
+  --operator-config-paper-blue: #141518;
+  --operator-config-page-panel-bg: #0b0c0e;
+  --operator-config-mono-white: #f5f5f7;
+  --operator-config-mono-silver: #c7c7cc;
+  --operator-config-mono-muted: #8e8e93;
+  --operator-config-mono-surface: #17181b;
+  --operator-config-mono-control: #1d1e22;
+  --operator-config-mono-recessed: #111214;
+  --operator-config-mono-line-soft: rgba(255, 255, 255, 0.1);
+  --operator-config-mono-line: rgba(255, 255, 255, 0.3);
+  --operator-config-mono-line-strong: rgba(255, 255, 255, 0.82);
+  color: var(--operator-config-mono-silver);
+  background: #0b0c0e;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .operator-config-page-panel {
+  border: 1px solid var(--operator-config-mono-line);
+  background: rgba(17, 18, 21, 0.98);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .config-panel-header,
+  .operator-config-page-equip-visual-top,
+  .operator-config-page-equip-visual-bottom
+) {
+  border-color: var(--operator-config-mono-line-soft);
+  background: #131417;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .operator-config-page-section,
+  .config-data-section,
+  .config-skill-card,
+  .config-equip-values-box,
+  .config-equip-set-box,
+  .config-equip-set-sub-box,
+  .config-cti-strip,
+  .config-weapon-potential-box,
+  .config-weapon-drawer,
+  .config-weapon-data-drawer,
+  .config-cti-drawer,
+  .config-weapon-config
+) {
+  color: var(--operator-config-mono-silver);
+  border-color: var(--operator-config-mono-line-soft);
+  background: var(--operator-config-mono-surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .config-weapon-choose-showcase,
+  .operator-config-page-weapon-star-showcase,
+  .config-weapon-choose-detail-textarea,
+  .config-weapon-choose-img-area,
+  .config-weapon-choose-img-square,
+  .operator-config-page-role-meta-box,
+  .operator-config-page-equip-button-textdiv,
+  .operator-config-page-equip-circle,
+  .operator-config-page-equip-tooltip
+) {
+  color: var(--operator-config-mono-silver);
+  border-color: var(--operator-config-mono-line);
+  background: var(--operator-config-mono-control);
+  box-shadow: none;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .operator-config-page-equip-visual-top::after {
+  border: 1px dashed var(--operator-config-mono-line);
+  background: transparent;
+  box-shadow: none;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .operator-config-page-section-title,
+  .config-data-title,
+  .config-equip-box-title,
+  .config-data-value,
+  .config-skill-key,
+  .config-skill-name,
+  .config-talent-name,
+  .operator-config-page-track-key,
+  .operator-config-page-track-label,
+  .operator-config-page-stat-value,
+  .operator-config-page-role-meta-box,
+  .operator-config-page-favor-label,
+  .config-weapon-choose-name,
+  .config-weapon-config-value,
+  .operator-config-page-equip-set-title
+) {
+  color: var(--operator-config-mono-white);
+  text-shadow: none;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .config-data-label,
+  .config-equip-item-label,
+  .config-talent-desc,
+  .config-weapon-choose-detail,
+  .config-weapon-config-summary,
+  .config-weapon-config-summary-line,
+  .operator-config-page-track-sublabel,
+  .operator-config-page-stat-label,
+  .operator-config-page-equip-set-empty
+) {
+  color: var(--operator-config-mono-muted);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .config-panel-back-btn,
+  .config-equip-sync-btn,
+  .config-equip-copy-btn,
+  .config-weapon-trigger,
+  .config-weapon-data-trigger,
+  .config-cti-input,
+  .config-weapon-option,
+  .operator-config-page-track-detail-button,
+  .operator-config-page-dot-detail-button
+) {
+  color: var(--operator-config-mono-silver);
+  border-color: var(--operator-config-mono-line);
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .config-panel-back-btn,
+  .config-equip-sync-btn,
+  .config-equip-copy-btn,
+  .config-weapon-trigger,
+  .config-weapon-data-trigger,
+  .config-weapon-option,
+  .operator-config-page-track-detail-button,
+  .operator-config-page-dot-detail-button
+):hover,
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .config-equip-copy-btn,
+  .config-weapon-trigger,
+  .config-weapon-data-trigger,
+  .config-weapon-option
+).is-open,
+:root[data-theme="apple-midnight"] .operator-config-page-root .config-weapon-option.is-selected {
+  color: var(--operator-config-mono-white);
+  border-color: var(--operator-config-mono-line-strong);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Main and secondary attributes share one colour; hierarchy comes from weight. */
+:root[data-theme="apple-midnight"] .operator-config-page-root .operator-config-page-stat-item {
+  box-sizing: border-box;
+  color: var(--operator-config-mono-silver);
+  border: 1px solid var(--operator-config-mono-line-soft);
+  background: var(--operator-config-mono-control);
+  box-shadow: none;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .operator-config-page-stat-item.is-main,
+  .config-data-item.is-main
+) {
+  border: 2px solid var(--operator-config-mono-line-strong) !important;
+  background: var(--operator-config-mono-control) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .operator-config-page-stat-item.is-sub,
+  .config-data-item.is-sub
+) {
+  border: 1px solid rgba(255, 255, 255, 0.42) !important;
+  background: var(--operator-config-mono-control) !important;
+  box-shadow: none;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .operator-config-page-favor-input-layer {
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--operator-config-mono-line-soft);
+  background: var(--operator-config-mono-recessed);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .operator-config-page-favor-row {
+  min-height: 20px;
+  padding: 1px 3px;
+  box-sizing: border-box;
+  border-radius: 6px;
+  background: var(--operator-config-mono-control);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .operator-config-page-favor-row:first-child {
+  border: 2px solid var(--operator-config-mono-line-strong);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .operator-config-page-favor-row:last-child {
+  border: 1px solid rgba(255, 255, 255, 0.42);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .operator-config-page-favor-input {
+  color: var(--operator-config-mono-white);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/*
+ * Shared state grammar:
+ * dim = recessed, lit = clear outline, current/active = solid white.
+ */
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .config-weapon-config-button-row,
+  .operator-config-page-equip-button-row
+) {
+  border-color: var(--operator-config-mono-line);
+  background: var(--operator-config-mono-recessed);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .config-weapon-config-button,
+  .operator-config-page-equip-button,
+  .operator-config-page-level-slot,
+  .operator-config-page-track-slot
+) {
+  border-color: var(--operator-config-mono-line);
+  background: var(--operator-config-mono-recessed);
+  box-shadow: none;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .config-weapon-config-button,
+  .operator-config-page-equip-button
+).is-dim {
+  border-color: var(--operator-config-mono-line-soft);
+  background: #0d0e10;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .config-weapon-config-button,
+  .operator-config-page-equip-button
+).is-lit {
+  border-color: var(--operator-config-mono-line-strong);
+  background: rgba(255, 255, 255, 0.16);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .config-weapon-config-button,
+  .operator-config-page-equip-button
+).is-current {
+  border-color: #ffffff;
+  background: var(--operator-config-mono-white);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .config-weapon-config-button.is-potential-derived:not(.is-current) {
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.22);
+  background: #0d0e10;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .operator-config-page-level-slot,
+  .operator-config-page-track-slot
+).is-active {
+  border-color: #ffffff;
+  background: var(--operator-config-mono-white);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 2px 8px rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .operator-config-page-level-slot.is-disabled {
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.24);
+  background: #0d0e10;
+  opacity: 0.72;
+}
+
+/* Keep SVG geometry; only replace the legacy blue/yellow material colours. */
+:root[data-theme="apple-midnight"] .operator-config-page-root .operator-config-page-track-hex-svg g {
+  filter: none !important;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .operator-config-page-track-hex-svg polygon {
+  fill: var(--operator-config-mono-recessed) !important;
+  stroke: rgba(255, 255, 255, 0.42) !important;
+  stroke-width: 1;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .operator-config-page-track-badge-btn.is-active .operator-config-page-track-hex-svg polygon {
+  fill: var(--operator-config-mono-white) !important;
+  stroke: #ffffff !important;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .operator-config-page-level-badge-box,
+  .operator-config-page-weapon-star-square-box
+) {
+  border-color: var(--operator-config-mono-line);
+  background: var(--operator-config-mono-recessed);
+  box-shadow: none;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .operator-config-page-level-badge-box,
+  .operator-config-page-weapon-star-square-box
+):hover {
+  border-color: var(--operator-config-mono-line-strong);
+  background: var(--operator-config-mono-control) !important;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .operator-config-page-level-badge-svg,
+  .operator-config-page-weapon-star-svg
+) polygon {
+  stroke: rgba(255, 255, 255, 0.36);
+  stroke-width: 0.75;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .operator-config-page-level-badge-svg,
+  .operator-config-page-weapon-star-svg
+) polygon[fill="#FFF000"] {
+  fill: #ffffff !important;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .operator-config-page-level-badge-svg,
+  .operator-config-page-weapon-star-svg
+) polygon[fill="#FFFFFF"] {
+  fill: var(--operator-config-mono-white) !important;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .operator-config-page-level-badge-svg,
+  .operator-config-page-weapon-star-svg
+) polygon[fill="#C7C7C7"] {
+  fill: #36373c !important;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .operator-config-page-level-badge-svg,
+  .operator-config-page-weapon-star-svg
+) polygon[fill="#FFF59D"] {
+  fill: #26272c !important;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .operator-config-page-level-badge-box.is-max,
+  .operator-config-page-weapon-star-square-box.is-max
+) polygon {
+  filter:
+    drop-shadow(0 0 2px rgba(255, 255, 255, 0.78))
+    drop-shadow(0 0 8px rgba(255, 255, 255, 0.2)) !important;
+}
+
+/* Character selector: native-colour portraits inside a neutral selection ring. */
+:root[data-theme="apple-midnight"] .operator-config-page-root .config-side-rail {
+  --config-indicator-color: transparent;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .config-avatar-strip {
+  padding: 10px 8px;
+  border: 1px solid var(--operator-config-mono-line-soft);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 12px 30px rgba(0, 0, 0, 0.18);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .config-avatar-item {
+  isolation: isolate;
+  overflow: visible !important;
+  background: transparent;
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .config-avatar-image {
+  position: relative;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  filter: none !important;
+  opacity: 1;
+  mix-blend-mode: normal;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .config-avatar-item:hover .config-avatar-image {
+  border-color: rgba(255, 255, 255, 0.62);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .config-avatar-item.is-active .config-avatar-image {
+  border: 2px solid #ffffff;
+  box-shadow:
+    0 0 0 3px #15161a,
+    0 0 0 4px rgba(255, 255, 255, 0.72),
+    0 7px 18px rgba(0, 0, 0, 0.32);
+}
+
+:root[data-theme="apple-midnight"] .operator-config-page-root .config-avatar-item.is-active::after {
+  content: "";
+  left: 50%;
+  top: 50%;
+  width: calc(100% + 16px);
+  height: calc(100% + 16px);
+  z-index: 0;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 50% !important;
+  background: transparent;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
+
+/* Never colour-grade operator, weapon or equipment artwork. */
+:root[data-theme="apple-midnight"] .operator-config-page-root :where(
+  .config-avatar-image,
+  .config-weapon-choose-img,
+  .operator-config-page-equip-circle img,
+  .operator-config-page-picker-option-image
+) {
+  filter: none !important;
+  opacity: 1;
+  mix-blend-mode: normal;
+}
+
+/*
+ * Apple Midnight — secondary surface synchronization.
+ *
+ * The timeline workbench supplies the quiet glass hierarchy; operator
+ * configuration supplies the monochrome state grammar:
+ * recessed -> white outline -> solid white.  Keep native artwork and true
+ * success/danger feedback in colour, but never spend colour on routine UI.
+ */
+:root[data-theme="apple-midnight"] {
+  --midnight-state-solid: #f5f5f7;
+  --midnight-state-on-solid: #17181b;
+  --midnight-state-line-strong: rgba(255, 255, 255, 0.82);
+  --midnight-state-line: rgba(255, 255, 255, 0.42);
+  --midnight-state-line-soft: rgba(255, 255, 255, 0.16);
+  --midnight-state-fill: rgba(255, 255, 255, 0.1);
+  --midnight-state-fill-hover: rgba(255, 255, 255, 0.07);
+}
+
+/* Start, data and settings: monochrome chrome around content that stays real. */
+:root[data-theme="apple-midnight"] :where(
+  .dashboard-kicker,
+  .section-heading p,
+  .settings-section-heading p,
+  .data-library-inspector > p
+) {
+  color: #c7c7cc;
+}
+
+:root[data-theme="apple-midnight"] .dashboard-primary-button {
+  color: var(--midnight-state-on-solid);
+  border-color: var(--midnight-state-solid);
+  background: var(--midnight-state-solid);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18),
+    0 8px 22px rgba(0, 0, 0, 0.22);
+}
+
+:root[data-theme="apple-midnight"] .dashboard-primary-button:hover:not(:disabled) {
+  color: #000000;
+  border-color: #ffffff;
+  background: #ffffff;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.24),
+    0 10px 26px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-theme="apple-midnight"] .dashboard-primary-button:active:not(:disabled) {
+  color: #0f1012;
+  background: #dedee3;
+}
+
+:root[data-theme="apple-midnight"] .signal-halo {
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow:
+    0 0 0 18px rgba(255, 255, 255, 0.026),
+    0 0 0 36px rgba(255, 255, 255, 0.012);
+}
+
+:root[data-theme="apple-midnight"] .workflow-grid > button .workflow-icon,
+:root[data-theme="apple-midnight"] .workflow-grid > button:nth-child(n) .workflow-icon,
+:root[data-theme="apple-midnight"] .data-tool-index {
+  color: #d1d1d6;
+  border-color: var(--midnight-state-line-soft);
+  background: rgba(255, 255, 255, 0.065);
+}
+
+:root[data-theme="apple-midnight"] :where(
+  .workflow-grid > button,
+  .data-tool-card
+):hover:not(:disabled) :where(
+  .workflow-icon,
+  .data-tool-index
+) {
+  color: #ffffff;
+  border-color: var(--midnight-state-line);
+  background: var(--midnight-state-fill);
+}
+
+:root[data-theme="apple-midnight"] .data-library-list > button.is-selected,
+:root[data-theme="apple-midnight"] .theme-option.is-selected {
+  color: var(--theme-text-title);
+  border: 1px solid var(--midnight-state-line-strong);
+  background: var(--midnight-state-fill);
+  box-shadow:
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.08),
+    0 10px 24px rgba(0, 0, 0, 0.16);
+}
+
+:root[data-theme="apple-midnight"] .theme-option.is-selected .theme-option-check {
+  color: var(--midnight-state-on-solid);
+  border-color: var(--midnight-state-solid);
+  background: var(--midnight-state-solid);
+}
+
+/*
+ * Theme swatches are content, not chrome.  Never flatten the preview palette
+ * or colour-grade package/operator/weapon/equipment imagery.
+ */
+:root[data-theme="apple-midnight"] :where(
+  .theme-option-preview,
+  .data-package-icon img,
+  .selection-character-avatar-image,
+  .operator-draft-avatar,
+  .operator-draft-skill-icon,
+  .operator-draft-skill-hero-icon,
+  .weapon-sheet-image-option-thumb img,
+  .image-manager-grid-thumb img,
+  .image-manager-preview-image img,
+  .report-ppt-avatar-frame img,
+  .report-ppt-weapon-image img,
+  .report-ppt-equipment-icon img
+) {
+  filter: none !important;
+  opacity: 1;
+  mix-blend-mode: normal;
+}
+
+/* Team selection: the selected rounded card uses its whole perimeter. */
+:root[data-theme="apple-midnight"] .selection-confirm-button {
+  color: var(--midnight-state-on-solid);
+  border-color: var(--midnight-state-solid);
+  background: var(--midnight-state-solid);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
+}
+
+:root[data-theme="apple-midnight"] .selection-confirm-button:hover:not(:disabled) {
+  color: #000000;
+  border-color: #ffffff;
+  background: #ffffff;
+}
+
+:root[data-theme="apple-midnight"] .selection-character-card.is-selected {
+  color: var(--theme-text-title);
+  border: 1px solid var(--midnight-state-line-strong);
+  border-left-width: 1px;
+  background: var(--midnight-state-fill);
+  box-shadow:
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.08),
+    0 8px 22px rgba(0, 0, 0, 0.14);
+}
+
+:root[data-theme="apple-midnight"] .selection-character-card.is-selected .selection-character-avatar {
+  border-color: var(--midnight-state-line-strong);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+}
+
+/* Batch Buff: ordinary mode/selection is neutral; add/remove keeps meaning. */
+:root[data-theme="apple-midnight"] .buff-edit-selection-counter {
+  color: var(--midnight-state-on-solid);
+  border-color: var(--midnight-state-solid);
+  background: var(--midnight-state-solid);
+}
+
+:root[data-theme="apple-midnight"] :where(
+  .buff-edit-secondary-button.is-active,
+  .buff-edit-box-select-button.is-active,
+  .buff-edit-filter-button.is-active,
+  .buff-edit-mode-button.is-active,
+  .buff-batch-edit-workbench .skill-button-inline-buff-search-mode.is-active,
+  .buff-batch-edit-workbench .anomaly-strip-button.is-active,
+  .buff-batch-edit-workbench .anomaly-chip.is-active,
+  .buff-editor-drawer-levels button.is-active
+) {
+  color: var(--theme-text-title);
+  border-color: var(--midnight-state-line-strong);
+  background: var(--midnight-state-fill);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.09);
+}
+
+:root[data-theme="apple-midnight"] .buff-edit-buff-card.is-selected {
+  color: var(--theme-text-title);
+  border: 1px solid var(--midnight-state-line-strong);
+  border-left-width: 1px;
+  background: var(--midnight-state-fill);
+  box-shadow: none;
+}
+
+:root[data-theme="apple-midnight"] .buff-edit-buff-card.is-selected.is-add-intent {
+  border: 1px solid color-mix(in srgb, var(--theme-success) 72%, white);
+  border-left-width: 1px;
+  background: var(--theme-success-soft);
+}
+
+:root[data-theme="apple-midnight"] .buff-edit-buff-card.is-selected.is-remove-intent {
+  border: 1px solid color-mix(in srgb, var(--theme-danger) 74%, white);
+  border-left-width: 1px;
+  background: var(--theme-danger-soft);
+}
+
+:root[data-theme="apple-midnight"] .buff-batch-edit-workbench .canvas-skill-button.selected :where(
+  .skill-button-base,
+  .skill-button-orb
+) {
+  border-color: #ffffff;
+  box-shadow:
+    0 0 0 2px #16171a,
+    0 0 0 3px rgba(255, 255, 255, 0.76);
+}
+
+:root[data-theme="apple-midnight"] .buff-editor-drawer footer button:not(.is-danger) {
+  color: var(--midnight-state-on-solid);
+  border-color: var(--midnight-state-solid);
+  background: var(--midnight-state-solid);
+}
+
+/* Skill detail: no blue rail on a rounded row; SVG nodes use the same state. */
+:root[data-theme="apple-midnight"] :where(
+  .timeline-detail-heading button.is-active,
+  .timeline-detail-expand-all-button.is-active,
+  .timeline-tuning-list button.is-active,
+  .timeline-tuning-inline-actions button.is-active
+) {
+  color: var(--theme-text-title);
+  border-color: var(--midnight-state-line-strong);
+  background: var(--midnight-state-fill);
+}
+
+:root[data-theme="apple-midnight"] .timeline-detail-hit.is-selected {
+  color: var(--theme-text-title);
+  border: 1px solid var(--midnight-state-line-strong);
+  border-left-width: 1px;
+  background: var(--midnight-state-fill);
+  box-shadow: none;
+}
+
+:root[data-theme="apple-midnight"] .timeline-calculation-zone-node.is-selected rect {
+  fill: rgba(255, 255, 255, 0.12);
+  stroke: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme="apple-midnight"] .timeline-calculation-zone-node.is-selected :where(
+  .zone-node-label,
+  .zone-node-value,
+  .zone-node-order
+) {
+  fill: #ffffff;
+}
+
+/* Shared skill/Buff dialogs inherit the same rounded-card selection grammar. */
+:root[data-theme="apple-midnight"] :where(
+  .lock-control.is-locked,
+  .anomaly-category-tab.is-active,
+  .anomaly-strip-button.is-active,
+  .anomaly-item-button.is-active,
+  .anomaly-chip.is-active,
+  .skill-button-inline-buff-search-mode.is-active,
+  .operator-buff-character-filter.is-active,
+  .operator-buff-group-filters button.is-active
+) {
+  color: var(--theme-text-title);
+  border-color: var(--midnight-state-line-strong);
+  background: var(--midnight-state-fill);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="apple-midnight"] :where(
+  .buff-tag-selectable.is-selected
+) {
+  color: var(--theme-text-title);
+  border: 1px solid var(--midnight-state-line-strong);
+  border-left-width: 1px;
+  background: var(--midnight-state-fill);
+  box-shadow: none;
+}
+
+/* Dense data editors: white perimeter for selection, white fill for commit. */
+:root[data-theme="apple-midnight"] .operator-draft-page :where(
+  .operator-draft-skill-item.is-active,
+  .operator-draft-hit-item.is-active,
+  .operator-draft-buff-item.is-active,
+  .operator-draft-local-library-item.is-active,
+  .operator-draft-searchable-option.is-active,
+  .operator-draft-skill-filter.is-active,
+  .operator-draft-buff-tab.is-active,
+  .operator-draft-share-tab.is-active,
+  .operator-draft-history-footer .operator-draft-ghost-button.is-active
+) {
+  color: var(--theme-text-title);
+  border-color: var(--midnight-state-line-strong);
+  background: var(--midnight-state-fill);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="apple-midnight"] .operator-draft-page :where(
+  .operator-draft-run-button,
+  .operator-draft-copy-button:not(.operator-draft-danger-button)
+) {
+  color: var(--midnight-state-on-solid);
+  border-color: var(--midnight-state-solid);
+  background: var(--midnight-state-solid);
+}
+
+:root[data-theme="apple-midnight"] :where(
+  .buff-sheet-explorer-row.is-active,
+  .buff-sheet-explorer-child.is-active,
+  .buff-sheet-explorer-effect.is-active,
+  .weapon-sheet-image-option.is-active,
+  .weapon-sheet-growth-inline-item.is-active,
+  .buff-sheet-tool-button.is-active,
+  .buff-sheet-share-modal-tab.is-active
+) {
+  color: var(--theme-text-title);
+  border-color: var(--midnight-state-line-strong);
+  background: var(--midnight-state-fill);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="apple-midnight"] .weapon-sheet-growth-inline-item.is-active::after {
+  background: var(--midnight-state-solid);
+}
+
+:root[data-theme="apple-midnight"] .buff-sheet-share-action.is-primary {
+  color: var(--midnight-state-on-solid);
+  border-color: var(--midnight-state-solid);
+  background: var(--midnight-state-solid);
+}
+
+:root[data-theme="apple-midnight"] .damage-sheet-excel-cell.is-active {
+  color: var(--theme-text-title);
+  background: rgba(255, 255, 255, 0.095);
+  box-shadow: inset 0 0 0 2px var(--midnight-state-line-strong);
+}
+
+:root[data-theme="apple-midnight"] .damage-sheet-formula-label {
+  color: #c7c7cc;
+}
+
+:root[data-theme="apple-midnight"] .damage-sheet-excel-row.is-character .damage-sheet-excel-cell {
+  color: var(--theme-text-title);
+  background: rgba(255, 255, 255, 0.075);
+}
+
+:root[data-theme="apple-midnight"] :where(
+  .damage-sheet-excel-cell.is-buff-linked,
+  .damage-sheet-excel-cell.is-buff-linked-muted
+)::before {
+  border-color: var(--midnight-state-line);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="apple-midnight"] .weapon-sheet-page .damage-sheet-excel-row.weapon-sheet-row-skill :where(
+  .damage-sheet-excel-row-number,
+  .damage-sheet-excel-cell
+) {
+  color: var(--theme-text-title);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+:root[data-theme="apple-midnight"] .image-manager-asset-table tr.is-selected td {
+  color: var(--theme-text-title);
+  border-color: var(--midnight-state-line);
+  background: rgba(255, 255, 255, 0.095);
+}
+
+:root[data-theme="apple-midnight"] .image-manager-grid-item.is-selected {
+  color: var(--theme-text-title);
+  border: 1px solid var(--midnight-state-line-strong);
+  background: var(--midnight-state-fill);
+  box-shadow:
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.08),
+    0 8px 22px rgba(0, 0, 0, 0.15);
+}
+
+/* PPT/report output mirrors the operator configuration state hierarchy. */
+:root[data-theme="apple-midnight"] .report-ppt-potential-star-wrap::before {
+  background: rgba(255, 255, 255, 0.075);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-potential-star polygon[fill="#FFF000"] {
+  fill: #f5f5f7 !important;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-potential-star polygon[fill="#FFFFFF"] {
+  fill: #c7c7cc !important;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-potential-star polygon[fill="#C7C7C7"] {
+  fill: #45464d !important;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-potential-star-wrap.is-max polygon {
+  filter:
+    drop-shadow(0 0 2px rgba(255, 255, 255, 0.78))
+    drop-shadow(0 0 7px rgba(255, 255, 255, 0.24)) !important;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-level-capsule i {
+  border-color: var(--midnight-state-line-soft);
+  background: #303137;
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-level-capsule i.is-active {
+  border-color: #ffffff;
+  background: #f5f5f7;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="apple-midnight"] .report-ppt-line circle {
+  fill: #1b1c20 !important;
+  stroke: #f5f5f7 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:is([data-theme="apple-midnight"], [data-theme="apple-warm"], [data-theme="lieflat-mono"], [data-theme="liquid-tide"]) :where(
+    .skill-button-inline-buff-search-mask,
+    .timeline-detail-layer,
+    .buff-editor-drawer-mask
+  ) {
+    backdrop-filter: none;
+  }
+}
+
+/* ── RDPS 图 3 / 图 4（apple-midnight 等 apple 主题） ─────────────────────── */
+:root[data-theme="apple-midnight"] :is(.rdps-overview-panel h3, .rdps-overview-legend, .rdps-overview-total, .rdps-overview-pie-fallback, .rdps-empty, .rdps-warn, .rdps-character-heading span, .rdps-domain-label, .rdps-domain-raw, .rdps-character-total) { color: var(--theme-text-body); }
+:root[data-theme="apple-midnight"] :is(.rdps-overview-panel h3 span, .rdps-overview-legend-row em, .rdps-overview-legend-row small) { color: var(--theme-text-muted); }
+:root[data-theme="apple-midnight"] .rdps-overview-pie-panel { border-right-color: var(--theme-line-regular); }
+:root[data-theme="apple-midnight"] .rdps-overview-total { color: var(--theme-text-title); border-top-color: var(--theme-line-regular); }
+:root[data-theme="apple-midnight"] .rdps-overview-pie .rdps-overview-series { stroke: var(--theme-surface-regular); }
+:root[data-theme="apple-midnight"] .rdps-overview-axis { stroke: var(--theme-line-regular); }
+:root[data-theme="apple-midnight"] .rdps-overview-bar { fill: var(--theme-accent, rgba(10, 132, 255, 0.82)); }
+:root[data-theme="apple-midnight"] .rdps-overview-bar-value { fill: var(--theme-text-title); }
+:root[data-theme="apple-midnight"] .rdps-overview-bar-label { fill: var(--theme-text-body); }
+:root[data-theme="apple-midnight"] .rdps-character-heading strong { color: var(--theme-text-title); }
+:root[data-theme="apple-midnight"] .rdps-character-card { border-color: var(--theme-line-regular); background: var(--theme-surface-regular); }
+:root[data-theme="apple-midnight"] .rdps-domain-bar-track { background: var(--theme-line-regular); }
+:root[data-theme="apple-midnight"] .rdps-domain-bar { background: var(--theme-accent, rgba(31, 90, 200, 0.75)); }

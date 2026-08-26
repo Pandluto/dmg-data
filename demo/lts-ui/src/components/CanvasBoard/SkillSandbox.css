@@ -571,7 +571,8 @@
   font-weight: 800;
 }
 
-.sandbox-timeline-module.is-forced-wait i {
+.sandbox-timeline-module.is-forced-wait i,
+.sandbox-timeline-module.is-lane-wait i {
   border-radius: 2px;
 }
 

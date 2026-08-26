@@ -2213,7 +2213,7 @@
   transform: translateY(-1px);
 }
 
-/* 等待是整列控制节点；行内的时间段负责拖拽、配置与删除。 */
+/* 只有强制等待拥有整列封组带；普通等待只渲染角色行内时间段。 */
 .canvas-forced-wait-control-column {
   position: absolute;
   top: 30px;
@@ -2269,6 +2269,16 @@
   --wait-segment-color: #424844;
   --wait-segment-fill: rgba(250, 250, 248, 0.97);
   --wait-segment-ink: #252a27;
+}
+
+.timeline-wait-segment.is-lane-wait {
+  --wait-segment-color: #2b6f92;
+  --wait-segment-fill: rgba(235, 247, 253, 0.96);
+  --wait-segment-ink: #174f6d;
+}
+
+.timeline-wait-segment.is-lane-wait.is-placeholder {
+  --wait-segment-fill: rgba(251, 253, 254, 0.97);
 }
 
 .timeline-wait-segment:hover,

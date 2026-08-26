@@ -31,8 +31,24 @@ export interface SkillReleaseAnchor {
   debounceFrames: number;
 }
 
-/** Global interaction tools are deliberately not ordinary combat skills. */
-export type TimelineModuleKind = 'forced-wait' | 'dodge' | 'perfect-dodge';
+/** Timeline controls are deliberately not ordinary combat skills. */
+export type TimelineModuleKind = 'lane-wait' | 'forced-wait' | 'dodge' | 'perfect-dodge';
+
+/**
+ * An ordinary wait belongs to one lane tail. A placeholder keeps a visible
+ * control without advancing combat time; a fixed wait delays only its
+ * successor chain while the shared combat clock continues normally.
+ */
+export type LaneWaitConfig =
+  | {
+    schemaVersion: 1;
+    mode: 'placeholder';
+  }
+  | {
+    schemaVersion: 1;
+    mode: 'fixed-duration';
+    durationSeconds: number;
+  };
 
 /**
  * Verified forced-wait modes. Fixed waits persist seconds so a save remains
@@ -190,6 +206,8 @@ export interface SandboxSkill {
   timelineModuleKind?: TimelineModuleKind;
   /** Default configuration copied into a newly placed forced-wait module. */
   forcedWaitConfig?: ForcedWaitConfig;
+  /** Default configuration copied into a newly placed ordinary lane wait. */
+  laneWaitConfig?: LaneWaitConfig;
   /** Global tools may be dropped onto any occupied operator lane. */
   dragScope?: 'character' | 'global';
 }
@@ -335,6 +353,8 @@ export interface SkillButton {
   timelineModuleKind?: TimelineModuleKind;
   /** Configuration for a verified forced-wait control column. */
   forcedWaitConfig?: ForcedWaitConfig;
+  /** Configuration for an ordinary wait on this lane only. */
+  laneWaitConfig?: LaneWaitConfig;
 }
 
 /**
@@ -464,6 +484,7 @@ export interface SkillButtonData {
   releaseAnchor?: SkillReleaseAnchor; // 技能真实起手的依赖锚点
   timelineModuleKind?: TimelineModuleKind; // 第五工具栏控制节点
   forcedWaitConfig?: ForcedWaitConfig; // 强制等待列配置
+  laneWaitConfig?: LaneWaitConfig; // 行内普通等待配置
 }
 
 /**

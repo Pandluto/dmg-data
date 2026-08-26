@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { Character, SkillButton } from '../../types';
 import { ForcedWaitConfigDialog } from './ForcedWaitConfigDialog';
+import { LaneWaitConfigDialog } from './LaneWaitConfigDialog';
 import { SkillSandbox } from './SkillSandbox';
 import { TimelineWaitContextMenu, TimelineWaitSegment } from './TimelineWaitSegment';
 
@@ -20,10 +21,11 @@ const html = renderToStaticMarkup(
 );
 
 assert.match(html, /第五站位/);
-assert.match(html, /封组等待/);
+assert.match(html, /强制等待/);
 assert.match(html, /普通等待/);
 assert.match(html, /极限闪避/);
-assert.match(html, /等待只吸附完整组边界/);
+assert.match(html, /普通等待接入单条尾链/);
+assert.match(html, /强制等待只吸附完整组边界/);
 assert.equal((html.match(/sandbox-timeline-module/g) ?? []).length, 4);
 
 const waitDialogHtml = renderToStaticMarkup(
@@ -34,10 +36,23 @@ const waitDialogHtml = renderToStaticMarkup(
     onConfirm={() => undefined}
   />,
 );
-assert.match(waitDialogHtml, /设置等待/);
-assert.match(waitDialogHtml, /普通等待/);
+assert.match(waitDialogHtml, /设置强制等待/);
+assert.match(waitDialogHtml, /固定时间/);
 assert.match(waitDialogHtml, /自然恢复共享技力/);
 assert.match(waitDialogHtml, /执行 60 帧/);
+
+const laneWaitDialogHtml = renderToStaticMarkup(
+  <LaneWaitConfigDialog
+    initialConfig={{ schemaVersion: 1, mode: 'fixed-duration', durationSeconds: 2 }}
+    tickRate={30}
+    onCancel={() => undefined}
+    onConfirm={() => undefined}
+  />,
+);
+assert.match(laneWaitDialogHtml, /设置普通等待/);
+assert.match(laneWaitDialogHtml, /只接入当前角色的尾链/);
+assert.match(laneWaitDialogHtml, /不封组/);
+assert.match(laneWaitDialogHtml, /执行 60 帧/);
 
 const waitSegmentHtml = renderToStaticMarkup(
   <TimelineWaitSegment
@@ -51,8 +66,8 @@ const waitSegmentHtml = renderToStaticMarkup(
       staffIndex: 0,
       lineIndex: 0,
       nodeIndex: 0,
-      timelineModuleKind: 'forced-wait',
-      forcedWaitConfig: {
+      timelineModuleKind: 'lane-wait',
+      laneWaitConfig: {
         schemaVersion: 1,
         mode: 'fixed-duration',
         durationSeconds: 1,
@@ -70,6 +85,8 @@ const waitSegmentHtml = renderToStaticMarkup(
   />,
 );
 assert.match(waitSegmentHtml, /timeline-wait-segment/);
+assert.match(waitSegmentHtml, /data-timeline-module="lane-wait"/);
+assert.match(waitSegmentHtml, /is-lane-wait/);
 assert.match(waitSegmentHtml, /timeline-wait-cursor is-start/);
 assert.match(waitSegmentHtml, /timeline-wait-cursor is-end/);
 assert.match(waitSegmentHtml, /1\.00秒/);

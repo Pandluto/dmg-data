@@ -352,6 +352,7 @@ function insertTimelineButton(payload: TimelineSnapshotPayload, buttonId: string
     releaseAnchor: tableButton.releaseAnchor,
     timelineModuleKind: tableButton.timelineModuleKind,
     forcedWaitConfig: tableButton.forcedWaitConfig,
+    laneWaitConfig: tableButton.laneWaitConfig,
     buffIds: [...getSelectedBuffIds(tableButton)],
   });
   staffLine.buttons.sort((left, right) => left.nodeIndex - right.nodeIndex);

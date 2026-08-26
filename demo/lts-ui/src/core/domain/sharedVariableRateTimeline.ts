@@ -30,6 +30,14 @@ export type TimelineLaneSpec = {
   actions: TimelineActionSpec[];
 };
 
+/** A lane-local ordinary wait. It never separates release groups. */
+export type TimelineLaneWaitSpec = {
+  id: string;
+  laneId: string;
+  startOffsetFrames: number;
+  durationFrames: number;
+};
+
 export type SealOnlyWaitColumnSpec = {
   id: string;
   mode: 'seal-only';
@@ -65,6 +73,7 @@ export type WaitColumnSpec =
 export type TimelineReleaseGroupSpec = {
   id: string;
   lanes: TimelineLaneSpec[];
+  laneWaits?: TimelineLaneWaitSpec[];
   /** Required for every group after the first. It is the explicit group seal. */
   separatorBefore?: WaitColumnSpec;
 };
@@ -100,6 +109,18 @@ export type ScheduledTimelineLane = {
   startFrame: number;
   endFrame: number;
   actionIds: string[];
+};
+
+export type ScheduledTimelineLaneWait = {
+  id: string;
+  groupId: string;
+  laneId: string;
+  startFrame: number;
+  endFrame: number;
+  durationFrames: number;
+  startX: number;
+  endX: number;
+  coveredColumnIds: string[];
 };
 
 export type ActivityTimelineColumn = {
@@ -223,6 +244,8 @@ export type SharedVariableRateTimelineModel = {
   width: number;
   groups: ScheduledReleaseGroup[];
   waits: WaitTimelineColumn[];
+  /** Ordinary waits stay inside a group and affect one lane successor only. */
+  laneWaits: ScheduledTimelineLaneWait[];
   columns: SharedTimelineColumn[];
   actions: ScheduledTimelineAction[];
   cohorts: ScheduledReleaseCohort[];
@@ -253,6 +276,7 @@ type PreliminaryGroup = Omit<
   'xStart' | 'xEnd' | 'columnIds'
 > & {
   actions: PreliminaryAction[];
+  laneWaits: Array<Omit<ScheduledTimelineLaneWait, 'startX' | 'endX' | 'coveredColumnIds'>>;
   boundaries: number[];
 };
 
@@ -410,6 +434,16 @@ function validateSpec(spec: SharedVariableRateTimelineSpec): void {
         `Release group ${group.id} must contain at least one action.`,
       );
     }
+    (group.laneWaits ?? []).forEach((wait, waitIndex) => {
+      requireId(wait.id, `group ${group.id} laneWaits[${waitIndex}].id`);
+      if (actionIds.has(wait.id) || waitIds.has(wait.id)) {
+        throw new SharedVariableRateTimelineError('DUPLICATE_WAIT_ID', `Duplicate lane wait id: ${wait.id}.`);
+      }
+      waitIds.add(wait.id);
+      requireId(wait.laneId, `lane wait ${wait.id} laneId`);
+      requireIntegerFrame(wait.startOffsetFrames, `lane wait ${wait.id} startOffsetFrames`, { allowZero: true });
+      requireIntegerFrame(wait.durationFrames, `lane wait ${wait.id} durationFrames`, { allowZero: true });
+    });
   });
 }
 
@@ -421,8 +455,20 @@ function scheduleGroup(
 ): PreliminaryGroup {
   let stableSequence = initialStableSequence;
   const actions: PreliminaryAction[] = [];
+  const laneWaits = (group.laneWaits ?? []).map(wait => ({
+    id: wait.id,
+    groupId: group.id,
+    laneId: wait.laneId,
+    startFrame: startFrame + wait.startOffsetFrames,
+    endFrame: startFrame + wait.startOffsetFrames + wait.durationFrames,
+    durationFrames: wait.durationFrames,
+  }));
   const lanes: ScheduledTimelineLane[] = [];
   const boundaries = new Set<number>([startFrame]);
+  laneWaits.forEach((wait) => {
+    boundaries.add(wait.startFrame);
+    boundaries.add(wait.endFrame);
+  });
 
   for (const lane of group.lanes) {
     let laneFrame = startFrame;
@@ -462,7 +508,11 @@ function scheduleGroup(
     });
   }
 
-  const endFrame = Math.max(startFrame, ...lanes.map((lane) => lane.endFrame));
+  const endFrame = Math.max(
+    startFrame,
+    ...lanes.map((lane) => lane.endFrame),
+    ...laneWaits.map(wait => wait.endFrame),
+  );
   boundaries.add(endFrame);
   return {
     id: group.id,
@@ -474,6 +524,7 @@ function scheduleGroup(
     actionIds: actions.map((action) => action.id),
     lanes,
     actions,
+    laneWaits,
     boundaries: [...boundaries].sort((left, right) => left - right),
   };
 }
@@ -537,9 +588,37 @@ function makeActivityColumns(
   columnWidth: number,
 ): ActivityTimelineColumn[] {
   const columns: ActivityTimelineColumn[] = [];
+  const zeroWaitFrames = new Set(
+    preliminary.laneWaits
+      .filter(wait => wait.durationFrames === 0)
+      .map(wait => wait.startFrame),
+  );
+  const pushZeroWaitColumn = (frame: number) => {
+    if (!zeroWaitFrames.delete(frame)) return;
+    const columnXStart = xStart + columns.length * columnWidth;
+    const active = preliminary.actions.filter(action => (
+      action.startFrame <= frame && action.endFrame >= frame
+    ));
+    columns.push({
+      id: `group:${preliminary.id}:lane-wait-zero:${frame}`,
+      kind: 'activity',
+      groupId: preliminary.id,
+      startFrame: frame,
+      endFrame: frame,
+      durationFrames: 0,
+      xStart: columnXStart,
+      xEnd: columnXStart + columnWidth,
+      activeActionIds: active
+        .sort((left, right) => left.stableSequence - right.stableSequence)
+        .map(action => action.id),
+      startingActionIds: [],
+      endingActionIds: [],
+    });
+  };
   for (let index = 0; index < preliminary.boundaries.length - 1; index += 1) {
     const startFrame = preliminary.boundaries[index];
     const endFrame = preliminary.boundaries[index + 1];
+    pushZeroWaitColumn(startFrame);
     if (endFrame <= startFrame) continue;
     const columnXStart = xStart + columns.length * columnWidth;
     const active = preliminary.actions.filter((action) => (
@@ -567,6 +646,7 @@ function makeActivityColumns(
         .map((action) => action.id),
     });
   }
+  preliminary.boundaries.forEach(pushZeroWaitColumn);
   return columns;
 }
 
@@ -575,11 +655,21 @@ function materializeActions(
   columns: ActivityTimelineColumn[],
 ): ScheduledTimelineAction[] {
   return preliminary.actions.map((action) => {
-    const covered = columns.filter((column) => (
-      column.startFrame < action.endFrame && column.endFrame > action.startFrame
+    const releaseAnchor = (action.payload as { releaseAnchor?: { sourceButtonId?: string } } | undefined)
+      ?.releaseAnchor;
+    const startsAfterZeroWait = preliminary.laneWaits.some(wait => (
+      wait.durationFrames === 0
+      && wait.endFrame === action.startFrame
+      && wait.id === releaseAnchor?.sourceButtonId
     ));
-    const primary = columns.find((column) => column.startFrame === action.startFrame);
-    const ending = columns.find((column) => column.endFrame === action.endFrame);
+    const covered = columns.filter((column) => (
+      column.durationFrames > 0
+        ? column.startFrame < action.endFrame && column.endFrame > action.startFrame
+        : (column.startFrame > action.startFrame && column.startFrame < action.endFrame)
+          || (column.startFrame === action.startFrame && !startsAfterZeroWait)
+    ));
+    const primary = covered[0];
+    const ending = covered[covered.length - 1];
     if (!primary || !ending || covered.length === 0) {
       throw new SharedVariableRateTimelineError(
         'ACTION_PROJECTION_FAILED',
@@ -592,6 +682,37 @@ function materializeActions(
       coveredColumnIds: covered.map((column) => column.id),
       startX: primary.xStart,
       endX: ending.xEnd,
+    };
+  });
+}
+
+function materializeLaneWaits(
+  preliminary: PreliminaryGroup,
+  columns: ActivityTimelineColumn[],
+): ScheduledTimelineLaneWait[] {
+  return preliminary.laneWaits.map((wait) => {
+    const covered = wait.durationFrames === 0
+      ? columns.filter(column => (
+        column.durationFrames === 0 && column.startFrame === wait.startFrame
+      ))
+      : columns.filter(column => (
+        column.durationFrames > 0
+        && column.startFrame < wait.endFrame
+        && column.endFrame > wait.startFrame
+      ));
+    const first = covered[0];
+    const last = covered[covered.length - 1];
+    if (!first || !last) {
+      throw new SharedVariableRateTimelineError(
+        'LANE_WAIT_PROJECTION_FAILED',
+        `Could not project ordinary wait ${wait.id} into group ${preliminary.id}.`,
+      );
+    }
+    return {
+      ...wait,
+      startX: first.xStart,
+      endX: last.xEnd,
+      coveredColumnIds: covered.map(column => column.id),
     };
   });
 }
@@ -666,6 +787,7 @@ export function buildSharedVariableRateTimeline(
   const startFrame = spec.initialFrame ?? 0;
   const groups: ScheduledReleaseGroup[] = [];
   const waits: WaitTimelineColumn[] = [];
+  const laneWaits: ScheduledTimelineLaneWait[] = [];
   const columns: SharedTimelineColumn[] = [];
   const actions: ScheduledTimelineAction[] = [];
   let currentFrame = startFrame;
@@ -743,6 +865,7 @@ export function buildSharedVariableRateTimeline(
     stableSequence += preliminary.actions.length;
     const activityColumns = makeActivityColumns(preliminary, currentX, columnWidth);
     const materializedActions = materializeActions(preliminary, activityColumns);
+    const materializedLaneWaits = materializeLaneWaits(preliminary, activityColumns);
     const scheduledGroup: ScheduledReleaseGroup = {
       id: preliminary.id,
       groupIndex: preliminary.groupIndex,
@@ -759,6 +882,7 @@ export function buildSharedVariableRateTimeline(
     groups.push(scheduledGroup);
     columns.push(...activityColumns);
     actions.push(...materializedActions);
+    laneWaits.push(...materializedLaneWaits);
     currentFrame = scheduledGroup.endFrame;
     currentX = scheduledGroup.xEnd;
   });
@@ -776,6 +900,7 @@ export function buildSharedVariableRateTimeline(
     width: currentX,
     groups,
     waits,
+    laneWaits,
     columns,
     actions,
     cohorts,

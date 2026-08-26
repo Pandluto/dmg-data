@@ -106,7 +106,9 @@ export function validateTimelinePayload(payload: TimelineSnapshotPayload): AiTim
           !== JSON.stringify(button.releaseAnchor ?? null)
         || tableButton.timelineModuleKind !== button.timelineModuleKind
         || JSON.stringify(tableButton.forcedWaitConfig ?? null)
-          !== JSON.stringify(button.forcedWaitConfig ?? null)) {
+          !== JSON.stringify(button.forcedWaitConfig ?? null)
+        || JSON.stringify(tableButton.laneWaitConfig ?? null)
+          !== JSON.stringify(button.laneWaitConfig ?? null)) {
         issues.push(issue('timeline-button-table-release-mismatch', `Timeline button ${button.id} release anchor or control-module configuration differs from skillButtonTable.`, `${buttonPath}.releaseAnchor`));
       }
       const timelineBuffIds = [...(button.buffIds || [])].sort();
@@ -123,7 +125,7 @@ export function validateTimelinePayload(payload: TimelineSnapshotPayload): AiTim
     releaseAnchor: button.releaseAnchor,
   }));
   const validReleaseKinds = new Set(['group-start', 'action-start', 'action-end', 'damage-hit']);
-  const validTimelineModuleKinds = new Set(['forced-wait', 'dodge', 'perfect-dodge']);
+  const validTimelineModuleKinds = new Set(['lane-wait', 'forced-wait', 'dodge', 'perfect-dodge']);
   for (const [buttonId, button] of Object.entries(payload.skillButtonTable)) {
     if (button.timelineModuleKind && !validTimelineModuleKinds.has(button.timelineModuleKind)) {
       issues.push(issue('invalid-timeline-module-kind', `Button ${buttonId} has an invalid timeline module kind.`, `skillButtonTable.${buttonId}.timelineModuleKind`));
@@ -139,6 +141,19 @@ export function validateTimelinePayload(payload: TimelineSnapshotPayload): AiTim
         || !['seal-only', 'fixed-duration'].includes(forcedWaitConfig.mode)
         || invalidFixedDuration) {
         issues.push(issue('invalid-forced-wait-config', `Button ${buttonId} has an invalid forced-wait configuration.`, configPath));
+      }
+    }
+    const laneWaitConfig = button.laneWaitConfig;
+    if (laneWaitConfig) {
+      const configPath = `skillButtonTable.${buttonId}.laneWaitConfig`;
+      const invalidFixedDuration = laneWaitConfig.mode === 'fixed-duration'
+        && (!Number.isFinite(laneWaitConfig.durationSeconds)
+          || laneWaitConfig.durationSeconds <= 0);
+      if (button.timelineModuleKind !== 'lane-wait'
+        || laneWaitConfig.schemaVersion !== 1
+        || !['placeholder', 'fixed-duration'].includes(laneWaitConfig.mode)
+        || invalidFixedDuration) {
+        issues.push(issue('invalid-lane-wait-config', `Button ${buttonId} has an invalid ordinary-wait config.`, configPath));
       }
     }
     const anchor = button.releaseAnchor;

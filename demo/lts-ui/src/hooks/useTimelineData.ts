@@ -7,6 +7,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   BasicAttackTailBundle,
   ForcedWaitConfig,
+  LaneWaitConfig,
   SkillReleaseAnchor,
   SkillButtonData,
   SkillButtonSkillChangePayload,
@@ -24,6 +25,7 @@ import {
   updateSkillButtonType as updateSkillButtonTypeService,
   updateBasicAttackTailBundle as updateBasicAttackTailBundleService,
   updateForcedWaitConfig as updateForcedWaitConfigService,
+  updateLaneWaitConfig as updateLaneWaitConfigService,
   getStaffButtons as getStaffButtonsService,
   saveTimelineData as saveTimelineDataService,
   loadTimelineData as loadTimelineDataService,
@@ -149,6 +151,12 @@ export function useTimelineData(selectedCharacters: { name: string }[]) {
     return result.updatedButton;
   }, []);
 
+  const updateLaneWaitConfig = useCallback((buttonId: string, config: LaneWaitConfig) => {
+    const result = updateLaneWaitConfigService(timelineDataRef.current, buttonId, config);
+    setTimelineData(result.newTimelineData);
+    return result.updatedButton;
+  }, []);
+
   const getStaffButtons = useCallback((staffIndex: number): SkillButtonData[] => {
     return getStaffButtonsService(timelineData, staffIndex);
   }, [timelineData]);
@@ -196,6 +204,7 @@ export function useTimelineData(selectedCharacters: { name: string }[]) {
     updateSkillButtonType,
     updateBasicAttackTailBundle,
     updateForcedWaitConfig,
+    updateLaneWaitConfig,
     getStaffButtons,
     saveTimelineData,
     loadTimelineData,

@@ -341,9 +341,13 @@ export function SkillButtonComponent({
   const displayName = skillDisplayName || SKILL_LABELS[skillType];
   const timelineModuleDisplayName = timelineModuleKind === 'forced-wait'
     ? button.forcedWaitConfig?.mode === 'fixed-duration'
-      ? `等待 ${button.forcedWaitConfig.durationSeconds.toFixed(2)}秒`
+      ? `强制等待 ${button.forcedWaitConfig.durationSeconds.toFixed(2)}秒`
       : '强制封组'
-    : displayName;
+    : timelineModuleKind === 'lane-wait'
+      ? button.laneWaitConfig?.mode === 'fixed-duration'
+        ? `普通等待 ${button.laneWaitConfig.durationSeconds.toFixed(2)}秒`
+        : '普通等待 0秒'
+      : displayName;
   const browseModeDisplayName = timelineModuleKind
     ? timelineModuleDisplayName
     : BROWSE_MODE_SKILL_LABELS[skillType] ?? displayName;
@@ -2016,6 +2020,8 @@ export function SkillButtonComponent({
             <span className={`skill-label ${hasVisibleSkillIcon ? 'hidden' : ''}`}>
               {timelineModuleKind === 'forced-wait'
                 ? '封'
+                : timelineModuleKind === 'lane-wait'
+                  ? '等'
                 : timelineModuleKind === 'dodge'
                   ? '闪'
                   : timelineModuleKind === 'perfect-dodge'

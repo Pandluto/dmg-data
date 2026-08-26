@@ -1,5 +1,5 @@
 import type { TimelineSnapshotPayload } from '../../utils/timelineSnapshotStorage';
-import type { ForcedWaitConfig, SkillReleaseAnchor, TimelineModuleKind } from '../../types';
+import type { ForcedWaitConfig, LaneWaitConfig, SkillReleaseAnchor, TimelineModuleKind } from '../../types';
 
 export type AiTimelineWorktreeStatus = 'open' | 'committed' | 'abandoned';
 export type AiTimelineWorkNodeStatus = 'open' | 'ready' | 'committed' | 'applied' | 'abandoned';
@@ -104,6 +104,7 @@ export type TimelineButtonDiffItem = {
   releaseAnchor?: SkillReleaseAnchor;
   timelineModuleKind?: TimelineModuleKind;
   forcedWaitConfig?: ForcedWaitConfig;
+  laneWaitConfig?: LaneWaitConfig;
   selectedBuffIds: string[];
   buffStackCounts: Record<string, number>;
   targetResistance: Record<string, number>;

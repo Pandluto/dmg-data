@@ -5,6 +5,7 @@ import { loadLocalOperatorCharacters } from '../../core/services/localOperatorAd
 import { SkillSandbox } from './SkillSandbox';
 import { BasicAttackCutDialog } from './BasicAttackCutDialog';
 import { ForcedWaitConfigDialog } from './ForcedWaitConfigDialog';
+import { LaneWaitConfigDialog } from './LaneWaitConfigDialog';
 import {
   WorkNodeTreePanel,
   type WorkbenchSelectedNodeContext,
@@ -22,6 +23,7 @@ import {
   Character,
   BasicAttackTailBundle,
   ForcedWaitConfig,
+  LaneWaitConfig,
   SandboxSkill,
   SkillButton,
   SkillButtonType,
@@ -441,6 +443,7 @@ function buildVisibleTimelineMirrors(
       releaseAnchor: button.releaseAnchor,
       timelineModuleKind: button.timelineModuleKind,
       forcedWaitConfig: button.forcedWaitConfig,
+      laneWaitConfig: button.laneWaitConfig,
       selectedBuff,
       ...(previous ? clonePersistedSkillButtonConfig(previous) : {}),
       createdAt: previous?.createdAt ?? now,
@@ -474,6 +477,7 @@ function buildVisibleTimelineMirrors(
           releaseAnchor: button.releaseAnchor,
           timelineModuleKind: button.timelineModuleKind,
           forcedWaitConfig: button.forcedWaitConfig,
+          laneWaitConfig: button.laneWaitConfig,
           buffIds: [...button.selectedBuff],
         }))
         .sort((left, right) => left.nodeIndex - right.nodeIndex);
@@ -600,6 +604,7 @@ export function CanvasBoard({
   const [resistanceRevision, setResistanceRevision] = useState(0);
   const [pendingBasicAttackCut, setPendingBasicAttackCut] = useState<PendingBasicAttackCut | null>(null);
   const [pendingForcedWaitButtonId, setPendingForcedWaitButtonId] = useState<string | null>(null);
+  const [pendingLaneWaitButtonId, setPendingLaneWaitButtonId] = useState<string | null>(null);
   const [selectedBasicAttackStageCount, setSelectedBasicAttackStageCount] = useState(0);
   const [checkoutBootstrapRevision, setCheckoutBootstrapRevision] = useState(0);
   const [checkoutRenderRevision, setCheckoutRenderRevision] = useState(0);
@@ -714,6 +719,7 @@ export function CanvasBoard({
     updateSkillButtonType: updateTimelineButtonType,
     updateBasicAttackTailBundle,
     updateForcedWaitConfig,
+    updateLaneWaitConfig,
   } = useTimelineData(selectedCharacters);
 
   const requiredStaffCount = React.useMemo(() => {
@@ -900,6 +906,7 @@ export function CanvasBoard({
           releaseAnchor: btn.releaseAnchor,
           timelineModuleKind: btn.timelineModuleKind,
           forcedWaitConfig: btn.forcedWaitConfig,
+          laneWaitConfig: btn.laneWaitConfig,
           element: character?.element,
         });
       });
@@ -965,6 +972,7 @@ export function CanvasBoard({
             releaseAnchor: button.releaseAnchor,
             timelineModuleKind: button.timelineModuleKind,
             forcedWaitConfig: button.forcedWaitConfig,
+            laneWaitConfig: button.laneWaitConfig,
             buffIds: [...(button.selectedBuff || [])],
           }))
           .sort((left, right) => left.nodeIndex - right.nodeIndex);
@@ -1878,6 +1886,7 @@ export function CanvasBoard({
           releaseAnchor: button.releaseAnchor,
           timelineModuleKind: button.timelineModuleKind,
           forcedWaitConfig: button.forcedWaitConfig,
+          laneWaitConfig: button.laneWaitConfig,
           element: character?.element,
         });
       });
@@ -1910,6 +1919,7 @@ export function CanvasBoard({
         releaseAnchor: button.releaseAnchor,
         timelineModuleKind: button.timelineModuleKind,
         forcedWaitConfig: button.forcedWaitConfig,
+        laneWaitConfig: button.laneWaitConfig,
         element: character?.element,
       });
     });
@@ -2936,6 +2946,7 @@ export function CanvasBoard({
                   releaseAnchor: button.releaseAnchor,
                   timelineModuleKind: button.timelineModuleKind,
                   forcedWaitConfig: button.forcedWaitConfig,
+                  laneWaitConfig: button.laneWaitConfig,
                   buffIds: [...(button.selectedBuff ?? [])],
                 }))
                 .sort((left, right) => left.nodeIndex - right.nodeIndex);
@@ -3123,6 +3134,7 @@ export function CanvasBoard({
           releaseAnchor: btn.releaseAnchor,
           timelineModuleKind: btn.timelineModuleKind,
           forcedWaitConfig: btn.forcedWaitConfig,
+          laneWaitConfig: btn.laneWaitConfig,
           element: character?.element,
         });
       });
@@ -3624,6 +3636,10 @@ export function CanvasBoard({
   };
 
   const handleConfigureTimelineModule = useCallback((button: SkillButton) => {
+    if (button.timelineModuleKind === 'lane-wait') {
+      setPendingLaneWaitButtonId(button.id);
+      return;
+    }
     if (button.timelineModuleKind === 'forced-wait') {
       setPendingForcedWaitButtonId(button.id);
       return;
@@ -3656,6 +3672,27 @@ export function CanvasBoard({
       setWorkNodeSaveNotice(`强制等待配置失败：${error instanceof Error ? error.message : String(error)}`);
     }
   }, [dispatch, pendingForcedWaitButtonId, updateForcedWaitConfig]);
+
+  const handleConfirmLaneWaitConfig = useCallback((config: LaneWaitConfig) => {
+    if (!pendingLaneWaitButtonId) return;
+    try {
+      updateLaneWaitConfig(pendingLaneWaitButtonId, config);
+      dispatch({
+        type: 'SET_LANE_WAIT_CONFIG',
+        buttonId: pendingLaneWaitButtonId,
+        config,
+      });
+      setPendingLaneWaitButtonId(null);
+      setWorkNodeSaveNotice(
+        config.mode === 'fixed-duration'
+          ? `普通等待已设为 ${config.durationSeconds} 秒；只顺延当前角色的后继动作。`
+          : '普通等待已设为零时长尾链占位；没有封组。',
+      );
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2200);
+    } catch (error) {
+      setWorkNodeSaveNotice(`普通等待配置失败：${error instanceof Error ? error.message : String(error)}`);
+    }
+  }, [dispatch, pendingLaneWaitButtonId, updateLaneWaitConfig]);
 
   const handleCopySkillButton = () => {
     if (!contextMenuState) return;
@@ -3843,6 +3880,10 @@ export function CanvasBoard({
       skillDisplayName: sourceButtonRuntime.skillDisplayName,
       skillIconUrl: sourceButtonRuntime.skillIconUrl,
       customHits: sourceButtonRuntime.customHits,
+      releaseAnchor: sourceButtonRuntime.releaseAnchor,
+      timelineModuleKind: sourceButtonRuntime.timelineModuleKind,
+      forcedWaitConfig: sourceButtonRuntime.forcedWaitConfig,
+      laneWaitConfig: sourceButtonRuntime.laneWaitConfig,
     }, newButtonId);
 
     if (sourceButtonConfig.selectedBuff.length > 0) {
@@ -4600,6 +4641,9 @@ export function CanvasBoard({
   const pendingForcedWaitButton = pendingForcedWaitButtonId
     ? skillButtons.find(button => button.id === pendingForcedWaitButtonId) ?? null
     : null;
+  const pendingLaneWaitButton = pendingLaneWaitButtonId
+    ? skillButtons.find(button => button.id === pendingLaneWaitButtonId) ?? null
+    : null;
 
   const rightWorkbenchContent = (
     <SkillSandbox
@@ -5215,6 +5259,14 @@ export function CanvasBoard({
           tickRate={akeRealtimeTimeline?.tickRate ?? 30}
           onCancel={() => setPendingForcedWaitButtonId(null)}
           onConfirm={handleConfirmForcedWaitConfig}
+        />
+      )}
+      {pendingLaneWaitButton && (
+        <LaneWaitConfigDialog
+          initialConfig={pendingLaneWaitButton.laneWaitConfig}
+          tickRate={akeRealtimeTimeline?.tickRate ?? 30}
+          onCancel={() => setPendingLaneWaitButtonId(null)}
+          onConfirm={handleConfirmLaneWaitConfig}
         />
       )}
       {pendingBasicAttackCut && !basicAttackCutDraft && (

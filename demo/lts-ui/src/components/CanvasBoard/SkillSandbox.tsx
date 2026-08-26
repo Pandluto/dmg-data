@@ -64,7 +64,7 @@ const SKILL_DISPLAY_LABELS: Record<SkillType, string> = {
 const TIMELINE_MODULES: SandboxSkill[] = [
   {
     id: 'timeline-module:forced-wait',
-    displayName: '封组等待',
+    displayName: '强制等待',
     buttonType: 'Dot',
     hitCount: 0,
     source: 'local',
@@ -73,17 +73,13 @@ const TIMELINE_MODULES: SandboxSkill[] = [
     dragScope: 'global',
   },
   {
-    id: 'timeline-module:fixed-wait',
+    id: 'timeline-module:lane-wait',
     displayName: '普通等待',
     buttonType: 'Dot',
     hitCount: 0,
     source: 'local',
-    timelineModuleKind: 'forced-wait',
-    forcedWaitConfig: {
-      schemaVersion: 1,
-      mode: 'fixed-duration',
-      durationSeconds: 1,
-    },
+    timelineModuleKind: 'lane-wait',
+    laneWaitConfig: { schemaVersion: 1, mode: 'placeholder' },
     dragScope: 'global',
   },
   {
@@ -107,6 +103,7 @@ const TIMELINE_MODULES: SandboxSkill[] = [
 ];
 
 const TIMELINE_MODULE_GLYPHS = {
+  'lane-wait': '等',
   'forced-wait': '封',
   dodge: '闪',
   'perfect-dodge': '极',
@@ -323,7 +320,8 @@ export function SkillSandbox({
                   ? '拖到合法释放锚点；技力返还必须由极限闪避状态机确认'
                   : `拖动${module.displayName}到高亮释放锚点`}
               >
-                {module.timelineModuleKind === 'forced-wait' ? (
+                {module.timelineModuleKind === 'forced-wait'
+                  || module.timelineModuleKind === 'lane-wait' ? (
                   <i className="sandbox-wait-track" aria-hidden="true">
                     <b />
                     <span />
@@ -338,7 +336,7 @@ export function SkillSandbox({
               </button>
             ))}
           </div>
-          <small>等待只吸附完整组边界；闪避可吸附起点、尾部与伤害点。</small>
+          <small>普通等待接入单条尾链；强制等待只吸附完整组边界。</small>
         </section>
         {selectedCharacters.map((character, index) => {
           const sandboxSkills = getCharacterSandboxSkills(character);

@@ -298,21 +298,25 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
   const projectTimelineModuleToAnchor = useCallback((button: SkillButton): SkillButton => {
     if (!button.timelineModuleKind || button.isDragging) return button;
     const frame = resolveTimelineModuleAnchorFrame(button);
-    if (frame === null) return button;
-    // A forced-wait carrier sits in the column beginning at the boundary. For
-    // a zero-duration seal, `before` is its left edge; ordinary controls start
-    // after the boundary like combat actions.
     const resolvedForcedWait = button.timelineModuleKind === 'forced-wait'
       ? variableTimeline?.waits.find(wait => wait.waitId === `forced-wait:${button.id}`) ?? null
       : null;
+    const resolvedLaneWait = button.timelineModuleKind === 'lane-wait'
+      ? variableTimeline?.laneWaits.find(wait => wait.id === button.id) ?? null
+      : null;
+    // Both wait carriers begin at the left edge of their projected interval.
+    // Only a forced wait owns a full-column group boundary; an ordinary wait
+    // remains inside its lane and therefore uses the lane-wait projection.
     const visualStart = resolvedForcedWait
       ? visualPointForX(resolvedForcedWait.xStart, 'after')
-      : button.timelineModuleKind === 'forced-wait' && variableTimeline
+      : resolvedLaneWait
+        ? visualPointForX(resolvedLaneWait.startX, 'after')
+        : frame !== null && button.timelineModuleKind === 'forced-wait' && variableTimeline
         ? (() => {
           const globalX = projectSharedTimelineFrame(variableTimeline, frame, 'before');
           return globalX === null ? null : visualPointForX(globalX, 'after');
         })()
-      : visualPointForFrame(frame, 'after');
+        : frame !== null ? visualPointForFrame(frame, 'after') : null;
     if (!visualStart) return button;
     const sourceNodeIndex = Math.max(0, Math.min(
       GRID_NODE_COUNT - 1,
@@ -351,7 +355,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           staffIndex: visual.pageIndex,
           left: visual.x,
           label: button.forcedWaitConfig?.mode === 'fixed-duration'
-            ? `等待 ${button.forcedWaitConfig.durationSeconds.toFixed(2)}秒`
+            ? `强制 ${button.forcedWaitConfig.durationSeconds.toFixed(2)}秒`
             : '封组',
         }];
       }
@@ -365,7 +369,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
             staffIndex: visual.pageIndex,
             left: visual.x,
             label: button.forcedWaitConfig?.mode === 'fixed-duration'
-              ? `等待 ${button.forcedWaitConfig.durationSeconds.toFixed(2)}秒`
+              ? `强制 ${button.forcedWaitConfig.durationSeconds.toFixed(2)}秒`
               : '封组',
           }];
         }
@@ -377,35 +381,52 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           + Math.max(0, Math.min(GRID_NODE_COUNT - 1, Number(button.nodeIndex) || 0))
             * GRID_COLUMN_WIDTH,
         label: button.forcedWaitConfig?.mode === 'fixed-duration'
-          ? `等待 ${button.forcedWaitConfig.durationSeconds.toFixed(2)}秒`
+          ? `强制 ${button.forcedWaitConfig.durationSeconds.toFixed(2)}秒`
           : '封组',
       }];
     }), [resolveTimelineModuleAnchorFrame, skillButtons, variableTimeline, visualPointForX]);
 
-  const forcedWaitSegments = useMemo(() => skillButtons
-    .filter(button => button.timelineModuleKind === 'forced-wait')
+  const waitSegments = useMemo(() => skillButtons
+    .filter(button => (
+      button.timelineModuleKind === 'forced-wait'
+      || button.timelineModuleKind === 'lane-wait'
+    ))
     .map((button) => {
       const displayButton = projectTimelineModuleToAnchor(button);
-      const resolvedWait = variableTimeline?.waits.find(
+      const resolvedForcedWait = variableTimeline?.waits.find(
         wait => wait.waitId === `forced-wait:${button.id}`,
+      ) ?? null;
+      const resolvedLaneWait = variableTimeline?.laneWaits.find(
+        wait => wait.id === button.id,
       ) ?? null;
       const anchorFrame = resolveTimelineModuleAnchorFrame(button);
       const tickRate = variableTimeline?.tickRate
         ?? akeRealtimeTimeline?.tickRate
         ?? akeTimeline?.tickRate
         ?? 30;
-      const startFrame = resolvedWait?.startFrame ?? anchorFrame;
-      const fallbackDurationFrames = button.forcedWaitConfig?.mode === 'fixed-duration'
-        ? Math.max(1, Math.round(button.forcedWaitConfig.durationSeconds * tickRate))
-        : 0;
-      const endFrame = resolvedWait?.endFrame
+      const startFrame = resolvedForcedWait?.startFrame
+        ?? resolvedLaneWait?.startFrame
+        ?? anchorFrame;
+      const fallbackDurationFrames = button.timelineModuleKind === 'lane-wait'
+        ? button.laneWaitConfig?.mode === 'fixed-duration'
+          ? Math.max(1, Math.round(button.laneWaitConfig.durationSeconds * tickRate))
+          : 0
+        : button.forcedWaitConfig?.mode === 'fixed-duration'
+          ? Math.max(1, Math.round(button.forcedWaitConfig.durationSeconds * tickRate))
+          : 0;
+      const endFrame = resolvedForcedWait?.endFrame
+        ?? resolvedLaneWait?.endFrame
         ?? (startFrame === null ? null : startFrame + fallbackDurationFrames);
+      const width = resolvedLaneWait
+        ? Math.max(GRID_COLUMN_WIDTH, resolvedLaneWait.endX - resolvedLaneWait.startX)
+        : GRID_COLUMN_WIDTH;
       return {
         button,
         displayButton,
         startFrame,
         endFrame,
         tickRate,
+        width,
       };
     }), [
       akeRealtimeTimeline?.tickRate,
@@ -418,7 +439,10 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
 
   const renderSkillButtons = () => {
     return skillButtons
-      .filter(button => button.timelineModuleKind !== 'forced-wait')
+      .filter(button => (
+        button.timelineModuleKind !== 'forced-wait'
+        && button.timelineModuleKind !== 'lane-wait'
+      ))
       .map((button) => {
         const command = akeCommandById.get(button.id) ?? null;
         const previewCommand = akePreviewCommandById.get(button.id) ?? null;
@@ -458,19 +482,20 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
       });
   };
 
-  const renderForcedWaitSegments = () => forcedWaitSegments.map(({
+  const renderWaitSegments = () => waitSegments.map(({
     button,
     displayButton,
     startFrame,
     endFrame,
     tickRate,
+    width,
   }) => (
     <TimelineWaitSegment
       key={button.id}
       button={displayButton}
       left={displayButton.position.x - GRID_COLUMN_WIDTH / 2}
       top={displayButton.position.y - 15}
-      width={GRID_COLUMN_WIDTH}
+      width={width}
       startFrame={startFrame}
       endFrame={endFrame}
       tickRate={tickRate}
@@ -991,7 +1016,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           </div>
         </div>
         {renderSkillButtons()}
-        {renderForcedWaitSegments()}
+        {renderWaitSegments()}
       </div>
     </div>
   );

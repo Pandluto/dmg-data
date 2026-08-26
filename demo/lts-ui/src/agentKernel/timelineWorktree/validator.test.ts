@@ -96,4 +96,27 @@ invalidWait.timelineData.staffLines[0].buttons[0].forcedWaitConfig =
   invalidWait.skillButtonTable['button-1'].forcedWaitConfig;
 assert(validateTimelinePayload(invalidWait).issues.some(issue => issue.code === 'invalid-forced-wait-config'));
 
+const ordinaryWait = validPayload();
+ordinaryWait.skillButtonTable['button-1'].timelineModuleKind = 'lane-wait';
+ordinaryWait.timelineData.staffLines[0].buttons[0].timelineModuleKind = 'lane-wait';
+ordinaryWait.skillButtonTable['button-1'].laneWaitConfig = {
+  schemaVersion: 1,
+  mode: 'placeholder',
+};
+ordinaryWait.timelineData.staffLines[0].buttons[0].laneWaitConfig =
+  ordinaryWait.skillButtonTable['button-1'].laneWaitConfig;
+assert.deepEqual(validateTimelinePayload(ordinaryWait), { ok: true, issues: [] });
+
+const invalidOrdinaryWait = structuredClone(ordinaryWait);
+invalidOrdinaryWait.skillButtonTable['button-1'].laneWaitConfig = {
+  schemaVersion: 1,
+  mode: 'fixed-duration',
+  durationSeconds: -1,
+};
+invalidOrdinaryWait.timelineData.staffLines[0].buttons[0].laneWaitConfig =
+  invalidOrdinaryWait.skillButtonTable['button-1'].laneWaitConfig;
+assert(validateTimelinePayload(invalidOrdinaryWait).issues.some(
+  issue => issue.code === 'invalid-lane-wait-config',
+));
+
 console.log('Timeline payload validator identity contract: PASS');

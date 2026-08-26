@@ -284,6 +284,61 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
 }
 
 {
+  const actorA = character('lane-wait-actor-a');
+  const actorB = character('lane-wait-actor-b');
+  const running = button('lane-wait-running', actorA.id, 0);
+  running.releaseAnchor = { schemaVersion: 1, kind: 'group-start', debounceFrames: 0 };
+  const wait = button('lane-wait-node', actorB.id, 0, 'A');
+  wait.skillType = 'Dot';
+  wait.timelineModuleKind = 'lane-wait';
+  wait.releaseAnchor = { schemaVersion: 1, kind: 'group-start', debounceFrames: 0 };
+  wait.laneWaitConfig = {
+    schemaVersion: 1,
+    mode: 'fixed-duration',
+    durationSeconds: 2,
+  };
+  const follower = button('lane-wait-follower', actorB.id, 1);
+  follower.releaseAnchor = {
+    schemaVersion: 1,
+    kind: 'action-end',
+    sourceButtonId: wait.id,
+    debounceFrames: 0,
+  };
+  const result = buildAkeRealtimeTimeline({
+    timelineData: timeline([
+      { characterId: actorA.id, buttons: [running] },
+      { characterId: actorB.id, buttons: [wait, follower] },
+    ]),
+    selectedCharacters: [actorA, actorB],
+    catalog: catalog({
+      [actorA.id]: [profile()],
+      [actorB.id]: [profile()],
+    }),
+    staffCount: 1,
+  });
+  const model = result.sharedVariableRateTimeline!;
+  assertEqual(model.groups.length, 1, 'ordinary wait keeps both lanes in the same release group');
+  assertEqual(model.waits.length, 0, 'ordinary wait does not create a full-column separator');
+  assertEqual(model.laneWaits.length, 1, 'ordinary wait is represented as a lane-local node');
+  assertEqual(model.laneWaits[0].durationFrames, 60, 'ordinary wait uses authoritative runtime frames');
+  assertEqual(
+    model.actions.find(action => action.id === running.id)?.startFrame,
+    0,
+    'another lane remains aligned to the group start',
+  );
+  assertEqual(
+    model.actions.find(action => action.id === follower.id)?.startFrame,
+    60,
+    'only the ordinary wait successor is delayed',
+  );
+  assertEqual(
+    result.diagnostics.some(message => message.includes('DANGLING_SOURCE')),
+    false,
+    'ordinary wait is a valid release-graph source',
+  );
+}
+
+{
   const actor = character('actor-a');
   const result = buildAkeRealtimeTimeline({
     timelineData: timeline([{

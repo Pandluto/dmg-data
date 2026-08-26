@@ -7,6 +7,7 @@
 import {
   BasicAttackTailBundle,
   ForcedWaitConfig,
+  LaneWaitConfig,
   SkillButtonData,
   SkillButtonSkillChangePayload,
   TimelineData,
@@ -166,6 +167,7 @@ export function buildTimelineButtonsFromSkillButtonTable(
         releaseAnchor: button.releaseAnchor,
         timelineModuleKind: button.timelineModuleKind,
         forcedWaitConfig: button.forcedWaitConfig,
+        laneWaitConfig: button.laneWaitConfig,
         buffIds: [...(button.selectedBuff ?? [])],
       }))
       .sort((left, right) => left.nodeIndex - right.nodeIndex);
@@ -226,7 +228,9 @@ function hasTimelineTableMismatch(
         !== JSON.stringify(tableButton.releaseAnchor ?? null)
       || timelineButton.timelineModuleKind !== tableButton.timelineModuleKind
       || JSON.stringify(timelineButton.forcedWaitConfig ?? null)
-        !== JSON.stringify(tableButton.forcedWaitConfig ?? null);
+        !== JSON.stringify(tableButton.forcedWaitConfig ?? null)
+      || JSON.stringify(timelineButton.laneWaitConfig ?? null)
+        !== JSON.stringify(tableButton.laneWaitConfig ?? null);
   })) {
     return true;
   }
@@ -369,6 +373,7 @@ export function addSkillButton(
     releaseAnchor: buttonData.releaseAnchor,
     timelineModuleKind: buttonData.timelineModuleKind,
     forcedWaitConfig: buttonData.forcedWaitConfig,
+    laneWaitConfig: buttonData.laneWaitConfig,
     selectedBuff: [],
     panelConfig: {
       selectedBuff: [],
@@ -532,6 +537,41 @@ export function updateForcedWaitConfig(
   upsertSkillButton({
     ...persistedButton,
     forcedWaitConfig: config,
+    updatedAt,
+  });
+  saveTimelineRepo(newTimelineData);
+  return { updatedButton, newTimelineData };
+}
+
+/** Persist an ordinary wait attached to one lane tail only. */
+export function updateLaneWaitConfig(
+  timelineData: TimelineData,
+  buttonId: string,
+  config: LaneWaitConfig,
+): { updatedButton: SkillButtonData; newTimelineData: TimelineData } {
+  const persistedButton = getSkillButtonById(buttonId);
+  if (!persistedButton || persistedButton.timelineModuleKind !== 'lane-wait') {
+    throw new Error(`LANE_WAIT_BUTTON_NOT_FOUND: ${buttonId}`);
+  }
+  const currentButton = timelineData.staffLines
+    .flatMap(line => line.buttons)
+    .find(button => button.id === buttonId);
+  if (!currentButton || currentButton.timelineModuleKind !== 'lane-wait') {
+    throw new Error(`LANE_WAIT_TIMELINE_MIRROR_NOT_FOUND: ${buttonId}`);
+  }
+  const updatedAt = Date.now();
+  const updatedButton = { ...currentButton, laneWaitConfig: config };
+  const newTimelineData: TimelineData = {
+    ...timelineData,
+    updatedAt,
+    staffLines: timelineData.staffLines.map(line => ({
+      ...line,
+      buttons: line.buttons.map(button => button.id === buttonId ? updatedButton : button),
+    })),
+  };
+  upsertSkillButton({
+    ...persistedButton,
+    laneWaitConfig: config,
     updatedAt,
   });
   saveTimelineRepo(newTimelineData);

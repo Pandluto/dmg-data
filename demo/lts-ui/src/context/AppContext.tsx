@@ -23,6 +23,7 @@ import {
   BasicAttackTailBundle,
   Character,
   ForcedWaitConfig,
+  LaneWaitConfig,
   SkillButton,
   SkillType,
   ViewType,
@@ -182,6 +183,11 @@ type AppAction =
       buttonId: string;
       config: ForcedWaitConfig;
     }
+  | {
+      type: 'SET_LANE_WAIT_CONFIG';
+      buttonId: string;
+      config: LaneWaitConfig;
+    }
   | { type: 'CLEAR_SKILL_BUTTONS' };
 
 /** 初始状态：默认显示干员选择界面，无已选干员，无技能按钮 */
@@ -313,6 +319,16 @@ function appReducer(state: AppState, action: AppAction): AppState {
         skillButtons: state.skillButtons.map(button => (
           button.id === action.buttonId
             ? { ...button, forcedWaitConfig: action.config }
+            : button
+        )),
+      };
+
+    case 'SET_LANE_WAIT_CONFIG':
+      return {
+        ...state,
+        skillButtons: state.skillButtons.map(button => (
+          button.id === action.buttonId
+            ? { ...button, laneWaitConfig: action.config }
             : button
         )),
       };

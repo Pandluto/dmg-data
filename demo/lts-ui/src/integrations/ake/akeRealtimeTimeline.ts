@@ -1611,32 +1611,70 @@ function timelineActionFacts(
   return facts;
 }
 
-function timelineReleaseAnchorIssues(inputs: readonly TimelineInput[]) {
+function laneWaitDurationFrames(module: SkillButtonData, tickRate: number): number {
+  const config = module.laneWaitConfig ?? { schemaVersion: 1 as const, mode: 'placeholder' as const };
+  return config.mode === 'fixed-duration'
+    ? Math.max(1, Math.round(config.durationSeconds * tickRate))
+    : 0;
+}
+
+function timelineReleaseAnchorIssues(
+  inputs: readonly TimelineInput[],
+  timelineModules: readonly SkillButtonData[],
+  tickRate: number,
+) {
   const grouped = new Map<number, TimelineInput[]>();
   inputs.forEach((timelineInput) => {
     const entries = grouped.get(timelineInput.sourceGroupIndex) ?? [];
     entries.push(timelineInput);
     grouped.set(timelineInput.sourceGroupIndex, entries);
   });
-  return [...grouped.values()].flatMap((groupInputs) => {
-    const lanes = new Map<string, TimelineInput[]>();
+  const laneWaits = timelineModules.filter(module => module.timelineModuleKind === 'lane-wait');
+  return [...grouped.entries()].flatMap(([sourceGroupIndex, groupInputs]) => {
+    const lanes = new Map<string, Array<{
+      id: string;
+      sourceNodeIndex: number;
+      sequence: number;
+      durationFrames: number;
+      releaseAnchor?: SkillReleaseAnchor;
+    }>>();
     groupInputs.forEach((timelineInput) => {
       const entries = lanes.get(timelineInput.characterId) ?? [];
-      entries.push(timelineInput);
+      entries.push({
+        id: timelineInput.commandId,
+        sourceNodeIndex: timelineInput.sourceNodeIndex,
+        sequence: timelineInput.sequence,
+        durationFrames: DEFAULT_NODE_FRAMES,
+        releaseAnchor: timelineInput.releaseAnchor,
+      });
       lanes.set(timelineInput.characterId, entries);
     });
+    laneWaits
+      .filter(module => Math.floor(module.nodeIndex / GRID_NODE_COUNT) === sourceGroupIndex)
+      .forEach((module, index) => {
+        const laneId = module.characterId ?? `line:${module.staffIndex}`;
+        const entries = lanes.get(laneId) ?? [];
+        entries.push({
+          id: module.id,
+          sourceNodeIndex: module.nodeIndex,
+          sequence: groupInputs.length + index,
+          durationFrames: laneWaitDurationFrames(module, tickRate),
+          releaseAnchor: module.releaseAnchor,
+        });
+        lanes.set(laneId, entries);
+      });
     return solveReleaseStartOffsets(
       [...lanes.values()].flatMap((entries) => {
         const ordered = [...entries].sort((left, right) => (
           left.sourceNodeIndex - right.sourceNodeIndex
           || left.sequence - right.sequence
-          || left.commandId.localeCompare(right.commandId)
+          || left.id.localeCompare(right.id)
         ));
-        return ordered.map((timelineInput, index) => ({
-          id: timelineInput.commandId,
-          durationFrames: DEFAULT_NODE_FRAMES,
-          defaultPredecessorId: ordered[index - 1]?.commandId,
-          releaseAnchor: timelineInput.releaseAnchor,
+        return ordered.map((entry, index) => ({
+          id: entry.id,
+          durationFrames: entry.durationFrames,
+          defaultPredecessorId: ordered[index - 1]?.id,
+          releaseAnchor: entry.releaseAnchor,
         }));
       }),
     ).issues;
@@ -1738,15 +1776,54 @@ function makeSharedVariableRateTimelineSpec(input: {
           )),
         ]),
       );
-      const releaseNodes = [...orderedEntriesByLane.values()].flatMap(entries => (
-        entries.map((timelineInput, index) => ({
+      const groupLaneWaits = input.timelineModules.filter(module => (
+        module.timelineModuleKind === 'lane-wait'
+        && Math.floor(module.nodeIndex / GRID_NODE_COUNT) === sourceGroupIndex
+      ));
+      const releaseEntriesByLane = new Map<string, Array<{
+        id: string;
+        sourceNodeIndex: number;
+        sequence: number;
+        durationFrames: number;
+        releaseAnchor?: SkillReleaseAnchor;
+      }>>();
+      groupInputs.forEach((timelineInput) => {
+        const entries = releaseEntriesByLane.get(timelineInput.characterId) ?? [];
+        entries.push({
           id: timelineInput.commandId,
+          sourceNodeIndex: timelineInput.sourceNodeIndex,
+          sequence: timelineInput.sequence,
           durationFrames: input.factsByActionId.get(timelineInput.commandId)?.durationFrames
             ?? DEFAULT_NODE_FRAMES,
-          defaultPredecessorId: entries[index - 1]?.commandId,
           releaseAnchor: timelineInput.releaseAnchor,
-        }))
-      ));
+        });
+        releaseEntriesByLane.set(timelineInput.characterId, entries);
+      });
+      groupLaneWaits.forEach((module, index) => {
+        const laneId = module.characterId ?? `line:${module.staffIndex}`;
+        const entries = releaseEntriesByLane.get(laneId) ?? [];
+        entries.push({
+          id: module.id,
+          sourceNodeIndex: module.nodeIndex,
+          sequence: groupInputs.length + index,
+          durationFrames: laneWaitDurationFrames(module, input.tickRate),
+          releaseAnchor: module.releaseAnchor,
+        });
+        releaseEntriesByLane.set(laneId, entries);
+      });
+      const releaseNodes = [...releaseEntriesByLane.values()].flatMap(entries => {
+        const ordered = [...entries].sort((left, right) => (
+          left.sourceNodeIndex - right.sourceNodeIndex
+          || left.sequence - right.sequence
+          || left.id.localeCompare(right.id)
+        ));
+        return ordered.map((entry, index) => ({
+          id: entry.id,
+          durationFrames: entry.durationFrames,
+          defaultPredecessorId: ordered[index - 1]?.id,
+          releaseAnchor: entry.releaseAnchor,
+        }));
+      });
       const releaseOffsets = solveReleaseStartOffsets(releaseNodes).offsets;
       const lanes = [...laneInputs.entries()]
         .sort(([, leftEntries], [, rightEntries]) => (
@@ -1782,6 +1859,12 @@ function makeSharedVariableRateTimelineSpec(input: {
           : forcedWaitByTargetGroup.has(sourceGroupIndex)
             ? waitSpecForModule(forcedWaitByTargetGroup.get(sourceGroupIndex) as SkillButtonData)
             : { id: `legacy-seal:${sourceGroupIndex}`, mode: 'seal-only' as const },
+        laneWaits: groupLaneWaits.map(module => ({
+          id: module.id,
+          laneId: module.characterId ?? `line:${module.staffIndex}`,
+          startOffsetFrames: releaseOffsets.get(module.id) ?? 0,
+          durationFrames: laneWaitDurationFrames(module, input.tickRate),
+        })),
         lanes,
       };
     }),
@@ -1875,6 +1958,7 @@ export function buildAkeRealtimeTimeline(
   ));
   const unresolvedTimelineModules = timelineModules.filter(module => (
     module.timelineModuleKind !== 'forced-wait'
+    && module.timelineModuleKind !== 'lane-wait'
   ));
   if (timelineInputs.length === 0) {
     const emptySimulation = simulateAkeRealtimeTimeline(input);
@@ -1891,7 +1975,7 @@ export function buildAkeRealtimeTimeline(
   }
 
   let profiles = initialTimelineActionProfiles(timing, timelineInputs);
-  const releaseAnchorIssues = timelineReleaseAnchorIssues(timelineInputs);
+  const releaseAnchorIssues = timelineReleaseAnchorIssues(timelineInputs, timelineModules, tickRate);
   let facts = timelineActionFacts(timelineInputs, profiles, tickRate);
   let spec = makeSharedVariableRateTimelineSpec({
     tickRate,

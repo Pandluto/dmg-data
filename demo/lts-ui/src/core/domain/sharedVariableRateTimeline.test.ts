@@ -105,6 +105,80 @@ function assertErrorCode(run: () => unknown, expectedCode: string): void {
   assert.equal(projectSharedTimelineFrame(model, 60), 80 + (30 / 90) * 80);
 }
 
+// An ordinary wait is a lane-local dependency, not a full-column group seal.
+// It delays only B's successor while A keeps running inside the same group.
+{
+  const model = buildSharedVariableRateTimeline({
+    tickRate: 30,
+    columnWidth: 80,
+    groups: [{
+      id: 'ordinary-wait-group',
+      laneWaits: [{
+        id: 'B-wait',
+        laneId: 'B',
+        startOffsetFrames: 0,
+        durationFrames: 60,
+      }],
+      lanes: [
+        { laneId: 'A', actions: [{ id: 'A-long', durationFrames: 120, startOffsetFrames: 0 }] },
+        { laneId: 'B', actions: [{ id: 'B-after-wait', durationFrames: 30, startOffsetFrames: 60 }] },
+      ],
+    }],
+  });
+
+  assert.equal(model.groups.length, 1);
+  assert.equal(model.waits.length, 0);
+  assert.equal(model.laneWaits.length, 1);
+  assert.deepEqual(
+    [model.laneWaits[0].startFrame, model.laneWaits[0].endFrame],
+    [0, 60],
+  );
+  assert.equal(action(model, 'A-long').startFrame, 0);
+  assert.equal(action(model, 'B-after-wait').startFrame, 60);
+  assert.equal(model.groups[0].endFrame, 120);
+}
+
+// A zero-time ordinary wait consumes one visible cell for its lane without
+// advancing real time or inserting a separator. Its successor begins after
+// that visual cell while simultaneous actions retain their real frame.
+{
+  const model = buildSharedVariableRateTimeline({
+    tickRate: 30,
+    columnWidth: 80,
+    groups: [{
+      id: 'ordinary-placeholder-group',
+      laneWaits: [{
+        id: 'B-placeholder',
+        laneId: 'B',
+        startOffsetFrames: 0,
+        durationFrames: 0,
+      }],
+      lanes: [
+        { laneId: 'A', actions: [{ id: 'A-running', durationFrames: 120, startOffsetFrames: 0 }] },
+        {
+          laneId: 'B',
+          actions: [{
+            id: 'B-after-placeholder',
+            durationFrames: 30,
+            startOffsetFrames: 0,
+            payload: {
+              releaseAnchor: { sourceButtonId: 'B-placeholder' },
+            },
+          }],
+        },
+      ],
+    }],
+  });
+
+  assert.equal(model.groups.length, 1);
+  assert.equal(model.waits.length, 0);
+  assert.equal(model.laneWaits[0].durationFrames, 0);
+  assert.equal(model.laneWaits[0].endX - model.laneWaits[0].startX, 80);
+  assert.equal(action(model, 'A-running').startFrame, 0);
+  assert.equal(action(model, 'B-after-placeholder').startFrame, 0);
+  assert.equal(action(model, 'B-after-placeholder').startX, 80);
+}
+
 // A's tail-chain creates two boundaries. C's longer action is automatically
 // stretched over all resulting columns, including its short final tail.
 {

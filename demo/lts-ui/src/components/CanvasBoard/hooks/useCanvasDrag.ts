@@ -10,6 +10,7 @@ import {
   SkillButtonData,
   SandboxSkill,
   ForcedWaitConfig,
+  LaneWaitConfig,
   SkillReleaseAnchor,
   TimelineModuleKind,
 } from '../../../types';
@@ -54,6 +55,7 @@ interface DraggingState {
   customHits?: SkillButton['customHits'];
   timelineModuleKind?: TimelineModuleKind;
   forcedWaitConfig?: ForcedWaitConfig;
+  laneWaitConfig?: LaneWaitConfig;
   dragScope: 'character' | 'global';
   lineIndex: number;
   offsetX: number;
@@ -97,6 +99,7 @@ interface UseCanvasDragProps {
     releaseAnchor?: SkillReleaseAnchor;
     timelineModuleKind?: TimelineModuleKind;
     forcedWaitConfig?: ForcedWaitConfig;
+    laneWaitConfig?: LaneWaitConfig;
   }, buttonId?: string) => void;
   updateSkillButtonPosition?: (
     staffIndex: number,
@@ -232,6 +235,25 @@ export function useCanvasDrag({
         projectFrame: frame => projectSharedTimelineFrame(model, frame, 'after')
           ?? (frame >= model.endFrame ? model.width : null),
       });
+      model.laneWaits.forEach((wait) => {
+        const sourceGroupIndex = sourceGroupIndexByGroupId.get(wait.groupId) ?? 0;
+        const sourceButton = buttonById.get(wait.id);
+        points.push({
+          id: `lane-wait-end:${wait.id}`,
+          kind: 'action-end',
+          frame: wait.endFrame,
+          globalX: wait.endX,
+          groupId: wait.groupId,
+          groupIndex: sourceGroupIndex,
+          label: `紧跟 ${sourceButton?.skillDisplayName ?? '普通等待'} 尾部`,
+          anchor: {
+            schemaVersion: 1,
+            kind: 'action-end',
+            sourceButtonId: wait.id,
+            debounceFrames: 0,
+          },
+        });
+      });
       nextGroupIndex = Math.max(
         0,
         ...sourceGroupIndexByGroupId.values(),
@@ -263,6 +285,33 @@ export function useCanvasDrag({
         debounceFrames: 6,
         projectFrame: frame => frame / 15 * GRID_COLUMN_WIDTH,
       });
+      skillButtons
+        .filter(button => button.timelineModuleKind === 'lane-wait')
+        .forEach((button) => {
+          const groupIndex = Math.max(0, button.staffIndex);
+          const localNodeIndex = clampGridNodeIndex(button.nodeIndex ?? 0);
+          const startFrame = groupIndex * GRID_NODE_COUNT * 15 + localNodeIndex * 15;
+          const durationFrames = button.laneWaitConfig?.mode === 'fixed-duration'
+            ? Math.max(1, Math.round(button.laneWaitConfig.durationSeconds * 30))
+            : 0;
+          const globalX = groupIndex * GRID_TIMELINE_WIDTH
+            + (localNodeIndex + 1) * GRID_COLUMN_WIDTH;
+          points.push({
+            id: `lane-wait-end:${button.id}`,
+            kind: 'action-end',
+            frame: startFrame + durationFrames,
+            globalX,
+            groupId: `release-group:${groupIndex}`,
+            groupIndex,
+            label: `紧跟 ${button.skillDisplayName ?? '普通等待'} 尾部`,
+            anchor: {
+              schemaVersion: 1,
+              kind: 'action-end',
+              sourceButtonId: button.id,
+              debounceFrames: 0,
+            },
+          });
+        });
       nextGroupIndex = combatButtons.length > 0
         ? Math.max(...combatButtons.map(button => button.staffIndex)) + 1
         : 0;
@@ -303,6 +352,15 @@ export function useCanvasDrag({
     const actionById = new Map(
       (akeRealtimeTimeline?.sharedVariableRateTimeline?.actions ?? []).map(action => [action.id, action]),
     );
+    const sourceLaneIdById = new Map<string, string>([
+      ...(akeRealtimeTimeline?.sharedVariableRateTimeline?.actions ?? [])
+        .map(action => [action.id, action.laneId] as [string, string]),
+      ...(akeRealtimeTimeline?.sharedVariableRateTimeline?.laneWaits ?? [])
+        .map(wait => [wait.id, wait.laneId] as [string, string]),
+      ...skillButtons
+        .filter(button => button.timelineModuleKind === 'lane-wait')
+        .map(button => [button.id, button.characterId] as [string, string]),
+    ]);
     const sourceGroupIndices = [...new Set(
       (akeRealtimeTimeline?.sharedVariableRateTimeline?.actions ?? []).map((action) => {
         const payload = action.payload as { sourceGroupIndex?: number } | undefined;
@@ -364,12 +422,27 @@ export function useCanvasDrag({
           : nextSourceGroupIndex(point.groupIndex);
         if (occupiedForcedWaitBoundaries.has(targetBoundaryGroup)) continue;
       }
+      if (draggingState.timelineModuleKind === 'lane-wait') {
+        if (point.id.startsWith('new-group:') && point.groupIndex > 0) continue;
+        if (point.kind !== 'group-start' && point.kind !== 'action-end') continue;
+      }
 
       const visual = visualLocationForGlobalX(point.globalX);
       if (visual.staffIndex >= staffCount) continue;
       for (const lineIndex of allowedLineIndices) {
         const characterId = selectedCharacters[lineIndex]?.id;
         if (!characterId) continue;
+        if (point.id.startsWith('lane-wait-end:')
+          && sourceButtonId
+          && sourceLaneIdById.get(sourceButtonId) !== characterId) {
+          continue;
+        }
+        if (draggingState.timelineModuleKind === 'lane-wait'
+          && point.kind === 'action-end'
+          && sourceButtonId
+          && sourceLaneIdById.get(sourceButtonId) !== characterId) {
+          continue;
+        }
         const sameFrameCollision = (akeRealtimeTimeline?.sharedVariableRateTimeline?.actions ?? [])
           .some(action => (
             action.id !== movingButtonId
@@ -452,6 +525,7 @@ export function useCanvasDrag({
         customHits: sandboxSkill.customHits,
         timelineModuleKind: sandboxSkill.timelineModuleKind,
         forcedWaitConfig: sandboxSkill.forcedWaitConfig,
+        laneWaitConfig: sandboxSkill.laneWaitConfig,
         dragScope: sandboxSkill.dragScope ?? 'character',
         lineIndex,
         offsetX: offset,
@@ -505,6 +579,7 @@ export function useCanvasDrag({
           customHits: button.customHits,
           timelineModuleKind: button.timelineModuleKind,
           forcedWaitConfig: button.forcedWaitConfig,
+          laneWaitConfig: button.laneWaitConfig,
           dragScope: button.timelineModuleKind ? 'global' : 'character',
           lineIndex: button.lineIndex,
           offsetX: config.skillButtonSize / 2,
@@ -693,6 +768,7 @@ export function useCanvasDrag({
           releaseAnchor: target.anchor,
           timelineModuleKind: draggingState.timelineModuleKind,
           forcedWaitConfig: draggingState.forcedWaitConfig,
+          laneWaitConfig: draggingState.laneWaitConfig,
         };
 
         dispatch({ type: 'ADD_SKILL_BUTTON', button: newButton });
@@ -712,6 +788,7 @@ export function useCanvasDrag({
             releaseAnchor: target.anchor,
             timelineModuleKind: draggingState.timelineModuleKind,
             forcedWaitConfig: draggingState.forcedWaitConfig,
+            laneWaitConfig: draggingState.laneWaitConfig,
           }, draggingState.id);
         } catch (timelineError) {
           committed = false;

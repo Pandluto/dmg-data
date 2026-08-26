@@ -5,6 +5,7 @@ import { SandboxSkillHit, HitSkillType, ElementType } from './index';
 import type {
   BasicAttackTailBundle,
   ForcedWaitConfig,
+  LaneWaitConfig,
   SkillReleaseAnchor,
   TimelineModuleKind,
 } from './index';
@@ -391,6 +392,7 @@ export interface PersistedSkillButton {
   releaseAnchor?: SkillReleaseAnchor;   // 真实起手关系；nodeIndex 只保留显示/迁移用途
   timelineModuleKind?: TimelineModuleKind; // 第五工具栏控制节点，不进入伤害技能系统
   forcedWaitConfig?: ForcedWaitConfig;  // 可执行的封组/固定时长等待配置
+  laneWaitConfig?: LaneWaitConfig;      // 只影响单条尾链的普通等待配置
   selectedBuff: string[];               // 选中的 Buff ID 列表（只存引用）
   buffStackCounts?: SkillButtonBuffStackCounts; // 按钮实例上的 Buff 层数，key 为 buffId
   anomalyConfig?: SkillButtonAnomalyConfig; // 按钮专属异常选择配置

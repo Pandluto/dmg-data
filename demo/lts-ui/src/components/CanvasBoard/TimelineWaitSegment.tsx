@@ -23,6 +23,7 @@ interface TimelineWaitSegmentProps {
 
 interface TimelineWaitContextMenuProps {
   position: { x: number; y: number };
+  configureLabel?: string;
   onConfigure: () => void;
   onCopy?: () => void;
   onRemove: () => void;
@@ -41,6 +42,7 @@ function formatDuration(seconds: number): string {
 
 export function TimelineWaitContextMenu({
   position,
+  configureLabel = '修改等待',
   onConfigure,
   onCopy,
   onRemove,
@@ -61,7 +63,7 @@ export function TimelineWaitContextMenu({
       onMouseDown={event => event.stopPropagation()}
     >
       <button type="button" role="menuitem" className="context-menu-item" onClick={run(onConfigure)}>
-        修改等待
+        {configureLabel}
       </button>
       {onCopy ? (
         <button type="button" role="menuitem" className="context-menu-item" onClick={run(onCopy)}>
@@ -84,8 +86,8 @@ export function TimelineWaitContextMenu({
 }
 
 /**
- * 等待不是技能按钮。它在画布上始终是一个真实的时间区间：两端光标
- * 表示全局时间边界，中间轨道只是这一列的交互把手。
+ * 等待不是技能按钮。两端光标表示真实时间边界；强制等待额外拥有
+ * 整列封组带，普通等待则只属于当前角色行的尾链。
  */
 export function TimelineWaitSegment({
   button,
@@ -107,10 +109,25 @@ export function TimelineWaitSegment({
 }: TimelineWaitSegmentProps) {
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isInteractionDisabled = isBrowseMode || isDragDisabled || Boolean(button.isLocked);
-  const config = button.forcedWaitConfig ?? { schemaVersion: 1 as const, mode: 'seal-only' as const };
-  const isFixedDuration = config.mode === 'fixed-duration';
-  const label = isFixedDuration ? '普通等待' : '封组等待';
-  const detail = isFixedDuration ? formatDuration(config.durationSeconds) : '0秒';
+  const isLaneWait = button.timelineModuleKind === 'lane-wait';
+  const laneConfig = button.laneWaitConfig
+    ?? { schemaVersion: 1 as const, mode: 'placeholder' as const };
+  const forcedConfig = button.forcedWaitConfig
+    ?? { schemaVersion: 1 as const, mode: 'seal-only' as const };
+  const isFixedDuration = isLaneWait
+    ? laneConfig.mode === 'fixed-duration'
+    : forcedConfig.mode === 'fixed-duration';
+  const label = isLaneWait ? '普通等待' : '强制等待';
+  const detail = isFixedDuration
+    ? formatDuration(
+      laneConfig.mode === 'fixed-duration'
+        ? laneConfig.durationSeconds
+        : forcedConfig.mode === 'fixed-duration' ? forcedConfig.durationSeconds : 0,
+    )
+    : '0秒';
+  const modeClass = isLaneWait
+    ? `is-lane-wait is-${laneConfig.mode}`
+    : `is-forced-wait is-${forcedConfig.mode}`;
   const shouldRenderContextMenu = !isBrowseMode
     && contextMenuState?.buttonId === button.id
     && typeof document !== 'undefined';
@@ -159,10 +176,10 @@ export function TimelineWaitSegment({
   return (
     <>
       <div
-        className={`timeline-wait-segment is-${config.mode}${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-disabled' : ''}`}
+        className={`timeline-wait-segment ${modeClass}${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-disabled' : ''}`}
         data-skill-button-id={button.id}
-        data-timeline-module="forced-wait"
-        data-wait-mode={config.mode}
+        data-timeline-module={button.timelineModuleKind}
+        data-wait-mode={isLaneWait ? laneConfig.mode : forcedConfig.mode}
         role="button"
         tabIndex={isBrowseMode ? -1 : 0}
         aria-label={`${label}，${formatSeconds(startFrame, tickRate)}到${formatSeconds(endFrame, tickRate)}`}
@@ -193,6 +210,7 @@ export function TimelineWaitSegment({
       {shouldRenderContextMenu ? createPortal(
         <TimelineWaitContextMenu
           position={contextMenuState.position}
+          configureLabel={isLaneWait ? '修改普通等待' : '修改强制等待'}
           onConfigure={() => {
             onCloseContextMenu?.();
             onConfigure?.(button);

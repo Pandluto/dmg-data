@@ -37,6 +37,8 @@ interface BuildAnomalyDamageSegmentsParams {
   panelData: SkillDamagePanel | null;
   hitCards: HitCardRef[];
   selectedAnomalyDamages: SelectedAnomalyCard[];
+  mandatoryAnomalyDamageIds?: ReadonlySet<string>;
+  intrinsicModifierBuffsBySegmentKey?: Record<string, SkillButtonBuff[]>;
   buttonCharacterId: string;
   element?: string;
   damageBonus: DamageBonusSnapshot;
@@ -188,6 +190,9 @@ function normalizeExtraHitStackCount(
 }
 
 function resolveBaseMultiplierPercent(card: SelectedAnomalyCard): number {
+  if (typeof card.baseMultiplierPercent === 'number' && Number.isFinite(card.baseMultiplierPercent)) {
+    return card.baseMultiplierPercent;
+  }
   switch (card.key) {
     case 'magic-burst':
       return 160;
@@ -195,6 +200,8 @@ function resolveBaseMultiplierPercent(card: SelectedAnomalyCard): number {
       return 150 * (1 + card.level);
     case 'armor-break':
       return 50 * (1 + card.level);
+    case 'originium-shatter':
+      return 400;
     case 'shatter-ice':
       return 120 * (1 + card.level);
     case 'conductive':
@@ -226,6 +233,9 @@ function resolveBurnDamageMode(card: SelectedAnomalyCard): BurnDamageMode {
 }
 
 function resolveLevelCoefficient(card: SelectedAnomalyCard, operatorLevel: number): number {
+  // 源石结晶使用 Buff 黑板中随技能等级解析出的 atkScale（管理员连携
+  // M3 为 4.0），不是物理异常等级曲线，也不再乘源石技艺强度区。
+  if (card.usesRawAtkScale || card.key === 'originium-shatter') return 1;
   return resolveSpecialDamageLevelCoefficient(
     card.key === 'shatter-ice' || card.category === 'magic' ? 'artsBurst' : 'physicalAnomaly',
     operatorLevel,
@@ -238,6 +248,7 @@ function resolveElementText(card: SelectedAnomalyCard, fallbackElement?: string)
     case 'knockdown':
     case 'launch':
     case 'shatter-ice':
+    case 'originium-shatter':
       return '物理';
     case 'conductive':
       return '电磁';
@@ -269,6 +280,7 @@ function resolveElementKey(card: SelectedAnomalyCard, fallbackElement?: string):
     case 'launch':
     case 'shatter-ice':
     case 'armor-break':
+    case 'originium-shatter':
       return 'physical';
     case 'conductive':
       return 'electric';
@@ -331,6 +343,8 @@ export function buildAnomalyDamageSegments({
   panelData,
   hitCards,
   selectedAnomalyDamages,
+  mandatoryAnomalyDamageIds = new Set<string>(),
+  intrinsicModifierBuffsBySegmentKey = {},
   buttonCharacterId,
   element,
   damageBonus,
@@ -361,15 +375,19 @@ export function buildAnomalyDamageSegments({
     const elementKey = resolveElementKey(card, element);
     const disabledBuffIds = new Set(manuallyDisabledBuffIdsBySegmentKey[card.id] ?? []);
     const disabledHitKeySet = new Set(disabledHitKeys);
+    const isMandatoryMechanic = mandatoryAnomalyDamageIds.has(card.id);
+    const intrinsicModifierBuffs = intrinsicModifierBuffsBySegmentKey[card.id] ?? [];
     const baseAppliedBuffs = card.selectedBuffIds.length === 0
       ? [...fullCombinedModifierBuffList]
       : [...fullCombinedModifierBuffList.filter((buff) => card.selectedBuffIds.includes(buff.id) || buff.source === 'anomaly_state')];
-    const appliedBuffs = baseAppliedBuffs.filter((buff) => (
+    const appliedBuffs = [...baseAppliedBuffs.filter((buff) => (
       doesBuffApplyToSpecialHit(buff, elementKey as SpecialHitElement, '')
       && (isSingleHitMultiplierBonusBuff(buff)
         ? singleHitBuffTargetByBuffId[buff.id] === card.id
         : !disabledBuffIds.has(buff.id))
-    ));
+    )), ...intrinsicModifierBuffs.filter((buff) => (
+      doesBuffApplyToSpecialHit(buff, elementKey as SpecialHitElement, '')
+    ))];
     const appliedBuffTags = buildAppliedBuffTags(appliedBuffs, segmentStackCounts);
     const segmentPanel = buildPanelFromBase(panelBase, panelData, appliedBuffs, segmentStackCounts);
     if (!segmentPanel) {
@@ -377,7 +395,9 @@ export function buildAnomalyDamageSegments({
     }
 
     const buffTotals = calculateBuffTotals(appliedBuffs, segmentStackCounts);
-    const currentCharacterSourceSkillBoost = getEffectiveCharacterSourceSkillBoost(buttonCharacterId, appliedBuffs);
+    const currentCharacterSourceSkillBoost = card.usesRawAtkScale || card.key === 'originium-shatter'
+      ? 0
+      : getEffectiveCharacterSourceSkillBoost(buttonCharacterId, appliedBuffs);
     const sourceSkillZone = 1 + currentCharacterSourceSkillBoost / 100;
     const anomalyAtk = segmentPanel.atk;
     const anomalyCritRate = segmentPanel.critRate;
@@ -457,9 +477,10 @@ export function buildAnomalyDamageSegments({
 
     const initialSegment: AnomalyDamageSegmentView = {
       key: card.id,
-      sourceKind: 'anomaly',
+      sourceKind: card.usesRawAtkScale ? 'buff-extra-hit' : 'anomaly',
+      isMandatoryMechanic,
       title: `${sequenceNumber}段 · ${card.label}`,
-      sequenceTitle: `异常伤害 · ${card.label}`,
+      sequenceTitle: `${card.usesRawAtkScale ? '额外伤害' : '异常伤害'} · ${card.label}`,
       compactTitle: `${card.label}`,
       buffText: appliedBuffTags.length > 0 ? `+${appliedBuffTags.length} Buff` : '无 Buff',
       appliedBuffTags,
@@ -504,7 +525,7 @@ export function buildAnomalyDamageSegments({
       defenseZoneText: defenseZone.toFixed(3),
       nonCritFormulaText: `${anomalyAtk.toFixed(0)} × ${(finalMultiplier * 100).toFixed(1)}% × ${damageBonusRate.toFixed(3)} × ${defenseZone.toFixed(3)} × ${resistance.resistanceZone.toFixed(3)} × ${amplifyZone.toFixed(3)} × ${fragileZone.toFixed(3)} × ${vulnerabilityZone.toFixed(3)} × ${(1 + comboDamageBonus).toFixed(3)} × ${(1 + imbalanceDamageBonus).toFixed(3)} = ${nonCrit.toFixed(0)} (基础伤害 ${baseNonCrit.toFixed(0)})`,
     };
-    const finalInitialSegment = disabledHitKeySet.has(initialSegment.key)
+    const finalInitialSegment = !isMandatoryMechanic && disabledHitKeySet.has(initialSegment.key)
       ? applyDisabledSegment(initialSegment)
       : initialSegment;
 
@@ -545,7 +566,9 @@ export function buildAnomalyDamageSegments({
         vulnerabilityRateText: (burnDotVulnerabilityZone - 1).toFixed(3),
         nonCritFormulaText: `${anomalyAtk.toFixed(0)} × ${(burnDotFinalMultiplier * 100).toFixed(1)}% × ${burnDotDamageBonusRate.toFixed(3)} × ${defenseZone.toFixed(3)} × ${resistance.resistanceZone.toFixed(3)} × ${burnDotAmplifyZone.toFixed(3)} × ${burnDotFragileZone.toFixed(3)} × ${burnDotVulnerabilityZone.toFixed(3)} × ${(1 + comboDamageBonus).toFixed(3)} × ${(1 + imbalanceDamageBonus).toFixed(3)} = ${burnDotNonCrit.toFixed(0)} (基础伤害 ${burnDotBaseNonCrit.toFixed(0)})`,
       };
-      return disabledHitKeySet.has(segment.key) ? applyDisabledSegment(segment) : segment;
+      return !isMandatoryMechanic && disabledHitKeySet.has(segment.key)
+        ? applyDisabledSegment(segment)
+        : segment;
     };
 
     if (burnDamageMode === 'splitDot') {

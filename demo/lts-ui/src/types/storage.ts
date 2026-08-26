@@ -327,6 +327,10 @@ export interface PersistedAnomalyCard {
   secondaryText: string;
   tertiaryText?: string;
   selectedBuffIds: string[];
+  /** 真实机制可直接携带 AKE DamageAction 的 atkScale（百分数）。 */
+  baseMultiplierPercent?: number;
+  /** true 表示普通 atkScale 段，不套异常等级曲线与源石技艺强度区。 */
+  usesRawAtkScale?: boolean;
 }
 
 export interface AnomalyStateSnapshot {

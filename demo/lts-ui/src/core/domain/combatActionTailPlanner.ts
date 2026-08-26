@@ -472,11 +472,16 @@ export function resolveActionTailTransition(
 
   if (input.boundary === 'append' && input.successor) {
     const successor = input.successor;
-    // Selecting a normal-attack stage is itself an explicit cancel boundary.
-    // This also covers A -> A continuation where neither action has a higher
-    // priority and the composed full-combo profile has no ordinary successor
-    // window of its own.
-    if (contract.kind === 'basic-attack' && selectedBasicStageCount !== null) {
+    // A partial stage selection is an explicit cut boundary. A completed
+    // A -> A segment is different: it must use the final stage's native
+    // successor window/exclusive boundary, otherwise the next full combo is
+    // pulled back to the last-hit debounce floor and disagrees with preview.
+    const isCompletedBasicRestart = contract.kind === 'basic-attack'
+      && successor.kind === 'basic-attack'
+      && selectedBasicStageCount === contract.basicCombo?.renderedStageCount;
+    if (contract.kind === 'basic-attack'
+      && selectedBasicStageCount !== null
+      && !isCompletedBasicRestart) {
       candidates.push({
         offsetFrames: floor,
         reason: 'BASIC_STAGE_BOUNDARY',

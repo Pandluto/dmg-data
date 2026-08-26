@@ -20,6 +20,8 @@ const requestedScopes = process.argv.slice(2).filter(argument => argument.starts
 const scopes = requestedScopes.length > 0 ? requestedScopes : [
     'BuffData/',
     'SkillData/chr_',
+    'SkillData/sk_wpn_',
+    'SkillData/wpn_',
     'SkillData/passive_equip',
     'SkillData/passive_rpg_equip',
     'SkillData/rpg_equip'
@@ -27,6 +29,14 @@ const scopes = requestedScopes.length > 0 ? requestedScopes : [
 
 function md5(buffer) {
     return createHash('md5').update(buffer).digest('hex');
+}
+
+function normalizeJsonNewlines(buffer) {
+    return Buffer.from(buffer.toString('utf8').replace(/\r\n/g, '\n'));
+}
+
+function asCrlf(buffer) {
+    return Buffer.from(buffer.toString('utf8').replace(/\r?\n/g, '\r\n'));
 }
 
 function safeTarget(relativePath) {
@@ -38,10 +48,12 @@ function safeTarget(relativePath) {
 
 async function existingMatches(target, metadata) {
     try {
-        const info = await stat(target);
-        if (info.size !== Number(metadata.size)) return false;
+        await stat(target);
         const data = await readFile(target);
-        return md5(data) === metadata.md5;
+        // AKEDatabase's CDN stores these pretty-printed JSON files with CRLF,
+        // while the repository deliberately keeps LF. Verify either the raw
+        // wire form or the reproducible CRLF form without dirtying every file.
+        return md5(data) === metadata.md5 || md5(asCrlf(data)) === metadata.md5;
     } catch (error) {
         if (error.code === 'ENOENT') return false;
         throw error;
@@ -67,7 +79,7 @@ async function download(relativePath, metadata) {
                 throw new Error(`MD5 mismatch for ${relativePath}: ${actualMd5} != ${metadata.md5}`);
             }
             await mkdir(path.dirname(target), { recursive: true });
-            await writeFile(temporary, data);
+            await writeFile(temporary, normalizeJsonNewlines(data));
             await rename(temporary, target);
             return { status: 'downloaded', bytes: data.length };
         } catch (error) {

@@ -33,23 +33,82 @@ function statKey(targetId, attribute) {
     return typedKey(targetId) + '\u0000' + attribute;
 }
 
+function emptyAttributeComponent(rawValue = 0) {
+    return {
+        rawValue,
+        baseAddition: 0,
+        baseMultiplier: 1,
+        baseFinalAddition: 0,
+        baseFinalMultiplier: 1,
+        addition: 0,
+        multiplier: 1,
+        finalAddition: 0,
+        finalMultiplier: 1
+    };
+}
+
 /**
  * Reversible source registry for equipment, talents, potentials, contracts
  * and status effects.
  */
 export class EffectSourceRegistry {
-    constructor({ context, resolveValue = value => value } = {}) {
+    constructor({
+        context,
+        resolveValue = value => value,
+        evaluateCondition = null
+    } = {}) {
         if (!context || typeof context.getAttribute !== 'function'
             || typeof context.setAttribute !== 'function') {
             throw new TypeError('EffectSourceRegistry requires a CombatContext-compatible context.');
         }
         if (typeof resolveValue !== 'function') throw new TypeError('resolveValue must be a function.');
+        if (evaluateCondition !== null && typeof evaluateCondition !== 'function') {
+            throw new TypeError('evaluateCondition must be a function or null.');
+        }
         this.context = context;
         this.resolveValue = resolveValue;
+        this.evaluateCondition = evaluateCondition;
         this.sources = new Map();
         this.baseAttributes = new Map();
+        this.attributeComponents = new Map();
         this.tagReferences = new Map();
         this.trace = [];
+    }
+
+    registerAttributeComponents(targetId, components = {}) {
+        identifier(targetId, 'attribute-component targetId');
+        if (!isRecord(components)) {
+            throw new TypeError('attribute components must be an object.');
+        }
+        for (const [attribute, input] of Object.entries(components)) {
+            if (!isRecord(input)) {
+                throw new TypeError(`attribute component ${attribute} must be an object.`);
+            }
+            const evaluation = evaluateAttributeComponent(input);
+            const component = {
+                rawValue: evaluation.rawValue,
+                baseAddition: evaluation.baseAddition,
+                baseMultiplier: evaluation.baseMultiplier,
+                baseFinalAddition: evaluation.baseFinalAddition,
+                baseFinalMultiplier: evaluation.baseFinalMultiplier,
+                addition: evaluation.addition,
+                multiplier: evaluation.multiplier,
+                finalAddition: evaluation.finalAddition,
+                finalMultiplier: evaluation.finalMultiplier
+            };
+            this.attributeComponents.set(statKey(targetId, attribute), {
+                targetId,
+                attribute,
+                component
+            });
+        }
+        return this.attributeComponentsFor(targetId);
+    }
+
+    attributeComponentsFor(targetId) {
+        return [...this.attributeComponents.values()]
+            .filter(entry => entry.targetId === targetId)
+            .map(cloneValue);
     }
 
     apply(input = {}, eventContext = {}) {
@@ -89,6 +148,8 @@ export class EffectSourceRegistry {
             return {
                 side: modifier.side ?? null,
                 damageTypes: cloneValue(modifier.damageTypes ?? []),
+                conditions: cloneValue(modifier.conditions ?? []),
+                conditionsExecutable: modifier.conditionsExecutable !== false,
                 processors: (modifier.processors ?? []).map(processor => ({
                     side: processor.side ?? modifier.side ?? null,
                     zoneName: processor.zoneName ?? 'NormalCalcZone',
@@ -115,13 +176,20 @@ export class EffectSourceRegistry {
         for (const modifier of modifiers) {
             const keyForAttribute = statKey(targetId, modifier.attribute);
             if (!this.baseAttributes.has(keyForAttribute)) {
+                const registered = this.attributeComponents.get(keyForAttribute);
                 this.baseAttributes.set(keyForAttribute, {
                     targetId,
                     attribute: modifier.attribute,
                     value: finite(
                         this.context.getAttribute(targetId, modifier.attribute) ?? 0,
                         'base attribute ' + modifier.attribute
-                    )
+                    ),
+                    component: registered
+                        ? cloneValue(registered.component)
+                        : emptyAttributeComponent(finite(
+                            this.context.getAttribute(targetId, modifier.attribute) ?? 0,
+                            'base attribute ' + modifier.attribute
+                        ))
                 });
             }
         }
@@ -199,27 +267,54 @@ export class EffectSourceRegistry {
         return this.remove({ ownerId, frame });
     }
 
-    damageZone({ targetId, side, damageType }, eventContext = {}) {
+    damageZone({
+        targetId,
+        side,
+        damageType,
+        attackerId = eventContext.sourceId,
+        defenderId = eventContext.targetId
+    }, eventContext = {}) {
         identifier(targetId, 'damage-zone targetId');
         const zones = new Map();
         const contributions = [];
         for (const source of this.sources.values()) {
-            if (source.targetId !== targetId) continue;
             for (const modifier of source.damageModifiers ?? []) {
-                if (modifier.side && side && modifier.side !== side) continue;
+                const activationTargetId = modifier.side === 'Attacker'
+                    ? attackerId
+                    : modifier.side === 'Defender'
+                        ? defenderId
+                        : targetId;
+                if (source.targetId !== activationTargetId) continue;
                 if (modifier.damageTypes.length > 0
                     && !modifier.damageTypes.includes(damageType)) continue;
+                if (!modifier.conditionsExecutable) continue;
+                const modifierContext = {
+                    ...eventContext,
+                    blackboard: source.blackboard,
+                    payload: {
+                        ...cloneValue(source.payload),
+                        ...cloneValue(eventContext.payload ?? {}),
+                        damageType
+                    },
+                    effectSourceTargetId: targetId
+                };
+                if ((modifier.conditions ?? []).length > 0
+                    && (!this.evaluateCondition || !modifier.conditions.every(condition =>
+                        this.evaluateCondition(condition, modifierContext)
+                    ))) continue;
                 for (const processor of modifier.processors) {
-                    if (processor.side && side && processor.side !== side) continue;
-                    const addition = finite(this.resolveValue(processor.addition, {
-                        ...eventContext,
-                        targetId,
-                        blackboard: source.blackboard,
-                        payload: source.payload
-                    }), `damage zone ${processor.zoneName}`);
+                    const effectiveSide = processor.side ?? modifier.side;
+                    if (effectiveSide && side && effectiveSide !== side) continue;
+                    const addition = finite(
+                        this.resolveValue(processor.addition, modifierContext),
+                        `damage zone ${processor.zoneName}`
+                    );
                     zones.set(processor.zoneName, (zones.get(processor.zoneName) ?? 0) + addition);
                     contributions.push({
                         sourceKey: source.sourceKey,
+                        sourceType: source.sourceType,
+                        buffInstanceId: source.buffInstanceId,
+                        side: effectiveSide,
                         zoneName: processor.zoneName,
                         addition
                     });
@@ -235,8 +330,78 @@ export class EffectSourceRegistry {
             targetId,
             side,
             damageType,
+            attackerId,
+            defenderId,
             scale: zoneValues.reduce((scale, zone) => scale * zone.scale, 1),
             zones: zoneValues,
+            contributions
+        };
+    }
+
+    /**
+     * Returns the exact runtime sources that produced one attribute value.
+     * Damage-zone snapshots alone cannot explain self Buffs such as Chen's
+     * stacking ATK talent because those sources enter the nine-field panel
+     * formula before the damage zones are evaluated.
+     */
+    attributeSnapshot({ targetId, attribute }, eventContext = {}) {
+        identifier(targetId, 'attribute-snapshot targetId');
+        if (typeof attribute !== 'string' || attribute.length === 0) {
+            throw new TypeError('attribute-snapshot attribute must be a non-empty string.');
+        }
+        const key = statKey(targetId, attribute);
+        const base = this.baseAttributes.get(key);
+        const registered = this.attributeComponents.get(key);
+        const currentValue = finite(
+            this.context.getAttribute(targetId, attribute) ?? 0,
+            'attribute snapshot ' + attribute
+        );
+        const baseComponent = base
+            ? cloneValue(base.component)
+            : registered
+                ? cloneValue(registered.component)
+                : emptyAttributeComponent(currentValue);
+        const component = cloneValue(baseComponent);
+        const contributions = [];
+        for (const source of this.sources.values()) {
+            if (source.targetId !== targetId) continue;
+            for (const modifier of source.modifiers) {
+                if (modifier.attribute !== attribute) continue;
+                const value = finite(this.resolveValue(modifier.value, {
+                    ...eventContext,
+                    targetId,
+                    blackboard: source.blackboard,
+                    payload: source.payload
+                }), attribute + '.' + modifier.zone);
+                const field = modifier.zone[0].toLowerCase() + modifier.zone.slice(1);
+                if (modifier.zone === 'BaseFinalMultiplier'
+                    || modifier.zone === 'FinalMultiplier') {
+                    component[field] *= value;
+                } else {
+                    component[field] += value;
+                }
+                contributions.push({
+                    sourceKey: source.sourceKey,
+                    sourceType: source.sourceType,
+                    sourceId: source.sourceId,
+                    ownerId: source.ownerId,
+                    buffInstanceId: source.buffInstanceId,
+                    targetId: source.targetId,
+                    attribute,
+                    zone: modifier.zone,
+                    value,
+                    metadata: cloneValue(modifier.metadata),
+                    sourceMetadata: cloneValue(source.metadata),
+                    appliedFrame: source.appliedFrame
+                });
+            }
+        }
+        return {
+            targetId,
+            attribute,
+            baseValue: base?.value ?? evaluateAttributeComponent(baseComponent).value,
+            baseComponent,
+            evaluation: evaluateAttributeComponent(component),
             contributions
         };
     }
@@ -245,6 +410,7 @@ export class EffectSourceRegistry {
         return {
             sources: [...this.sources.values()].map(cloneValue),
             baseAttributes: [...this.baseAttributes.values()].map(cloneValue),
+            attributeComponents: [...this.attributeComponents.values()].map(cloneValue),
             trace: this.trace.map(cloneValue)
         };
     }
@@ -258,17 +424,7 @@ export class EffectSourceRegistry {
             .flatMap(source => source.modifiers
                 .filter(modifier => modifier.attribute === attribute)
                 .map(modifier => ({ source, modifier })));
-        const component = {
-            rawValue: base.value,
-            baseAddition: 0,
-            baseMultiplier: 1,
-            baseFinalAddition: 0,
-            baseFinalMultiplier: 1,
-            addition: 0,
-            multiplier: 1,
-            finalAddition: 0,
-            finalMultiplier: 1
-        };
+        const component = cloneValue(base.component);
         for (const { source, modifier } of contributions) {
             const value = finite(this.resolveValue(modifier.value, {
                 ...eventContext,
@@ -277,7 +433,12 @@ export class EffectSourceRegistry {
                 payload: source.payload
             }), attribute + '.' + modifier.zone);
             const field = modifier.zone[0].toLowerCase() + modifier.zone.slice(1);
-            component[field] += value;
+            if (modifier.zone === 'BaseFinalMultiplier'
+                || modifier.zone === 'FinalMultiplier') {
+                component[field] *= value;
+            } else {
+                component[field] += value;
+            }
         }
         const evaluation = evaluateAttributeComponent(component);
         this.context.setAttribute(targetId, attribute, evaluation.value, {

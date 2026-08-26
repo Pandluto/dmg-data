@@ -6,10 +6,15 @@ const OPERATOR_LIBRARY_KEY = 'def.operator-editor.library.v1';
 const WEAPON_LIBRARY_KEY = 'def.weapon-sheet.library.v1';
 const EQUIPMENT_LIBRARY_KEY = 'def.equipment-sheet.library.v1';
 const CATALOG_REVISION_KEY = 'def.ake-catalog.revision.v1';
-// v15 adds engine status keys/values and skill-level state-only hit projections.
+// v21 keeps v20's skill-wide status projection and refreshes installed editor
+// data alongside the cross-operator/status-driven combo trigger catalog.
+// v20 projects compiled skill-wide ApplyBuff/status actions onto their final
+// real settlement hit, including leveled state-trigger values.  This forces
+// existing browsers to discard catalogs where vulnerability, NoGuard, Crush
+// and Originium were present in SkillData but absent from the visible hit.
 // Keep this revision in sync with adapter output changes so an existing browser
 // cannot retain a pre-state-machine catalog.
-const CATALOG_ADAPTER_VERSION = 15;
+const CATALOG_ADAPTER_VERSION = 21;
 
 const LEVEL_KEYS = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'M1', 'M2', 'M3'] as const;
 
@@ -30,6 +35,9 @@ export type AkeHitBuffProfile = {
   kind?: 'status' | 'resource' | 'attachment' | string;
   statusKey?: string;
   statusValue?: number;
+  statusValueLevels?: Record<string, number>;
+  /** 状态动作在源 SkillData 内的真实帧；用于避免复制到每一个 Hit。 */
+  offsetFrames?: number;
   effects?: Array<{
     id: string;
     sourceBuffId: string;
@@ -113,10 +121,16 @@ export type AkeTimingComboTrigger = {
   eventType: string;
   rootSkillIds: string[];
   sourceSkillIds: string[];
-  damageAttributeType: string;
+  rootSkillRole?: string | null;
+  statusBuffIds?: string[];
+  sourceCommandTypes?: string[];
+  requireSourceOtherThanOwner?: boolean;
+  damageAttributeType: string | null;
   occurrence: string;
   comboSkillId: string;
   pendingDurationFrames: number;
+  ownerBinding?: 'event-source' | 'fixed' | 'none' | string;
+  ownerId?: string | null;
   requireComboOffCooldown: boolean;
   pendingPolicy: string;
   selectionPolicy: string;
@@ -170,6 +184,7 @@ type AkeCharacter = {
   loadoutEffects?: {
     talent?: AkeLoadoutEffect[];
     potential?: AkeLoadoutEffect[];
+    skill?: AkeLoadoutEffect[];
   };
 };
 
@@ -187,6 +202,9 @@ type AkeLoadoutBuffEffect = {
     element?: string;
     value?: number;
   };
+  durationSeconds?: number;
+  effectKind?: 'modifier' | 'extraHit';
+  extraHitConfig?: BuffExtraHitConfig;
   description?: string;
   raw?: string;
 };
@@ -327,9 +345,14 @@ function operatorAttributeLevels(character: AkeCharacter) {
 
 function buildAkeOperatorBuffEffects(
   character: AkeCharacter,
-  group: 'talent' | 'potential',
+  group: 'talent' | 'potential' | 'skill',
+  additionalLoadouts: AkeLoadoutEffect[] = [],
 ) {
-  return Object.fromEntries((character.loadoutEffects?.[group] ?? []).flatMap((loadout) => (
+  const loadouts = [
+    ...(character.loadoutEffects?.[group] ?? []),
+    ...additionalLoadouts,
+  ];
+  return Object.fromEntries(loadouts.flatMap((loadout) => (
     loadout.effects.map((effect) => [effect.effectId, {
       schemaVersion: 2,
       effectId: effect.effectId,
@@ -340,12 +363,77 @@ function buildAkeOperatorBuffEffects(
       ...(typeof effect.maxStacks === 'number' ? { maxStacks: effect.maxStacks } : {}),
       ...(effect.unit ? { unit: effect.unit } : {}),
       ...(effect.activation ? { activation: effect.activation } : {}),
+      ...(typeof effect.durationSeconds === 'number'
+        ? { durationSeconds: effect.durationSeconds }
+        : {}),
       description: effect.description || loadout.description,
       raw: effect.raw || loadout.description,
       valueMode: 'fixed',
-      effectKind: 'modifier',
+      effectKind: effect.effectKind ?? 'modifier',
+      ...(effect.effectKind === 'extraHit' && effect.extraHitConfig
+        ? { extraHitConfig: effect.extraHitConfig }
+        : {}),
     }])
   )));
+}
+
+function buildAkeTimingSkillLoadoutEffects(
+  character: AkeCharacter,
+  timingProfiles: AkeTimingSkillProfile[],
+): AkeLoadoutEffect[] {
+  return character.skills.flatMap((skill) => {
+    const skillIds = new Set(skill.skillIds?.length > 0 ? skill.skillIds : [skill.groupId]);
+    const profiles = timingProfiles.filter((profile) => (
+      skillIds.has(profile.skillId) && profile.commandType === skill.commandType
+    ));
+    const seen = new Set<string>();
+    const effects: AkeLoadoutBuffEffect[] = [];
+    profiles.forEach((profile) => {
+      const hitBuffs = mergeAkeHitBuffProfiles(
+        profile.statusEffects,
+        ...profile.hits.map((hit) => hit.hitBuffs),
+      );
+      hitBuffs.forEach((hitBuff) => {
+        (hitBuff.effects ?? []).forEach((effect) => {
+          const key = [
+            effect.sourceBuffId,
+            effect.type,
+            effect.value,
+            effect.category,
+            effect.maxStacks ?? '',
+            effect.durationSeconds ?? '',
+          ].join('|');
+          if (seen.has(key)) return;
+          seen.add(key);
+          const durationText = typeof effect.durationSeconds === 'number'
+            ? `，持续 ${effect.durationSeconds} 秒`
+            : '';
+          effects.push({
+            effectId: `skill:${skill.groupId}:${effect.sourceBuffId}:${effects.length + 1}`,
+            name: `技能·${skill.name}·${akeEffectLabel(effect.type)}`,
+            type: effect.type,
+            category: effect.category ?? 'condition',
+            value: effect.value,
+            ...(typeof effect.maxStacks === 'number' ? { maxStacks: effect.maxStacks } : {}),
+            ...(effect.unit ? { unit: effect.unit } : {}),
+            ...(typeof effect.durationSeconds === 'number'
+              ? { durationSeconds: effect.durationSeconds }
+              : {}),
+            description: `${skill.name}命中施加${hitBuff.displayName}：${akeEffectLabel(effect.type)}${durationText}`,
+            raw: hitBuff.description
+              || `AKE 命中动作 · ${hitBuff.targetLabel || hitBuff.target} · ${hitBuff.id}`,
+          });
+        });
+      });
+    });
+    return effects.length > 0 ? [{
+      effectId: `skill:${skill.groupId}`,
+      name: `技能·${skill.name}`,
+      description: skill.description,
+      level: 12,
+      effects,
+    }] : [];
+  });
 }
 
 function intentTimingProfiles(
@@ -390,6 +478,17 @@ function buildIntentHitMeta(
       }
     ));
   });
+  const unprojectedStatusEffectsByProfile = profiles.map((profile) => {
+    const projectedKeys = new Set(profile.hits.flatMap((hit) => (
+      (hit.hitBuffs ?? []).map((effect) => `${effect.id}\u0000${effect.target}`)
+    )));
+    return mergeAkeHitBuffProfiles(profile.statusEffects)
+      .filter((effect) => !projectedKeys.has(`${effect.id}\u0000${effect.target}`));
+  });
+  const expandedHitCountsByProfile = profiles.map((profile) => profile.hits.reduce(
+    (count, hit) => count + Math.max(1, hit.hitCount),
+    0,
+  ));
 
   if (expandedHits.length === 0) {
     return {
@@ -421,7 +520,9 @@ function buildIntentHitMeta(
         skillType: type,
         hitBuffs: mergeAkeHitBuffProfiles(
           entry.hit.hitBuffs,
-          profiles[entry.profileIndex]?.statusEffects,
+          entry.profileHitIndex === expandedHitCountsByProfile[entry.profileIndex]
+            ? unprojectedStatusEffectsByProfile[entry.profileIndex]
+            : undefined,
         ),
         levels: Object.fromEntries(LEVEL_KEYS.map(level => [
           level,
@@ -437,6 +538,10 @@ export function buildAkeOperatorLibrary(catalog: AkeCatalog) {
     .filter(character => character.id !== 'chr_9000_endmin')
     .map((character) => {
     const timingProfiles = catalog.timing?.characters[character.id]?.profiles ?? [];
+    const timingSkillLoadoutEffects = buildAkeTimingSkillLoadoutEffects(
+      character,
+      timingProfiles,
+    );
     const skills = Object.fromEntries(character.skills.flatMap((skill) => {
       const type = buttonType(skill.commandType);
       if (!type) return [];
@@ -482,7 +587,13 @@ export function buildAkeOperatorLibrary(catalog: AkeCatalog) {
       buffs: {
         talent: { effects: buildAkeOperatorBuffEffects(character, 'talent') },
         potential: { effects: buildAkeOperatorBuffEffects(character, 'potential') },
-        skill: { effects: {} },
+        skill: {
+          effects: buildAkeOperatorBuffEffects(
+            character,
+            'skill',
+            timingSkillLoadoutEffects,
+          ),
+        },
       },
       akeSource: catalog.source,
     }];
@@ -566,6 +677,10 @@ const AKE_EFFECT_LABELS: Record<string, string> = {
   extraHit: '物理异常追加伤害',
   physicalVulnerability: '物理脆弱',
   magicVulnerability: '法术脆弱',
+  fireVulnerability: '灼热脆弱',
+  electricVulnerability: '电磁脆弱',
+  iceVulnerability: '寒冷脆弱',
+  natureVulnerability: '自然脆弱',
   physicalResistanceIgnore: '物理抗性无视',
   fireResistanceIgnore: '灼热抗性无视',
   electricResistanceIgnore: '电磁抗性无视',

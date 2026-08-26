@@ -7,13 +7,15 @@
   "scopes": [
     "BuffData/",
     "SkillData/chr_",
+    "SkillData/sk_wpn_",
+    "SkillData/wpn_",
     "SkillData/passive_equip",
     "SkillData/passive_rpg_equip",
     "SkillData/rpg_equip"
   ],
-  "files": 3389,
-  "expectedBytes": 147580776,
-  "verified": 3348,
-  "downloaded": 41,
-  "processedBytes": 147580776
+  "files": 3517,
+  "expectedBytes": 148966612,
+  "verified": 3517,
+  "downloaded": 0,
+  "processedBytes": 148966612
 }

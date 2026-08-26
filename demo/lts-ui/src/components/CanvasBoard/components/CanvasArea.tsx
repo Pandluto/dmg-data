@@ -9,6 +9,7 @@ import {
   getGridNodeCenterX,
   getGridLineCenterY,
   getGridMergedCellRect,
+  getNormalizedGridLineOffsetY,
   getGridEnergyRowTopY,
   getGridGroupTop,
   getGridOperatorPairTopY,
@@ -24,6 +25,7 @@ import { normalizeAssetUrl } from '../../../utils/assetResolver';
 import { OptionalLiquidTideCanvasEffects } from '../../../platform/theme/OptionalLiquidTideEffects';
 import type {
   AkeProjectedTimeline,
+  AkeTeamReport,
   AkeTimelinePoint,
 } from '../../../integrations/ake/akeProvider';
 import type {
@@ -64,6 +66,7 @@ interface CanvasAreaProps {
   isDragDisabled?: boolean;
   resistanceRevision?: number;
   akeTimeline?: AkeProjectedTimeline | null;
+  akeRuntimeReport?: AkeTeamReport | null;
   akeRealtimeTimeline?: AkeRealtimeTimeline | null;
   dropTarget?: CanvasDropTarget | null;
   snapTargets?: CanvasDropTarget[];
@@ -98,6 +101,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
   isDragDisabled = false,
   resistanceRevision = 0,
   akeTimeline = null,
+  akeRuntimeReport = null,
   akeRealtimeTimeline = null,
   dropTarget = null,
   snapTargets = [],
@@ -258,9 +262,11 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
       Math.round(Number(button.nodeIndex) || 0),
     ));
     const gridOffsetX = button.position.x - getGridNodeCenterX(sourceNodeIndex);
-    const gridOffsetY = button.position.y
-      - getGridGroupTop(Math.max(0, Number(button.staffIndex) || 0))
-      - getGridLineCenterY(lineIndex);
+    const gridOffsetY = getNormalizedGridLineOffsetY(
+      button.position.y,
+      button.staffIndex,
+      lineIndex,
+    );
     return {
       ...button,
       staffIndex: visualStart.pageIndex,
@@ -338,9 +344,11 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
       Math.round(Number(button.nodeIndex) || 0),
     ));
     const gridOffsetX = button.position.x - getGridNodeCenterX(sourceNodeIndex);
-    const gridOffsetY = button.position.y
-      - getGridGroupTop(Math.max(0, Number(button.staffIndex) || 0))
-      - getGridLineCenterY(button.lineIndex);
+    const gridOffsetY = getNormalizedGridLineOffsetY(
+      button.position.y,
+      button.staffIndex,
+      button.lineIndex,
+    );
     return {
       ...button,
       staffIndex: visualStart.pageIndex,
@@ -519,7 +527,9 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           onConfigureTimelineModule={onConfigureTimelineModule}
           skillChangeOptions={getSkillChangeOptions?.(button) ?? []}
           akeSettlement={command}
+          akeRuntimeReport={akeRuntimeReport}
           akePreviewCommand={previewCommand}
+          akePreviewCommands={akeRealtimeTimeline?.commands}
           akeUsesSharedProjection={Boolean(variableTimeline)}
           akePreviewTickRate={akeRealtimeTimeline?.tickRate ?? akeTimeline?.tickRate ?? 30}
           akeAtbPoint={command

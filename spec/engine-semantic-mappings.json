@@ -2,6 +2,33 @@
   "schemaVersion": 1,
   "mappings": [
     {
+      "id": "akedata.zhuangfy.sword-ability-entity-tags",
+      "actionType": "AbilityEntityTagRule",
+      "selector": {
+        "abilityEntityId": "abilityentity_chr_0030_zhuangfy_normal_skill_sword"
+      },
+      "effect": {
+        "operation": "AttachTags",
+        "tagIds": [
+          -13979809
+        ]
+      },
+      "confidence": "public-data-inferred",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0030_zhuangfy_normal_skill_gene_sword_projhit.json",
+          "observation": "The sword generator limits and replaces owner-spawned entities selected by tag -13979809, then spawns this single sword AbilityEntity id."
+        },
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_chr_0030_zhuangfy_passive_check_sword.json",
+          "observation": "The intrinsic passive counts owner-spawned AbilityEntities with tag -13979809 into EntityBB_SwordNum."
+        }
+      ],
+      "notes": "AKEDatabase exports SkillData and BuffData but not the Unity AbilityEntity prefab tag table, so this missing prefab property is kept as an auditable data mapping rather than a character branch in runtime code."
+    },
+    {
       "id": "calc.command-admission.policy",
       "actionType": "CommandAdmissionPolicy",
       "effect": {
@@ -202,6 +229,44 @@
       "notes": "Fire SkillData carries only the element enum; the attachment Buff ID is supplied as evidence-backed engine vocabulary."
     },
     {
+      "id": "global.cryst-infliction-attachment",
+      "actionType": "SpellInfliction",
+      "selector": {
+        "inflictionType": "Cryst"
+      },
+      "effect": {
+        "operation": "ApplyBuff",
+        "buffId": "buff_common_energy_shard_attached_cryst"
+      },
+      "confidence": "public-data-derived",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_common_energy_shard_attached_cryst.json"
+        }
+      ],
+      "notes": "Cryst SkillData serializes only the element enum; the matching global attachment BuffData supplies the engine state id."
+    },
+    {
+      "id": "global.natural-infliction-attachment",
+      "actionType": "SpellInfliction",
+      "selector": {
+        "inflictionType": "Natural"
+      },
+      "effect": {
+        "operation": "ApplyBuff",
+        "buffId": "buff_common_energy_shard_attached_natural"
+      },
+      "confidence": "public-data-derived",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_common_energy_shard_attached_natural.json"
+        }
+      ],
+      "notes": "Natural SkillData serializes only the element enum; the matching global attachment BuffData supplies the engine state id."
+    },
+    {
       "id": "global.fire-burst.first-trigger-frame",
       "actionType": "StatusTriggerTimingRule",
       "selector": {
@@ -288,9 +353,7 @@
         "rootSkillIds": [
           "chr_0004_pelica_attack4"
         ],
-        "sourceSkillIds": [
-          "chr_0004_pelica_attack4_projhit"
-        ],
+        "rootSkillRole": "heavy-attack",
         "damageAttributeType": "Hp",
         "occurrence": "first-per-cast"
       },
@@ -298,7 +361,8 @@
         "operation": "CreateComboPending",
         "comboSkillId": "chr_0004_pelica_combo_skill",
         "pendingDurationTicks": 180,
-        "ownerBinding": "event-source",
+        "ownerBinding": "fixed",
+        "ownerId": "chr_0004_pelica",
         "triggerTargetBinding": "event-target",
         "requireComboOffCooldown": true,
         "pendingPolicy": "append",
@@ -318,7 +382,110 @@
           "observation": "same-frame cast succeeds; active interval is [86,265); repeated casts append and newest is selected; cooldown suppresses creation"
         }
       ],
-      "notes": "The public SkillData exposes attack4 timing and damage but does not declare the character-specific combo-pending rule. first-per-cast is a conservative selector because this SkillData currently has one HP hit."
+      "notes": "The public description says any controlled operator's heavy attack opens Perlica's combo. The isolated Calc fixture proves the Perlica attack4 boundary; rootSkillRole generalizes the same event to the selected controller without a character branch."
+    },
+    {
+      "id": "chen.enemy-enters-no-guard",
+      "actionType": "ComboTriggerRule",
+      "eventType": "StatusEffectApplied",
+      "selector": {
+        "statusBuffIds": [
+          "buff_physical_no_guard"
+        ],
+        "occurrence": "first-per-cast-target"
+      },
+      "effect": {
+        "operation": "CreateComboPending",
+        "comboSkillId": "chr_0005_chen_combo_skill",
+        "pendingDurationTicks": 180,
+        "ownerBinding": "fixed",
+        "ownerId": "chr_0005_chen",
+        "triggerTargetBinding": "event-target",
+        "requireComboOffCooldown": true,
+        "pendingPolicy": "replace-all",
+        "selectionPolicy": "newest",
+        "consumePolicy": "all-for-owner-and-skill"
+      },
+      "confidence": "public-data-derived",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_physical_no_guard.json",
+          "observation": "The physical state machine emits OnPhysicalNoGuardStart only when the enemy enters NoGuard."
+        },
+        {
+          "type": "public-description",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_chr_0005_chen_combo_skill_mark.json",
+          "observation": "Chen's combo is tied to the enemy entering NoGuard; the calculator uses the common six-second combo-pending window rather than the twenty-second NoGuard status lifetime."
+        }
+      ],
+      "notes": "StatusEffectApplied is intentional: refreshing an existing NoGuard stack must not reopen a window described as 'enters NoGuard'."
+    },
+    {
+      "id": "endminm.other-operator-combo-damage",
+      "actionType": "ComboTriggerRule",
+      "eventType": "BeforeHpDamage",
+      "selector": {
+        "sourceCommandTypes": [
+          "ComboSkill"
+        ],
+        "requireSourceOtherThanOwner": true,
+        "damageAttributeType": "Hp",
+        "occurrence": "first-per-cast-target"
+      },
+      "effect": {
+        "operation": "CreateComboPending",
+        "comboSkillId": "chr_0002_endminm_combo_skill",
+        "pendingDurationTicks": 180,
+        "ownerBinding": "fixed",
+        "ownerId": "chr_0002_endminm",
+        "triggerTargetBinding": "event-target",
+        "requireComboOffCooldown": true,
+        "pendingPolicy": "replace-all",
+        "selectionPolicy": "newest",
+        "consumePolicy": "all-for-owner-and-skill"
+      },
+      "confidence": "public-data-derived",
+      "evidence": [
+        {
+          "type": "public-description",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0002_endminm_combo_skill.json",
+          "observation": "The combo description requires damage from another squad member's combo skill."
+        }
+      ]
+    },
+    {
+      "id": "endminf.other-operator-combo-damage",
+      "actionType": "ComboTriggerRule",
+      "eventType": "BeforeHpDamage",
+      "selector": {
+        "sourceCommandTypes": [
+          "ComboSkill"
+        ],
+        "requireSourceOtherThanOwner": true,
+        "damageAttributeType": "Hp",
+        "occurrence": "first-per-cast-target"
+      },
+      "effect": {
+        "operation": "CreateComboPending",
+        "comboSkillId": "chr_0003_endminf_combo_skill",
+        "pendingDurationTicks": 180,
+        "ownerBinding": "fixed",
+        "ownerId": "chr_0003_endminf",
+        "triggerTargetBinding": "event-target",
+        "requireComboOffCooldown": true,
+        "pendingPolicy": "replace-all",
+        "selectionPolicy": "newest",
+        "consumePolicy": "all-for-owner-and-skill"
+      },
+      "confidence": "public-data-derived",
+      "evidence": [
+        {
+          "type": "public-description",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0003_endminf_combo_skill.json",
+          "observation": "The combo description requires damage from another squad member's combo skill."
+        }
+      ]
     },
     {
       "id": "global.atb.passive-recovery",
@@ -462,6 +629,138 @@
           "observation": "Atk 82.218 produces raw Fire burst damage 131.5488, fixing the multiplier at 1.6."
         }
       ]
+    },
+    {
+      "id": "global.physical-fracture-duration",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "碎甲持续时间" },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": { "1": 12, "2": 18, "3": 24, "4": 30 },
+        "clamp": true
+      },
+      "confidence": "public-reference",
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Physical fracture lasts 12/18/24/30 seconds by consumed NoGuard level."
+      }]
+    },
+    {
+      "id": "global.physical-fracture-vulnerability",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "碎甲物理伤害提高" },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": { "1": 0.12, "2": 0.16, "3": 0.2, "4": 0.24 },
+        "clamp": true,
+        "enhancementMode": "PhysicalAnomalyState"
+      },
+      "confidence": "public-reference",
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Physical fracture grants 12/16/20/24 percent Physical defender-zone vulnerability."
+      }]
+    },
+    {
+      "id": "global.physical-fracture-damage",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "碎甲伤害" },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": { "1": 1, "2": 1.5, "3": 2, "4": 2.5 },
+        "clamp": true,
+        "enhancementMode": "PhysicalAnomalyDamage"
+      },
+      "confidence": "public-reference",
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Fracture damage multiplier is 50 percent times one plus anomaly level."
+      }]
+    },
+    {
+      "id": "global.physical-crush-damage",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "猛击伤害" },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": { "1": 3, "2": 4.5, "3": 6, "4": 7.5 },
+        "clamp": true,
+        "enhancementMode": "PhysicalAnomalyDamage"
+      },
+      "confidence": "public-reference",
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Crush damage multiplier is 150 percent times one plus anomaly level."
+      }]
+    },
+    {
+      "id": "global.physical-airborne-damage",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "击飞伤害" },
+      "effect": { "operation": "ReturnTable", "values": { "1": 1.2 }, "clamp": true, "enhancementMode": "PhysicalAnomalyDamage" },
+      "confidence": "public-reference",
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Airborne physical-anomaly damage multiplier is 120 percent."
+      }]
+    },
+    {
+      "id": "global.physical-airborne-poise",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "击飞失衡" },
+      "effect": { "operation": "ReturnTable", "values": { "1": 10 }, "clamp": true, "enhancementMode": "PhysicalAnomalyPoise" },
+      "confidence": "public-reference",
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Airborne adds 10 base poise damage before source-skill enhancement."
+      }]
+    },
+    {
+      "id": "global.physical-knockdown-damage",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "倒地伤害" },
+      "effect": { "operation": "ReturnTable", "values": { "1": 1.2 }, "clamp": true, "enhancementMode": "PhysicalAnomalyDamage" },
+      "confidence": "public-reference",
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Knockdown physical-anomaly damage multiplier is 120 percent."
+      }]
+    },
+    {
+      "id": "global.physical-knockdown-poise",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "倒地失衡" },
+      "effect": { "operation": "ReturnTable", "values": { "1": 10 }, "clamp": true, "enhancementMode": "PhysicalAnomalyPoise" },
+      "confidence": "public-reference",
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Knockdown adds 10 base poise damage before source-skill enhancement."
+      }]
+    },
+    {
+      "id": "global.cryst-shatter-damage",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "碎冰倍率" },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": { "1": 2.4, "2": 3.6, "3": 4.8, "4": 6 },
+        "clamp": true,
+        "enhancementMode": "SpellAnomalyDamage"
+      },
+      "confidence": "public-reference",
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Cryst shatter damage multiplier is 120 percent times one plus anomaly level."
+      }]
     },
     {
       "id": "global.poise.damage",

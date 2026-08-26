@@ -56,6 +56,7 @@ function canonicalType(type) {
         modifyblackboard: 'ModifyBlackboard',
         modifyblackboardaction: 'ModifyBlackboard',
         modifydynamicblackboard: 'ModifyBlackboard',
+        modifyentityblackboard: 'ModifyEntityBlackboard',
         calculateblackboard: 'CalculateBlackboard',
         simplecalcbbaction: 'CalculateBlackboard',
         assignblackboardvalues: 'AssignBlackboardValues',
@@ -64,6 +65,11 @@ function canonicalType(type) {
         storeattributevalue: 'StoreAttributeValue',
         storebuffcount: 'StoreBuffCount',
         launchskillprogram: 'LaunchSkillProgram',
+        scheduleintervalactions: 'ScheduleIntervalActions',
+        findtargets: 'FindTargets',
+        picktarget: 'PickTarget',
+        foreachtarget: 'ForEachTarget',
+        deactivateentity: 'DeactivateEntity',
         resolvetimedilation: 'ResolveTimeDilation',
         modifyattribute: 'ModifyAttribute',
         modifyattributeaction: 'ModifyAttribute',
@@ -74,6 +80,11 @@ function canonicalType(type) {
         resourcechange: 'ResourceChange',
         resourcechangeaction: 'ResourceChange',
         obtaincostaction: 'ResourceChange',
+        suppressresourcegain: 'SuppressResourceGain',
+        resumeresourcegain: 'ResumeResourceGain',
+        clearresource: 'ClearResource',
+        suspendresourcerecovery: 'SuspendResourceRecovery',
+        resumeresourcerecovery: 'ResumeResourceRecovery',
         heal: 'Heal',
         healaction: 'Heal',
         addshield: 'AddShield',
@@ -86,6 +97,7 @@ function canonicalType(type) {
         createbuffaction: 'ApplyBuff',
         finishbuff: 'FinishBuff',
         finishbuffaction: 'FinishBuff',
+        applycombatstatus: 'ApplyCombatStatus',
         applyinfliction: 'ApplyInfliction',
         applyinflictionaction: 'ApplyInfliction',
         spellinfliction: 'ApplyInfliction',
@@ -105,6 +117,8 @@ function canonicalType(type) {
         createauraaction: 'CreateAura',
         refreshauratargets: 'RefreshAuraTargets',
         removeaura: 'RemoveAura',
+        createtimedmarker: 'CreateTimedMarker',
+        timedmarkerexists: 'TimedMarkerExists',
         pauseclock: 'PauseClock',
         emitevent: 'EmitEvent',
         emiteventaction: 'EmitEvent',
@@ -125,15 +139,20 @@ export function canonicalEffectType(type) {
 
 export const DEFAULT_EFFECT_ACTION_TYPES = Object.freeze([
     'Sequence', 'IfElseAction', 'ModifyBlackboard', 'CalculateBlackboard',
+    'ModifyEntityBlackboard', 'FindTargets', 'PickTarget', 'ForEachTarget',
+    'DeactivateEntity',
     'AssignBlackboardValues', 'StoreAttributeValue', 'StoreBuffCount', 'ModifyAttribute',
     'ApplyTag', 'RemoveTag',
-    'ResourceChange', 'Heal', 'AddShield', 'Damage', 'ApplyBuff', 'FinishBuff',
+    'ResourceChange', 'SuppressResourceGain', 'ResumeResourceGain', 'ClearResource',
+    'SuspendResourceRecovery', 'ResumeResourceRecovery',
+    'Heal', 'AddShield', 'Damage', 'ApplyBuff', 'FinishBuff', 'ApplyCombatStatus',
     'ApplyInfliction', 'ApplyImpact', 'ApplyControl', 'RecoverResilience',
-    'LaunchSkillProgram', 'ResolveTimeDilation',
+    'LaunchSkillProgram', 'ScheduleIntervalActions', 'ResolveTimeDilation',
     'SetResilienceModifier', 'RemoveResilienceModifier', 'ResolveDamagePacket',
     'ApplyEffectSource', 'RemoveEffectSource',
     'ApplyExecutionGauge', 'ConsumeExecutionGate', 'CreateAura',
-    'RefreshAuraTargets', 'RemoveAura', 'PauseClock', 'EmitEvent'
+    'RefreshAuraTargets', 'RemoveAura', 'CreateTimedMarker',
+    'PauseClock', 'EmitEvent'
 ]);
 
 function compare(left, operator, right) {
@@ -183,6 +202,11 @@ function handlerResultValue(result, defaultValue = false) {
         if (typeof result.value === 'boolean') return result.value;
     }
     return Boolean(result);
+}
+
+function applyHandlerBlackboardWrites(result, eventContext) {
+    if (!isRecord(result?.blackboardWrites)) return;
+    Object.assign(eventContext.blackboard, cloneValue(result.blackboardWrites));
 }
 
 /**
@@ -363,10 +387,10 @@ export class EffectRuntime {
                 }
                 case 'HasTag': {
                     const ref = condition.entity ?? condition.entityRef ?? condition.target ?? 'Target';
-                    const entity = this.context.resolveEntityRef(ref, eventContext);
                     const tag = condition.tag ?? condition.value;
                     nonEmptyString(tag, 'HasTag.tag');
-                    passed = this.context.hasTag(entity.id, tag);
+                    const entity = this.#resolveEntityRef(ref, eventContext, true);
+                    passed = entity !== null && this.context.hasTag(entity.id, tag);
                     break;
                 }
                 case 'HasBuff':
@@ -378,6 +402,7 @@ export class EffectRuntime {
                         passed = false;
                     } else {
                         const result = handler(cloneValue(condition), cloneValue(eventContext), this);
+                        applyHandlerBlackboardWrites(result, eventContext);
                         passed = handlerResultValue(result, false);
                     }
                     break;
@@ -402,10 +427,13 @@ export class EffectRuntime {
                         reason = 'UnsupportedCondition';
                         passed = false;
                     } else {
-                        passed = handlerResultValue(
-                            handler(cloneValue(condition), cloneValue(eventContext), this),
-                            false
+                        const result = handler(
+                            cloneValue(condition),
+                            cloneValue(eventContext),
+                            this
                         );
+                        applyHandlerBlackboardWrites(result, eventContext);
+                        passed = handlerResultValue(result, false);
                     }
                 }
             }
@@ -425,6 +453,31 @@ export class EffectRuntime {
             ruleId: condition.ruleId ?? null
         });
         return passed;
+    }
+
+    #resolveEntityRef(ref, eventContext, allowMissing = false) {
+        if (!isRecord(ref) || ref.type !== 'TargetGroup') {
+            return this.context.resolveEntityRef(ref, eventContext);
+        }
+        const groups = eventContext.blackboard?.__akeTargetGroups ?? {};
+        if (!Object.prototype.hasOwnProperty.call(groups, ref.key)) {
+            if (ref.fallback !== undefined && ref.fallback !== null) {
+                return this.context.resolveEntityRef(ref.fallback, eventContext);
+            }
+            if (allowMissing) return null;
+            throw new Error(`Target group ${String(ref.key)} is not available.`);
+        }
+        const candidates = Array.isArray(groups[ref.key]) ? groups[ref.key] : [];
+        const index = Math.max(0, Math.trunc(Number(ref.index ?? 0)));
+        const entityId = candidates[index];
+        if (entityId === undefined || entityId === null) {
+            if (!allowMissing && ref.fallback !== undefined && ref.fallback !== null) {
+                return this.context.resolveEntityRef(ref.fallback, eventContext);
+            }
+            if (allowMissing) return null;
+            throw new Error(`Target group ${String(ref.key)} has no entity at index ${index}.`);
+        }
+        return this.context.resolveEntityRef(entityId, eventContext);
     }
 
     #resolveValue(value, eventContext) {
@@ -457,10 +510,37 @@ export class EffectRuntime {
         }
         if (type === 'Attribute') {
             const ref = value.entity ?? value.entityRef ?? value.target ?? value.entityId ?? 'Target';
-            const entity = this.context.resolveEntityRef(ref, eventContext);
+            const entity = this.#resolveEntityRef(ref, eventContext, true);
+            if (entity === null) return UNSUPPORTED;
             const key = value.key ?? value.attribute ?? value.name;
             nonEmptyString(key, 'Attribute value key');
             return this.context.getAttribute(entity.id, key);
+        }
+        const expressionType = String(type).toLowerCase();
+        if (['add', 'multiply', 'subtract', 'divide', 'min', 'max'].includes(expressionType)) {
+            const operands = value.values ?? value.operands ?? [value.left, value.right];
+            if (!Array.isArray(operands) || operands.length === 0) return UNSUPPORTED;
+            const resolved = operands.map(operand => this.#resolveValue(operand, eventContext));
+            if (resolved.some(operand => operand === UNSUPPORTED)) return UNSUPPORTED;
+            const numbers = resolved.map((operand, index) => {
+                const number = Number(operand);
+                finiteNumber(number, `${type} operand ${index}`);
+                return number;
+            });
+            switch (expressionType) {
+                case 'add': return numbers.reduce((sum, number) => sum + number, 0);
+                case 'multiply': return numbers.reduce((product, number) => product * number, 1);
+                case 'subtract':
+                    return numbers.slice(1).reduce((result, number) => result - number, numbers[0]);
+                case 'divide':
+                    return numbers.slice(1).reduce((result, number) => {
+                        if (number === 0) throw new RangeError('Divide expression divisor must not be zero.');
+                        return result / number;
+                    }, numbers[0]);
+                case 'min': return Math.min(...numbers);
+                case 'max': return Math.max(...numbers);
+                default: return UNSUPPORTED;
+            }
         }
         if (type === 'Resource') {
             const handler = this.#findHandler('ResolveResource', true)
@@ -481,7 +561,8 @@ export class EffectRuntime {
         }
         if (value.attribute !== undefined) {
             const ref = value.entity ?? value.target ?? 'Target';
-            const entity = this.context.resolveEntityRef(ref, eventContext);
+            const entity = this.#resolveEntityRef(ref, eventContext, true);
+            if (entity === null) return UNSUPPORTED;
             return this.context.getAttribute(entity.id, value.attribute);
         }
         if (Object.prototype.hasOwnProperty.call(value, 'value')) return cloneValue(value.value);
@@ -667,7 +748,7 @@ export class EffectRuntime {
             }
             case 'StoreAttributeValue': {
                 const ref = action.entity ?? action.entityRef ?? action.target ?? action.targetRef ?? 'Target';
-                const entity = this.context.resolveEntityRef(ref, eventContext);
+                const entity = this.#resolveEntityRef(ref, eventContext);
                 const attribute = action.attribute ?? action.attributeType;
                 nonEmptyString(attribute, 'StoreAttributeValue.attribute');
                 const key = action.key ?? action.storeKey;
@@ -742,6 +823,7 @@ export class EffectRuntime {
             case 'Damage':
             case 'ApplyBuff':
             case 'FinishBuff':
+            case 'ApplyCombatStatus':
             case 'ApplyInfliction':
             case 'ApplyImpact':
             case 'SetResilienceModifier':
@@ -780,7 +862,7 @@ export class EffectRuntime {
             ?? action.targetRef
             ?? action.targetId
             ?? 'Target';
-        return this.context.resolveEntityRef(ref, eventContext).id;
+        return this.#resolveEntityRef(ref, eventContext).id;
     }
 
     #executeDelegated(type, action, eventContext, reason) {

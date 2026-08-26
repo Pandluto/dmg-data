@@ -6,6 +6,7 @@ import {
 import { ComboTriggerMachine } from './combo-trigger-machine.mjs';
 import { CombatRuntime } from './combat-runtime.mjs';
 import { CommandAdmissionProvider } from './command-admission-provider.mjs';
+import { LoadoutEffectManager } from './ake-loadout-compiler.mjs';
 
 export const PELICA_BASELINE_COMMANDS = Object.freeze([
     Object.freeze({ frame: 0, commandType: 'Attack' }),
@@ -52,6 +53,14 @@ function poolRef(costType, characterId) {
         : { resourceType: costType, scope: 'Entity', ownerId: characterId };
 }
 
+function skillNaturalEndOffset(skill) {
+    const exclusive = Number(skill?.exclusiveFrames);
+    if (Number.isFinite(exclusive) && exclusive > 0) {
+        return Math.max(1, Math.trunc(exclusive));
+    }
+    return Math.max(1, Math.trunc(Number(skill?.durationFrames ?? 1)) - 1);
+}
+
 function normalizedCommands(commands) {
     if (!Array.isArray(commands)) throw new TypeError('commands must be an array.');
     return commands.map((command, index) => {
@@ -66,16 +75,24 @@ function normalizedCommands(commands) {
     });
 }
 
-function damageLogFromTrace(trace) {
-    const records = trace.filter(entry =>
+function commandIdentifier(command) {
+    return command.commandId ?? command.id ?? null;
+}
+
+function damageLogFromTrace(trace, statusTrace = []) {
+    const buffIdByInstanceId = new Map(statusTrace.flatMap(entry => (
+        entry.instanceId && entry.buffId ? [[entry.instanceId, entry.buffId]] : []
+    )));
+    const records = trace.map((entry, traceIndex) => ({ entry, traceIndex })).filter(({ entry }) =>
         entry.stage === 'ActionDelegated' && entry.type === 'ResolveDamagePacket'
     );
-    return records.flatMap(entry => {
+    return records.flatMap(({ entry, traceIndex }) => {
         const resolvedHits = entry.result?.resolution?.hits ?? [];
         const appliedHits = entry.result?.hits ?? [];
         return resolvedHits.map((hit, index) => {
             const applied = appliedHits[index]?.result ?? null;
             return {
+                traceIndex,
                 frame: entry.frame,
                 sourceId: entry.sourceId,
                 ownerId: entry.ownerId,
@@ -83,11 +100,20 @@ function damageLogFromTrace(trace) {
                 skillId: entry.skillId,
                 rootSkillId: entry.rootSkillId,
                 castId: entry.castId,
+                buffInstanceId: entry.buffInstanceId ?? null,
+                sourceBuffId: buffIdByInstanceId.get(entry.buffInstanceId) ?? null,
+                reason: entry.reason ?? entry.action?.reason ?? null,
+                sourcePath: entry.action?.sourcePath ?? null,
                 damageUnitIndex: hit.damageUnitIndex ?? index,
                 damageType: hit.damageType,
                 damageAttributeType: hit.damageAttributeType,
+                damageDecorateMask: Number(hit.damageDecorateMask ?? 0),
+                damageTypeMask: hit.damageTypeMask ?? null,
                 atkScale: hit.operands?.atkScale ?? 0,
                 rawDamage: hit.rawDamage ?? 0,
+                nonCriticalDamage: hit.nonCriticalDamage ?? hit.finalDamage ?? hit.amount ?? 0,
+                criticalDamage: hit.criticalDamage ?? hit.finalDamage ?? hit.amount ?? 0,
+                expectedDamage: hit.expectedDamage ?? hit.finalDamage ?? hit.amount ?? 0,
                 finalDamage: hit.damageAttributeType === 'Hp'
                     ? Number(hit.finalDamage ?? hit.amount ?? 0)
                     : 0,
@@ -190,6 +216,31 @@ export class AkeScenarioRunner {
         let nextQueuedCommandToken = 1;
         const queuedCommands = new Map();
         const seenClockTriggers = new Set();
+        let resolveSkillInterrupt = null;
+        const rootSkillRolesFor = rootSkillId => (
+            bundle.roles?.heavyAttackId === rootSkillId ? ['heavy-attack'] : []
+        );
+        const observeStatusTransitionForCombos = transition => {
+            if (!comboMachine) return;
+            comboMachine.observe({
+                eventType: transition.stage,
+                frame: transition.frame,
+                buffId: transition.buffId,
+                sourceId: transition.sourceId,
+                sourceSkillId: transition.sourceSkillId,
+                rootSkillId: transition.rootSkillId,
+                rootSkillRoles: rootSkillRolesFor(transition.rootSkillId),
+                sourceCommandType: transition.commandType
+                    ?? currentSkill?.commandType
+                    ?? null,
+                sourceCastId: transition.castId,
+                targetId: transition.targetId,
+                damageAttributeType: null
+            }, {
+                currentSkillId: currentSkill?.skillId ?? transition.rootSkillId,
+                currentPriority: currentSkill?.priority ?? 0
+            });
+        };
 
         const resolver = parameters => {
             const resolution = this.damageResolver(parameters);
@@ -230,6 +281,10 @@ export class AkeScenarioRunner {
                     sourceId: parameters.eventContext.sourceId,
                     sourceSkillId: parameters.eventContext.skillId,
                     rootSkillId: parameters.eventContext.rootSkillId,
+                    rootSkillRoles: rootSkillRolesFor(parameters.eventContext.rootSkillId),
+                    sourceCommandType: parameters.eventContext.commandType
+                        ?? currentSkill?.commandType
+                        ?? null,
                     sourceCastId: parameters.eventContext.castId,
                     targetId: parameters.eventContext.targetId,
                     damageAttributeType: 'Hp',
@@ -246,13 +301,56 @@ export class AkeScenarioRunner {
             tickRate: bundle.tickRate,
             definitions: bundle.definitions,
             damageResolver: resolver,
-            skillProgramResolver: ({ skillId }) => bundle.programs.get(skillId),
+            skillProgramResolver: ({ skillId, eventContext, runtime: activeRuntime }) => (
+                activeRuntime.resolveSkillProgram(bundle.programs.get(skillId), {
+                    ownerId: eventContext.ownerId ?? eventContext.sourceId,
+                    skillId
+                })
+            ),
             timeDilationResolver: this.timeDilationResolver,
+            skillInterruptResolver: request => resolveSkillInterrupt?.(request) ?? ({
+                status: 'Ignored',
+                reason: 'CommandStateNotReady'
+            }),
+            onStatusTransition: observeStatusTransitionForCombos,
             maxEventsPerRun: this.maxEventsPerRun
         });
+        const loadoutManager = new LoadoutEffectManager({ runtime });
+        const loadoutInstallations = (bundle.loadoutEffects ?? []).map(effect => (
+            loadoutManager.install(effect, {
+                frame: 0,
+                ownerId: characterId,
+                targetId: characterId,
+                sourceId: characterId,
+                clockDomainId: actorClockDomainId
+            })
+        ));
+        const intrinsicPassiveInstallations = (bundle.intrinsicPassives ?? []).map(passive => ({
+            characterId,
+            skillId: passive.skillId,
+            result: runtime.execute({
+                type: 'ApplyBuff',
+                target: characterId,
+                buffs: passive.buffs,
+                inheritEventBlackboard: false,
+                reason: 'IntrinsicPassive'
+            }, {
+                frame: 0,
+                eventType: 'IntrinsicPassiveInstalled',
+                sourceId: characterId,
+                ownerId: characterId,
+                targetId: characterId,
+                skillId: passive.skillId,
+                rootSkillId: passive.skillId,
+                clockDomainId: actorClockDomainId,
+                blackboard: clone(passive.blackboard ?? {})
+            })
+        }));
         comboMachine = new ComboTriggerMachine({
             rules: bundle.semanticMappings.filter(mapping =>
                 mapping.actionType === 'ComboTriggerRule'
+                && (mapping.effect?.ownerBinding !== 'fixed'
+                    || mapping.effect?.ownerId === characterId)
             ),
             schedule: runtime.schedule,
             trace: comboTrace,
@@ -296,11 +394,41 @@ export class AkeScenarioRunner {
                 cancelProgram(finished, frame, `Skill${completion}`);
             }
             transition(frame, 'Free', `skill-end:${finished.skillId}:${completion}`);
+            runtime.statusEffects.finish({
+                frame,
+                metadata: { attachedToCastId: finished.castId },
+                reason: `Skill${completion}`
+            }, {
+                frame,
+                eventType: 'OnAfterCastSkill',
+                sourceId: characterId,
+                ownerId: characterId,
+                targetId: enemyId,
+                skillId: finished.skillId,
+                rootSkillId: finished.skillId,
+                castId: finished.castId,
+                commandType: finished.commandType,
+                skillType: finished.commandType,
+                clockDomainId: actorClockDomainId
+            });
             currentSkill = null;
             if (completion === 'Completed' && commandsSeen === submittedCommands.length
                 && queuedCommands.size === 0) {
                 scheduleFightStop(frame, true);
             }
+        };
+        resolveSkillInterrupt = request => {
+            if (!currentSkill) {
+                return { status: 'Ignored', reason: 'NoActiveSkill' };
+            }
+            const skillId = currentSkill.skillId;
+            finishCurrentSkill(request.eventContext.frame, 'Interrupted');
+            return {
+                status: 'Interrupted',
+                characterId,
+                skillId,
+                frame: request.eventContext.frame
+            };
         };
         const canPay = (skill, frame) => {
             const amount = Number(skill.costValue ?? 0);
@@ -314,6 +442,7 @@ export class AkeScenarioRunner {
             commandTrace.push({
                 type: 'CommandExecuted',
                 frame,
+                commandId: commandIdentifier(command),
                 commandType: command.commandType,
                 skillId,
                 success: false,
@@ -356,8 +485,11 @@ export class AkeScenarioRunner {
                 }
             );
         };
-        const beginSkill = (frame, commandType, skillId, skillSource) => {
-            const skill = bundle.programs.get(skillId);
+        const beginSkill = (frame, commandType, skillId, skillSource, commandId = null) => {
+            const skill = runtime.resolveSkillProgram(bundle.programs.get(skillId), {
+                ownerId: characterId,
+                skillId
+            });
             if (!skill) throw new Error(`Missing compiled SkillData ${skillId}.`);
             const commandProfile = this.commandAdmissionProvider.profile(commandType);
             const desiredState = commandProfile.centerState;
@@ -375,6 +507,26 @@ export class AkeScenarioRunner {
                 actorClockDomainId,
                 frame
             );
+            const castId = `command-cast:${token}`;
+            runtime.execute({
+                type: 'TriggerStatusEvent',
+                target: characterId,
+                eventType: 'OnBeforeCastSkill',
+                reason: 'OnBeforeCastSkill'
+            }, {
+                frame,
+                eventType: 'OnBeforeCastSkill',
+                sourceId: characterId,
+                ownerId: characterId,
+                targetId: enemyId,
+                skillId,
+                rootSkillId: skillId,
+                commandType,
+                skillType: commandType,
+                castId,
+                clockDomainId: actorClockDomainId,
+                payload: { commandType, skillType: commandType }
+            });
             const scheduled = runtime.scheduleProgram(skill, {
                 frame,
                 sourceId: characterId,
@@ -382,7 +534,9 @@ export class AkeScenarioRunner {
                 targetId: enemyId,
                 skillId,
                 rootSkillId: skillId,
-                castId: `command-cast:${token}`,
+                commandType,
+                skillType: commandType,
+                castId,
                 clockDomainId: actorClockDomainId,
                 onTimelineSeek: seek => {
                     if (currentSkill?.token !== token) return;
@@ -394,7 +548,7 @@ export class AkeScenarioRunner {
                     scheduleNaturalEnd(
                         currentSkill,
                         seek.frame,
-                        Number(skill.durationFrames ?? 0) - seek.destFrame,
+                        Math.max(0, skillNaturalEndOffset(skill) - seek.destFrame),
                         `TimelineSeek:${seek.sourceTimelineFrame}->${seek.destFrame}`
                     );
                 },
@@ -406,6 +560,8 @@ export class AkeScenarioRunner {
             });
             currentSkill = {
                 token,
+                commandId,
+                castId,
                 skillId,
                 skill,
                 commandType,
@@ -430,7 +586,12 @@ export class AkeScenarioRunner {
                     sourceId: characterId,
                     ownerId: characterId,
                     targetId: characterId,
-                    reason: 'CastCost'
+                    reason: 'CastCost',
+                    commandId,
+                    castId,
+                    skillId,
+                    resourceSourceType: 'Skill',
+                    resourceGainMethod: 'Spend'
                 });
             }
             if (Number(skill.cooldownTicks) > 0) {
@@ -447,6 +608,8 @@ export class AkeScenarioRunner {
             commandTrace.push({
                 type: 'CommandExecuted',
                 frame,
+                commandId,
+                castId,
                 commandType,
                 skillId,
                 success: true,
@@ -456,7 +619,7 @@ export class AkeScenarioRunner {
             scheduleNaturalEnd(
                 currentSkill,
                 frame,
-                Math.max(0, Number(skill.durationFrames ?? 1) - 1),
+                skillNaturalEndOffset(skill),
                 'InitialSchedule'
             );
         };
@@ -469,7 +632,7 @@ export class AkeScenarioRunner {
             return active.timelineAnchorFrame
                 + (localFrame - active.timelineAnchorLocalFrame);
         };
-        const admission = (commandType, skillId, frame) => {
+        const admission = (commandType, skillId, frame, commandId = null) => {
             const timelineFrame = currentSkill
                 ? timelineFrameAt(currentSkill, frame)
                 : 0;
@@ -481,6 +644,7 @@ export class AkeScenarioRunner {
             });
             commandAdmissionTrace.push({
                 frame,
+                commandId,
                 ...clone(decision)
             });
             return decision.accepted ? null : decision;
@@ -492,6 +656,7 @@ export class AkeScenarioRunner {
             commandTrace.push({
                 type: 'CommandExpired',
                 frame,
+                commandId: commandIdentifier(queued.command),
                 commandType: queued.command.commandType,
                 skillId: queued.skillId,
                 success: false,
@@ -519,6 +684,7 @@ export class AkeScenarioRunner {
             commandTrace.push({
                 type: 'CommandQueued',
                 frame,
+                commandId: commandIdentifier(command),
                 commandType: command.commandType,
                 skillId,
                 executeFrame: frame + localDelay,
@@ -611,20 +777,24 @@ export class AkeScenarioRunner {
                 return;
             }
 
-            const admissionGate = admission(command.commandType, skillId, frame);
+            const commandId = commandIdentifier(command);
+            const admissionGate = admission(command.commandType, skillId, frame, commandId);
             if (admissionGate) {
                 if (allowQueue) queueCommand(command, frame, skillId, admissionGate);
                 else failCommand(command, frame, 'QUEUED_COMMAND_STILL_BLOCKED', skillId);
                 return;
             }
 
-            const skill = bundle.programs.get(skillId);
+            const skill = runtime.resolveSkillProgram(bundle.programs.get(skillId), {
+                ownerId: characterId,
+                skillId
+            });
             if (!skill) throw new Error(`Missing compiled SkillData ${skillId}.`);
             if (!canPay(skill, frame)) {
                 failCommand(command, frame, 'INSUFFICIENT_RESOURCE', skillId);
                 return;
             }
-            beginSkill(frame, command.commandType, skillId, skillSource);
+            beginSkill(frame, command.commandType, skillId, skillSource, commandId);
             if (command.commandType === 'ComboSkill' && comboGate?.pending) {
                 comboMachine.consume({
                     frame,
@@ -641,6 +811,7 @@ export class AkeScenarioRunner {
                 commandTrace.push({
                     type: 'CommandSubmitted',
                     frame: command.frame,
+                    commandId: commandIdentifier(command),
                     commandType: command.commandType,
                     queueWindowFrames: this.commandQueueWindowFrames,
                     targetId: command.targetId ?? enemyId
@@ -676,7 +847,10 @@ export class AkeScenarioRunner {
             }
         }
 
-        const damageLog = damageLogFromTrace(runtime.effects.trace);
+        const damageLog = damageLogFromTrace(
+            runtime.effects.trace,
+            runtime.statusEffects.trace
+        );
         const hpHits = damageLog.filter(hit => hit.damageAttributeType === 'Hp');
         const poiseHits = damageLog.filter(hit =>
             ['Poise', 'Resilience'].includes(hit.damageAttributeType)
@@ -705,6 +879,7 @@ export class AkeScenarioRunner {
             statusTrace: clone(runtime.statusEffects.trace),
             clockTrace: clone(runtime.clockDomains.trace),
             localClockTriggerTrace,
+            loadoutTrace: clone(loadoutManager.trace),
             damageLog,
             damageSummary: {
                 hitCount: damageLog.length,
@@ -728,7 +903,12 @@ export class AkeScenarioRunner {
                 pendingCombos: comboMachine.snapshot(durationTicks),
                 statuses: runtime.statusEffects.list({ active: true }),
                 resilience: runtime.resilience.snapshot(),
-                clocks: runtime.clockDomains.snapshot()
+                clocks: runtime.clockDomains.snapshot(),
+                loadout: {
+                    installations: loadoutInstallations,
+                    active: loadoutManager.snapshot().installations,
+                    intrinsicPassives: clone(intrinsicPassiveInstallations)
+                }
             },
             diagnostics: {
                 unresolvedEffectCount: unresolvedEffects.length,

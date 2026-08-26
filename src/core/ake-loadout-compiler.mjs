@@ -340,6 +340,12 @@ export class LoadoutEffectManager {
             directSourceApplied: directSource !== null,
             active: true
         };
+        this.runtime.installSkillLoadoutPatches({
+            sourceKey: key,
+            ownerId,
+            blackboardPatches: effect.skillBlackboardPatches ?? [],
+            parameterPatches: effect.skillParameterPatches ?? []
+        });
         this.installations.set(key, installation);
         this.trace.push({
             frame,
@@ -450,6 +456,7 @@ export class LoadoutEffectManager {
                 reason: 'LoadoutUninstalled'
             }).removed
             : [];
+        this.runtime.removeSkillLoadoutPatches(key);
         installation.active = false;
         for (const state of installation.toggleStates ?? []) {
             state.active = false;

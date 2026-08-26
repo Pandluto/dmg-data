@@ -3,7 +3,10 @@ import { persistentLocalStorage } from '../../platform/storage/persistentStorage
 import type { Character, SkillButtonData, TimelineData } from '../../types';
 import { getOperatorConfigPageCache, safeSessionStorage } from '../../utils/storage';
 import { getInstalledAkeCatalog, type AkeCatalog } from './akeCatalogAdapter';
-import { buildAkeRealtimeTimeline } from './akeRealtimeTimeline';
+import {
+  buildAkeRealtimeTimeline,
+  type AkeRealtimeTimeline,
+} from './akeRealtimeTimeline';
 import { GRID_NODE_COUNT } from '../../core/calculators/gridSnapLayout';
 
 export const AKE_REPORT_STORAGE_KEY = 'def.ake-demo.latest-report.v2';
@@ -38,9 +41,132 @@ export type AkeCommandSettlement = {
   reason: string | null;
   admissionReason?: string | null;
   skillId: string | null;
+  castId?: string | null;
   damage: number;
   poiseDamage: number;
   hitCount: number;
+};
+
+export type AkeRuntimeModifierContribution = {
+  buffInstanceId?: string | null;
+  sourceKey?: string | null;
+  sourceId?: string | null;
+  ownerId?: string | null;
+  type?: string | null;
+  operation?: string | null;
+  value?: number | null;
+  scale?: number | null;
+  [key: string]: unknown;
+};
+
+export type AkeRuntimeZoneSnapshot = {
+  scale?: number;
+  zones?: Array<{
+    zoneName?: string | null;
+    addition?: number | null;
+    scale?: number | null;
+  }>;
+  contributions?: AkeRuntimeModifierContribution[];
+  [key: string]: unknown;
+};
+
+export type AkeRuntimeAttributeSnapshot = {
+  targetId: string | null;
+  attribute: string;
+  baseValue?: number;
+  evaluation?: {
+    value?: number;
+    [key: string]: unknown;
+  };
+  contributions?: Array<AkeRuntimeModifierContribution & {
+    attribute?: string | null;
+    zone?: string | null;
+    appliedFrame?: number | null;
+  }>;
+  [key: string]: unknown;
+};
+
+export type AkeRuntimeHit = {
+  hitIndex: number;
+  traceIndex: number | null;
+  frame: number;
+  memberId: string | null;
+  characterId: string | null;
+  sourceId: string | null;
+  ownerId: string | null;
+  targetId: string | null;
+  castId: string | null;
+  skillId: string | null;
+  rootSkillId: string | null;
+  buffInstanceId: string | null;
+  sourceBuffId: string | null;
+  reason: string | null;
+  sourcePath: string | null;
+  damageUnitIndex: number | null;
+  damageType: string | null;
+  damageAttributeType: string | null;
+  damageDecorateMask: number;
+  damageTypeMask: number | string | null;
+  atkScale: number;
+  rawDamage: number;
+  finalDamage: number;
+  nonCriticalDamage: number;
+  criticalDamage: number;
+  expectedDamage: number;
+  poiseDamage: number;
+  targetHpBefore: number | null;
+  targetHpAfter: number | null;
+  modifierSnapshot: {
+    attackAttribute?: AkeRuntimeAttributeSnapshot | null;
+    attackerZone?: AkeRuntimeZoneSnapshot;
+    defenderZone?: AkeRuntimeZoneSnapshot;
+    configuredBonus?: number;
+    configuredDamageBonusScale?: number;
+    specialScale?: number;
+    [key: string]: unknown;
+  };
+  operands: Record<string, number>;
+};
+
+export type AkeRuntimeStatusEvent = {
+  traceIndex: number;
+  frame: number;
+  stage: string;
+  instanceId: string | null;
+  buffId: string;
+  sourceId: string | null;
+  ownerId: string | null;
+  targetId: string | null;
+  stackCount: number | null;
+  before: number | null;
+  requested: number | null;
+  actual: number | null;
+  discarded: number | null;
+  after: number | null;
+  durationFrames: number | null;
+  expireFrame: number | null;
+  sourceSkillId: string | null;
+  rootSkillId: string | null;
+  castId: string | null;
+  triggerSourceId: string | null;
+  triggerOwnerId: string | null;
+  triggerTargetId: string | null;
+  triggerSkillId: string | null;
+  triggerRootSkillId: string | null;
+  triggerCastId: string | null;
+  reason: string | null;
+  displayName?: string | null;
+  shortName?: string | null;
+  effectType?: string | null;
+  applicationScope?: string | null;
+  description?: string | null;
+  iconId?: string | null;
+  iconUrl?: string | null;
+  displayable?: boolean;
+  displayChannels?: string[];
+  abnormalColorType?: string | null;
+  hidden?: boolean;
+  presentationSource?: string | null;
 };
 
 export type AkeTimelinePoint = {
@@ -140,6 +266,8 @@ type AkeSquadSimulation = {
   durationSeconds: number;
   members: AkeSquadMemberResult[];
   commands: AkeCommandSettlement[];
+  hits: AkeRuntimeHit[];
+  statusEvents: AkeRuntimeStatusEvent[];
   timeline: AkeProjectedTimeline;
   summary: {
     totalDamage: number;
@@ -209,8 +337,11 @@ export type AkeTeamReport = {
   nodeFrameScale: number;
   tickRate: number;
   durationFrames: number;
+  requestedEndFrame?: number;
   characters: AkeCharacterReport[];
   timeline: AkeProjectedTimeline;
+  hits: AkeRuntimeHit[];
+  statusEvents: AkeRuntimeStatusEvent[];
   summary: {
     totalDamage: number;
     totalPoiseDamage: number;
@@ -223,6 +354,30 @@ export type AkeTeamReport = {
   };
   finalState: AkeSquadSimulation['finalState'];
 };
+
+const AKE_SETTLEMENT_TAIL_FRAMES = 300;
+
+/**
+ * Give every projected action enough runtime tail to settle while retaining
+ * fixed waits in the requested horizon.  Deriving this from the variable-rate
+ * model avoids falling back to the last pre-wait command frame.
+ */
+export function resolveAkeCalculationEndFrame(
+  timeline: Pick<AkeRealtimeTimeline, 'sharedVariableRateTimeline'>,
+): number {
+  const model = timeline.sharedVariableRateTimeline;
+  const projectedEndFrame = Math.max(
+    model?.endFrame ?? 0,
+    ...(model?.actions.map(action => action.endFrame) ?? []),
+    ...(model?.waits.map(wait => wait.endFrame) ?? []),
+    ...(model?.laneWaits.map(wait => wait.endFrame) ?? []),
+    ...(model?.operatorSwitches.map(operatorSwitch => operatorSwitch.endFrame) ?? []),
+  );
+  return Math.max(
+    360,
+    Math.ceil(projectedEndFrame) + AKE_SETTLEMENT_TAIL_FRAMES,
+  );
+}
 
 type PreparedMember = {
   memberId: string;
@@ -357,6 +512,11 @@ function prepareMember(input: {
   const weaponPotential = Math.max(1, Math.min(
     9, potentialCount(snapshot?.weapon.config.potential, 1),
   ));
+  const weaponSkillLevels = {
+    skill1: Math.max(1, Math.min(9, Number(snapshot?.weapon.config.skillLevels.skill1) || 9)),
+    skill2: Math.max(1, Math.min(9, Number(snapshot?.weapon.config.skillLevels.skill2) || 9)),
+    skill3: Math.max(1, Math.min(9, Number(snapshot?.weapon.config.skillLevels.skill3) || 4)),
+  };
   const reportLoadout: AkeCharacterReport['loadout'] = {
     level,
     skillLevel,
@@ -387,6 +547,7 @@ function prepareMember(input: {
       weaponId: weapon.id,
       weaponLevel,
       weaponPotential,
+      weaponSkillLevels,
       equipment,
     } : null,
     reportLoadout,
@@ -459,6 +620,7 @@ export async function runAkeTeamCalculation(input: {
   timelineData: TimelineData;
   selectedCharacters: Character[];
   enemyId?: string;
+  signal?: AbortSignal;
 }): Promise<AkeTeamReport> {
   const enemyId = input.enemyId ?? DEFAULT_ENEMY_ID;
   const catalog = await loadAkeCatalog();
@@ -489,14 +651,17 @@ export async function runAkeTeamCalculation(input: {
     frame: plannedFrameByCommandId.get(button.id) ?? 0,
     attackMode: button.skillType === 'A' ? 'full-combo' : undefined,
   })));
+  const requestedEndFrame = resolveAkeCalculationEndFrame(preview);
   const response = await fetch('/api/ake/squad/simulate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    signal: input.signal,
     body: JSON.stringify({
       enemyId,
       initialAtb: 300,
       members: supported.map(member => member.request),
       commands,
+      endFrame: requestedEndFrame,
     }),
   });
   const payload = await response.json() as AkeSquadSimulation & { error?: string };
@@ -517,8 +682,11 @@ export async function runAkeTeamCalculation(input: {
     nodeFrameScale: 0,
     tickRate: payload.tickRate,
     durationFrames: payload.durationFrames,
+    requestedEndFrame,
     characters,
     timeline: payload.timeline,
+    hits: payload.hits ?? [],
+    statusEvents: payload.statusEvents ?? [],
     summary: {
       totalDamage: payload.summary.totalDamage,
       totalPoiseDamage: payload.summary.totalPoiseDamage,
@@ -544,7 +712,11 @@ export function readLatestAkeTeamReport(): AkeTeamReport | null {
   try {
     const value = JSON.parse(raw) as Partial<AkeTeamReport>;
     return value?.schemaVersion === 2 && Array.isArray(value.characters) && value.timeline
-      ? value as AkeTeamReport : null;
+      ? {
+          ...value,
+          hits: Array.isArray(value.hits) ? value.hits : [],
+          statusEvents: Array.isArray(value.statusEvents) ? value.statusEvents : [],
+        } as AkeTeamReport : null;
   } catch {
     return null;
   }

@@ -10,6 +10,64 @@ function finiteNonNegative(value, label) {
     return number;
 }
 
+function serializedNumber(value, eventContext, fallback = 0) {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+        if (value.useBlackboardKey === true && value.blackboardKey) {
+            const resolved = eventContext?.blackboard?.[value.blackboardKey];
+            if (Number.isFinite(Number(resolved))) return Number(resolved);
+        }
+        if (Number.isFinite(Number(value.value))) return Number(value.value);
+        return fallback;
+    }
+    return Number.isFinite(Number(value)) ? Number(value) : fallback;
+}
+
+function distributedExcludedOffsets(nominalDurationTicks, excludedTicks) {
+    const offsets = [];
+    for (let offset = 0; offset < nominalDurationTicks; offset += 1) {
+        const before = Math.floor(offset * excludedTicks / nominalDurationTicks);
+        const after = Math.floor((offset + 1) * excludedTicks / nominalDurationTicks);
+        if (after > before) offsets.push(offset);
+    }
+    return offsets;
+}
+
+function comboSkillActorPauses(request, durationSeconds) {
+    if (!request.runtime?.clockDomains?.listDomains) return null;
+    const nominalDurationTicks = Math.round(durationSeconds * request.tickRate);
+    if (nominalDurationTicks <= 1) return null;
+
+    // Frozen CaLC comparisons give 17 excluded actor ticks for the 0.6 s
+    // ComboSkill curve and 21 for 0.8 s.  The affine integral below preserves
+    // both observations and leaves at least one advancing tick in every curve.
+    const excludedTicks = Math.min(
+        nominalDurationTicks - 1,
+        Math.max(0, Math.round(durationSeconds * 20 + 5))
+    );
+    const sourceId = request.eventContext?.sourceId;
+    const targetDomains = request.runtime.clockDomains
+        .listDomains({ includeGlobal: false })
+        .filter(domain => domain.kind === 'Character')
+        .filter(domain => domain.ownerId !== sourceId);
+    const offsets = distributedExcludedOffsets(nominalDurationTicks, excludedTicks);
+    return {
+        nominalDurationTicks,
+        excludedTicks,
+        targetDomains,
+        pauses: targetDomains.flatMap(domain => offsets.map(frameOffsetTicks => ({
+            domainId: domain.id,
+            frameOffsetTicks,
+            durationTicks: 1,
+            excludedTicks: 1,
+            // Skill-program phase timers use priority 1.  A sampled clock stop
+            // at the same global frame must land first or the timer would fire
+            // one frame too early.
+            priority: 0,
+            reason: 'TimeDilationAction:ComboSkill:GlobalActorSample'
+        })))
+    };
+}
+
 /**
  * Retains exported HitStop/TimeDilation nodes without inventing a curve.
  * A caller can inject an evidence-backed curveProvider; absent that provider,
@@ -39,10 +97,48 @@ export function createAkeTimeDilationResolver({
                 return { status: 'ResolvedByCurveProvider', ...clone(supplied) };
             }
         }
-        const durationSeconds = finiteNonNegative(
-            raw.duration?.value ?? raw.duration ?? 0,
-            'time-dilation duration'
-        );
+        const serializedDuration = serializedNumber(raw.duration, request.eventContext, 0);
+        // Exported AKE TimeDilationAction data uses -1 as an "until explicitly
+        // disabled" sentinel. It is neither a negative wall-clock duration nor
+        // a very long animation duration, so retain that lifecycle explicitly
+        // instead of rejecting it or projecting a fabricated end frame.
+        const durationMode = serializedDuration === -1 ? 'UntilDisabled' : 'Fixed';
+        const durationSeconds = durationMode === 'UntilDisabled'
+            ? null
+            : finiteNonNegative(serializedDuration, 'time-dilation duration');
+
+        if (request.action?.sourceType === 'TimeDilationAction'
+            && raw.layer === 'Global'
+            && raw.useCurveKey === true
+            && raw.curveKey === 'ComboSkill'
+            && durationSeconds !== null
+            && durationSeconds > 0) {
+            const sampled = comboSkillActorPauses(request, durationSeconds);
+            // Do not let an empty multi-actor projection swallow the generic
+            // evidence-backed target-clock rule below. A single-actor runtime
+            // has no peer character to sample, but its enemy clock can still
+            // be a real target of the same serialized curve.
+            if (sampled && sampled.pauses.length > 0) {
+                return {
+                    status: 'ResolvedByFrozenBlackBoxEvidence',
+                    reason: 'ComboSkillGlobalActorCurveSamples',
+                    sampleGroupId: [
+                        'TimeDilationAction',
+                        raw.layer,
+                        raw.timeDilationPriority?.tagId ?? 'default-priority',
+                        raw.slot?.tagId ?? 'default-slot'
+                    ].join(':'),
+                    sourceType: request.action.sourceType,
+                    curveKey: raw.curveKey,
+                    durationSeconds,
+                    durationMode,
+                    nominalDurationTicks: sampled.nominalDurationTicks,
+                    excludedTicks: sampled.excludedTicks,
+                    targetDomainIds: sampled.targetDomains.map(domain => domain.id),
+                    pauses: sampled.pauses
+                };
+            }
+        }
         const mappedCurve = mappings.find(mapping => {
             if (mapping.actionType !== 'TimeDilationCurveRule') return false;
             const selector = mapping.selector ?? {};
@@ -51,7 +147,8 @@ export function createAkeTimeDilationResolver({
             }
             if (selector.curveKey && selector.curveKey !== raw.curveKey) return false;
             if (selector.durationSeconds !== undefined
-                && Math.abs(Number(selector.durationSeconds) - durationSeconds) > 1e-9) {
+                && (durationSeconds === null
+                    || Math.abs(Number(selector.durationSeconds) - durationSeconds) > 1e-9)) {
                 return false;
             }
             return true;
@@ -69,7 +166,10 @@ export function createAkeTimeDilationResolver({
                 sourceType: request.action?.sourceType ?? null,
                 curveKey: raw.curveKey ?? null,
                 durationSeconds,
-                nominalDurationTicks: Math.round(durationSeconds * request.tickRate),
+                durationMode,
+                nominalDurationTicks: durationSeconds === null
+                    ? null
+                    : Math.round(durationSeconds * request.tickRate),
                 pauses: [{
                     domainId,
                     frameOffsetTicks: effect.frameOffsetTicks ?? 0,
@@ -111,7 +211,10 @@ export function createAkeTimeDilationResolver({
             curveKey: raw.curveKey ?? null,
             affectType: raw.affectType ?? raw.layer ?? null,
             durationSeconds,
-            nominalDurationTicks: Math.round(durationSeconds * request.tickRate),
+            durationMode,
+            nominalDurationTicks: durationSeconds === null
+                ? null
+                : Math.round(durationSeconds * request.tickRate),
             pauses: []
         };
     };

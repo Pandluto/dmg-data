@@ -134,6 +134,163 @@ test('target-bound pending entries do not cross enemies and can be consumed inde
     }).ready, true);
 });
 
+test('semantic selectors can open a fixed operator combo from another operator event', () => {
+    const machine = new ComboTriggerMachine({
+        rules: [{
+            id: 'test.pelica.any-controlled-heavy',
+            eventType: 'BeforeHpDamage',
+            selector: {
+                rootSkillIds: [],
+                rootSkillRole: 'heavy-attack',
+                damageAttributeType: 'Hp',
+                occurrence: 'first-per-cast-target'
+            },
+            effect: {
+                comboSkillId: 'pelica-combo',
+                pendingDurationTicks: 180,
+                ownerBinding: 'fixed',
+                ownerId: 'pelica',
+                triggerTargetBinding: 'event-target',
+                pendingPolicy: 'replace-all',
+                selectionPolicy: 'newest',
+                consumePolicy: 'all-for-owner-and-skill'
+            }
+        }]
+    });
+
+    machine.observe({
+        eventType: 'BeforeHpDamage',
+        frame: 42,
+        sourceId: 'zhuang-fangyi',
+        sourceSkillId: 'zhuang-heavy-hit',
+        rootSkillId: 'zhuang-attack-final',
+        rootSkillRoles: ['heavy-attack'],
+        sourceCommandType: 'Attack',
+        sourceCastId: 1,
+        targetId: 'enemy',
+        damageAttributeType: 'Hp'
+    });
+
+    assert.equal(machine.gate({
+        frame: 48,
+        skillId: 'pelica-combo',
+        ownerId: 'pelica',
+        targetId: 'enemy'
+    }).ready, true);
+    assert.equal(machine.gate({
+        frame: 48,
+        skillId: 'pelica-combo',
+        ownerId: 'zhuang-fangyi',
+        targetId: 'enemy'
+    }).ready, false);
+});
+
+test('status transitions and other-operator combo hits use the same generic pending machine', () => {
+    const machine = new ComboTriggerMachine({
+        rules: [{
+            id: 'test.chen.no-guard',
+            eventType: 'StatusEffectApplied',
+            selector: {
+                rootSkillIds: [],
+                statusBuffIds: ['buff_physical_no_guard'],
+                occurrence: 'first-per-cast-target'
+            },
+            effect: {
+                comboSkillId: 'chen-combo',
+                pendingDurationTicks: 180,
+                ownerBinding: 'fixed',
+                ownerId: 'chen',
+                triggerTargetBinding: 'event-target',
+                pendingPolicy: 'replace-all',
+                selectionPolicy: 'newest',
+                consumePolicy: 'all-for-owner-and-skill'
+            }
+        }, {
+            id: 'test.admin.other-combo-hit',
+            eventType: 'BeforeHpDamage',
+            selector: {
+                rootSkillIds: [],
+                sourceCommandTypes: ['ComboSkill'],
+                requireSourceOtherThanOwner: true,
+                damageAttributeType: 'Hp',
+                occurrence: 'first-per-cast-target'
+            },
+            effect: {
+                comboSkillId: 'admin-combo',
+                pendingDurationTicks: 180,
+                ownerBinding: 'fixed',
+                ownerId: 'admin',
+                triggerTargetBinding: 'event-target',
+                pendingPolicy: 'replace-all',
+                selectionPolicy: 'newest',
+                consumePolicy: 'all-for-owner-and-skill'
+            }
+        }]
+    });
+
+    machine.observe({
+        eventType: 'StatusEffectApplied',
+        frame: 13,
+        sourceId: 'chen',
+        sourceSkillId: 'chen-normal-hit',
+        rootSkillId: 'chen-normal',
+        sourceCommandType: 'NormalSkill',
+        sourceCastId: 1,
+        targetId: 'enemy',
+        buffId: 'buff_physical_no_guard',
+        damageAttributeType: null
+    });
+    assert.equal(machine.gate({
+        frame: 191,
+        skillId: 'chen-combo',
+        ownerId: 'chen',
+        targetId: 'enemy'
+    }).ready, true);
+    assert.equal(machine.gate({
+        frame: 192,
+        skillId: 'chen-combo',
+        ownerId: 'chen',
+        targetId: 'enemy'
+    }).ready, false);
+
+    const ignored = machine.observe({
+        eventType: 'BeforeHpDamage',
+        frame: 200,
+        sourceId: 'admin',
+        sourceSkillId: 'admin-combo-hit',
+        rootSkillId: 'admin-combo',
+        sourceCommandType: 'ComboSkill',
+        sourceCastId: 2,
+        targetId: 'enemy',
+        damageAttributeType: 'Hp'
+    });
+    assert.equal(ignored[0].reason, 'SOURCE_IS_PENDING_OWNER');
+    assert.equal(machine.gate({
+        frame: 201,
+        skillId: 'admin-combo',
+        ownerId: 'admin',
+        targetId: 'enemy'
+    }).ready, false);
+
+    machine.observe({
+        eventType: 'BeforeHpDamage',
+        frame: 210,
+        sourceId: 'chen',
+        sourceSkillId: 'chen-combo-hit',
+        rootSkillId: 'chen-combo',
+        sourceCommandType: 'ComboSkill',
+        sourceCastId: 3,
+        targetId: 'enemy',
+        damageAttributeType: 'Hp'
+    });
+    assert.equal(machine.gate({
+        frame: 211,
+        skillId: 'admin-combo',
+        ownerId: 'admin',
+        targetId: 'enemy'
+    }).ready, true);
+});
+
 test('simulator contains no character-specific combo trigger branch', () => {
     const implementation = fs.readFileSync(
         path.join(projectRoot, 'src', 'core', 'simulator.mjs'),

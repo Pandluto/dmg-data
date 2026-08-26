@@ -40,7 +40,10 @@ import type {
   ResolvedSkillDamageTemplate,
   SkillDamagePanelBase,
 } from '../../core/calculators/skillDamage.types';
-import { resolveSkillDamageTemplate } from '../../core/services/skillDamageTemplateResolver';
+import {
+  resolveAkePreviewSkillDamageTemplate,
+  resolveSkillDamageTemplate,
+} from '../../core/services/skillDamageTemplateResolver';
 import {
   doesBuffApplyToResolvedHit,
   isSingleHitMultiplierBonusBuff,
@@ -53,7 +56,14 @@ import { buildBuffSearchIndex, searchBuffs } from '../../utils/buffFuzzySearch';
 import { refreshSnapshotCandidateBuffsForCharacterIds } from '../../core/services/operatorConfigCandidateBuffService';
 import { refreshOperatorConfigSnapshotsForCharacters } from '../../core/services/operatorConfigSnapshotRefreshService';
 import { buildConfiguredHitBuffs } from '../../core/services/configuredHitBuffs';
-import { buildFixedDummyContextForButton } from '../../core/services/fixedDummyStateMachine';
+import {
+  buildFixedDummyContextForButton,
+  type FixedDummyHitContext,
+} from '../../core/services/fixedDummyStateMachine';
+import {
+  buildAkeRuntimeCommandLedger,
+  buildAkeRuntimeStatusLabelMap,
+} from '../../core/services/akeRuntimeLedger';
 import { getAnomalyStateSnapshotsByIds } from '../../core/services/anomalyStateSnapshotStorage';
 import {
   type AnomalyDamageSegmentView,
@@ -82,9 +92,11 @@ import { TimelineSkillDetailWorkbench } from './TimelineSkillDetailWorkbench';
 import type { TimelineDetailStatus } from './TimelineSkillDetailWorkbench';
 import type {
   AkeCommandSettlement,
+  AkeTeamReport,
   AkeTimelinePoint,
 } from '../../integrations/ake/akeProvider';
 import type { AkeRealtimeCommand } from '../../integrations/ake/akeRealtimeTimeline';
+import { getInstalledAkeCatalog } from '../../integrations/ake/akeCatalogAdapter';
 import './SkillButton.css';
 
 const EMPTY_TARGET_RESISTANCE: Required<HitResistanceInput> = {
@@ -162,6 +174,29 @@ function buildInheritedDummyStatuses(buffs: SkillButtonBuff[]): TimelineDetailSt
       title: buff.displayName || buff.name,
       detail: [buff.sourceName, buff.description].filter(Boolean).join(' · '),
       kind: '木桩已有',
+    });
+  });
+  return Array.from(statuses.values());
+}
+
+function buildFixedDummyOutcomeStatuses(context: FixedDummyHitContext): TimelineDetailStatus[] {
+  const statuses = new Map<string, TimelineDetailStatus>();
+  context.stateTransitions.forEach((transition) => {
+    statuses.set(`transition:${transition.key}`, {
+      key: `fixed-dummy-transition:${transition.key}`,
+      title: `${transition.label} ${transition.beforeText} → ${transition.afterText}`,
+      detail: transition.detail,
+      kind: transition.change === 'consumed' ? '攻击后·已消费' : '攻击后·变化',
+    });
+  });
+  const changedKeys = new Set(context.stateTransitions.map((transition) => transition.key));
+  context.afterStateBadges.forEach((badge) => {
+    if (changedKeys.has(badge.key)) return;
+    statuses.set(`snapshot:${badge.key}`, {
+      key: `fixed-dummy-after:${badge.key}`,
+      title: badge.label,
+      detail: badge.detail,
+      kind: '攻击后·木桩',
     });
   });
   return Array.from(statuses.values());
@@ -263,7 +298,9 @@ interface SkillButtonProps {
   isDragDisabled?: boolean;
   resistanceRevision?: number;
   akeSettlement?: AkeCommandSettlement | null;
+  akeRuntimeReport?: AkeTeamReport | null;
   akePreviewCommand?: AkeRealtimeCommand | null;
+  akePreviewCommands?: readonly AkeRealtimeCommand[];
   akeUsesSharedProjection?: boolean;
   akePreviewTickRate?: number;
   akeAtbPoint?: AkeTimelinePoint | null;
@@ -305,7 +342,9 @@ export function SkillButtonComponent({
   isDragDisabled = false,
   resistanceRevision = 0,
   akeSettlement = null,
+  akeRuntimeReport = null,
   akePreviewCommand = null,
+  akePreviewCommands,
   akeUsesSharedProjection = false,
   akePreviewTickRate = 30,
   akeAtbPoint = null,
@@ -405,7 +444,16 @@ export function SkillButtonComponent({
   const [skillLevelModeMap, setSkillLevelModeMap] = useState<Record<string, SkillLevelMode>>({ A: 'L9', B: 'L9', E: 'L9', Q: 'L9', Dot: 'M3' });
   const currentSkillLevelMode = skillLevelModeMap[skillType] ?? 'M3';
   // 已解析的技能伤害模板（skill 是容器，hit 是计算单元）
-  const [resolvedTemplate, setResolvedTemplate] = useState<ResolvedSkillDamageTemplate | null>(null);
+  const [baseResolvedTemplate, setBaseResolvedTemplate] = useState<ResolvedSkillDamageTemplate | null>(null);
+  const resolvedTemplate = useMemo(
+    () => resolveAkePreviewSkillDamageTemplate(
+      button,
+      akePreviewCommand?.profile,
+      currentSkillLevelMode,
+      baseResolvedTemplate,
+    ),
+    [akePreviewCommand?.profile, baseResolvedTemplate, button, currentSkillLevelMode],
+  );
   const [targetResistance, setTargetResistance] = useState<Required<HitResistanceInput>>(EMPTY_TARGET_RESISTANCE);
 
   // 当前选中的 hit（用于详情展示）
@@ -817,11 +865,11 @@ export function SkillButtonComponent({
   const loadResolvedTemplate = useCallback(() => {
     const template = resolveSkillDamageTemplate(button);
     if (!template) {
-      setResolvedTemplate(null);
+      setBaseResolvedTemplate(null);
       return;
     }
 
-    setResolvedTemplate(template);
+    setBaseResolvedTemplate(template);
   }, [button]);
 
   /**
@@ -1027,13 +1075,57 @@ export function SkillButtonComponent({
     () => buffList.filter((buff) => isModifierBuff(buff) && !globallyDisabledBuffIds.includes(buff.id)),
     [buffList, globallyDisabledBuffIds]
   );
+  const fixedDummyResolvedEvents = useMemo(() => (
+    akePreviewCommands ?? (akePreviewCommand ? [akePreviewCommand] : [])
+  ).map((command) => {
+    const commandSkillType = ({
+      Attack: 'A',
+      NormalSkill: 'B',
+      ComboSkill: 'E',
+      UltimateSkill: 'Q',
+    } as const)[command.commandType as 'Attack' | 'NormalSkill' | 'ComboSkill' | 'UltimateSkill'];
+    const statusLevelKey = commandSkillType
+      ? getCharacterConfig(command.characterId ?? '')?.skillLevelModeMap?.[commandSkillType] ?? 'M3'
+      : 'M3';
+    const hitBuffAtConfiguredLevel = (effect: HitBuffEffect): HitBuffEffect => {
+      const leveledValue = effect.statusValueLevels?.[statusLevelKey];
+      return typeof leveledValue === 'number' && Number.isFinite(leveledValue)
+        ? { ...effect, statusValue: leveledValue }
+        : effect;
+    };
+    const settledProfileHits = command.profile.hits.flatMap((profileHit) => {
+      const settledHit = command.hits.find((candidate) => (
+        candidate.offsetFrames === profileHit.offsetFrames
+        && candidate.sourceSkillId === profileHit.sourceSkillId
+      ));
+      return settledHit ? [{ profileHit, settledHit }] : [];
+    });
+    const firstSettlementFrame = command.hits.length > 0
+      ? Math.min(...command.hits.map((hit) => hit.frame))
+      : command.actualFrame;
+    return {
+      buttonId: command.commandId,
+      executionFrame: firstSettlementFrame,
+      isExecutable: command.success
+        && (command.profile.hits.length === 0 || settledProfileHits.length > 0),
+      hits: settledProfileHits.map(({ profileHit, settledHit }) => ({
+        frame: settledHit.frame,
+        offsetFrames: profileHit.offsetFrames,
+        damageType: profileHit.damageType,
+        damageTypes: profileHit.damageTypes,
+        hitBuffs: profileHit.hitBuffs?.map(hitBuffAtConfiguredLevel),
+      })),
+      statusEffects: command.profile.statusEffects?.map(hitBuffAtConfiguredLevel),
+    };
+  }), [akePreviewCommand, akePreviewCommands]);
   const fixedDummyContext = useMemo(() => buildFixedDummyContextForButton({
     timelineData,
     buttonTable: getSkillButtonTable(),
     currentButtonId: button.id,
     currentNodeIndex: button.nodeIndex ?? Number.POSITIVE_INFINITY,
     resolveStateSnapshots: getAnomalyStateSnapshotsByIds,
-  }), [button.id, button.nodeIndex, candidateBuffRefreshToken, resistanceRevision, timelineData]);
+    resolvedEvents: fixedDummyResolvedEvents,
+  }), [button.id, button.nodeIndex, candidateBuffRefreshToken, fixedDummyResolvedEvents, resistanceRevision, timelineData]);
   const detectedHitStatuses = useMemo(
     () => buildDetectedHitStatuses(resolvedTemplate?.hits.flatMap((hit) => hit.hitBuffs ?? []) ?? []),
     [resolvedTemplate],
@@ -1044,6 +1136,24 @@ export function SkillButtonComponent({
       ...fixedDummyContext.displayOnlyBuffs,
     ]),
     [fixedDummyContext.displayOnlyBuffs, fixedDummyContext.modifierBuffs],
+  );
+  const fixedDummyOutcomeStatuses = useMemo(
+    () => buildFixedDummyOutcomeStatuses(fixedDummyContext),
+    [fixedDummyContext],
+  );
+  const akeRuntimeStatusLabels = useMemo(
+    () => buildAkeRuntimeStatusLabelMap(getInstalledAkeCatalog()),
+    [akeRuntimeReport, candidateBuffRefreshToken],
+  );
+  const akeRuntimeLedger = useMemo(() => buildAkeRuntimeCommandLedger({
+    report: akeRuntimeReport,
+    commandId: button.id,
+    labels: akeRuntimeStatusLabels,
+    skillName: displayName,
+  }), [akeRuntimeReport, akeRuntimeStatusLabels, button.id, displayName]);
+  const compactTargetStateItems = useMemo(
+    () => akeRuntimeLedger?.compactStatuses.filter((item) => item.mainDisplay) ?? [],
+    [akeRuntimeLedger],
   );
   const buttonStackCounts = useMemo(
     () => getSkillButtonById(button.id)?.buffStackCounts ?? {},
@@ -1151,6 +1261,21 @@ export function SkillButtonComponent({
     })),
     modifierBuffList: [...modifierBuffList, ...fixedDummyContext.modifierBuffs],
   });
+  const calculatedAnomalyDamages = useMemo(
+    () => [...fixedDummyContext.mechanicAnomalyDamages, ...selectedAnomalyDamages],
+    [fixedDummyContext.mechanicAnomalyDamages, selectedAnomalyDamages],
+  );
+  const mandatoryAnomalyDamageIds = useMemo(
+    () => new Set(fixedDummyContext.mechanicAnomalyDamages.map((damage) => damage.id)),
+    [fixedDummyContext.mechanicAnomalyDamages],
+  );
+  const intrinsicModifierBuffsBySegmentKey = useMemo(
+    () => Object.fromEntries(fixedDummyContext.mechanicAnomalyDamages.map((damage) => [
+      damage.id,
+      damage.intrinsicModifierBuffs,
+    ])),
+    [fixedDummyContext.mechanicAnomalyDamages],
+  );
   const currentButtonIsImbalanced = selectedStatusCards.some((card) => card.key === 'imbalance-state');
   const effectiveTargetStatuses = useMemo(() => Array.from(new Set([
     ...fixedDummyContext.state.statuses,
@@ -1166,9 +1291,11 @@ export function SkillButtonComponent({
       isImbalanced: effectiveTargetState.isImbalanced,
       statuses: effectiveTargetStatuses,
       attachments: effectiveTargetState.attachments,
-      physicalAnomalyTriggered: selectedAnomalyDamages.some((card) => card.category === 'physical'),
+      physicalAnomalyTriggered: calculatedAnomalyDamages.some((card) => (
+        card.category === 'physical' && !card.usesRawAtkScale
+      )),
     },
-  ), [button.characterId, candidateBuffRefreshToken, effectiveTargetState, effectiveTargetStatuses, resistanceRevision, selectedAnomalyDamages]);
+  ), [button.characterId, calculatedAnomalyDamages, candidateBuffRefreshToken, effectiveTargetState, effectiveTargetStatuses, resistanceRevision]);
   const configuredHitStatuses = useMemo(
     () => buildConfiguredHitStatuses([
       ...configuredHitBuffs.modifierBuffs,
@@ -1346,7 +1473,7 @@ export function SkillButtonComponent({
       });
     }
 
-    selectedAnomalyDamages.forEach((card) => {
+    calculatedAnomalyDamages.forEach((card) => {
       const appliedBuffs = card.selectedBuffIds.length === 0
         ? [...fullCombinedModifierBuffList]
         : [...fullCombinedModifierBuffList.filter((buff) => card.selectedBuffIds.includes(buff.id) || buff.source === 'anomaly_state')];
@@ -1358,7 +1485,7 @@ export function SkillButtonComponent({
     });
 
     return nextMap;
-  }, [fullExtraHitBuffList, fullCombinedModifierBuffList, fullDamageResult, selectedAnomalyDamages]);
+  }, [calculatedAnomalyDamages, fullExtraHitBuffList, fullCombinedModifierBuffList, fullDamageResult]);
 
   useEffect(() => {
     setManuallyDisabledBuffIdsBySegmentKey((prev) => {
@@ -1370,7 +1497,17 @@ export function SkillButtonComponent({
         const nextBuffIds = buffIds.filter((buffId) => availableIds.has(buffId));
         return nextBuffIds.length > 0 ? [[segmentKey, nextBuffIds] as const] : [];
       });
-      return Object.fromEntries(nextEntries);
+      const next = Object.fromEntries(nextEntries);
+      const prevKeys = Object.keys(prev);
+      const nextKeys = Object.keys(next);
+      const isUnchanged = prevKeys.length === nextKeys.length
+        && prevKeys.every((segmentKey) => {
+          const prevBuffIds = prev[segmentKey] ?? [];
+          const nextBuffIds = next[segmentKey] ?? [];
+          return prevBuffIds.length === nextBuffIds.length
+            && prevBuffIds.every((buffId, index) => buffId === nextBuffIds[index]);
+        });
+      return isUnchanged ? prev : next;
     });
   }, [manualBuffOptionIdsBySegmentKey]);
 
@@ -1479,7 +1616,9 @@ export function SkillButtonComponent({
       panelBase,
       panelData,
       hitCards: damageViewModel.hitCards,
-      selectedAnomalyDamages,
+      selectedAnomalyDamages: calculatedAnomalyDamages,
+      mandatoryAnomalyDamageIds,
+      intrinsicModifierBuffsBySegmentKey,
       buttonCharacterId: button.characterId,
       element,
       damageBonus: infoSnap as unknown as import('../../types/storage').DamageBonusSnapshot,
@@ -1494,7 +1633,7 @@ export function SkillButtonComponent({
       disabledHitKeys: manuallyDisabledHitKeys,
       getEffectiveCharacterSourceSkillBoost,
     });
-  }, [panelBase, panelData, damageViewModel, selectedAnomalyDamages, button.characterId, button.skillType, targetResistance, effectiveTargetState, element, infoSnap, fullCombinedModifierBuffList, fullExtraHitBuffList, buttonStackCounts, manualBuffStackCountsBySegmentKey, manuallyDisabledBuffIdsBySegmentKey, resolvedSingleHitBuffTargets, manuallyDisabledHitKeys, getEffectiveCharacterSourceSkillBoost]);
+  }, [panelBase, panelData, damageViewModel, calculatedAnomalyDamages, mandatoryAnomalyDamageIds, intrinsicModifierBuffsBySegmentKey, button.characterId, button.skillType, targetResistance, effectiveTargetState, element, infoSnap, fullCombinedModifierBuffList, fullExtraHitBuffList, buttonStackCounts, manualBuffStackCountsBySegmentKey, manuallyDisabledBuffIdsBySegmentKey, resolvedSingleHitBuffTargets, manuallyDisabledHitKeys, getEffectiveCharacterSourceSkillBoost]);
 
   useEffect(() => {
     if (!resolvedTemplate) {
@@ -1614,6 +1753,12 @@ export function SkillButtonComponent({
     loadPersistedManualBuffTweaks();
   }, [isInspectMode, isModalOpen, loadPersistedManualBuffTweaks, loadRuntimeDamageData, resistanceRevision]);
   const inspectDamageSummary = useMemo(() => {
+    if (akeRuntimeLedger?.summary) {
+      return {
+        expected: akeRuntimeLedger.summary.expected,
+        nonCrit: akeRuntimeLedger.summary.nonCrit,
+      };
+    }
     if (!damageViewModel) {
       return { expected: '-', nonCrit: '-' };
     }
@@ -1621,7 +1766,13 @@ export function SkillButtonComponent({
       expected: (Number(damageViewModel.summary.totalExpectedText) + anomalyDamageSummary.expected).toFixed(0),
       nonCrit: (Number(damageViewModel.summary.totalNonCritText) + anomalyDamageSummary.nonCrit).toFixed(0),
     };
-  }, [anomalyDamageSummary.expected, anomalyDamageSummary.nonCrit, damageViewModel]);
+  }, [akeRuntimeLedger, anomalyDamageSummary.expected, anomalyDamageSummary.nonCrit, damageViewModel]);
+
+  useEffect(() => {
+    if (!akeRuntimeLedger || selectedHitIndex === null) return;
+    if (selectedHitIndex < akeRuntimeLedger.hits.length) return;
+    setSelectedHitIndex(akeRuntimeLedger.hits.length > 0 ? 0 : null);
+  }, [akeRuntimeLedger, selectedHitIndex]);
   const totalNonCritSummaryFormula = useMemo(() => {
     if (!damageViewModel) {
       return '无';
@@ -1991,6 +2142,32 @@ export function SkillButtonComponent({
               title={`${akeTemporalKindLabel} · ${akePreviewCommand.profile.skillId} · ${akePreviewCommand.profile.resolutionSource ?? 'base-intent'}`}
             >
               {akeTemporalKindLabel}
+            </span>
+          ) : null}
+          {akePreviewCommand && compactTargetStateItems.length > 0 ? (
+            <span
+              className="skill-button-target-state"
+              aria-label={`本次技能状态：${compactTargetStateItems.map((item) => (
+                `${item.displayName}${item.stackCount > 1 ? `${item.stackCount}层` : ''}`
+              )).join('、')}`}
+            >
+              {compactTargetStateItems.slice(0, 3).map((item) => (
+                <i
+                  key={item.key}
+                  className={`is-${item.tone}`}
+                  title={item.title}
+                >
+                  {item.iconUrl ? (
+                    <img src={item.iconUrl} alt="" aria-hidden="true" />
+                  ) : (
+                    <span aria-hidden="true">{item.label.replace(/[\d消]+$/g, '')}</span>
+                  )}
+                  {item.stackCount > 1 ? <em>{item.stackCount}</em> : null}
+                </i>
+              ))}
+              {compactTargetStateItems.length > 3
+                ? <b title={compactTargetStateItems.slice(3).map((item) => item.title).join('\n')}>+{compactTargetStateItems.length - 3}</b>
+                : null}
             </span>
           ) : null}
           {basicAttackTailBundle ? (
@@ -2437,33 +2614,81 @@ export function SkillButtonComponent({
           onEnableAllBuffs={enableAllBuffs}
           onDisableAllBuffs={disableAllBuffs}
           onResetBuffStacks={resetAllBuffStacks}
+          statusContextLabel={akeRuntimeLedger
+            ? selectedHitIndex === null
+              ? '整次技能'
+              : `当前 Hit · ${akeRuntimeLedger.hits[selectedHitIndex]?.title ?? '未选择'}`
+            : selectedHitIndex === null
+              ? '整次技能'
+              : `当前 Hit · ${damageViewModel?.hitCards[selectedHitIndex]?.displayName ?? '未选择'}`}
           statuses={[
-            ...detectedHitStatuses,
-            ...configuredHitStatuses,
-            ...inheritedDummyStatuses,
+            ...(akeRuntimeLedger
+              ? (selectedHitIndex === null
+                ? akeRuntimeLedger.statuses
+                : akeRuntimeLedger.hits[selectedHitIndex]?.statuses ?? akeRuntimeLedger.statuses
+              ).map((status) => ({
+                  key: status.key,
+                  title: status.title,
+                  detail: status.detail,
+                  kind: status.kind,
+                  groupLabel: status.groupLabel,
+                  groupOrder: status.groupOrder,
+                  priority: status.priority,
+                  iconUrl: status.iconUrl,
+                  iconAlt: status.iconAlt,
+                }))
+              : [
+                  ...(selectedHitIndex === null
+                    ? detectedHitStatuses
+                    : buildDetectedHitStatuses(resolvedTemplate?.hits[selectedHitIndex]?.hitBuffs ?? [])),
+                  ...(selectedHitIndex === null
+                    ? configuredHitStatuses
+                    : buildConfiguredHitStatuses(fullDamageResult?.hits[selectedHitIndex]?.appliedBuffs ?? [])),
+                  ...inheritedDummyStatuses,
+                  ...fixedDummyOutcomeStatuses,
+                ]),
             ...selectedStatusCards.map((card) => ({
               key: card.id,
               title: card.primaryText,
               detail: [card.secondaryText, card.tertiaryText].filter(Boolean).join(' · '),
-              kind: '状态',
+              kind: akeRuntimeLedger ? '演示状态（不参与运行时）' : '状态',
               onRemove: () => removeAnomalyCard('state', card.id),
             })),
             ...selectedAnomalyStateSnapshots.map((snapshot) => ({
               key: `snapshot-${snapshot.id}`,
               title: formatAnomalyStateSnapshotName(snapshot),
               detail: snapshot.sourceCharacterName,
-              kind: '异常状态',
+              kind: akeRuntimeLedger ? '演示异常（不参与运行时）' : '异常状态',
               onRemove: () => removeAnomalyStateSnapshotCard(snapshot.id),
             })),
             ...selectedAnomalyDamages.map((card) => ({
               key: card.id,
               title: card.primaryText,
               detail: [card.secondaryText, card.tertiaryText].filter(Boolean).join(' · '),
-              kind: '异常伤害',
+              kind: akeRuntimeLedger ? '演示伤害（不参与运行时）' : '异常伤害',
               onRemove: () => removeAnomalyCard('damage', card.id),
             })),
+            ...(akeRuntimeLedger ? [] : fixedDummyContext.mechanicAnomalyDamages.map((card) => ({
+              key: card.id,
+              title: card.primaryText,
+              detail: [card.secondaryText, card.tertiaryText].filter(Boolean).join(' · '),
+              kind: '真实机制',
+            }))),
           ]}
-          hits={[
+          hits={akeRuntimeLedger ? akeRuntimeLedger.hits.map((hit, index) => ({
+            key: hit.key,
+            title: hit.title,
+            meta: hit.meta,
+            expected: hit.expected,
+            crit: hit.crit,
+            nonCrit: hit.nonCrit,
+            selected: selectedHitIndex === index && selectedAnomalySegmentKey === null,
+            onSelect: () => {
+              const isCurrentHit = selectedHitIndex === index && selectedAnomalySegmentKey === null;
+              setSelectedHitIndex(isCurrentHit ? null : index);
+              setSelectedAnomalySegmentKey(null);
+            },
+          })) : [
             ...(damageViewModel?.hitCards.map((hitCard, index) => ({
               ...(() => {
                 const hit = resolvedTemplate?.hits[index];
@@ -2526,10 +2751,13 @@ export function SkillButtonComponent({
             })) ?? []),
             ...anomalyDamageSegments.map((segment) => {
               const buffScopeKey = segment.sourceKind === 'anomaly'
-                ? selectedAnomalyDamages.find((card) => (
+                ? calculatedAnomalyDamages.find((card) => (
                     segment.key === card.id || segment.key.startsWith(`${card.id}-`)
                   ))?.id ?? segment.key
                 : segment.key;
+              const intrinsicBuffIds = new Set(
+                (intrinsicModifierBuffsBySegmentKey[buffScopeKey] ?? []).map((buff) => buff.id),
+              );
               return {
                 key: segment.key,
                 title: segment.sequenceTitle,
@@ -2542,17 +2770,23 @@ export function SkillButtonComponent({
                 tuning: {
                   title: segment.title,
                   stats: [],
-                  buffs: buildAppliedBuffTags(
-                    fullCombinedModifierBuffList,
-                    getEffectiveSegmentStackCounts(buffScopeKey)
-                  ),
+                  buffs: segment.appliedBuffTags,
                   segmentKey: buffScopeKey,
                   disabled: segment.isDisabled,
-                  onToggleDisabled: () => toggleManualHitDisabled(segment.key),
-                  onToggleBuff: (buffId: string) => toggleManualBuff(buffScopeKey, buffId),
-                  isBuffActive: (buffId: string) => isBuffManuallyActive(buffScopeKey, buffId),
-                  onDecrementBuff: (buffId: string) => adjustSegmentBuffStack(buffScopeKey, buffId, -1),
-                  onIncrementBuff: (buffId: string) => adjustSegmentBuffStack(buffScopeKey, buffId, 1),
+                  onToggleDisabled: segment.isMandatoryMechanic
+                    ? undefined
+                    : () => toggleManualHitDisabled(segment.key),
+                  onToggleBuff: (buffId: string) => {
+                    if (!intrinsicBuffIds.has(buffId)) toggleManualBuff(buffScopeKey, buffId);
+                  },
+                  isBuffActive: (buffId: string) => intrinsicBuffIds.has(buffId)
+                    || isBuffManuallyActive(buffScopeKey, buffId),
+                  onDecrementBuff: (buffId: string) => {
+                    if (!intrinsicBuffIds.has(buffId)) adjustSegmentBuffStack(buffScopeKey, buffId, -1);
+                  },
+                  onIncrementBuff: (buffId: string) => {
+                    if (!intrinsicBuffIds.has(buffId)) adjustSegmentBuffStack(buffScopeKey, buffId, 1);
+                  },
                   onResetBuffs: () => resetManualBuffTweaks(buffScopeKey),
                 },
                 onSelect: () => {
@@ -2563,7 +2797,9 @@ export function SkillButtonComponent({
               };
             }),
           ]}
-          summary={damageViewModel ? {
+          summary={akeRuntimeLedger
+            ? akeRuntimeLedger.summary
+            : damageViewModel ? {
             title: damageViewModel.header.fullText,
             expected: (Number(damageViewModel.summary.totalExpectedText) + anomalyDamageSummary.expected).toFixed(0),
             crit: (Number(damageViewModel.summary.totalCritText) + anomalyDamageSummary.crit).toFixed(0),
@@ -2571,7 +2807,11 @@ export function SkillButtonComponent({
             formula: totalNonCritSummaryFormula,
             parts: totalNonCritSummaryParts,
           } : null}
-          formula={isShowingAnomalyDetail ? activeAnomalyFormula : damageViewModel?.activeHitFormula ?? null}
+          formula={akeRuntimeLedger
+            ? selectedHitIndex === null
+              ? null
+              : akeRuntimeLedger.hits[selectedHitIndex]?.formula ?? null
+            : isShowingAnomalyDetail ? activeAnomalyFormula : damageViewModel?.activeHitFormula ?? null}
           infoLines={infoSnapshotLines}
         />
       )}

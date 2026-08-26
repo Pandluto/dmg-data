@@ -1,4 +1,10 @@
-import type { Character, SkillButtonData, SkillReleaseAnchor, TimelineData } from '../../types';
+import type {
+  Character,
+  HitBuffEffect,
+  SkillButtonData,
+  SkillReleaseAnchor,
+  TimelineData,
+} from '../../types';
 import type {
   AkeCatalog,
   AkeTimingCatalog,
@@ -30,6 +36,10 @@ import {
   validateOperatorControlTimeline,
 } from '../../core/domain/operatorControlTimeline';
 import {
+  createFixedDummyState,
+  resolveFixedDummyEvent,
+} from '../../core/services/fixedDummyStateMachine';
+import {
   akeProfileToActionTailContract,
   akeProfileToTailSuccessor,
 } from './akeActionTailAdapter';
@@ -60,6 +70,8 @@ export type AkeRealtimeHit = {
   kind: AkeTimingHitProfile['kind'];
   hitCount: number;
   damageTypes: string[];
+  damageType: string | null;
+  hitBuffs: HitBuffEffect[];
   sourceSkillId: string;
   rootSkillId: string;
 };
@@ -87,6 +99,7 @@ export type AkeRealtimeComboWindow = {
   createdFrame: number;
   expireFrame: number;
   consumedFrame: number | null;
+  consumedCommandId: string | null;
   state: 'ready' | 'consumed' | 'expired' | 'suppressed';
   reason: string;
 };
@@ -129,6 +142,7 @@ export type AkeRealtimeTimeline = {
   };
   ultimateSpPools: AkeRealtimeUltimateSpPool[];
   comboWindows: AkeRealtimeComboWindow[];
+  verifiedComboSkills: Array<{ characterId: string; skillId: string }>;
   /** Authoritative relationship schedule and shared variable-rate projection. */
   sharedVariableRateTimeline: SharedVariableRateTimelineModel | null;
   planningIterations: number;
@@ -198,6 +212,20 @@ type PendingResourceEvent = {
 
 type PendingCombo = AkeRealtimeComboWindow & {
   rule: AkeTimingComboTrigger;
+};
+
+type ComboTriggerObservation = {
+  eventType: string;
+  frame: number;
+  characterId: string;
+  commandId: string;
+  sourceSkillId: string;
+  rootSkillId: string;
+  rootSkillRoles: string[];
+  sourceCommandType: string;
+  targetId: string;
+  damageAttributeType: string | null;
+  buffId: string | null;
 };
 
 function finite(value: unknown, fallback = 0): number {
@@ -329,9 +357,11 @@ function composeFullAttackProfile(
   const formEvents: NonNullable<AkeTimingSkillProfile['formEvents']> = [];
   const recoveryPauses: AkeTimingSkillProfile['recoveryPauses'] = [];
   const interruptibleAt: number[] = [];
+  const stageStarts: number[] = [];
   let stageStart = 0;
 
   chain.forEach((stage, stageIndex) => {
+    stageStarts.push(stageStart);
     const ordinaryHits = stage.hits.filter(hit => hit.kind !== 'lingering');
     if (ordinaryHits.length > 0) {
       const settlement = ordinaryHits.reduce((latest, hit) => (
@@ -350,6 +380,9 @@ function composeFullAttackProfile(
         kind: ordinaryHits.some(hit => hit.kind === 'projectile') ? 'projectile' : 'direct',
         hitCount: ordinaryHits.reduce((sum, hit) => sum + hit.hitCount, 0),
         damageTypes: [...new Set(ordinaryHits.flatMap(hit => hit.damageTypes))],
+        damageType: settlement.damageType ?? settlement.damageTypes[0] ?? null,
+        levels: settlement.levels,
+        hitBuffs: ordinaryHits.flatMap(hit => hit.hitBuffs ?? []),
       });
     }
     for (const hit of stage.hits.filter(candidate => candidate.kind === 'lingering')) {
@@ -382,6 +415,8 @@ function composeFullAttackProfile(
   });
 
   const bodyEndOffset = stageStart;
+  const finalStage = chain[chain.length - 1] ?? first;
+  const finalStageStart = stageStarts[stageStarts.length - 1] ?? 0;
   const tailEndOffset = Math.max(
     bodyEndOffset,
     ...hits.map(hit => hit.offsetFrames),
@@ -395,8 +430,16 @@ function composeFullAttackProfile(
     tailEndOffset,
     exclusiveFrames: bodyEndOffset,
     cooldownFrames: Math.max(...chain.map(stage => stage.cooldownFrames)),
-    allowNext: [],
-    commandMappings: [],
+    // The folded command still ends on the final raw stage.  Preserve that
+    // stage's A -> A window in folded coordinates so a second complete normal
+    // attack starts at the native restart boundary instead of at the last-hit
+    // debounce floor.
+    allowNext: finalStage.allowNext.map(window => ({
+      ...window,
+      startOffsetFrames: finalStageStart + window.startOffsetFrames,
+      endOffsetFrames: finalStageStart + window.endOffsetFrames,
+    })),
+    commandMappings: [...(finalStage.commandMappings ?? [])],
     formEvents,
     interruptibleAt: [...new Set(interruptibleAt)].sort((left, right) => left - right),
     hits: hits.sort((left, right) => left.offsetFrames - right.offsetFrames),
@@ -607,6 +650,8 @@ function hitFromProfile(
     kind: hit.kind,
     hitCount: hit.hitCount,
     damageTypes: [...hit.damageTypes],
+    damageType: hit.damageType ?? hit.damageTypes[0] ?? null,
+    hitBuffs: structuredClone(hit.hitBuffs ?? []) as HitBuffEffect[],
     sourceSkillId: hit.sourceSkillId,
     rootSkillId: hit.rootSkillId,
   };
@@ -752,6 +797,7 @@ function simulateAkeRealtimeTimeline(
   const comboWindows: AkeRealtimeComboWindow[] = [];
   const seenComboOccurrences = new Set<string>();
   let comboSequence = 0;
+  let fixedDummyState = createFixedDummyState();
   let formSequence = 0;
   let ordinary = Math.max(0, Math.min(atbConfig.max, atbConfig.initial));
   let returned = 0;
@@ -959,10 +1005,18 @@ function simulateAkeRealtimeTimeline(
     });
   };
 
+  const ownedComboRules = Object.entries(timing?.characters ?? {})
+    .filter(([characterId]) => selectedCharacterIds.has(characterId))
+    .flatMap(([ownerCharacterId, characterTiming]) => (
+      (characterTiming.comboTriggers ?? []).map(rule => ({ ownerCharacterId, rule }))
+    ));
   const comboRulesFor = (characterId: string, skillId?: string) => (
-    (timing?.characters[characterId]?.comboTriggers ?? []).filter(rule => (
-      skillId === undefined || rule.comboSkillId === skillId
-    ))
+    ownedComboRules
+      .filter(entry => (
+        entry.ownerCharacterId === characterId
+        && (skillId === undefined || entry.rule.comboSkillId === skillId)
+      ))
+      .map(entry => entry.rule)
   );
 
   const expireCombos = (frame: number) => {
@@ -975,23 +1029,25 @@ function simulateAkeRealtimeTimeline(
   };
 
   const createComboWindow = (
+    ownerCharacterId: string,
     rule: AkeTimingComboTrigger,
-    hit: AkeRealtimeHit,
+    observation: ComboTriggerObservation,
     frame: number,
   ) => {
-    const actor = actorFor(hit.characterId);
+    const actor = actorFor(ownerCharacterId);
     const cooldownEnd = actor.cooldowns.get(rule.comboSkillId) ?? 0;
     const id = `combo:${rule.id}:${comboSequence++}`;
     if (rule.requireComboOffCooldown && cooldownEnd > frame) {
       const suppressed: PendingCombo = {
         id,
         ruleId: rule.id,
-        characterId: hit.characterId,
+        characterId: ownerCharacterId,
         skillId: rule.comboSkillId,
-        sourceCommandId: hit.commandId,
+        sourceCommandId: observation.commandId,
         createdFrame: frame,
         expireFrame: frame,
         consumedFrame: null,
+        consumedCommandId: null,
         state: 'suppressed',
         reason: 'COOLDOWN_ACTIVE_AT_TRIGGER',
         rule,
@@ -1003,7 +1059,7 @@ function simulateAkeRealtimeTimeline(
 
     const matching = pendingCombos.filter(pending => (
       pending.state === 'ready'
-      && pending.characterId === hit.characterId
+      && pending.characterId === ownerCharacterId
       && pending.skillId === rule.comboSkillId
     ));
     if (rule.pendingPolicy === 'keep-existing' && matching.length > 0) return;
@@ -1025,12 +1081,13 @@ function simulateAkeRealtimeTimeline(
     const created: PendingCombo = {
       id,
       ruleId: rule.id,
-      characterId: hit.characterId,
+      characterId: ownerCharacterId,
       skillId: rule.comboSkillId,
-      sourceCommandId: hit.commandId,
+      sourceCommandId: observation.commandId,
       createdFrame: frame,
       expireFrame: frame + Math.max(1, rule.pendingDurationFrames) - 1,
       consumedFrame: null,
+      consumedCommandId: null,
       state: 'ready',
       reason: 'TRIGGER_MATCHED',
       rule,
@@ -1039,15 +1096,96 @@ function simulateAkeRealtimeTimeline(
     comboWindows.push(created);
   };
 
+  const ruleMatchesComboObservation = (
+    ownerCharacterId: string,
+    rule: AkeTimingComboTrigger,
+    observation: ComboTriggerObservation,
+  ) => {
+    if (rule.eventType !== observation.eventType) return false;
+    const selectsRoot = rule.rootSkillIds.length > 0 || Boolean(rule.rootSkillRole);
+    if (selectsRoot) {
+      const rootMatched = rule.rootSkillIds.includes(observation.rootSkillId)
+        || Boolean(rule.rootSkillRole
+          && observation.rootSkillRoles.includes(rule.rootSkillRole));
+      if (!rootMatched) return false;
+    }
+    if (rule.sourceSkillIds.length > 0
+      && !rule.sourceSkillIds.includes(observation.sourceSkillId)) return false;
+    if ((rule.statusBuffIds ?? []).length > 0
+      && !(rule.statusBuffIds ?? []).includes(observation.buffId ?? '')) return false;
+    if ((rule.sourceCommandTypes ?? []).length > 0
+      && !(rule.sourceCommandTypes ?? []).includes(observation.sourceCommandType)) return false;
+    if (rule.requireSourceOtherThanOwner
+      && ownerCharacterId === observation.characterId) return false;
+    if (rule.damageAttributeType
+      && rule.damageAttributeType !== observation.damageAttributeType) return false;
+    return true;
+  };
+
+  const observeForCombos = (observation: ComboTriggerObservation) => {
+    for (const { ownerCharacterId, rule } of ownedComboRules) {
+      if (!ruleMatchesComboObservation(ownerCharacterId, rule, observation)) continue;
+      const occurrenceKey = rule.occurrence === 'first-per-cast-target'
+        ? `${rule.id}:${observation.commandId}:${observation.targetId}`
+        : `${rule.id}:${observation.commandId}`;
+      if (rule.occurrence !== 'every-event'
+        && seenComboOccurrences.has(occurrenceKey)) continue;
+      if (rule.occurrence !== 'every-event') seenComboOccurrences.add(occurrenceKey);
+      createComboWindow(ownerCharacterId, rule, observation, observation.frame);
+    }
+  };
+
   const observeHitForCombos = (hit: AkeRealtimeHit, frame: number) => {
-    for (const rule of comboRulesFor(hit.characterId)) {
-      if (hit.hitCount <= 0) continue;
-      if (rule.rootSkillIds.length > 0 && !rule.rootSkillIds.includes(hit.rootSkillId)) continue;
-      if (rule.sourceSkillIds.length > 0 && !rule.sourceSkillIds.includes(hit.sourceSkillId)) continue;
-      const occurrenceKey = `${rule.id}:${hit.commandId}`;
-      if (rule.occurrence === 'first-per-cast' && seenComboOccurrences.has(occurrenceKey)) continue;
-      seenComboOccurrences.add(occurrenceKey);
-      createComboWindow(rule, hit, frame);
+    if (hit.hitCount <= 0) return;
+    const sourceCommand = commandById.get(hit.commandId);
+    const stages = sourceCommand?.profile.comboStageSkillIds ?? [];
+    const rootSkillRoles = stages[stages.length - 1] === hit.rootSkillId ? ['heavy-attack'] : [];
+    observeForCombos({
+      eventType: 'BeforeHpDamage',
+      frame,
+      characterId: hit.characterId,
+      commandId: hit.commandId,
+      sourceSkillId: hit.sourceSkillId,
+      rootSkillId: hit.rootSkillId,
+      rootSkillRoles,
+      sourceCommandType: sourceCommand?.commandType ?? '',
+      targetId: 'fixed-dummy',
+      damageAttributeType: 'Hp',
+      buffId: null,
+    });
+
+    const beforeNoGuard = fixedDummyState.noGuardStacks;
+    const resolution = resolveFixedDummyEvent(fixedDummyState, {
+      buttonId: hit.commandId,
+      characterId: hit.characterId,
+      nodeIndex: frame,
+      hitElements: hit.damageTypes.map((damageType) => {
+        const normalized = damageType.toLowerCase();
+        if (normalized.includes('fire')) return 'fire';
+        if (normalized.includes('pulse') || normalized.includes('electric')) return 'electric';
+        if (normalized.includes('cryst') || normalized.includes('ice')) return 'ice';
+        if (normalized.includes('natural')) return 'nature';
+        return 'physical';
+      }),
+      hitBuffs: hit.hitBuffs,
+      anomalyCards: [],
+      stateSnapshots: [],
+    });
+    fixedDummyState = resolution.state;
+    if (beforeNoGuard === 0 && fixedDummyState.noGuardStacks > 0) {
+      observeForCombos({
+        eventType: 'StatusEffectApplied',
+        frame,
+        characterId: hit.characterId,
+        commandId: hit.commandId,
+        sourceSkillId: hit.sourceSkillId,
+        rootSkillId: hit.rootSkillId,
+        rootSkillRoles,
+        sourceCommandType: sourceCommand?.commandType ?? '',
+        targetId: 'fixed-dummy',
+        damageAttributeType: null,
+        buffId: 'buff_physical_no_guard',
+      });
     }
   };
 
@@ -1073,7 +1211,11 @@ function simulateAkeRealtimeTimeline(
     })[0] ?? null;
   };
 
-  const consumeComboPending = (selected: PendingCombo, frame: number) => {
+  const consumeComboPending = (
+    selected: PendingCombo,
+    frame: number,
+    commandId: string,
+  ) => {
     const consumed = selected.rule.consumePolicy === 'all-for-owner-and-skill'
       ? pendingCombos.filter(pending => (
         pending.state === 'ready'
@@ -1084,6 +1226,7 @@ function simulateAkeRealtimeTimeline(
     for (const pending of consumed) {
       pending.state = 'consumed';
       pending.consumedFrame = frame;
+      pending.consumedCommandId = commandId;
       pending.reason = 'CAST_SUCCESS';
     }
   };
@@ -1245,7 +1388,7 @@ function simulateAkeRealtimeTimeline(
       command.cooldownEndFrame = frame + profile.cooldownFrames;
       actor.cooldowns.set(profile.skillId, command.cooldownEndFrame);
     }
-    if (comboPending) consumeComboPending(comboPending, frame);
+    if (comboPending) consumeComboPending(comboPending, frame, command.commandId);
     if (comboUnverified) {
       diagnostics.push(`${command.commandId}: combo trigger rule is not yet verified for ${profile.skillId}.`);
     }
@@ -1503,6 +1646,10 @@ function simulateAkeRealtimeTimeline(
       };
     }),
     comboWindows,
+    verifiedComboSkills: [...new Map(ownedComboRules.map(({ ownerCharacterId, rule }) => [
+      `${ownerCharacterId}:${rule.comboSkillId}`,
+      { characterId: ownerCharacterId, skillId: rule.comboSkillId },
+    ])).values()],
     sharedVariableRateTimeline: null,
     planningIterations: 0,
     diagnostics,

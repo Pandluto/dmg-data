@@ -178,3 +178,84 @@ const artsSourceSkillHit = buildSourceSkillExtraHit('artsBurst');
 assertEqual(artsSourceSkillHit.levelCoefficientText, '1.454', 'arts burst curve should use the 196 denominator');
 assertEqual(artsSourceSkillHit.multiplierFormulaText, '(290.8% + 0.0%) × 1.000', 'arts-burst source-skill formula should scale the base multiplier');
 assertClose(artsSourceSkillHit.nonCritValue, 1454.0816326530612, 'arts-burst source-skill extra hit should apply level and source-skill coefficients');
+
+const mandatoryMechanicCard: SelectedAnomalyCard = {
+  id: 'ake-mechanic:button:armor-break:1',
+  key: 'armor-break',
+  label: '碎甲',
+  kind: 'damage',
+  category: 'physical',
+  level: 3,
+  primaryText: 'AKE 真实机制 · 碎甲 Lv3',
+  secondaryText: '200% 物理异常 hit',
+  selectedBuffIds: [],
+};
+const mandatoryMechanicSegment = buildAnomalyDamageSegments({
+  panelBase: null,
+  panelData: { atk: 1000, critRate: 0, critDmg: 0 },
+  hitCards: [],
+  selectedAnomalyDamages: [mandatoryMechanicCard],
+  mandatoryAnomalyDamageIds: new Set([mandatoryMechanicCard.id]),
+  intrinsicModifierBuffsBySegmentKey: {
+    [mandatoryMechanicCard.id]: [{
+      id: 'intrinsic-fracture',
+      name: 'intrinsic-fracture',
+      displayName: '碎甲内建物伤易伤',
+      sourceName: 'AKE 真实状态机',
+      source: 'ake_mechanic',
+      type: 'physicalFragile',
+      value: 0.2,
+      category: 'passive',
+      refCount: 1,
+    }],
+  },
+  buttonCharacterId: 'operator',
+  element: 'physical',
+  damageBonus: zeroDamageBonus,
+  targetResistance: { physicalResistance: 0 },
+  fullCombinedModifierBuffList: [],
+  extraHitBuffList: [],
+  manuallyDisabledBuffIdsBySegmentKey: {},
+  disabledHitKeys: [mandatoryMechanicCard.id],
+  getEffectiveCharacterSourceSkillBoost: () => 0,
+})[0];
+assertEqual(mandatoryMechanicSegment.isMandatoryMechanic, true, 'AKE mechanic segment should be marked mandatory');
+assertEqual(mandatoryMechanicSegment.isDisabled, undefined, 'demo hit toggles must not suppress a real mechanic hit');
+assertEqual(mandatoryMechanicSegment.appliedBuffTags[0]?.id, 'intrinsic-fracture', 'fracture should apply its built-in physical damage state to its own hit');
+assertClose(mandatoryMechanicSegment.nonCritValue, 1472.4489795918369, 'mandatory fracture hit should retain its intrinsic modifier and real damage');
+
+const originiumShatterCard: SelectedAnomalyCard = {
+  id: 'ake-mechanic:administrator:originium-shatter:1',
+  key: 'originium-shatter',
+  label: '源石结晶击碎',
+  kind: 'damage',
+  category: 'physical',
+  level: 0,
+  primaryText: 'AKE 真实机制 · 源石结晶击碎',
+  secondaryText: '400% 物理额外 hit',
+  selectedBuffIds: [],
+  baseMultiplierPercent: 400,
+  usesRawAtkScale: true,
+};
+const originiumShatterSegment = buildAnomalyDamageSegments({
+  panelBase: null,
+  panelData: { atk: 1000, critRate: 0, critDmg: 0 },
+  hitCards: [{ displayName: '强化战技本体', nonCritText: '0' }, { displayName: '猛击', nonCritText: '0' }],
+  selectedAnomalyDamages: [originiumShatterCard],
+  mandatoryAnomalyDamageIds: new Set([originiumShatterCard.id]),
+  buttonCharacterId: 'chr_0003_endminf',
+  element: 'physical',
+  damageBonus: zeroDamageBonus,
+  targetResistance: { physicalResistance: 0 },
+  fullCombinedModifierBuffList: [],
+  extraHitBuffList: [],
+  manuallyDisabledBuffIdsBySegmentKey: {},
+  getEffectiveCharacterSourceSkillBoost: () => 100,
+})[0];
+assertEqual(originiumShatterSegment.title, '3段 · 源石结晶击碎', 'crystal shatter should render as the third independent hit');
+assertEqual(originiumShatterSegment.sequenceTitle, '额外伤害 · 源石结晶击碎', 'crystal shatter should use the extra-hit lane instead of masquerading as an anomaly');
+assertEqual(originiumShatterSegment.sourceKind, 'buff-extra-hit', 'crystal shatter should expose its extra-hit source kind');
+assertEqual(originiumShatterSegment.baseMultiplierText, '400.0%', 'crystal shatter should read the level-scaled AKE M3 atkScale');
+assertEqual(originiumShatterSegment.levelCoefficientText, '1.000', 'crystal shatter must not use the physical-anomaly level curve');
+assertEqual(originiumShatterSegment.sourceSkillZoneText, '1.000', 'crystal shatter must not multiply the raw atkScale by source skill');
+assertClose(originiumShatterSegment.nonCritValue, 2000, '400% raw physical hit should settle independently through defense');

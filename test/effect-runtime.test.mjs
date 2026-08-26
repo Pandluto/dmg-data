@@ -107,6 +107,60 @@ test('EffectRuntime evaluates condition trees and executes the selected branch',
     assert.ok(runtime.trace.some(record => record.stage === 'ActionBranch' && record.passed));
 });
 
+test('EffectRuntime resolves target-group references and treats an empty group as a failed condition', () => {
+    const context = makeContext();
+    const runtime = new EffectRuntime({ context });
+    const targetGroup = {
+        type: 'TargetGroup',
+        key: 'selected',
+        index: 0,
+        fallback: 'Target'
+    };
+    const grouped = context.createEventContext({
+        sourceId: 'caster',
+        ownerId: 'owner',
+        targetId: 'target',
+        blackboard: { __akeTargetGroups: { selected: ['caster'] } }
+    });
+    assert.equal(runtime.evaluate({
+        type: 'HasTag', entity: targetGroup, tag: 'Ready'
+    }, grouped), true);
+    assert.equal(runtime.evaluate({
+        type: 'Compare',
+        left: { type: 'Attribute', entity: targetGroup, key: 'power' },
+        operator: 'EQ',
+        right: 10
+    }, grouped), true);
+
+    const empty = context.createEventContext(grouped, {
+        blackboard: { __akeTargetGroups: { selected: [] } }
+    });
+    assert.equal(runtime.evaluate({
+        type: 'HasTag', entity: targetGroup, tag: 'Ready'
+    }, empty), false);
+    runtime.execute({
+        type: 'ModifyAttribute',
+        entity: targetGroup,
+        attribute: 'hp',
+        amount: -1
+    }, empty);
+    assert.equal(context.getAttribute('target', 'hp'), 19,
+        'an executable action may use its explicit fallback when the group is empty');
+
+    const missing = context.createEventContext({
+        sourceId: 'caster',
+        ownerId: 'owner',
+        targetId: 'target',
+        blackboard: {}
+    });
+    assert.equal(runtime.evaluate({
+        type: 'Compare',
+        left: { type: 'Attribute', entity: targetGroup, key: 'hp' },
+        operator: 'EQ',
+        right: 19
+    }, missing), true);
+});
+
 test('EffectRuntime delegates machine actions and reports unsupported nodes explicitly', () => {
     const context = makeContext();
     const delegated = [];

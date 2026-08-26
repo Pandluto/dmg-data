@@ -8,6 +8,7 @@ export function calculateDamage({
     shelterDmgScalar = 0,
     attackerZoneScale = 1,
     defenderZoneScale = 1,
+    configuredDamageBonusScale = 1,
     specialScale = 1,
     criticalMode = 'None',
     criticalRate = 0.05,
@@ -39,13 +40,18 @@ export function calculateDamage({
             ? expectedCriticalScale
             : 1;
     const isCritical = criticalMode === 'All';
-    const commonScale = attackerZoneScale * defenderZoneScale * sharedScale * specialScale;
+    const commonScale = attackerZoneScale
+        * defenderZoneScale
+        * configuredDamageBonusScale
+        * sharedScale
+        * specialScale;
     const nonCriticalDamage = rawDamage * commonScale * nonCriticalScale;
     const criticalDamage = rawDamage * commonScale * allCriticalScale;
     const expectedDamage = rawDamage * commonScale * expectedCriticalScale;
     const finalDamage = rawDamage
         * attackerZoneScale
         * defenderZoneScale
+        * configuredDamageBonusScale
         * sharedScale
         * specialScale
         * selectedCriticalScale;
@@ -75,6 +81,7 @@ export function calculateDamage({
             sharedScale,
             attackerZoneScale,
             defenderZoneScale,
+            configuredDamageBonusScale,
             specialScale,
             criticalRate,
             criticalDamageIncrease,

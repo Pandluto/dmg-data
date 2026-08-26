@@ -29,6 +29,7 @@ import {
   GRID_NODE_COUNT,
   GRID_TIMELINE_WIDTH,
   getGridGroupTop,
+  getGridLineCenterY,
   getGridOperatorPairTopY,
   getGridNodeCenterX,
 } from '../../../core/calculators/gridSnapLayout';
@@ -186,6 +187,35 @@ export function hitsEligibleForReleaseSnap(
     timeline.commands.map(command => [command.commandId, command.commandType]),
   );
   return timeline.hits.filter(hit => commandTypeById.get(hit.commandId) !== 'UltimateSkill');
+}
+
+export function isComboReleaseFrameAvailable({
+  timeline,
+  characterId,
+  skillId,
+  movingCommandId,
+  frame,
+}: {
+  timeline: Pick<AkeRealtimeTimeline, 'verifiedComboSkills' | 'comboWindows'> | null;
+  characterId: string;
+  skillId?: string;
+  movingCommandId: string | null;
+  frame: number;
+}): boolean {
+  if (!timeline) return true;
+  const isVerified = timeline.verifiedComboSkills.some(combo => (
+    combo.characterId === characterId
+    && (!skillId || combo.skillId === skillId)
+  ));
+  if (!isVerified) return true;
+  return timeline.comboWindows.some(window => (
+    window.characterId === characterId
+    && (!skillId || window.skillId === skillId)
+    && window.state !== 'suppressed'
+    && (window.state !== 'consumed' || window.consumedCommandId === movingCommandId)
+    && frame >= window.createdFrame
+    && frame < window.expireFrame
+  ));
 }
 
 export function useCanvasDrag({
@@ -465,6 +495,20 @@ export function useCanvasDrag({
     const targets: CanvasDropTarget[] = [];
 
     for (const point of releaseSnapPoints) {
+      // Verified combo skills only expose anchors inside a trigger window.
+      // A consumed window remains available while moving the command that
+      // consumed it, but cannot be reused by a second combo button.
+      if (draggingState.skillType === 'E'
+        && !draggingState.timelineModuleKind
+        && !isComboReleaseFrameAvailable({
+          timeline: akeRealtimeTimeline,
+          characterId: draggingState.characterId,
+          skillId: draggingState.runtimeSkillId,
+          movingCommandId: movingButtonId,
+          frame: point.frame,
+        })) {
+        continue;
+      }
       if (!draggingState.timelineModuleKind
         && sealedSourceGroups.has(point.groupIndex)
         && !point.id.startsWith('new-group:')) {
@@ -787,11 +831,16 @@ export function useCanvasDrag({
           return;
         }
 
-        const { target, lineY, gridStack } = resolved;
+        const { target, gridStack } = resolved;
         const { lineIndex, nodeIndex, sourceGroupIndex } = target;
+        // Persist in the logical source-group coordinate system.  The visible
+        // page may be a compressed projection of that group and can differ
+        // from sourceGroupIndex after variable-rate waits.
         const snappedPosition = gridToCanvasContentCoords(
           getGridNodeCenterX(nodeIndex),
-          lineY + SKILL_BUTTON_BASELINE_OFFSET_Y,
+          getGridGroupTop(sourceGroupIndex)
+            + getGridLineCenterY(lineIndex)
+            + SKILL_BUTTON_BASELINE_OFFSET_Y,
           canvasElement,
           gridStack,
         );

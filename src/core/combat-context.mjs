@@ -349,6 +349,13 @@ export class CombatContext {
 
     resolveEntityRef(ref, eventContext = {}) {
         const context = this.createEventContext(eventContext);
+        if (isRecord(ref) && String(ref.type ?? '').toLowerCase() === 'eventtarget') {
+            const eventTargetId = context.payload?.eventTargetId;
+            if (eventTargetId !== null && eventTargetId !== undefined) {
+                return this.#publicEntity(this.#requireEntity(eventTargetId));
+            }
+            return this.resolveEntityRef(ref.fallback ?? 'Target', context);
+        }
         let value = ref;
         if (isRecord(ref)) {
             value = ref.ref ?? ref.role ?? ref.entityId ?? ref.id;

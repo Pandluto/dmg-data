@@ -296,12 +296,12 @@
 .skill-button-temporal-kind {
   position: absolute;
   left: 32px;
-  top: -43px;
+  top: -45px;
   z-index: 3;
   display: flex;
   align-items: center;
   width: 46px;
-  height: 26px;
+  height: 17px;
   overflow: hidden;
   color: #263940;
   font-size: 10px;
@@ -309,6 +309,84 @@
   line-height: 1;
   white-space: nowrap;
   pointer-events: none;
+}
+
+.skill-button-target-state {
+  position: absolute;
+  left: 30px;
+  top: -33px;
+  z-index: 8;
+  width: 62px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.skill-button-target-state > i,
+.skill-button-target-state > b {
+  position: relative;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(26, 34, 38, 0.82);
+  box-shadow: 0 1px 4px rgba(12, 18, 20, 0.3);
+  color: #fff;
+  font-style: normal;
+}
+
+.skill-button-target-state > i > img {
+  width: 16px;
+  height: 16px;
+  display: block;
+  object-fit: contain;
+}
+
+.skill-button-target-state > i > span {
+  color: #fff;
+  font-size: 9px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.skill-button-target-state > .is-consumed {
+  opacity: 0.58;
+  filter: grayscale(0.7);
+}
+
+.skill-button-target-state > i > em {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  min-width: 10px;
+  height: 10px;
+  display: grid;
+  place-items: center;
+  padding: 0 2px;
+  border-radius: 5px;
+  background: #172126;
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 850;
+  line-height: 1;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
+}
+
+.skill-button-target-state > b {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 7px;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .canvas-skill-button.is-ake-enhanced-form .skill-button-temporal-kind {

@@ -143,6 +143,7 @@ import { decodeMobileShareIdFromImage } from '../../mobile/mobileShare';
 import {
   AKE_REPORT_UPDATED_EVENT,
   readLatestAkeTeamReport,
+  resolveAkeCalculationEndFrame,
   runAkeTeamCalculation,
   type AkeTeamReport,
 } from '../../integrations/ake/akeProvider';
@@ -833,6 +834,9 @@ export function CanvasBoard({
     ?.sharedVariableRateTimeline?.admissionStatus ?? null;
   const isAkePlanBlocked = akePlanAdmissionStatus !== null
     && akePlanAdmissionStatus !== 'valid';
+  const akeRequestedEndFrame = akeRealtimeTimeline
+    ? resolveAkeCalculationEndFrame(akeRealtimeTimeline)
+    : null;
 
   const activeAkeTeamReport = React.useMemo(() => {
     if (!akeTeamReport || !akeRealtimeTimeline) return null;
@@ -847,9 +851,47 @@ export function CanvasBoard({
       .map(character => character.localCharacterId).sort();
     return JSON.stringify(currentCommands) === JSON.stringify(settledCommands)
       && JSON.stringify(currentCharacters) === JSON.stringify(settledCharacters)
+      && akeTeamReport.requestedEndFrame === akeRequestedEndFrame
       ? akeTeamReport
       : null;
-  }, [akeRealtimeTimeline, akeTeamReport, selectedCharacters]);
+  }, [akeRealtimeTimeline, akeRequestedEndFrame, akeTeamReport, selectedCharacters]);
+
+  const akeSimulationSignature = React.useMemo(() => JSON.stringify({
+    characters: selectedCharacters.map((character) => character.id),
+    commands: (akeRealtimeTimeline?.commands ?? []).map((command) => ({
+      id: command.commandId,
+      characterId: command.characterId,
+      commandType: command.commandType,
+      frame: command.requestedFrame,
+      skillId: command.profile.skillId,
+    })),
+    endFrame: akeRequestedEndFrame,
+    configRevision: resistanceRevision,
+  }), [akeRealtimeTimeline, akeRequestedEndFrame, resistanceRevision, selectedCharacters]);
+
+  useEffect(() => {
+    if (import.meta.env.VITE_AKE_DEMO !== '1'
+      || !akeRealtimeTimeline
+      || selectedCharacters.length === 0) {
+      return undefined;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      runAkeTeamCalculation({
+        timelineData,
+        selectedCharacters,
+        signal: controller.signal,
+      }).catch((error) => {
+        if (controller.signal.aborted
+          || (error instanceof DOMException && error.name === 'AbortError')) return;
+        console.error('AKE 实时状态账本刷新失败:', error);
+      });
+    }, 320);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [akeSimulationSignature, akeRealtimeTimeline, selectedCharacters, timelineData]);
 
   const restoredSignatureRef = useRef<string | null>(null);
   const previousViewRef = useRef(currentView);
@@ -897,6 +939,10 @@ export function CanvasBoard({
           skillDisplayName: btn.skillDisplayName,
           skillIconUrl: btn.skillIconUrl,
           customHits: btn.customHits,
+          timelineModuleKind: btn.timelineModuleKind,
+          forcedWaitConfig: btn.forcedWaitConfig,
+          laneWaitConfig: btn.laneWaitConfig,
+          operatorSwitchConfig: btn.operatorSwitchConfig,
           element: character?.element,
         });
         if (!btn.timelineModuleKind
@@ -3104,6 +3150,10 @@ export function CanvasBoard({
           skillDisplayName: btn.skillDisplayName,
           skillIconUrl: btn.skillIconUrl,
           customHits: btn.customHits,
+          timelineModuleKind: btn.timelineModuleKind,
+          forcedWaitConfig: btn.forcedWaitConfig,
+          laneWaitConfig: btn.laneWaitConfig,
+          operatorSwitchConfig: btn.operatorSwitchConfig,
           element: character?.element,
         });
         const nextRuntimeSkillId = resolvedRuntimeSkill?.id ?? btn.runtimeSkillId;
@@ -4782,6 +4832,7 @@ export function CanvasBoard({
             isDragDisabled={false}
             resistanceRevision={resistanceRevision}
             akeTimeline={activeAkeTeamReport?.timeline ?? null}
+            akeRuntimeReport={activeAkeTeamReport}
             akeRealtimeTimeline={akeRealtimeTimeline}
             dropTarget={dropTarget}
             snapTargets={snapTargets}

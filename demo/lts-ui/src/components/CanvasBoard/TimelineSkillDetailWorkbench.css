@@ -208,12 +208,10 @@
 .timeline-detail-middle {
   grid-column: 2;
   grid-row: 2;
-  display: grid;
-  grid-template-rows: clamp(340px, 66vh, 700px) auto;
-  align-content: start;
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
   padding: 14px 0;
-  overflow: auto;
+  overflow: hidden;
   transform: translateX(48px);
 }
 
@@ -428,16 +426,89 @@
   text-align: center;
 }
 
-.timeline-status-list,
 .timeline-tuning-list {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
+.timeline-status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .timeline-status-card {
+  flex: 1 1 auto;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
   padding-bottom: 9px;
+  overflow: hidden;
+}
+
+.timeline-status-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.timeline-status-card-head h3 {
+  margin: 0;
+}
+
+.timeline-status-card-head > span {
+  overflow: hidden;
+  color: #697169;
+  font-size: 10px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-status-card .timeline-status-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  align-content: flex-start;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #bfc5c1 transparent;
+}
+
+.timeline-status-group {
+  display: grid;
+  gap: 7px;
+}
+
+.timeline-status-group > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 20px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(118, 126, 121, 0.32);
+}
+
+.timeline-status-group > header strong {
+  color: #26332c;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.timeline-status-group > header span {
+  min-width: 18px;
+  color: #66716a;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.timeline-status-group > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
 }
 
 .timeline-status-list button,
@@ -455,6 +526,17 @@
   transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
 }
 
+.timeline-status-list button {
+  width: 100%;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 6px 7px;
+  text-align: left;
+}
+
 .timeline-status-list button:hover,
 .timeline-tuning-list button:hover {
   color: #005ecb;
@@ -464,6 +546,48 @@
 
 .timeline-status-list small {
   color: #007aff;
+}
+
+.timeline-status-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.timeline-status-copy strong,
+.timeline-status-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-status-copy strong {
+  color: #202823;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.timeline-status-copy small {
+  font-size: 8px;
+}
+
+.timeline-status-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  object-fit: contain;
+}
+
+.timeline-status-icon-fallback {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #4f6b5b;
+  font-size: 9px;
+  font-weight: 850;
 }
 
 .timeline-tuning-card {
@@ -964,6 +1088,7 @@
 
 .timeline-calculation-detail::-webkit-scrollbar,
 .timeline-calculation-zone-scroll::-webkit-scrollbar,
+.timeline-status-list::-webkit-scrollbar,
 .timeline-detail-canvas::-webkit-scrollbar,
 .timeline-detail-hit-list::-webkit-scrollbar,
 .timeline-detail-middle::-webkit-scrollbar,
@@ -974,6 +1099,7 @@
 
 .timeline-calculation-detail::-webkit-scrollbar-track,
 .timeline-calculation-zone-scroll::-webkit-scrollbar-track,
+.timeline-status-list::-webkit-scrollbar-track,
 .timeline-detail-canvas::-webkit-scrollbar-track,
 .timeline-detail-hit-list::-webkit-scrollbar-track,
 .timeline-detail-middle::-webkit-scrollbar-track,
@@ -983,6 +1109,7 @@
 
 .timeline-calculation-detail::-webkit-scrollbar-thumb,
 .timeline-calculation-zone-scroll::-webkit-scrollbar-thumb,
+.timeline-status-list::-webkit-scrollbar-thumb,
 .timeline-detail-canvas::-webkit-scrollbar-thumb,
 .timeline-detail-hit-list::-webkit-scrollbar-thumb,
 .timeline-detail-middle::-webkit-scrollbar-thumb,

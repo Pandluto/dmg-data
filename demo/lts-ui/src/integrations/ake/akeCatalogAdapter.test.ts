@@ -50,6 +50,15 @@ function profile(
           target: 'target',
           targetLabel: '目标',
           kind: 'attachment',
+          effects: [{
+            id: 'normal-skill-electric-vulnerability',
+            sourceBuffId: 'buff_common_energy_shard_attached_pulse',
+            type: 'electricVulnerability',
+            value: 0.12,
+            unit: 'percent',
+            category: 'condition',
+            durationSeconds: 8,
+          }],
         }],
       } : {}),
       multiplierDerivation: 'compiled-damage-packet',
@@ -68,6 +77,13 @@ const profiles = [
   profile('attack4', 3, [1.27]),
   profile('normal-skill', 0, [4], 'NormalSkill'),
 ];
+profiles[1].statusEffects = [{
+  id: 'state-only-attack2',
+  displayName: '二段结束状态',
+  target: 'target',
+  kind: 'status',
+  statusKey: 'no-guard',
+}];
 
 const catalog = {
   schemaVersion: 2,
@@ -100,7 +116,21 @@ const catalog = {
           description: '对失衡敌人伤害 +30%',
         }],
       }],
-      potential: [],
+      potential: [{
+        effectId: 'pelica-potential',
+        name: '三潜·监督重任',
+        description: '攻击力 +20%',
+        level: 3,
+        effects: [{
+          effectId: 'pelica-potential:atk',
+          name: '三潜·监督重任',
+          type: 'atkPercentBoost',
+          category: 'countable',
+          value: 0.2,
+          maxStacks: 2,
+          unit: 'percent',
+        }],
+      }],
     },
     skills: [{
       groupId: 'pelica-attack',
@@ -225,6 +255,8 @@ const library = buildAkeOperatorLibrary(catalog) as Record<string, {
       value: number;
       activation?: { kind: string };
     }> };
+    potential: { effects: Record<string, { type: string; value: number }> };
+    skill: { effects: Record<string, { type: string; value: number; durationSeconds?: number }> };
   };
   skills: Record<string, {
     hitCount: number;
@@ -253,6 +285,8 @@ assert.deepEqual(Object.values(attack.hitMeta).map(hit => hit.displayName), [
   '第3段 · 第3击',
   '第4段 · 第1击',
 ]);
+assert.ok(!(attack.hitMeta.hit2.hitBuffs ?? []).some((buff) => buff.id === 'state-only-attack2'));
+assert.ok((attack.hitMeta.hit3.hitBuffs ?? []).some((buff) => buff.id === 'state-only-attack2'), 'a profile-only state should be projected once onto the profile tail, not every hit');
 assert.ok(Object.values(attack.hitMeta).every(hit => hit.element === 'electric'));
 assert.equal(normalSkill.hitMeta.hit1.levels.M3, 4);
 assert.deepEqual(normalSkill.hitMeta.hit1.hitBuffs, [{
@@ -261,6 +295,15 @@ assert.deepEqual(normalSkill.hitMeta.hit1.hitBuffs, [{
   target: 'target',
   targetLabel: '目标',
   kind: 'attachment',
+  effects: [{
+    id: 'normal-skill-electric-vulnerability',
+    sourceBuffId: 'buff_common_energy_shard_attached_pulse',
+    type: 'electricVulnerability',
+    value: 0.12,
+    unit: 'percent',
+    category: 'condition',
+    durationSeconds: 8,
+  }],
 }]);
 assert.deepEqual(pelica.buffs.talent.effects['pelica-talent:imbalance'], {
   schemaVersion: 2,
@@ -276,6 +319,24 @@ assert.deepEqual(pelica.buffs.talent.effects['pelica-talent:imbalance'], {
   valueMode: 'fixed',
   effectKind: 'modifier',
 });
+assert.equal(pelica.buffs.potential.effects['pelica-potential:atk'].type, 'atkPercentBoost');
+assert.deepEqual(
+  pelica.buffs.skill.effects['skill:pelica-normal-skill:buff_common_energy_shard_attached_pulse:1'],
+  {
+    schemaVersion: 2,
+    effectId: 'skill:pelica-normal-skill:buff_common_energy_shard_attached_pulse:1',
+    name: '技能·战技·电磁脆弱',
+    type: 'electricVulnerability',
+    category: 'condition',
+    value: 0.12,
+    unit: 'percent',
+    durationSeconds: 8,
+    description: '战技命中施加电磁附着：电磁脆弱，持续 8 秒',
+    raw: 'AKE 命中动作 · 目标 · buff_common_energy_shard_attached_pulse',
+    valueMode: 'fixed',
+    effectKind: 'modifier',
+  },
+);
 
 const weaponLibrary = buildAkeWeaponLibrary(catalog) as Record<string, {
   skills: { skill3: { effects: Record<string, { category: string; levels: Record<string, number> }> } };

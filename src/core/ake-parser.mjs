@@ -104,12 +104,16 @@ function collectTimelineActions(raw) {
 }
 
 function normalizeAssignments(buffSpec) {
-    return (buffSpec.assignItems ?? []).map(item => ({
-        targetKey: item.targetKey,
-        sourceKey: item.inputValueKey || null,
-        direct: Boolean(item.useDirectValue),
-        directValue: item.directValueType === 'String' ? item.stringValue : item.numericValue
-    }));
+    return (buffSpec.assignItems ?? [])
+        .filter(item => (typeof item?.targetKey === 'string'
+            && item.targetKey.trim().length > 0)
+            || Number.isFinite(item?.targetKey))
+        .map(item => ({
+            targetKey: item.targetKey,
+            sourceKey: item.inputValueKey || null,
+            direct: Boolean(item.useDirectValue),
+            directValue: item.directValueType === 'String' ? item.stringValue : item.numericValue
+        }));
 }
 
 function normalizeCreateBuff(raw) {
@@ -461,6 +465,20 @@ function normalizeBuffAction(raw) {
 export function parseBuff(raw, { tickRate = 30 } = {}) {
     const { values: blackboard } = parseBlackboard(raw.blackboard);
     const stacking = raw.stackingSettings ?? {};
+    const configuredMaxStackCount = stacking.useMaxStackCntKey
+        && typeof stacking.maxStackCntKey === 'string'
+        && stacking.maxStackCntKey.length > 0
+        ? Number(blackboard[stacking.maxStackCntKey])
+        : Number(stacking.maxStackCnt ?? 1);
+    // AKE serializes -1 for several non-stacking or externally configured
+    // Buffs. It is a sentinel, not a literal runtime layer limit.
+    const maxStackCount = Number.isInteger(configuredMaxStackCount)
+        && configuredMaxStackCount > 0
+        ? configuredMaxStackCount
+        : stacking.stackingType === 'Unlimited'
+            && configuredMaxStackCount === 0
+            ? 0
+            : 1;
     const damageModifiers = (raw.damageModifier ?? []).map(modifier => ({
         side: modifier.enableSide,
         damageTypes: (modifier.condition?.actionData ?? [])
@@ -511,6 +529,8 @@ export function parseBuff(raw, { tickRate = 30 } = {}) {
         duration: raw.duration,
         durationSeconds,
         durationTicks: Math.round(Number(durationSeconds) * tickRate),
+        useTimeDilationDt: raw.useTimeDilationDt === true,
+        onlyUseSelfTimeDilation: raw.onlyUseSelfTimeDilation === true,
         triggerInterval: raw.triggerInterval,
         triggerIntervalSeconds,
         triggerIntervalTicks: Number(triggerIntervalSeconds) > 0
@@ -524,7 +544,11 @@ export function parseBuff(raw, { tickRate = 30 } = {}) {
             identifierType: stacking.identifierType ?? 'BuffId',
             stackingType: stacking.stackingType ?? 'Unique',
             stackingKey: stacking.stackingKey ?? '',
-            maxStackCount: Number(stacking.maxStackCnt ?? 1)
+            maxStackCount,
+            configuredMaxStackCount,
+            maxStackCountKey: stacking.useMaxStackCntKey
+                ? stacking.maxStackCntKey ?? null
+                : null
         },
         attributeModifiers,
         damageModifiers,

@@ -8,6 +8,7 @@ import { ReactionMachine } from './reaction-machine.mjs';
 import { ResilienceMachine } from './resilience-machine.mjs';
 import { StatusEffectSystem } from './status-effect-system.mjs';
 import { EffectSourceRegistry } from './effect-source-registry.mjs';
+import { SkillFormStateRegistry } from './skill-form-state-registry.mjs';
 
 function isRecord(value) {
     return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -83,6 +84,19 @@ function deepFreeze(value) {
     return value;
 }
 
+function applyLoadoutPatch(currentValue, patchValue, operationCode) {
+    const current = Number(currentValue);
+    const value = Number(patchValue);
+    if (!Number.isFinite(value)) return cloneValue(patchValue);
+    if (Number(operationCode) === 1) {
+        return (Number.isFinite(current) ? current : 0) + value;
+    }
+    if (Number(operationCode) === 2) {
+        return (Number.isFinite(current) ? current : 0) * value;
+    }
+    return value;
+}
+
 /**
  * General, data-driven combat facade. The exact Pelica simulator remains
  * separate; this runtime composes the reusable state machines needed by
@@ -96,6 +110,8 @@ export class CombatRuntime {
         damageResolver = null,
         skillProgramResolver = null,
         timeDilationResolver = null,
+        skillInterruptResolver = null,
+        onStatusTransition = null,
         maxDerivedDepth = 16,
         maxEventsPerRun = 10000
     } = {}) {
@@ -112,9 +128,16 @@ export class CombatRuntime {
         if (timeDilationResolver !== null && typeof timeDilationResolver !== 'function') {
             throw new TypeError('timeDilationResolver must be a function or null.');
         }
+        if (skillInterruptResolver !== null && typeof skillInterruptResolver !== 'function') {
+            throw new TypeError('skillInterruptResolver must be a function or null.');
+        }
+        if (onStatusTransition !== null && typeof onStatusTransition !== 'function') {
+            throw new TypeError('onStatusTransition must be a function or null.');
+        }
         this.damageResolver = damageResolver;
         this.skillProgramResolver = skillProgramResolver;
         this.timeDilationResolver = timeDilationResolver;
+        this.skillInterruptResolver = skillInterruptResolver;
         this.tickRate = finite(tickRate, 'tickRate');
         if (this.tickRate <= 0) throw new RangeError('tickRate must be positive.');
         this.maxDerivedDepth = nonNegativeInteger(maxDerivedDepth, 'maxDerivedDepth');
@@ -129,7 +152,14 @@ export class CombatRuntime {
         this.pendingEvents = [];
         this.nextEventSequence = 1;
         this.nextProgramSequence = 1;
+        this.nextIntervalSequence = 1;
+        this.nextAbilityEntitySequence = 1;
         this.programExecutions = new Map();
+        this.entityBlackboards = new Map();
+        this.skillLoadoutPatchSources = new Map();
+        this.skillLoadoutPatchRevision = 0;
+        this.timedMarkers = new Map();
+        this.timeDilationSampleGenerations = new Map();
         this.currentFrame = 0;
         this.ownsScheduler = schedule === null;
         this.schedule = schedule ?? ((frame, priority, run, label = '') => {
@@ -152,7 +182,14 @@ export class CombatRuntime {
             resolveValue: (descriptor, eventContext) => this.#value(
                 descriptor,
                 this.context.createEventContext(eventContext)
-            )
+            ),
+            // EffectRuntime is initialized later in the constructor, but this
+            // callback is only invoked when a hit is resolved.
+            evaluateCondition: (condition, eventContext) =>
+                this.effects?.evaluate(condition, eventContext) ?? false
+        });
+        this.skillForms = new SkillFormStateRegistry({
+            targetValidator: targetId => this.context.hasEntity(targetId)
         });
         this.clockDomains = new ClockDomainManager({
             schedule: this.schedule,
@@ -183,8 +220,17 @@ export class CombatRuntime {
             schedule: this.schedule,
             clockDomains: this.clockDomains,
             tickRate: this.tickRate,
-            executeActions: (actions, eventContext) =>
-                this.effects.executeTransaction(actions, eventContext)
+            onTransition: transition => onStatusTransition?.(transition),
+            executeActions: (actions, eventContext) => this.effects.executeTransaction(
+                actions,
+                {
+                    ...cloneValue(eventContext),
+                    blackboard: this.#runtimeBlackboard(
+                        eventContext.sourceId,
+                        eventContext.blackboard
+                    )
+                }
+            )
         });
         this.auras = new AuraMachine({
             definitions: definitions.auras ?? {},
@@ -223,6 +269,13 @@ export class CombatRuntime {
     registerEntity(definition) {
         if (!isRecord(definition)) throw new TypeError('entity definition must be an object.');
         const entity = this.context.registerEntity(definition);
+        if (definition.attributeComponents !== undefined) {
+            this.effectSources.registerAttributeComponents(
+                entity.id,
+                definition.attributeComponents
+            );
+        }
+        this.entityBlackboards.set(entity.id, cloneValue(definition.blackboard ?? {}));
         const clockDefinition = definition.clockDomain ?? (definition.clockDomainId
             ? { id: definition.clockDomainId, kind: definition.kind, ownerId: entity.id }
             : null);
@@ -256,6 +309,121 @@ export class CombatRuntime {
             reason: 'RegisterEntity'
         }, { kind: entity.kind });
         return entity;
+    }
+
+    installSkillLoadoutPatches({
+        sourceKey,
+        ownerId,
+        blackboardPatches = [],
+        parameterPatches = []
+    } = {}) {
+        identifier(sourceKey, 'skill loadout patch sourceKey');
+        identifier(ownerId, 'skill loadout patch ownerId');
+        if (!Array.isArray(blackboardPatches) || !Array.isArray(parameterPatches)) {
+            throw new TypeError('Skill loadout patches must be arrays.');
+        }
+        if (this.skillLoadoutPatchSources.has(sourceKey)) {
+            throw new Error(`Skill loadout patches are already installed: ${sourceKey}.`);
+        }
+        const source = {
+            sourceKey,
+            ownerId,
+            blackboardPatches: cloneValue(blackboardPatches),
+            parameterPatches: cloneValue(parameterPatches)
+        };
+        this.skillLoadoutPatchSources.set(sourceKey, source);
+        this.skillLoadoutPatchRevision += 1;
+        return cloneValue(source);
+    }
+
+    removeSkillLoadoutPatches(sourceKey) {
+        identifier(sourceKey, 'skill loadout patch sourceKey');
+        const source = this.skillLoadoutPatchSources.get(sourceKey);
+        if (!source) return null;
+        this.skillLoadoutPatchSources.delete(sourceKey);
+        this.skillLoadoutPatchRevision += 1;
+        return cloneValue(source);
+    }
+
+    resolveSkillProgram(program, { ownerId, skillId = program?.skillId } = {}) {
+        if (!isRecord(program)) throw new TypeError('resolveSkillProgram requires a program.');
+        identifier(skillId, 'skill loadout patch skillId');
+        if (ownerId === undefined || ownerId === null) {
+            return {
+                ...cloneValue(program),
+                loadoutPatches: [],
+                loadoutPatchResolution: null
+            };
+        }
+        identifier(ownerId, 'skill loadout patch ownerId');
+        if (program.loadoutPatchResolution?.ownerId === ownerId
+            && program.loadoutPatchResolution?.skillId === skillId
+            && program.loadoutPatchResolution?.revision === this.skillLoadoutPatchRevision) {
+            return cloneValue(program);
+        }
+        const resolved = cloneValue(program);
+        resolved.blackboard = cloneValue(resolved.blackboard ?? {});
+        const applied = [];
+        for (const source of this.skillLoadoutPatchSources.values()) {
+            if (source.ownerId !== ownerId) continue;
+            for (const patch of source.blackboardPatches) {
+                if (patch.skillId !== skillId) continue;
+                const before = cloneValue(resolved.blackboard[patch.key]);
+                resolved.blackboard[patch.key] = applyLoadoutPatch(
+                    before,
+                    patch.value,
+                    patch.operationCode
+                );
+                applied.push({
+                    sourceKey: source.sourceKey,
+                    kind: 'Blackboard',
+                    skillId,
+                    key: patch.key,
+                    before,
+                    after: cloneValue(resolved.blackboard[patch.key]),
+                    operationCode: patch.operationCode
+                });
+            }
+            for (const patch of source.parameterPatches) {
+                if (patch.skillId !== skillId) continue;
+                const parameterTypeCode = Number(patch.parameterTypeCode);
+                const field = parameterTypeCode === 1
+                    ? 'costValue'
+                    : parameterTypeCode === 2
+                        ? 'cooldownSeconds'
+                        : null;
+                if (!field) continue;
+                const before = cloneValue(resolved[field]);
+                resolved[field] = applyLoadoutPatch(
+                    before,
+                    patch.value,
+                    patch.operationCode
+                );
+                if (field === 'cooldownSeconds') {
+                    resolved.cooldownTicks = Math.max(
+                        0,
+                        Math.round(Number(resolved.cooldownSeconds) * this.tickRate)
+                    );
+                }
+                applied.push({
+                    sourceKey: source.sourceKey,
+                    kind: 'Parameter',
+                    skillId,
+                    parameterTypeCode,
+                    field,
+                    before,
+                    after: cloneValue(resolved[field]),
+                    operationCode: patch.operationCode
+                });
+            }
+        }
+        resolved.loadoutPatches = applied;
+        resolved.loadoutPatchResolution = {
+            ownerId,
+            skillId,
+            revision: this.skillLoadoutPatchRevision
+        };
+        return resolved;
     }
 
     registerRule(rule) {
@@ -348,6 +516,10 @@ export class CombatRuntime {
         const skillId = contextInput.skillId ?? program.skillId ?? `program:${sequence}`;
         const castId = contextInput.castId ?? `cast:${skillId}:${sequence}`;
         const executionId = `program-execution:${sequence}`;
+        const resolvedProgram = this.resolveSkillProgram(program, {
+            ownerId: contextInput.ownerId ?? contextInput.sourceId,
+            skillId
+        });
         const context = this.context.createEventContext({
             ...cloneValue(contextInput),
             frame,
@@ -356,7 +528,8 @@ export class CombatRuntime {
             rootSkillId: contextInput.rootSkillId ?? skillId,
             castId,
             blackboard: {
-                ...cloneValue(program.blackboard ?? {}),
+                ...cloneValue(resolvedProgram.blackboard ?? {}),
+                ...this.#entityBlackboardValues(contextInput.sourceId),
                 ...cloneValue(contextInput.blackboard ?? {})
             }
         });
@@ -367,7 +540,7 @@ export class CombatRuntime {
             castId,
             skillId,
             clockDomainId: domainId,
-            program: cloneValue(program),
+            program: cloneValue(resolvedProgram),
             context,
             blackboard: cloneValue(context.blackboard),
             scheduled: [],
@@ -423,8 +596,10 @@ export class CombatRuntime {
                         frame: completionFrame,
                         programExecutionId: executionId,
                         timelineFrame: offset,
-                        blackboard: cloneValue(
-                            this.programExecutions.get(executionId)?.blackboard ?? context.blackboard
+                        blackboard: this.#runtimeBlackboard(
+                            context.sourceId,
+                            this.programExecutions.get(executionId)?.blackboard
+                                ?? context.blackboard
                         ),
                         eventType: phase === 'start'
                             ? 'SkillTimelineGroupStarted'
@@ -459,7 +634,14 @@ export class CombatRuntime {
                 }
                 const cleanupOffset = Number(group.endFrame ?? group.startFrame ?? 0);
                 if (cleanupOffset >= timelineOrigin) {
-                    schedulePhase(group, 'cleanup', cleanupOffset, 60,
+                    // UltimateTimeAction's recovery lock is end-exclusive in
+                    // Calc: the ATB tick on the cleanup frame is already
+                    // allowed. Resume that specific shared-resource lock just
+                    // before passive recovery (priority 2); ordinary Buff and
+                    // status cleanup keeps the later cleanup priority.
+                    const cleanupPriority = (group.cleanupActions ?? []).some(action =>
+                        action.type === 'ResumeResourceRecovery') ? 1 : 60;
+                    schedulePhase(group, 'cleanup', cleanupOffset, cleanupPriority,
                         group.cleanupActions, originFrame, timelineOrigin, generation);
                 }
             }
@@ -479,6 +661,125 @@ export class CombatRuntime {
             skillId,
             clockDomainId: domainId,
             scheduled: execution.scheduled
+        };
+    }
+
+    scheduleIntervalActions(action, eventContext = {}) {
+        if (!isRecord(action) || !Array.isArray(action.actions)) {
+            throw new TypeError('scheduleIntervalActions requires an action with an actions array.');
+        }
+        const context = eventContext;
+        const durationTicks = nonNegativeInteger(
+            action.durationTicks ?? 0,
+            'interval durationTicks'
+        );
+        const resolvedIntervalTicks = action.intervalTicks === null
+            || action.intervalTicks === undefined
+            ? Math.round(this.#number(
+                action.intervalSeconds,
+                context,
+                'interval seconds'
+            ) * this.tickRate)
+            : nonNegativeInteger(action.intervalTicks, 'interval ticks');
+        if (resolvedIntervalTicks < 1) {
+            throw new RangeError('Interval actions require at least one tick between executions.');
+        }
+        const includeStart = action.includeStart !== false;
+        const firstOffset = includeStart ? 0 : resolvedIntervalTicks;
+        const offsets = [];
+        for (let offset = firstOffset;
+            durationTicks === 0 ? offset === 0 : offset < durationTicks;
+            offset += resolvedIntervalTicks) {
+            offsets.push(offset);
+            if (durationTicks === 0) break;
+        }
+        const execution = context.programExecutionId === undefined
+            ? null
+            : this.programExecutions.get(context.programExecutionId) ?? null;
+        const generation = execution?.generation ?? 0;
+        const intervalSequence = this.nextIntervalSequence++;
+        const domainId = context.clockDomainId ?? execution?.clockDomainId ?? 'global';
+        let detachedBlackboard = cloneValue(context.blackboard ?? {});
+        const executeTick = (completionFrame, tickIndex, timelineFrame) => {
+            if (execution && (!execution.active || execution.generation !== generation)) {
+                return null;
+            }
+            const blackboard = this.#runtimeBlackboard(
+                context.sourceId,
+                execution ? execution.blackboard : detachedBlackboard
+            );
+            const transaction = this.effects.executeTransaction(action.actions, {
+                ...cloneValue(context),
+                frame: completionFrame,
+                eventType: 'SkillTimelineIntervalTick',
+                timelineFrame,
+                intervalTickIndex: tickIndex,
+                blackboard
+            });
+            if (execution) execution.blackboard = cloneValue(transaction.eventContext.blackboard);
+            else detachedBlackboard = cloneValue(transaction.eventContext.blackboard);
+            // The first tick runs inside the timeline group's live transaction;
+            // keep its Blackboard writes visible to following group actions.
+            if (completionFrame === context.frame && tickIndex === 0) {
+                context.blackboard = cloneValue(transaction.eventContext.blackboard);
+            }
+            this.#record('SkillProgramIntervalTickExecuted', {
+                ...cloneValue(context),
+                frame: completionFrame
+            }, {
+                programExecutionId: context.programExecutionId ?? null,
+                tickIndex,
+                timelineFrame,
+                actionCount: action.actions.length
+            });
+            return transaction;
+        };
+
+        offsets.forEach((offset, tickIndex) => {
+            const timelineFrame = Number(action.timelineStartFrame ?? context.timelineFrame ?? 0)
+                + offset;
+            if (offset === 0) {
+                executeTick(context.frame ?? this.currentFrame, tickIndex, timelineFrame);
+                return;
+            }
+            const timerId = `interval:${intervalSequence}:generation:${generation}:tick:${tickIndex}`;
+            const scheduledPhase = {
+                timerId,
+                groupIndex: null,
+                phase: 'interval',
+                offset: timelineFrame,
+                actionCount: action.actions.length,
+                generation
+            };
+            this.clockDomains.startTimer(domainId, {
+                id: timerId,
+                frame: nonNegativeInteger(context.frame ?? this.currentFrame, 'interval start frame'),
+                durationTicks: offset,
+                priority: 1,
+                sourceId: context.sourceId,
+                ownerId: context.ownerId,
+                targetId: context.targetId,
+                skillId: context.skillId,
+                rootSkillId: context.rootSkillId,
+                ruleId: context.ruleId,
+                reason: action.reason ?? 'ScheduleIntervalActions',
+                label: `${String(context.skillId ?? 'interval')}:${timelineFrame}`,
+                onComplete: completionFrame => executeTick(
+                    completionFrame,
+                    tickIndex,
+                    timelineFrame
+                )
+            });
+            execution?.scheduled.push(scheduledPhase);
+        });
+
+        return {
+            status: 'Scheduled',
+            intervalTicks: resolvedIntervalTicks,
+            durationTicks,
+            includeStart,
+            tickCount: offsets.length,
+            tickOffsets: offsets
         };
     }
 
@@ -566,6 +867,11 @@ export class CombatRuntime {
                 reason
             );
         }
+        this.resources.resumeRecoveryByCastId(
+            execution.castId,
+            cancelFrame,
+            `ProgramCancelled:${reason}`
+        );
         this.#record('SkillProgramCancelled', {
             ...execution.context,
             frame: cancelFrame
@@ -626,9 +932,18 @@ export class CombatRuntime {
             vitals: this.vitals.snapshot(),
             statusEffects: this.statusEffects.snapshot(),
             effectSources: this.effectSources.snapshot(),
+            skillForms: this.skillForms.snapshot(),
             auras: this.auras.snapshot(),
             reactions: this.reactions.snapshot(),
             resilience: this.resilience.snapshot(),
+            entityBlackboards: Object.fromEntries([...this.entityBlackboards.entries()]
+                .map(([entityId, blackboard]) => [entityId, cloneValue(blackboard)])),
+            skillLoadoutPatchSources: [...this.skillLoadoutPatchSources.values()]
+                .map(source => cloneValue(source)),
+            timedMarkers: [...this.timedMarkers.values()].map(marker => ({
+                ...cloneValue(marker),
+                active: this.#timedMarkerActive(marker, this.currentFrame)
+            })),
             effectTrace: cloneValue(this.effects.trace),
             trace: cloneValue(this.trace),
             pendingEvents: this.pendingEvents.map(event => ({
@@ -669,7 +984,38 @@ export class CombatRuntime {
     }
 
     #entityId(ref, eventContext, fallback = 'Target') {
+        if (isRecord(ref) && ref.type === 'TargetGroup') {
+            const groups = eventContext.blackboard?.__akeTargetGroups ?? {};
+            if (!Object.prototype.hasOwnProperty.call(groups, ref.key) && ref.fallback) {
+                return this.context.resolveEntityRef(ref.fallback, eventContext).id;
+            }
+            const candidates = Array.isArray(groups[ref.key]) ? groups[ref.key] : [];
+            const active = candidates.filter(entityId => this.context.hasEntity(entityId)
+                && !this.context.hasTag(entityId, 'ake-ability-entity-inactive'));
+            const index = Math.max(0, Math.trunc(Number(ref.index ?? 0)));
+            const entityId = active[index];
+            if (entityId === undefined) {
+                if (ref.fallback) {
+                    return this.context.resolveEntityRef(ref.fallback, eventContext).id;
+                }
+                throw new Error(`Target group ${String(ref.key)} has no entity at index ${index}.`);
+            }
+            return entityId;
+        }
         return this.context.resolveEntityRef(ref ?? fallback, eventContext).id;
+    }
+
+    #entityBlackboardValues(entityId) {
+        if (entityId === null || entityId === undefined) return {};
+        return cloneValue(this.entityBlackboards.get(entityId) ?? {});
+    }
+
+    #runtimeBlackboard(entityId, blackboard = {}) {
+        const current = cloneValue(blackboard ?? {});
+        for (const [key, value] of Object.entries(this.#entityBlackboardValues(entityId))) {
+            if (key.startsWith('EntityBB_')) current[key] = cloneValue(value);
+        }
+        return current;
     }
 
     #optionalEntityId(ref, eventContext, fallback = null) {
@@ -696,7 +1042,11 @@ export class CombatRuntime {
         }
         if (!isRecord(descriptor)) return descriptor;
         if (descriptor.useBlackboardKey && descriptor.blackboardKey) {
-            return eventContext.blackboard?.[descriptor.blackboardKey] ?? descriptor.value ?? fallback;
+            const eventValue = eventContext.blackboard?.[descriptor.blackboardKey];
+            if (eventValue !== undefined) return eventValue;
+            const entityValue = this.entityBlackboards.get(eventContext.sourceId)
+                ?.[descriptor.blackboardKey];
+            return entityValue ?? descriptor.value ?? fallback;
         }
         const type = String(descriptor.type ?? descriptor.kind ?? '').toLowerCase();
         if (type === 'blackboard') {
@@ -762,7 +1112,9 @@ export class CombatRuntime {
             const key = identifier(assignment.targetKey, 'buff assignment targetKey');
             const value = assignment.direct
                 ? assignment.directValue
-                : eventContext.blackboard?.[assignment.sourceKey];
+                : eventContext.blackboard?.[assignment.sourceKey]
+                    ?? this.entityBlackboards.get(eventContext.sourceId)
+                        ?.[assignment.sourceKey];
             return [key, cloneValue(value)];
         }));
     }
@@ -782,12 +1134,12 @@ export class CombatRuntime {
             return action.targetIds.map(ref => this.#entityId(ref, eventContext));
         }
         const selector = action.targetSelector;
-        if (!isRecord(selector) || selector.mode !== 'Global') return [];
+        if (!isRecord(selector)) return [];
         const source = eventContext.sourceId === null
             ? null
             : this.context.getEntity(eventContext.sourceId);
         const queryTags = (selector.tagIds ?? []).map(tagId => `ake-tag:${String(tagId)}`);
-        return this.context.listEntities(entity => {
+        const matches = entity => {
             if (selector.excludeOwner
                 && (entity.id === eventContext.sourceId || entity.id === eventContext.ownerId)) {
                 return false;
@@ -807,7 +1159,17 @@ export class CombatRuntime {
                 }
             }
             return true;
-        }).map(entity => entity.id);
+        };
+        if (selector.mode === 'Global') {
+            return this.context.listEntities(matches).map(entity => entity.id);
+        }
+        if (selector.mode === 'ContextTarget') {
+            if (eventContext.targetId === null || eventContext.targetId === undefined
+                || !this.context.hasEntity(eventContext.targetId)) return [];
+            const target = this.context.getEntity(eventContext.targetId);
+            return matches(target) ? [target.id] : [];
+        }
+        return [];
     }
 
     #materializeAuraDefinition(definition, eventContext) {
@@ -847,6 +1209,110 @@ export class CombatRuntime {
         };
     }
 
+    #resourceRecipientOwnerIds(action, eventContext) {
+        if (action.resourceRecipients !== 'AlliedCharacters') return null;
+        const sourceId = eventContext.sourceId;
+        if (sourceId === null || sourceId === undefined) return [];
+        const source = this.context.getEntity(sourceId);
+        return this.context.listEntities(entity => entity.kind === 'Character'
+            && entity.team === source.team)
+            .map(entity => entity.id)
+            .filter(ownerId => {
+                try {
+                    this.resources.describePool({
+                        resourceType: action.resourceType ?? action.costType,
+                        scope: 'Entity',
+                        ownerId
+                    });
+                    return true;
+                } catch {
+                    return false;
+                }
+            });
+    }
+
+    #sourceIsMainCharacter(eventContext) {
+        const sourceId = eventContext.sourceId;
+        if (sourceId === null || sourceId === undefined) return false;
+        if (eventContext.mainCharacterId !== undefined
+            && eventContext.mainCharacterId !== null) {
+            return eventContext.mainCharacterId === sourceId;
+        }
+        return Boolean(this.context.getEntity(sourceId).metadata?.isMainCharacter);
+    }
+
+    #resourceGainScalar(resourceType, ownerId, ignoreGainScalar) {
+        if (resourceType !== 'UltimateSp' || ignoreGainScalar) return 1;
+        const value = Number(this.context.getAttribute(ownerId, 'UltimateSpGainScalar'));
+        return Number.isFinite(value) ? value : 1;
+    }
+
+    #resourceActionToken(action, eventContext) {
+        const base = action.sourceKey ?? action.token ?? eventContext.castId;
+        if (action.sourceKey === undefined) return base;
+        const scope = eventContext.buffInstanceId
+            ?? eventContext.castId
+            ?? eventContext.ruleId
+            ?? eventContext.sourceId;
+        return scope === null || scope === undefined
+            ? base
+            : `${String(base)}@${String(scope)}`;
+    }
+
+    #skillFormSourceKey(action, eventContext) {
+        const base = action.sourceKey
+            ?? eventContext.buffInstanceId
+            ?? eventContext.castId
+            ?? eventContext.ruleId
+            ?? eventContext.sourceId;
+        if (action.sourceKey === undefined) return base;
+        const scope = eventContext.buffInstanceId
+            ?? eventContext.castId
+            ?? eventContext.ruleId
+            ?? eventContext.sourceId;
+        return scope === null || scope === undefined
+            ? base
+            : `${String(base)}@${String(scope)}`;
+    }
+
+    #scheduleSkillFormExpiry(kind, action, eventContext, entry) {
+        if (String(action.lifeTimeType ?? '') !== 'SpecificTime') return null;
+        const seconds = this.#number(
+            action.duration ?? action.durationSeconds ?? 0,
+            eventContext,
+            'skill-form duration'
+        );
+        const durationTicks = Math.max(0, Math.round(seconds * this.tickRate));
+        const domainId = eventContext.clockDomainId ?? 'global';
+        const remove = frame => {
+            const selector = {
+                frame,
+                sourceKey: entry.sourceKey,
+                targetId: entry.targetId,
+                sequence: entry.sequence,
+                reason: `${kind}SpecificTimeExpired`
+            };
+            return kind === 'SkillOverride'
+                ? this.skillForms.removeOverride(selector, eventContext)
+                : this.skillForms.removeMode(selector, eventContext);
+        };
+        if (durationTicks === 0) return remove(eventContext.frame ?? 0);
+        return this.clockDomains.startTimer(domainId, {
+            id: `skill-form:${kind}:${entry.sequence}`,
+            frame: eventContext.frame ?? 0,
+            durationTicks,
+            priority: 89,
+            sourceId: eventContext.sourceId,
+            ownerId: eventContext.ownerId,
+            targetId: entry.targetId,
+            skillId: eventContext.skillId,
+            rootSkillId: eventContext.rootSkillId,
+            reason: `${kind}SpecificTime`,
+            label: `${kind}:${String(entry.sourceKey)}`,
+            onComplete: remove
+        });
+    }
+
     #attribution(action, eventContext, { target = true } = {}) {
         const sourceRef = action.sourceRef ?? action.sourceEntity ?? action.sourceId;
         const ownerRef = action.ownerRef ?? action.ownerEntity ?? action.ownerId;
@@ -873,8 +1339,49 @@ export class CombatRuntime {
         return this.clockDomains.hasDomain(candidate) ? candidate : fallback;
     }
 
+    #timedMarkerKey(entityId, markerId) {
+        return JSON.stringify([entityId, markerId]);
+    }
+
+    #timedMarkerActive(marker, frame) {
+        if (!marker) return false;
+        if (marker.useTimeDilationDt) {
+            return this.clockDomains.localFrameAt(marker.clockDomainId, frame)
+                < marker.expiresLocalFrame;
+        }
+        return frame < marker.expiresFrame;
+    }
+
     #defaultHandlers() {
         return {
+            BitMaskCompare: (condition, eventContext) => {
+                const value = Math.trunc(Number(this.#value(
+                    condition.value ?? condition.left ?? 0,
+                    eventContext,
+                    0
+                ))) >>> 0;
+                const mask = Math.trunc(Number(this.#value(
+                    condition.mask ?? condition.right ?? 0,
+                    eventContext,
+                    0
+                ))) >>> 0;
+                const overlap = (value & mask) >>> 0;
+                switch (String(condition.checkType ?? 'HasAll')) {
+                    case 'HasAll': return overlap === mask;
+                    case 'HasAny': return overlap !== 0;
+                    case 'ExceptAny': return overlap === 0;
+                    default: return false;
+                }
+            },
+            TargetsEqual: (condition, eventContext) => {
+                const eventTargetId = eventContext.payload?.eventTargetId;
+                const resolve = (ref, useEventTarget) => useEventTarget
+                    && eventTargetId !== null && eventTargetId !== undefined
+                    ? eventTargetId
+                    : this.#entityId(ref, eventContext);
+                return resolve(condition.first, condition.firstUsesEventTarget)
+                    === resolve(condition.second, condition.secondUsesEventTarget);
+            },
             HasBuff: (condition, eventContext) => {
                 const targetId = this.#entityId(
                     condition.entity ?? condition.entityRef ?? condition.target ?? condition.targetId,
@@ -893,17 +1400,64 @@ export class CombatRuntime {
                         : this.#optionalEntityId(condition.ownerId, eventContext)
                 });
             },
+            TimedMarkerExists: (condition, eventContext) => {
+                const targetId = this.#entityId(
+                    condition.entity ?? condition.target ?? condition.targetId,
+                    eventContext,
+                    'Owner'
+                );
+                const markerId = identifier(
+                    this.#value(condition.markerId ?? condition.id, eventContext),
+                    'timed marker id'
+                );
+                const key = this.#timedMarkerKey(targetId, markerId);
+                const marker = this.timedMarkers.get(key);
+                const exists = this.#timedMarkerActive(marker, eventContext.frame);
+                if (marker && !exists) this.timedMarkers.delete(key);
+                return condition.returnTrueIfNotExists ? !exists : exists;
+            },
+            EntityAlive: (condition, eventContext) => {
+                const targetId = this.#entityId(
+                    condition.entity ?? condition.target ?? condition.targetId,
+                    eventContext,
+                    'Target'
+                );
+                const alive = !this.vitals.hasEntity(targetId)
+                    || this.vitals.get(targetId, eventContext.frame).alive;
+                return alive === (condition.expected !== false);
+            },
             BuffStackCompare: (condition, eventContext) => {
                 const targetId = this.#entityId(
                     condition.entity ?? condition.target ?? condition.targetId,
                     eventContext,
                     'Target'
                 );
-                const stackCount = this.statusEffects.list({
+                const buffIds = Array.isArray(condition.buffIds)
+                    ? condition.buffIds
+                    : condition.buffId === undefined
+                        ? []
+                        : [condition.buffId];
+                const requestedTagIds = Array.isArray(condition.tagIds)
+                    ? condition.tagIds
+                    : [];
+                const tagQueryType = condition.tagQueryType ?? 'HasAny';
+                const instances = this.statusEffects.list({
                     active: true,
-                    targetId,
-                    buffId: condition.buffId
-                }).reduce((sum, instance) => sum + instance.stackCount, 0);
+                    targetId
+                }).filter(instance => buffIds.length === 0 || buffIds.includes(instance.buffId))
+                    .filter(instance => {
+                        if (requestedTagIds.length === 0) return true;
+                        const definitionTags = new Set(
+                            this.statusEffects.getDefinition(instance.buffId)?.tagIds ?? []
+                        );
+                        const matches = requestedTagIds.map(tagId => definitionTags.has(tagId));
+                        if (tagQueryType === 'HasAll') return matches.every(Boolean);
+                        if (tagQueryType === 'HasNone') return matches.every(match => !match);
+                        return matches.some(Boolean);
+                    });
+                const stackCount = condition.countType === 'BuffIdCount'
+                    ? new Set(instances.map(instance => instance.buffId)).size
+                    : instances.reduce((sum, instance) => sum + instance.stackCount, 0);
                 const expected = this.#number(
                     condition.right ?? condition.value ?? condition.amount,
                     eventContext,
@@ -912,7 +1466,10 @@ export class CombatRuntime {
                 return compare(stackCount, condition.operator, expected);
             },
             ResourceCompare: (condition, eventContext) => {
-                const value = this.resources.get(this.#poolRef(condition, eventContext), eventContext.frame);
+                const pool = this.resources.describePool(this.#poolRef(condition, eventContext));
+                const value = condition.ratio
+                    ? (pool.max === 0 ? 0 : pool.current / pool.max)
+                    : pool.current;
                 const expected = this.#number(
                     condition.right ?? condition.value ?? condition.amount,
                     eventContext,
@@ -957,8 +1514,26 @@ export class CombatRuntime {
                     eventContext,
                     'Source'
                 );
+                if (eventContext.mainCharacterId !== undefined
+                    && eventContext.mainCharacterId !== null) {
+                    return targetId === eventContext.mainCharacterId;
+                }
                 const entity = this.context.getEntity(targetId);
                 return entity.metadata?.isMainCharacter === true;
+            },
+            SquadInFight: (_condition, eventContext) => {
+                const sourceId = eventContext.sourceId ?? eventContext.ownerId;
+                if (sourceId === null || sourceId === undefined
+                    || !this.context.hasEntity(sourceId)) return false;
+                const source = this.context.getEntity(sourceId);
+                if (source.kind !== 'Character') return false;
+                return this.context.listEntities(entity =>
+                    entity.team !== null
+                    && source.team !== null
+                    && entity.team !== source.team
+                    && (!this.vitals.hasEntity(entity.id)
+                        || this.vitals.get(entity.id, eventContext.frame).alive)
+                ).length > 0;
             },
             EntityCountCompare: (condition, eventContext) => {
                 const targetId = this.#entityId(
@@ -977,7 +1552,389 @@ export class CombatRuntime {
                     eventContext,
                     'entity-count comparison value'
                 );
-                return compare(count, condition.operator ?? 'GE', expected);
+                const passed = compare(count, condition.operator ?? 'GE', expected);
+                return condition.storeKey
+                    ? { passed, blackboardWrites: { [condition.storeKey]: count } }
+                    : passed;
+            },
+            TargetGroupCountCompare: (condition, eventContext) => {
+                const groups = eventContext.blackboard?.__akeTargetGroups ?? {};
+                const candidates = Object.prototype.hasOwnProperty.call(
+                    groups,
+                    condition.targetGroupKey
+                )
+                    ? (Array.isArray(groups[condition.targetGroupKey])
+                        ? groups[condition.targetGroupKey]
+                        : [])
+                    : (eventContext.targetId === null || eventContext.targetId === undefined
+                        ? []
+                        : [eventContext.targetId]);
+                const active = candidates.filter(entityId => {
+                    if (!this.context.hasEntity(entityId)
+                        || this.context.hasTag(entityId, 'ake-ability-entity-inactive')) {
+                        return false;
+                    }
+                    return !(condition.excludeDeadEntity
+                        && this.vitals.hasEntity(entityId)
+                        && !this.vitals.get(entityId, eventContext.frame).alive);
+                });
+                const expected = this.#number(
+                    condition.right ?? condition.value ?? condition.amount ?? 1,
+                    eventContext,
+                    'target-group count comparison value'
+                );
+                const passed = compare(active.length, condition.operator ?? 'GE', expected);
+                return {
+                    passed,
+                    ...(condition.storeKey
+                        ? { blackboardWrites: { [condition.storeKey]: active.length } }
+                        : {})
+                };
+            },
+            CreateTimedMarker: (action, eventContext) => {
+                const targetId = this.#entityId(
+                    action.entity ?? action.target ?? action.targetId,
+                    eventContext,
+                    'Owner'
+                );
+                const markerId = identifier(
+                    this.#value(action.markerId ?? action.id, eventContext),
+                    'timed marker id'
+                );
+                const durationSeconds = Math.max(0, this.#number(
+                    action.durationSeconds ?? action.duration ?? 0,
+                    eventContext,
+                    'timed marker duration'
+                ));
+                const durationTicks = Math.max(0, Math.round(durationSeconds * this.tickRate));
+                const clockDomainId = action.clockDomainId
+                    ?? eventContext.clockDomainId
+                    ?? this.#entityClockDomainId(targetId);
+                const useTimeDilationDt = Boolean(action.useTimeDilationDt);
+                const createdLocalFrame = useTimeDilationDt
+                    ? this.clockDomains.localFrameAt(clockDomainId, eventContext.frame)
+                    : null;
+                const marker = {
+                    key: this.#timedMarkerKey(targetId, markerId),
+                    targetId,
+                    markerId,
+                    sourceId: eventContext.sourceId,
+                    ownerId: eventContext.ownerId,
+                    createdFrame: eventContext.frame,
+                    expiresFrame: useTimeDilationDt
+                        ? null
+                        : eventContext.frame + durationTicks,
+                    createdLocalFrame,
+                    expiresLocalFrame: useTimeDilationDt
+                        ? createdLocalFrame + durationTicks
+                        : null,
+                    durationSeconds,
+                    durationTicks,
+                    useTimeDilationDt,
+                    clockDomainId
+                };
+                const before = cloneValue(this.timedMarkers.get(marker.key) ?? null);
+                this.timedMarkers.set(marker.key, marker);
+                return {
+                    status: before ? 'Refreshed' : 'Created',
+                    before,
+                    requested: durationTicks,
+                    actual: cloneValue(marker),
+                    discarded: 0,
+                    after: cloneValue(marker)
+                };
+            },
+            ReadBuffBlackboardCondition: (condition, eventContext) => {
+                const targetId = this.#entityId(
+                    condition.targetRef ?? condition.target ?? condition.targetId,
+                    eventContext,
+                    'Target'
+                );
+                const buffIds = Array.isArray(condition.buffIds) ? condition.buffIds : [];
+                const requestedTagIds = Array.isArray(condition.tagIds)
+                    ? condition.tagIds
+                    : [];
+                const matches = this.statusEffects.list({ active: true, targetId })
+                    .filter(instance => buffIds.length === 0
+                        || buffIds.includes(instance.buffId))
+                    .filter(instance => {
+                        if (requestedTagIds.length === 0) return true;
+                        const definitionTags = new Set(
+                            this.statusEffects.getDefinition(instance.buffId)?.tagIds ?? []
+                        );
+                        const flags = requestedTagIds.map(tagId => definitionTags.has(tagId));
+                        if (condition.tagQueryType === 'HasAll') return flags.every(Boolean);
+                        if (condition.tagQueryType === 'HasNone') {
+                            return flags.every(flag => !flag);
+                        }
+                        return flags.some(Boolean);
+                    });
+                const selected = matches.at(-1) ?? null;
+                if (!selected) return { passed: false, targetId };
+                return {
+                    passed: true,
+                    targetId,
+                    instanceId: selected.instanceId,
+                    buffId: selected.buffId,
+                    blackboardWrites: {
+                        [condition.blackboardKey]: cloneValue(
+                            selected.blackboard?.[condition.desiredKey]
+                                ?? condition.defaultValue
+                                ?? 0
+                        )
+                    }
+                };
+            },
+            DistanceCompare: (condition, eventContext) => {
+                const sourceId = this.#entityId(
+                    condition.source ?? condition.sourceRef,
+                    eventContext,
+                    'Source'
+                );
+                const targetId = this.#entityId(
+                    condition.target ?? condition.targetRef,
+                    eventContext,
+                    'Target'
+                );
+                const source = this.context.getEntity(sourceId);
+                const target = this.context.getEntity(targetId);
+                const position = entity => {
+                    const candidate = entity.metadata?.position;
+                    if (!candidate || !['x', 'y', 'z'].every(axis =>
+                        Number.isFinite(Number(candidate[axis] ?? 0)))) return null;
+                    return {
+                        x: Number(candidate.x ?? 0),
+                        y: Number(candidate.y ?? 0),
+                        z: Number(candidate.z ?? 0)
+                    };
+                };
+                const sourcePosition = position(source);
+                const targetPosition = position(target);
+                let distance = Number(condition.fallbackDistance ?? 0);
+                let usedFallback = true;
+                if (sourcePosition && targetPosition) {
+                    distance = Math.hypot(
+                        sourcePosition.x - targetPosition.x,
+                        sourcePosition.y - targetPosition.y,
+                        sourcePosition.z - targetPosition.z
+                    );
+                    usedFallback = false;
+                }
+                if (condition.includeTargetRadius) {
+                    distance = Math.max(0, distance - Number(target.metadata?.radius ?? 0));
+                }
+                return {
+                    passed: compare(
+                        distance,
+                        condition.operator ?? 'LT',
+                        Number(condition.distance ?? 0)
+                    ),
+                    distance,
+                    usedFallback,
+                    sourceId,
+                    targetId
+                };
+            },
+            FindTargets: (action, eventContext) => {
+                const sourceId = eventContext.sourceId ?? eventContext.ownerId;
+                const source = sourceId !== null && sourceId !== undefined
+                    ? this.context.getEntity(sourceId)
+                    : null;
+                const ownerId = this.#entityId(
+                    action.ownerRef ?? 'Source',
+                    eventContext,
+                    'Source'
+                );
+                const active = entity => !entity.tags.includes('ake-ability-entity-inactive')
+                    && (!this.vitals.hasEntity(entity.id)
+                        || this.vitals.get(entity.id, eventContext.frame).alive);
+                let candidates;
+                switch (action.finderMode) {
+                    case 'OwnerSpawnedEntities':
+                        candidates = this.context.listEntities(entity =>
+                            ['Object', 'Summon'].includes(entity.kind)
+                            && entity.ownerId === ownerId
+                            && active(entity));
+                        break;
+                    case 'HostileEntities':
+                        candidates = this.context.listEntities(entity =>
+                            entity.id !== sourceId
+                            && active(entity)
+                            && (source?.team === null || source?.team === undefined
+                                ? entity.kind === 'Enemy'
+                                : entity.team !== null && entity.team !== source.team));
+                        break;
+                    case 'AlliedCharacters':
+                        candidates = this.context.listEntities(entity =>
+                            entity.kind === 'Character'
+                            && active(entity)
+                            && (source?.team === null || source?.team === undefined
+                                || entity.team === source.team));
+                        break;
+                    case 'ReferencePoint':
+                        candidates = eventContext.targetId !== null
+                            && eventContext.targetId !== undefined
+                            ? [this.context.getEntity(eventContext.targetId)]
+                            : [];
+                        break;
+                    default:
+                        candidates = [];
+                }
+                if (action.excludeOwner === true) {
+                    candidates = candidates.filter(entity => entity.id !== ownerId);
+                }
+                const requestedTagIds = action.tagIds ?? [];
+                if (requestedTagIds.length > 0) {
+                    candidates = candidates.filter(entity => {
+                        const knownTags = entity.metadata?.akeTagIds;
+                        return !Array.isArray(knownTags)
+                            || requestedTagIds.some(tagId => knownTags.includes(tagId));
+                    });
+                }
+                if (!isRecord(eventContext.blackboard.__akeTargetGroups)) {
+                    eventContext.blackboard.__akeTargetGroups = {};
+                }
+                eventContext.blackboard.__akeTargetGroups[action.targetGroupKey] =
+                    candidates.map(entity => entity.id);
+                return {
+                    status: 'Resolved',
+                    targetGroupKey: action.targetGroupKey,
+                    finderMode: action.finderMode,
+                    targetIds: candidates.map(entity => entity.id),
+                    requestedTagIds: cloneValue(requestedTagIds),
+                    tagResolution: requestedTagIds.length === 0
+                        ? 'NotRequested'
+                        : 'KnownPrefabTagsWhenAvailable'
+                };
+            },
+            PickTarget: (action, eventContext) => {
+                const groups = eventContext.blackboard?.__akeTargetGroups ?? {};
+                const candidates = (groups[action.sourceGroupKey] ?? []).filter(entityId =>
+                    this.context.hasEntity(entityId)
+                    && !this.context.hasTag(entityId, 'ake-ability-entity-inactive'));
+                const index = Math.max(0, Math.trunc(this.#number(
+                    action.index ?? 0,
+                    eventContext,
+                    'picked target index'
+                )));
+                const selected = candidates[index] === undefined ? [] : [candidates[index]];
+                if (!isRecord(eventContext.blackboard.__akeTargetGroups)) {
+                    eventContext.blackboard.__akeTargetGroups = {};
+                }
+                eventContext.blackboard.__akeTargetGroups[action.targetGroupKey] = selected;
+                return {
+                    status: selected.length > 0 ? 'Resolved' : 'Empty',
+                    sourceGroupKey: action.sourceGroupKey,
+                    targetGroupKey: action.targetGroupKey,
+                    index,
+                    targetIds: cloneValue(selected)
+                };
+            },
+            ForEachTarget: (action, eventContext) => {
+                const groups = eventContext.blackboard?.__akeTargetGroups ?? {};
+                const candidates = Object.prototype.hasOwnProperty.call(
+                    groups,
+                    action.targetGroupKey
+                )
+                    ? (groups[action.targetGroupKey] ?? [])
+                    : (eventContext.targetId === null || eventContext.targetId === undefined
+                        ? []
+                        : [eventContext.targetId]);
+                const results = [];
+                for (const targetId of candidates) {
+                    if (!this.context.hasEntity(targetId)
+                        || this.context.hasTag(targetId, 'ake-ability-entity-inactive')) continue;
+                    const transaction = this.effects.executeTransaction(action.actions ?? [], {
+                        ...cloneValue(eventContext),
+                        targetId,
+                        blackboard: cloneValue(eventContext.blackboard)
+                    });
+                    eventContext.blackboard = cloneValue(transaction.eventContext.blackboard);
+                    results.push({ targetId, result: transaction.result });
+                }
+                return { status: 'Resolved', count: results.length, results };
+            },
+            ModifyEntityBlackboard: (action, eventContext) => {
+                const entityId = this.#entityId(
+                    action.target ?? action.targetRef ?? 'Owner',
+                    eventContext,
+                    'Owner'
+                );
+                const blackboard = this.entityBlackboards.get(entityId) ?? {};
+                const key = identifier(action.key ?? action.blackboardKey, 'entity Blackboard key');
+                const before = cloneValue(blackboard[key]);
+                const value = this.#value(action.value ?? action.amount ?? 0, eventContext);
+                const operation = String(action.operation ?? 'Assign').toLowerCase();
+                let after;
+                if (['assign', 'set'].includes(operation)) {
+                    after = cloneValue(value);
+                } else {
+                    const left = finite(Number(before ?? 0), `EntityBlackboard.${String(key)}`);
+                    const right = finite(Number(value), 'entity Blackboard value');
+                    switch (operation) {
+                        case 'add': case 'increase': after = left + right; break;
+                        case 'subtract': case 'decrease': after = left - right; break;
+                        case 'multiply': case 'mul': after = left * right; break;
+                        case 'divide': case 'div':
+                            if (right === 0) throw new RangeError(
+                                'Entity Blackboard divide value must not be zero.'
+                            );
+                            after = left / right;
+                            break;
+                        case 'min': after = Math.min(left, right); break;
+                        case 'max': after = Math.max(left, right); break;
+                        default: throw new Error(
+                            `Unsupported entity Blackboard operation: ${operation}`
+                        );
+                    }
+                }
+                blackboard[key] = cloneValue(after);
+                this.entityBlackboards.set(entityId, blackboard);
+                return { entityId, key, operation, before, actual: after, after };
+            },
+            DeactivateEntity: (action, eventContext) => {
+                const targetRef = action.target ?? action.targetRef;
+                let entityIds;
+                if (isRecord(targetRef) && targetRef.type === 'TargetGroup') {
+                    const groups = eventContext.blackboard?.__akeTargetGroups ?? {};
+                    const candidates = Array.isArray(groups[targetRef.key])
+                        ? groups[targetRef.key]
+                        : [];
+                    const active = candidates.filter(entityId =>
+                        this.context.hasEntity(entityId)
+                        && !this.context.hasTag(entityId, 'ake-ability-entity-inactive')
+                    );
+                    if (targetRef.all === true) entityIds = active;
+                    else {
+                        const index = Math.max(0, Math.trunc(Number(targetRef.index ?? 0)));
+                        entityIds = active[index] === undefined ? [] : [active[index]];
+                    }
+                    if (entityIds.length === 0 && targetRef.fallback) {
+                        entityIds = [this.#entityId(targetRef.fallback, eventContext, 'Target')];
+                    }
+                } else {
+                    entityIds = [this.#entityId(targetRef, eventContext, 'Target')];
+                }
+                const records = entityIds.map(entityId => {
+                    const before = this.context.hasTag(
+                        entityId,
+                        'ake-ability-entity-inactive'
+                    );
+                    if (!before) {
+                        this.context.addTag(entityId, 'ake-ability-entity-inactive', {
+                            ...cloneValue(eventContext),
+                            targetId: entityId,
+                            reason: action.reason ?? 'DeactivateEntity'
+                        });
+                    }
+                    return { entityId, before, actual: before ? 0 : 1, after: true };
+                });
+                return {
+                    status: 'Resolved',
+                    count: records.length,
+                    records,
+                    ...(records.length === 1 ? records[0] : {})
+                };
             },
             StoreBuffCount: (action, eventContext) => {
                 const targetId = this.#entityId(
@@ -988,18 +1945,178 @@ export class CombatRuntime {
                 const buffId = action.useCurrentBuff
                     ? eventContext.payload?.buffId
                     : action.buffId;
-                if (buffId === undefined || buffId === null || buffId === '') {
-                    throw new TypeError('StoreBuffCount requires buffId or current Buff context.');
+                const buffIds = Array.isArray(action.buffIds)
+                    ? action.buffIds
+                    : buffId === undefined || buffId === null || buffId === ''
+                        ? []
+                        : [buffId];
+                const requestedTagIds = Array.isArray(action.tagIds) ? action.tagIds : [];
+                if (buffIds.length === 0 && requestedTagIds.length === 0) {
+                    throw new TypeError(
+                        'StoreBuffCount requires buffId, buffIds, tagIds or current Buff context.'
+                    );
                 }
                 const key = identifier(action.key ?? action.blackboardKey, 'StoreBuffCount key');
                 const before = cloneValue(eventContext.blackboard[key]);
-                const count = this.statusEffects.list({
+                const instances = this.statusEffects.list({
                     active: true,
-                    targetId,
-                    buffId
-                }).reduce((sum, instance) => sum + instance.stackCount, 0);
+                    targetId
+                }).filter(instance => buffIds.length === 0 || buffIds.includes(instance.buffId))
+                    .filter(instance => {
+                        if (requestedTagIds.length === 0) return true;
+                        const definitionTags = new Set(
+                            this.statusEffects.getDefinition(instance.buffId)?.tagIds ?? []
+                        );
+                        const matches = requestedTagIds.map(tagId => definitionTags.has(tagId));
+                        if (action.tagQueryType === 'HasAll') return matches.every(Boolean);
+                        if (action.tagQueryType === 'HasNone') {
+                            return matches.every(match => !match);
+                        }
+                        return matches.some(Boolean);
+                    });
+                const count = action.countType === 'BuffIdCount'
+                    ? new Set(instances.map(instance => instance.buffId)).size
+                    : instances.reduce((sum, instance) => sum + instance.stackCount, 0);
                 eventContext.blackboard[key] = count;
                 return { before, requested: count, actual: count, discarded: 0, after: count };
+            },
+            ReadSkillSettingValues: (action, eventContext) => {
+                const changes = [];
+                for (const entry of action.entries ?? []) {
+                    const key = identifier(entry.key, 'SkillSetting destination key');
+                    const column = Math.trunc(this.#number(
+                        entry.column ?? 1,
+                        eventContext,
+                        `SkillSetting ${String(entry.lookupKey)} column`,
+                        1
+                    ));
+                    const values = entry.values ?? {};
+                    const available = Object.keys(values)
+                        .map(Number)
+                        .filter(Number.isFinite)
+                        .sort((left, right) => left - right);
+                    let selectedColumn = column;
+                    if (!Object.prototype.hasOwnProperty.call(values, String(selectedColumn))) {
+                        if (entry.clamp === false || available.length === 0) {
+                            throw new Error(
+                                `SkillSetting ${String(entry.lookupKey)} has no column ${column}.`
+                            );
+                        }
+                        selectedColumn = Math.min(
+                            available.at(-1),
+                            Math.max(available[0], column)
+                        );
+                    }
+                    const before = cloneValue(eventContext.blackboard[key]);
+                    const baseValue = cloneValue(values[String(selectedColumn)]);
+                    const sourceId = eventContext.sourceId ?? eventContext.ownerId;
+                    const level = Math.max(1, Number(
+                        sourceId === null || sourceId === undefined
+                            ? 1
+                            : this.context.getAttribute(sourceId, 'Level') ?? 1
+                    ));
+                    const skillStrength = Math.max(0, Number(
+                        sourceId === null || sourceId === undefined
+                            ? 0
+                            : this.context.getAttribute(
+                                sourceId,
+                                'PhysicalAndSpellInflictionEnhance'
+                            ) ?? 0
+                    ));
+                    let after = baseValue;
+                    if (Number.isFinite(Number(baseValue))) {
+                        const numericBase = Number(baseValue);
+                        switch (entry.enhancementMode) {
+                            case 'PhysicalAnomalyDamage':
+                                after = numericBase
+                                    * (1 + (level - 1) / 392)
+                                    * (1 + skillStrength / 100);
+                                break;
+                            case 'SpellAnomalyDamage':
+                                after = numericBase
+                                    * (1 + (level - 1) / 196)
+                                    * (1 + skillStrength / 100);
+                                break;
+                            case 'PhysicalAnomalyState':
+                                after = numericBase * (1 + (
+                                    skillStrength > 0
+                                        ? 2 * skillStrength / (skillStrength + 300)
+                                        : 0
+                                ));
+                                break;
+                            case 'PhysicalAnomalyPoise':
+                                after = numericBase * (1 + skillStrength / 200);
+                                break;
+                            default:
+                                after = numericBase;
+                        }
+                    }
+                    eventContext.blackboard[key] = after;
+                    changes.push({
+                        key,
+                        lookupKey: entry.lookupKey,
+                        column,
+                        selectedColumn,
+                        enhancementMode: entry.enhancementMode ?? null,
+                        level,
+                        skillStrength,
+                        baseValue,
+                        before,
+                        after
+                    });
+                }
+                return {
+                    before: Object.fromEntries(changes.map(change => [change.key, change.before])),
+                    requested: Object.fromEntries(changes.map(change => [change.key, change.column])),
+                    actual: changes.length,
+                    discarded: 0,
+                    after: Object.fromEntries(changes.map(change => [change.key, change.after])),
+                    changes
+                };
+            },
+            ReadBuffBlackboard: (action, eventContext) => {
+                const targetId = this.#entityId(
+                    action.targetRef ?? action.target ?? action.targetId,
+                    eventContext,
+                    'Target'
+                );
+                const buffIds = Array.isArray(action.buffIds) ? action.buffIds : [];
+                const requestedTagIds = Array.isArray(action.tagIds) ? action.tagIds : [];
+                const matches = this.statusEffects.list({
+                    active: true,
+                    targetId
+                }).filter(instance => buffIds.length === 0 || buffIds.includes(instance.buffId))
+                    .filter(instance => {
+                        if (requestedTagIds.length === 0) return true;
+                        const definitionTags = new Set(
+                            this.statusEffects.getDefinition(instance.buffId)?.tagIds ?? []
+                        );
+                        const flags = requestedTagIds.map(tagId => definitionTags.has(tagId));
+                        if (action.tagQueryType === 'HasAll') return flags.every(Boolean);
+                        if (action.tagQueryType === 'HasNone') return flags.every(flag => !flag);
+                        return flags.some(Boolean);
+                    });
+                const selected = matches.at(-1) ?? null;
+                const key = identifier(action.blackboardKey, 'Buff Blackboard destination key');
+                const before = cloneValue(eventContext.blackboard[key]);
+                const after = cloneValue(
+                    selected?.blackboard?.[action.desiredKey]
+                        ?? action.defaultValue
+                        ?? 0
+                );
+                eventContext.blackboard[key] = after;
+                return {
+                    targetId,
+                    instanceId: selected?.instanceId ?? null,
+                    buffId: selected?.buffId ?? null,
+                    desiredKey: action.desiredKey,
+                    key,
+                    before,
+                    requested: action.desiredKey,
+                    actual: after,
+                    discarded: selected ? 0 : 1,
+                    after
+                };
             },
             ResourceChange: (action, eventContext) => {
                 const attribution = this.#attribution(action, eventContext, { target: false });
@@ -1011,21 +2128,114 @@ export class CombatRuntime {
                         amount: this.#number(action.amount ?? action.value, eventContext, 'transfer amount')
                     });
                 }
+                if (action.requireSourceMainCharacter
+                    && !this.#sourceIsMainCharacter(eventContext)) {
+                    return {
+                        stage: 'ResourceChangeSuppressed',
+                        success: false,
+                        reason: 'SOURCE_IS_NOT_MAIN_CHARACTER',
+                        sourceId: eventContext.sourceId,
+                        resourceType: action.resourceType ?? action.costType
+                    };
+                }
                 const baseAmount = this.#number(action.amount ?? action.value ?? action.delta,
                     eventContext, 'resource amount');
                 const coefficient = this.#number(action.coefficient ?? 1,
                     eventContext, 'resource coefficient', 1);
-                const rawAmount = baseAmount * coefficient;
                 const operation = String(action.operation ?? action.changeType ?? action.mode ?? '').toLowerCase();
-                const spend = rawAmount < 0
+                const spend = baseAmount * coefficient < 0
                     || ['spend', 'consume', 'cost', 'subtract', 'decrease'].includes(operation);
                 const method = spend ? 'spend' : 'gain';
-                return this.resources[method]({
-                    ...attribution,
-                    poolRef: this.#poolRef(action, eventContext),
-                    amount: Math.abs(rawAmount),
-                    strict: action.strict
+                const resourceType = action.resourceType ?? action.costType;
+                const recipients = this.#resourceRecipientOwnerIds(action, eventContext);
+                const poolRefs = recipients === null
+                    ? [this.#poolRef(action, eventContext)]
+                    : recipients.map(ownerId => ({
+                        resourceType,
+                        scope: 'Entity',
+                        ownerId
+                    }));
+                const results = poolRefs.map(poolRef => {
+                    const pool = this.resources.describePool(poolRef);
+                    const percentScale = action.percentOfMax ? pool.max : 1;
+                    const gainScalar = method === 'gain'
+                        ? this.#resourceGainScalar(
+                            resourceType,
+                            pool.ownerId ?? eventContext.sourceId,
+                            action.ignoreGainScalar
+                        )
+                        : 1;
+                    const spendEligibility = action.scaleByAtbSpendEligibility
+                        ? this.resources.spendEligibility({
+                            castId: action.castId ?? eventContext.castId ?? null,
+                            commandId: action.commandId ?? eventContext.commandId ?? null
+                        })
+                        : null;
+                    const amount = Math.abs(baseAmount * coefficient)
+                        * percentScale * gainScalar
+                        * (spendEligibility?.ratio ?? 1);
+                    const resourceChange = this.resources[method]({
+                        ...attribution,
+                        poolRef,
+                        targetId: pool.scope === 'Entity' ? pool.ownerId : null,
+                        amount,
+                        strict: action.strict,
+                        commandId: action.commandId ?? eventContext.commandId ?? null,
+                        resourceSourceType: action.resourceSourceType ?? null,
+                        resourceGainMethod: action.resourceGainMethod ?? action.operation ?? null,
+                        resourceGainTags: action.resourceGainTags ?? []
+                    });
+                    const abilityEvents = this.#notifyResourceEvent(
+                        resourceChange,
+                        eventContext
+                    );
+                    return abilityEvents.length === 0
+                        ? resourceChange
+                        : { ...resourceChange, abilityEvents };
                 });
+                return recipients === null ? results[0] : {
+                    stage: 'ResourceFanout',
+                    resourceType,
+                    recipientIds: recipients,
+                    results
+                };
+            },
+            SuspendResourceRecovery: (action, eventContext) => this.resources.suspendRecovery({
+                ...this.#attribution(action, eventContext, { target: false }),
+                poolRef: this.#poolRef(action, eventContext),
+                token: this.#resourceActionToken(action, eventContext),
+                delayTicks: action.delayTicks ?? 0
+            }),
+            ResumeResourceRecovery: (action, eventContext) => this.resources.resumeRecovery({
+                ...this.#attribution(action, eventContext, { target: false }),
+                poolRef: this.#poolRef(action, eventContext),
+                token: this.#resourceActionToken(action, eventContext)
+            }),
+            SuppressResourceGain: (action, eventContext) => this.resources.suppressGain({
+                ...this.#attribution(action, eventContext, { target: false }),
+                poolRef: this.#poolRef(action, eventContext),
+                token: this.#resourceActionToken(action, eventContext),
+                tags: action.resourceGainTags ?? action.tags ?? []
+            }),
+            ResumeResourceGain: (action, eventContext) => this.resources.resumeGain({
+                ...this.#attribution(action, eventContext, { target: false }),
+                poolRef: this.#poolRef(action, eventContext),
+                token: this.#resourceActionToken(action, eventContext)
+            }),
+            ClearResource: (action, eventContext) => {
+                const poolRef = this.#poolRef(action, eventContext);
+                const pool = this.resources.describePool(poolRef);
+                const record = this.resources.spend({
+                    ...this.#attribution(action, eventContext, { target: false }),
+                    poolRef,
+                    targetId: pool.scope === 'Entity' ? pool.ownerId : null,
+                    amount: pool.current,
+                    strict: false,
+                    resourceSourceType: action.resourceSourceType ?? null,
+                    resourceGainMethod: action.resourceGainMethod ?? 'Clear'
+                });
+                const abilityEvents = this.#notifyResourceEvent(record, eventContext);
+                return abilityEvents.length === 0 ? record : { ...record, abilityEvents };
             },
             Heal: (action, eventContext) => this.vitals.heal({
                 ...this.#attribution(action, eventContext),
@@ -1070,16 +2280,39 @@ export class CombatRuntime {
                 for (let index = 0; index < count; index += 1) {
                     for (const candidate of candidates) {
                         const attribution = this.#attribution(action, eventContext);
+                        const definition = this.statusEffects.getDefinition(candidate.buffId);
+                        const candidateBlackboard = {
+                            ...(candidate.assignBlackboard
+                                ? this.#assignedBlackboard(candidate.assignments, eventContext)
+                                : {}),
+                            ...cloneValue(candidate.blackboard ?? {})
+                        };
+                        this.#notifyBeforeOutputBuff(
+                            candidate,
+                            attribution,
+                            candidateBlackboard,
+                            eventContext
+                        );
                         const applied = this.statusEffects.apply({
                             ...attribution,
-                            // Buff lifetimes belong to the affected entity. An
-                            // explicit action clock still wins; otherwise a
-                            // hostile debuff must not inherit the caster clock.
-                            clockDomainId: action.clockDomainId
+                            // Buff lifetime/timeline scheduling and the domain
+                            // used by its child combat actions are independent.
+                            actionClockDomainId: action.actionClockDomainId
+                                ?? action.clockDomainId
                                 ?? this.#entityClockDomainId(
                                     attribution.targetId,
                                     attribution.clockDomainId
                                 ),
+                            // An explicit action clock wins. AKE BuffData uses
+                            // global time unless it explicitly opts into the
+                            // affected entity's time-dilated delta time.
+                            clockDomainId: action.clockDomainId
+                                ?? (definition?.useTimeDilationDt === false
+                                    ? 'global'
+                                    : this.#entityClockDomainId(
+                                        attribution.targetId,
+                                        attribution.clockDomainId
+                                    )),
                             buffId: candidate.buffId,
                             sourceSkillId: action.sourceSkillId ?? eventContext.skillId,
                             durationTicks: action.durationTicks,
@@ -1091,18 +2324,17 @@ export class CombatRuntime {
                             stackCount: action.stackCount,
                             inheritEventBlackboard: action.inheritEventBlackboard,
                             triggerEnhancementEvent: action.triggerEnhancementEvent,
-                            blackboard: {
-                                ...(candidate.assignBlackboard
-                                    ? this.#assignedBlackboard(candidate.assignments, eventContext)
-                                    : {}),
-                                ...cloneValue(candidate.blackboard ?? {})
-                            },
+                            blackboard: candidateBlackboard,
                             metadata: {
                                 ...cloneValue(eventContext.payload?.statusMetadata ?? {}),
-                                ...cloneValue(action.metadata ?? {})
+                                ...cloneValue(action.metadata ?? {}),
+                                ...(action.attachToCurrentSkill && eventContext.castId
+                                    ? { attachedToCastId: eventContext.castId }
+                                    : {})
                             }
                         }, eventContext);
                         results.push(applied);
+                        this.#notifyAddedBuff(applied, eventContext);
                         this.#notifyOutputBuff(applied, eventContext);
                     }
                 }
@@ -1142,6 +2374,72 @@ export class CombatRuntime {
                         : this.#number(action.stackCount, eventContext, 'finished buff stack count'),
                     reason: action.reason ?? 'FinishBuff'
                 }, eventContext);
+            },
+            ApplyCombatStatus: (action, eventContext) => {
+                const targetId = this.#entityId(
+                    action.targetRef ?? action.target ?? action.targetId,
+                    eventContext,
+                    'Target'
+                );
+                const initialBuffId = identifier(
+                    action.initialBuffId ?? 'buff_physical_no_guard',
+                    'combat-status initialBuffId'
+                );
+                const statusBuffId = identifier(
+                    action.statusBuffId,
+                    'combat-status statusBuffId'
+                );
+                const layerCount = () => this.statusEffects.list({
+                    active: true,
+                    targetId,
+                    buffId: initialBuffId
+                }).reduce((sum, instance) => sum + Number(instance.stackCount ?? 0), 0);
+                const before = layerCount();
+                const firstApplication = before === 0;
+                const buffId = firstApplication ? initialBuffId : statusBuffId;
+                const transaction = this.effects.executeTransaction([{
+                    type: 'ApplyBuff',
+                    target: targetId,
+                    buffs: [{
+                        buffId,
+                        assignBlackboard: false,
+                        assignments: []
+                    }],
+                    count: 1,
+                    inheritEventBlackboard: false,
+                    triggerEnhancementEvent: true,
+                    // Physical control/status Buffs use a shared presentation
+                    // stacking key. Every actual anomaly still owns a gameplay
+                    // transaction and must execute its OnBuffStart payload.
+                    ...(firstApplication ? {} : { stackingPolicy: 'Independent' }),
+                    blackboard: cloneValue(action.blackboard ?? {}),
+                    metadata: {
+                        ...cloneValue(action.metadata ?? {}),
+                        akePhysicalStateTransaction: true,
+                        initialNoGuardLayers: before
+                    },
+                    reason: firstApplication
+                        ? `${String(action.statusKey)}:EnterNoGuard`
+                        : `${String(action.statusKey)}:TriggerPhysicalStatus`
+                }], {
+                    ...cloneValue(eventContext),
+                    targetId,
+                    eventType: 'PhysicalStatusTransaction'
+                });
+                const after = layerCount();
+                return {
+                    status: 'Applied',
+                    statusKey: action.statusKey ?? null,
+                    targetId,
+                    firstApplication,
+                    appliedBuffId: buffId,
+                    before,
+                    requested: firstApplication ? 1 : before + 1,
+                    actual: after,
+                    discarded: Math.max(0, (firstApplication ? 1 : before + 1) - after),
+                    after,
+                    transaction
+                };
             },
             ApplyInfliction: (action, eventContext) => this.reactions.applyInfliction({
                 ...this.#attribution(action, eventContext),
@@ -1196,11 +2494,35 @@ export class CombatRuntime {
                     timelineFrame: eventContext.timelineFrame
                 }
             ),
-            TriggerStatusEvent: (action, eventContext) => this.statusEffects.notifyAbilityEvent({
-                ...cloneValue(eventContext),
-                eventType: action.eventType,
-                listenerTargetId: eventContext.targetId
-            }),
+            InterruptCurrentSkill: (action, eventContext) => {
+                if (!this.skillInterruptResolver) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'MissingSkillInterruptResolver'
+                    };
+                }
+                return this.skillInterruptResolver({
+                    action: cloneValue(action),
+                    eventContext: cloneValue(eventContext),
+                    runtime: this
+                });
+            },
+            TriggerStatusEvent: (action, eventContext) => {
+                const listenerTargetId = this.#entityId(
+                    action.targetRef ?? action.target ?? action.targetId,
+                    eventContext,
+                    'Target'
+                );
+                const sourceId = action.sourceRef === undefined
+                    ? eventContext.sourceId
+                    : this.#optionalEntityId(action.sourceRef, eventContext);
+                return this.statusEffects.notifyAbilityEvent({
+                    ...cloneValue(eventContext),
+                    sourceId,
+                    eventType: action.eventType,
+                    listenerTargetId
+                });
+            },
             LaunchSkillProgram: (action, eventContext) => {
                 if (!this.skillProgramResolver) {
                     return {
@@ -1236,6 +2558,32 @@ export class CombatRuntime {
                     action.assignments ?? [],
                     eventContext
                 );
+                let spawnedAbilityEntityId = null;
+                if (action.abilityEntityId) {
+                    const ownerId = eventContext.ownerId ?? eventContext.sourceId;
+                    const owner = this.context.getEntity(ownerId);
+                    spawnedAbilityEntityId = [
+                        'ability-entity',
+                        action.abilityEntityId,
+                        this.nextAbilityEntitySequence++
+                    ].join(':');
+                    this.registerEntity({
+                        id: spawnedAbilityEntityId,
+                        kind: 'Object',
+                        team: owner.team,
+                        ownerId,
+                        reactionTarget: false,
+                        blackboard: assigned,
+                        metadata: {
+                            abilityEntityId: action.abilityEntityId,
+                            akeTagIds: cloneValue(action.akeTagIds ?? []),
+                            spawnedObjectType: 'AbilityEntity',
+                            sourceSkillId: eventContext.skillId,
+                            rootSkillId: eventContext.rootSkillId,
+                            spawnedFrame: eventContext.frame
+                        }
+                    });
+                }
                 const launchDelayTicks = nonNegativeInteger(
                     action.launchDelayTicks ?? 0,
                     'launchDelayTicks'
@@ -1261,11 +2609,17 @@ export class CombatRuntime {
                     status: 'Scheduled',
                     childSkillId: action.childSkillId,
                     projectileId: action.projectileId ?? null,
+                    abilityEntityId: action.abilityEntityId ?? null,
+                    projectileTerminalEvent: action.projectileTerminalEvent ?? null,
+                    spawnedAbilityEntityId,
                     launchFrame,
                     launchDelayTicks,
                     scheduled
                 };
             },
+            ScheduleIntervalActions: (action, eventContext) => (
+                this.scheduleIntervalActions(action, eventContext)
+            ),
             ResolveTimeDilation: (action, eventContext) => {
                 if (!this.timeDilationResolver) {
                     return {
@@ -1287,24 +2641,49 @@ export class CombatRuntime {
                 if (!Array.isArray(pauses)) {
                     throw new TypeError('timeDilationResolver pauses must be an array.');
                 }
+                const sampleGroupId = typeof resolution.sampleGroupId === 'string'
+                    && resolution.sampleGroupId.length > 0
+                    ? resolution.sampleGroupId
+                    : null;
+                const sampleGeneration = sampleGroupId === null
+                    ? null
+                    : (this.timeDilationSampleGenerations.get(sampleGroupId) ?? 0) + 1;
+                if (sampleGroupId !== null) {
+                    this.timeDilationSampleGenerations.set(sampleGroupId, sampleGeneration);
+                }
                 const applied = pauses.map(pause => {
                     const frameOffsetTicks = nonNegativeInteger(
                         pause.frameOffsetTicks ?? 0,
                         'time-dilation frameOffsetTicks'
                     );
                     const pauseFrame = eventContext.frame + frameOffsetTicks;
-                    const applyPause = () => this.clockDomains.pause(
-                        pause.domainId ?? eventContext.clockDomainId ?? 'global',
-                        {
-                            ...this.#attribution(action, eventContext, { target: false }),
-                            frame: pauseFrame,
-                            durationTicks: pause.durationTicks,
-                            excludedTicks: pause.excludedTicks,
-                            requestedScale: pause.requestedScale,
-                            sourceSkillId: eventContext.skillId,
-                            reason: pause.reason ?? action.sourceType ?? 'TimeDilation'
+                    const applyPause = () => {
+                        if (sampleGroupId !== null
+                            && this.timeDilationSampleGenerations.get(sampleGroupId)
+                                !== sampleGeneration) {
+                            return {
+                                status: 'Superseded',
+                                sampleGroupId,
+                                sampleGeneration,
+                                frame: pauseFrame,
+                                domainId: pause.domainId
+                                    ?? eventContext.clockDomainId
+                                    ?? 'global'
+                            };
                         }
-                    );
+                        return this.clockDomains.pause(
+                            pause.domainId ?? eventContext.clockDomainId ?? 'global',
+                            {
+                                ...this.#attribution(action, eventContext, { target: false }),
+                                frame: pauseFrame,
+                                durationTicks: pause.durationTicks,
+                                excludedTicks: pause.excludedTicks,
+                                requestedScale: pause.requestedScale,
+                                sourceSkillId: eventContext.skillId,
+                                reason: pause.reason ?? action.sourceType ?? 'TimeDilation'
+                            }
+                        );
+                    };
                     if (frameOffsetTicks === 0) return applyPause();
                     const priority = finite(
                         pause.priority ?? 50,
@@ -1335,11 +2714,52 @@ export class CombatRuntime {
                         damageUnits: cloneValue(action.damageUnits ?? [])
                     };
                 }
+                const damageEventContext = action.targetRef === undefined
+                    && action.target === undefined
+                    && action.targetId === undefined
+                    ? eventContext
+                    : this.context.createEventContext(eventContext, {
+                        targetId: this.#entityId(
+                            action.targetRef ?? action.target ?? action.targetId,
+                            eventContext,
+                            'Target'
+                        )
+                    });
+                const sourceListenerId = damageEventContext.sourceId
+                    ?? damageEventContext.ownerId;
+                const targetListenerId = damageEventContext.targetId;
+                const beforeAbilityEvents = (action.damageUnits ?? []).map(
+                    (unit, damageUnitIndex) => {
+                        const pendingHit = {
+                            ...cloneValue(unit),
+                            damageUnitIndex,
+                            damageAttributeType: unit.damageAttributeType ?? 'Hp',
+                            damageDecorateMask: Number(unit.damageDecorateMask ?? 0)
+                        };
+                        return {
+                            damageUnitIndex,
+                            output: this.#notifyDamageEvent(
+                                'OnBeforeOutputDamage',
+                                pendingHit,
+                                null,
+                                damageEventContext,
+                                sourceListenerId
+                            ),
+                            take: this.#notifyDamageEvent(
+                                'OnBeforeTakeDamage',
+                                pendingHit,
+                                null,
+                                damageEventContext,
+                                targetListenerId
+                            )
+                        };
+                    }
+                );
                 const resolution = this.damageResolver({
                     action: cloneValue(action),
-                    eventContext: cloneValue(eventContext),
+                    eventContext: cloneValue(damageEventContext),
                     runtime: this,
-                    resolveValue: descriptor => this.#value(descriptor, eventContext)
+                    resolveValue: descriptor => this.#value(descriptor, damageEventContext)
                 });
                 if (!isRecord(resolution)) {
                     throw new TypeError('damageResolver must return an object.');
@@ -1354,9 +2774,10 @@ export class CombatRuntime {
                     );
                     if (['Poise', 'Resilience'].includes(hit.damageAttributeType)) {
                         return {
+                            ...cloneValue(hit),
                             damageAttributeType: hit.damageAttributeType,
                             result: this.resilience.applyImpact({
-                                ...this.#attribution({ ...action, ...hit }, eventContext),
+                                ...this.#attribution({ ...action, ...hit }, damageEventContext),
                                 amount,
                                 controlType: hit.controlType,
                                 controlLevel: hit.controlLevel
@@ -1364,30 +2785,132 @@ export class CombatRuntime {
                         };
                     }
                     return {
+                        ...cloneValue(hit),
                         damageAttributeType: hit.damageAttributeType ?? 'Hp',
                         result: this.vitals.damage({
-                            ...this.#attribution({ ...action, ...hit }, eventContext),
+                            ...this.#attribution({ ...action, ...hit }, damageEventContext),
                             amount,
                             damageType: hit.damageType ?? action.damageType ?? 'Generic',
                             bypassShield: hit.bypassShield ?? action.bypassShield ?? false
                         })
                     };
                 });
+                const afterAbilityEvents = appliedHits.map(applied => {
+                    const outputEvents = [];
+                    const takeEvents = [];
+                    if (['Poise', 'Resilience'].includes(applied.damageAttributeType)) {
+                        takeEvents.push(...this.#notifyDamageEvent(
+                            'OnTakePoiseDamage',
+                            applied,
+                            applied.result,
+                            damageEventContext,
+                            targetListenerId
+                        ));
+                    } else {
+                        outputEvents.push(...this.#notifyDamageEvent(
+                            'OnOutputDamage',
+                            applied,
+                            applied.result,
+                            damageEventContext,
+                            sourceListenerId
+                        ));
+                        takeEvents.push(...this.#notifyDamageEvent(
+                            'OnTakeDamage',
+                            applied,
+                            applied.result,
+                            damageEventContext,
+                            targetListenerId
+                        ));
+                        if (applied.isCritical === true) {
+                            outputEvents.push(...this.#notifyDamageEvent(
+                                'OnOutputCriticalDamage',
+                                applied,
+                                applied.result,
+                                damageEventContext,
+                                sourceListenerId
+                            ));
+                            takeEvents.push(...this.#notifyDamageEvent(
+                                'OnTakeCriticalDamage',
+                                applied,
+                                applied.result,
+                                damageEventContext,
+                                targetListenerId
+                            ));
+                        }
+                    }
+                    return {
+                        damageUnitIndex: applied.damageUnitIndex,
+                        output: outputEvents,
+                        take: takeEvents
+                    };
+                });
                 return {
                     status: resolution.status ?? 'Applied',
                     resolution: cloneValue(resolution),
-                    hits: appliedHits
+                    hits: appliedHits,
+                    abilityEvents: {
+                        before: beforeAbilityEvents,
+                        after: afterAbilityEvents
+                    }
                 };
             },
-            ApplyEffectSource: (action, eventContext) => this.effectSources.apply({
-                ...this.#attribution(action, eventContext),
-                sourceKey: action.sourceKey ?? eventContext.buffInstanceId,
-                sourceType: action.sourceType ?? 'Effect',
-                modifiers: action.modifiers ?? [],
-                damageModifiers: action.damageModifiers ?? [],
-                tags: action.tags ?? [],
-                metadata: action.metadata
-            }, eventContext),
+            RefreshCurrentBuffEffectSource: (_action, eventContext) => {
+                const buffId = eventContext.payload?.buffId;
+                const definition = buffId
+                    ? this.statusEffects.getDefinition(buffId)
+                    : null;
+                if (!definition || !eventContext.buffInstanceId) {
+                    return {
+                        status: 'Ignored',
+                        reason: 'CurrentBuffDefinitionMissing',
+                        buffId: buffId ?? null
+                    };
+                }
+                const modifiers = definition.persistentModifiers ?? [];
+                const damageModifiers = definition.persistentDamageModifiers ?? [];
+                const tags = definition.persistentTags ?? [];
+                if (modifiers.length === 0 && damageModifiers.length === 0
+                    && tags.length === 0) {
+                    return {
+                        status: 'Ignored',
+                        reason: 'CurrentBuffHasNoPersistentSource',
+                        buffId
+                    };
+                }
+                return this.effectSources.apply({
+                    ...this.#attribution({}, eventContext),
+                    sourceKey: eventContext.buffInstanceId,
+                    sourceType: 'StatusEffect',
+                    modifiers,
+                    damageModifiers,
+                    tags,
+                    metadata: { buffId, refreshedDuringStart: true }
+                }, eventContext);
+            },
+            ApplyEffectSource: (action, eventContext) => {
+                const currentBuff = eventContext.buffInstanceId
+                    ? this.statusEffects.list({ active: true }).find(instance =>
+                        instance.instanceId === eventContext.buffInstanceId
+                    )
+                    : null;
+                const sourceContext = currentBuff
+                    ? this.context.createEventContext(eventContext, {
+                        payload: {
+                            buffId: currentBuff.buffId,
+                            stackCount: currentBuff.stackCount
+                        }
+                    })
+                    : eventContext;
+                return this.effectSources.apply({
+                    ...this.#attribution(action, sourceContext),
+                    sourceKey: action.sourceKey ?? sourceContext.buffInstanceId,
+                    sourceType: action.sourceType ?? 'Effect',
+                    modifiers: action.modifiers ?? [],
+                    damageModifiers: action.damageModifiers ?? [],
+                    tags: action.tags ?? [],
+                    metadata: action.metadata
+                }, sourceContext);
+            },
             RemoveEffectSource: (action, eventContext) => this.effectSources.remove({
                 frame: action.frame ?? eventContext.frame,
                 sourceKey: action.sourceKey,
@@ -1397,6 +2920,69 @@ export class CombatRuntime {
                 targetId: action.targetId,
                 buffInstanceId: action.buffInstanceId ?? eventContext.buffInstanceId,
                 ruleId: action.ruleId ?? eventContext.ruleId
+            }, eventContext),
+            ApplySkillOverride: (action, eventContext) => {
+                const entry = this.skillForms.applyOverride({
+                    ...this.#attribution(action, eventContext),
+                    targetId: this.#entityId(
+                        action.targetRef ?? action.target ?? action.targetId,
+                        eventContext,
+                        'Source'
+                    ),
+                    sourceKey: this.#skillFormSourceKey(action, eventContext),
+                    skillSlot: action.skillSlot,
+                    targetSkillId: action.targetSkillId ?? action.skillId,
+                    revertedSkillId: action.revertedSkillId,
+                    priorityLevel: action.priorityLevel,
+                    priorityOffset: action.priorityOffset,
+                    inheritOriginSkillCdProgress: action.inheritOriginSkillCdProgress,
+                    overrideCacheTime: action.overrideCacheTime,
+                    cacheTime: action.cacheTime,
+                    lifeTimeType: action.lifeTimeType,
+                    metadata: action.metadata
+                }, eventContext);
+                this.#scheduleSkillFormExpiry('SkillOverride', action, eventContext, entry);
+                return entry;
+            },
+            RemoveSkillOverride: (action, eventContext) => this.skillForms.removeOverride({
+                frame: action.frame ?? eventContext.frame,
+                sourceKey: this.#skillFormSourceKey(action, eventContext),
+                targetId: this.#entityId(
+                    action.targetRef ?? action.target ?? action.targetId,
+                    eventContext,
+                    'Source'
+                ),
+                skillSlot: action.skillSlot,
+                buffInstanceId: action.buffInstanceId ?? eventContext.buffInstanceId
+            }, eventContext),
+            ApplySkillMode: (action, eventContext) => {
+                const entry = this.skillForms.applyMode({
+                    ...this.#attribution(action, eventContext),
+                    targetId: this.#entityId(
+                        action.targetRef ?? action.target ?? action.targetId,
+                        eventContext,
+                        'Source'
+                    ),
+                    sourceKey: this.#skillFormSourceKey(action, eventContext),
+                    modeId: action.modeId,
+                    resetOnEnd: action.resetOnEnd,
+                    priorityLevel: action.priorityLevel,
+                    priorityOffset: action.priorityOffset,
+                    metadata: action.metadata
+                }, eventContext);
+                this.#scheduleSkillFormExpiry('SkillMode', action, eventContext, entry);
+                return entry;
+            },
+            RemoveSkillMode: (action, eventContext) => this.skillForms.removeMode({
+                frame: action.frame ?? eventContext.frame,
+                sourceKey: this.#skillFormSourceKey(action, eventContext),
+                targetId: this.#entityId(
+                    action.targetRef ?? action.target ?? action.targetId,
+                    eventContext,
+                    'Source'
+                ),
+                modeId: action.modeId,
+                buffInstanceId: action.buffInstanceId ?? eventContext.buffInstanceId
             }, eventContext),
             ApplyControl: (action, eventContext) => this.resilience.applyControl({
                 ...this.#attribution(action, eventContext),
@@ -1443,6 +3029,38 @@ export class CombatRuntime {
                     sourceSkillId: action.sourceSkillId ?? eventContext.skillId
                 }
             ),
+            PauseOtherClockDomains: (action, eventContext) => {
+                const excludedDomainId = action.excludedDomainId === 'SourceClock'
+                    ? eventContext.clockDomainId
+                    : action.excludedDomainId ?? eventContext.clockDomainId;
+                const domainIds = this.clockDomains.listDomains({ includeGlobal: false })
+                    .filter(domain => domain.id !== excludedDomainId)
+                    .filter(domain => action.includeEnemyDomains !== false
+                        || domain.kind !== 'Enemy')
+                    .map(domain => domain.id);
+                if (domainIds.length === 0) {
+                    return {
+                        status: 'Applied',
+                        excludedDomainId,
+                        domainIds: [],
+                        durationTicks: action.durationTicks ?? 0
+                    };
+                }
+                const records = this.clockDomains.pauseMany(domainIds, {
+                    ...this.#attribution(action, eventContext, { target: false }),
+                    durationTicks: action.durationTicks,
+                    excludedTicks: action.excludedTicks ?? action.durationTicks,
+                    requestedScale: action.requestedScale ?? 0,
+                    sourceSkillId: action.sourceSkillId ?? eventContext.skillId
+                });
+                return {
+                    status: 'Applied',
+                    excludedDomainId,
+                    domainIds,
+                    durationTicks: action.durationTicks ?? 0,
+                    records
+                };
+            },
             EmitEvent: (action, eventContext) => {
                 const targetRef = action.targetRef ?? action.target ?? action.targetId;
                 const sourceRef = action.sourceRef ?? action.source ?? action.sourceId;
@@ -1511,6 +3129,88 @@ export class CombatRuntime {
         return { dispatched, listenerResults, actionResults };
     }
 
+    #notifyDamageEvent(eventType, hit, appliedResult, eventContext, listenerTargetId) {
+        if (listenerTargetId === null || listenerTargetId === undefined) return [];
+        if (this.abilityNotifyDepth >= this.maxDerivedDepth) {
+            throw new Error(`Maximum ability-event depth ${this.maxDerivedDepth} exceeded.`);
+        }
+        this.abilityNotifyDepth += 1;
+        try {
+            const context = this.context.createEventContext(eventContext, {
+                eventType,
+                payload: {
+                    damageUnitIndex: hit.damageUnitIndex ?? null,
+                    damageType: hit.damageType ?? null,
+                    damageTypeMask: hit.damageTypeMask ?? null,
+                    damageAttributeType: hit.damageAttributeType ?? 'Hp',
+                    damageDecorateMask: Number(hit.damageDecorateMask ?? 0),
+                    atkScale: hit.operands?.atkScale ?? hit.atkScale ?? null,
+                    rawDamage: hit.rawDamage ?? null,
+                    finalDamage: hit.finalDamage ?? hit.amount ?? null,
+                    actualDamage: appliedResult?.actualDamage
+                        ?? appliedResult?.actual
+                        ?? null,
+                    isCritical: hit.isCritical === true,
+                    eventTargetId: eventContext.targetId,
+                    listenerTargetId
+                }
+            });
+            const results = this.statusEffects.notifyAbilityEvent({
+                ...context,
+                listenerTargetId
+            });
+            this.#record('AbilityEventNotified', context, {
+                eventType,
+                listenerTargetId,
+                handled: results.length,
+                damageUnitIndex: hit.damageUnitIndex ?? null,
+                damageDecorateMask: Number(hit.damageDecorateMask ?? 0)
+            });
+            return results;
+        } finally {
+            this.abilityNotifyDepth -= 1;
+        }
+    }
+
+    #notifyAddedBuff(instance, eventContext) {
+        if (this.abilityNotifyDepth >= this.maxDerivedDepth) {
+            throw new Error(`Maximum ability-event depth ${this.maxDerivedDepth} exceeded.`);
+        }
+        const definition = this.statusEffects.getDefinition(instance.buffId);
+        const listenerTargetId = instance.targetId;
+        this.abilityNotifyDepth += 1;
+        try {
+            const context = this.context.createEventContext(eventContext, {
+                frame: instance.startFrame,
+                eventType: 'OnAddedBuff',
+                sourceId: instance.sourceId,
+                ownerId: instance.ownerId,
+                targetId: instance.targetId,
+                buffInstanceId: instance.instanceId,
+                blackboard: instance.blackboard,
+                payload: {
+                    buffId: instance.buffId,
+                    buffTagIds: definition?.tagIds ?? [],
+                    outputBuffTargetId: instance.targetId,
+                    eventTargetId: instance.targetId,
+                    listenerTargetId
+                }
+            });
+            const results = this.statusEffects.notifyAbilityEvent({
+                ...context,
+                listenerTargetId
+            });
+            this.#record('AbilityEventNotified', context, {
+                eventType: 'OnAddedBuff',
+                listenerTargetId,
+                handled: results.length
+            });
+            return results;
+        } finally {
+            this.abilityNotifyDepth -= 1;
+        }
+    }
+
     #notifyOutputBuff(instance, eventContext) {
         if (this.abilityNotifyDepth >= this.maxDerivedDepth) {
             throw new Error(`Maximum ability-event depth ${this.maxDerivedDepth} exceeded.`);
@@ -1531,7 +3231,7 @@ export class CombatRuntime {
                 blackboard: instance.blackboard,
                 payload: {
                     buffId: instance.buffId,
-                    buffTagIds: definition.tagIds ?? [],
+                    buffTagIds: definition?.tagIds ?? [],
                     outputBuffTargetId: instance.targetId,
                     listenerTargetId
                 }
@@ -1551,6 +3251,118 @@ export class CombatRuntime {
         }
     }
 
+    #notifyBeforeOutputBuff(candidate, attribution, blackboard, eventContext) {
+        if (!candidate?.buffId) return [];
+        if (this.abilityNotifyDepth >= this.maxDerivedDepth) {
+            throw new Error(`Maximum ability-event depth ${this.maxDerivedDepth} exceeded.`);
+        }
+        const definition = this.statusEffects.getDefinition(candidate.buffId);
+        const listenerTargetId = attribution.sourceId
+            ?? eventContext.sourceId
+            ?? eventContext.ownerId;
+        this.abilityNotifyDepth += 1;
+        try {
+            const context = this.context.createEventContext(eventContext, {
+                frame: eventContext.frame,
+                eventType: 'OnBeforeOutputBuff',
+                sourceId: attribution.sourceId,
+                ownerId: attribution.ownerId,
+                targetId: attribution.targetId,
+                blackboard: cloneValue(blackboard ?? {}),
+                payload: {
+                    ...cloneValue(eventContext.payload ?? {}),
+                    buffId: candidate.buffId,
+                    buffTagIds: definition.tagIds ?? [],
+                    outputBuffTargetId: attribution.targetId,
+                    listenerTargetId
+                }
+            });
+            const results = this.statusEffects.notifyAbilityEvent({
+                ...context,
+                listenerTargetId
+            });
+            this.#record('AbilityEventNotified', context, {
+                eventType: 'OnBeforeOutputBuff',
+                listenerTargetId,
+                handled: results.length
+            });
+            return results;
+        } finally {
+            this.abilityNotifyDepth -= 1;
+        }
+    }
+
+    #notifyResourceEvent(record, eventContext) {
+        if (!isRecord(record) || record.success === false
+            || Number(record.actualAmount ?? record.actual ?? 0) === 0) return [];
+        const eventTypes = [];
+        const method = String(record.resourceGainMethod ?? '').toLowerCase();
+        if (record.stage === 'ResourceGained' && record.resourceType === 'Atb'
+            && method !== 'return') {
+            eventTypes.push('OnObtainAtb');
+            if (record.before < record.cap && record.after >= record.cap) {
+                eventTypes.push('OnAtbMax');
+            }
+        }
+        if (record.stage === 'ResourceSpent'
+            && (record.reason === 'CastCost' || record.resourceSourceType === 'Skill')) {
+            eventTypes.push('OnAfterSkillApplyCost');
+        }
+        if (record.resourceType === 'UltimateSp') eventTypes.push('OnSquadUspChange');
+        if (eventTypes.length === 0) return [];
+        if (this.abilityNotifyDepth >= this.maxDerivedDepth) {
+            throw new Error(`Maximum ability-event depth ${this.maxDerivedDepth} exceeded.`);
+        }
+        const listenerTargetId = record.sourceId
+            ?? eventContext.sourceId
+            ?? eventContext.ownerId;
+        this.abilityNotifyDepth += 1;
+        try {
+            return eventTypes.flatMap(eventType => {
+                const context = this.context.createEventContext(eventContext, {
+                    frame: record.frame,
+                    eventType,
+                    sourceId: record.sourceId ?? eventContext.sourceId,
+                    ownerId: record.ownerId ?? eventContext.ownerId,
+                    targetId: record.targetId ?? eventContext.targetId,
+                    skillId: record.skillId ?? eventContext.skillId,
+                    castId: record.castId ?? eventContext.castId,
+                    payload: {
+                        ...cloneValue(eventContext.payload ?? {}),
+                        resourceType: record.resourceType,
+                        resourceSourceType: record.resourceSourceType,
+                        resourceGainMethod: record.resourceGainMethod,
+                        requestedAmount: record.requestedAmount ?? record.requested,
+                        requestedDelta: record.requestedDelta,
+                        actualAmount: record.actualAmount ?? record.actual,
+                        actualDelta: record.actualDelta,
+                        before: record.before,
+                        after: record.after,
+                        cap: record.cap,
+                        returnedBefore: record.returnedBefore,
+                        returnedAfter: record.returnedAfter,
+                        returnedSpent: record.returnedSpent,
+                        eligibleSpend: record.eligibleSpend,
+                        skillType: eventContext.skillType ?? eventContext.commandType ?? null
+                    }
+                });
+                const results = this.statusEffects.notifyAbilityEvent({
+                    ...context,
+                    listenerTargetId
+                });
+                this.#record('AbilityEventNotified', context, {
+                    eventType,
+                    listenerTargetId,
+                    handled: results.length,
+                    resourceType: record.resourceType
+                });
+                return results;
+            });
+        } finally {
+            this.abilityNotifyDepth -= 1;
+        }
+    }
+
     #onAuraTargetEntered(eventContext, instance) {
         const definition = instance.definition ?? {};
         const results = [];
@@ -1562,9 +3374,20 @@ export class CombatRuntime {
             }];
         for (const buff of targetBuffs.filter(entry => entry?.buffId !== undefined
             && entry.buffId !== null)) {
+            const buffDefinition = this.statusEffects.getDefinition(buff.buffId);
             const applied = this.statusEffects.apply({
                 ...eventContext,
                 buffId: buff.buffId,
+                actionClockDomainId: this.#entityClockDomainId(
+                    eventContext.targetId,
+                    eventContext.clockDomainId
+                ),
+                clockDomainId: buffDefinition?.useTimeDilationDt === false
+                    ? 'global'
+                    : this.#entityClockDomainId(
+                        eventContext.targetId,
+                        eventContext.clockDomainId
+                    ),
                 stackingKey: `aura:${instance.instanceId}:${String(buff.buffId)}`,
                 stackingPolicy: 'Refresh',
                 stackingScope: 'Source',
@@ -1577,6 +3400,7 @@ export class CombatRuntime {
                 }
             }, eventContext);
             results.push(applied);
+            this.#notifyAddedBuff(applied, eventContext);
             this.#notifyOutputBuff(applied, eventContext);
         }
         if (Array.isArray(definition.onApplyTargetActions)) {

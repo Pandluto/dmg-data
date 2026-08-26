@@ -14,7 +14,7 @@ function close(actual, expected, epsilon = 1e-10) {
         `${actual} differs from ${expected} by more than ${epsilon}`);
 }
 
-test('AKE scenario assembler joins Pelica panels, patches and dependency closure', () => {
+test('AKE scenario assembler joins versioned AKEDatabase tables and dependency closure', () => {
     const bundle = new AkeScenarioAssembler().assemble(baseOptions);
 
     assert.equal(bundle.identity.weaponId, 'wpn_funnel_0002');
@@ -42,7 +42,7 @@ test('generic command runner reproduces Pelica command, combo, Buff and damage c
     const runner = new AkeScenarioRunner(bundle);
     const result = runner.run();
 
-    assert.equal(result.durationTicks, 393);
+    assert.equal(result.durationTicks, 269);
     assert.deepEqual(result.commandTrace
         .filter(entry => entry.type === 'CommandExecuted' && entry.success)
         .map(entry => entry.frame), [0, 15, 33, 59, 90, 120]);
@@ -62,7 +62,7 @@ test('generic command runner reproduces Pelica command, combo, Buff and damage c
     hpHits.forEach((hit, index) => close(hit.finalDamage, expectedDamage[index]));
     close(result.damageSummary.totalDamage, 183.1976648);
     close(result.finalState.targetHp, 508.8023352000001);
-    close(result.finalState.resources.Atb, 268.8000035881996);
+    close(result.finalState.resources.Atb, 235.7333351969719);
     assert.equal(result.finalState.resources.UltimateSp, 80);
     assert.equal(result.diagnostics.unresolvedEffectCount, 0);
 
@@ -140,4 +140,31 @@ test('generic runner applies only evidence-mapped enemy local-clock pauses', () 
     ));
     assert.equal(result.finalState.clocks.byDomainId['eny_0007_mimicw:clock']
         .totalPausedTicks, 7);
+});
+
+test('generic runner derives ultimate ATB recovery pause from UltimateTimeAction', () => {
+    const bundle = new AkeScenarioAssembler().assemble({
+        ...baseOptions,
+        initialAtb: 0
+    });
+    const ultimate = bundle.programs.get('chr_0004_pelica_ultimate_skill');
+    const recoveryWindow = ultimate.timeline.find(group => group.actions.some(action =>
+        action.type === 'SuspendResourceRecovery'
+    ));
+    assert.deepEqual(
+        { startFrame: recoveryWindow.startFrame, endFrame: recoveryWindow.endFrame },
+        { startFrame: 0, endFrame: 50 }
+    );
+
+    const result = new AkeScenarioRunner(bundle).run({
+        commands: [{ frame: 0, commandType: 'UltimateSkill' }],
+        endFrame: 60
+    });
+    assert.deepEqual(result.resourceTrace
+        .filter(entry => entry.stage === 'ResourceGained'
+            && entry.resourceType === 'Atb' && entry.actual > 0)
+        .map(entry => entry.frame), [1, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60]);
+    assert.ok(result.resourceTrace.some(entry =>
+        entry.stage === 'ResourceRecoveryResumed' && entry.frame === 50
+    ));
 });

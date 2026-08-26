@@ -43,12 +43,16 @@ export interface SelectedAnomalyCard {
   secondaryText: string;
   tertiaryText?: string;
   selectedBuffIds: string[];
+  baseMultiplierPercent?: number;
+  usesRawAtkScale?: boolean;
 }
 
 export interface AnomalyDamageSegmentView {
   key: string;
   sourceKind: 'anomaly' | 'buff-extra-hit';
   isDisabled?: boolean;
+  /** AKE 状态机产出的真实命中，前端仅可观察，不能用演示开关删除。 */
+  isMandatoryMechanic?: boolean;
   title: string;
   sequenceTitle: string;
   compactTitle: string;

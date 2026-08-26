@@ -60,6 +60,11 @@ assert.deepEqual(result.hits[0].appliedBuffs.map(buff => buff.displayName), [
   '电磁附着（目标）',
   '终结技能量恢复（自身）',
 ]);
+assert.ok(result.hits[0].appliedBuffs.every((buff) => (
+  buff.ownerCharacterId === 'chr_0004_pelica'
+  && buff.ownerBuffDomain === 'operator'
+  && buff.ownerBuffGroup === 'skill'
+)), '真实技能命中 Buff 应保留干员/技能来源');
 
 const viewModel = buildSkillDamageModalViewModel(
   input.template,

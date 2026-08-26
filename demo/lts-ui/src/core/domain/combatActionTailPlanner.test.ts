@@ -168,6 +168,34 @@ const normalSkillAfterBasic: TailSuccessorIntent = {
   priority: 2,
 };
 
+// Finishing a complete A segment and pressing A again must wait for the native
+// restart boundary. It is not a partial-stage cut at last hit + debounce.
+{
+  const completedAttack: ActionTailTimingContract = {
+    ...basicAttack,
+    successorWindows: [{
+      startOffsetFrames: 110,
+      endOffsetFrames: 115,
+      allowedKinds: ['basic-attack'],
+    }],
+  };
+  const restarted = resolveActionTailTransition({
+    predecessor: completedAttack,
+    successor: {
+      actionId: 'A-basic-chain-2',
+      skillId: 'A-basic-chain',
+      kind: 'basic-attack',
+      priority: 0,
+    },
+    boundary: 'append',
+    debounceFrames,
+    selectedBasicStageCount: 4,
+  });
+  assert.equal(restarted.reason, 'ALLOWED_SUCCESSOR_WINDOW');
+  assert.equal(restarted.blockingEndOffsetFrames, 110);
+  assert.equal(restarted.commitFloorOffsetFrames, 101);
+}
+
 // Dropping anything behind a multi-stage basic attack is not finalized until
 // the user selects a stage on the slider.
 {

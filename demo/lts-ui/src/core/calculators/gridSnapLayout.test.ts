@@ -6,6 +6,7 @@ import {
   getGridGroupTop,
   getGridLineCenterY,
   getGridMergedCellRect,
+  getNormalizedGridLineOffsetY,
   getGridOperatorPairTopY,
   GRID_ENERGY_ROW_HEIGHT,
   GRID_GROUP_HEIGHT,
@@ -23,6 +24,23 @@ const selectedCharacters = [
 assert.equal(SKILL_BUTTON_BASELINE_OFFSET_Y, 0, '拖拽与重载不得使用额外的纵向补偿');
 assert.equal(GRID_OPERATOR_SLOT_HEIGHT, 72, '每名干员应占上下两格和一条独立能量行');
 assert.equal(GRID_GROUP_HEIGHT, 318, '四名干员的完整组高度应包含四条能量行');
+
+const canonicalSecondGroupY = getGridGroupTop(1) + getGridLineCenterY(0);
+assert.equal(
+  getNormalizedGridLineOffsetY(canonicalSecondGroupY, 1, 0),
+  0,
+  '逻辑组与持久坐标一致时不得引入纵向偏移',
+);
+assert.equal(
+  getNormalizedGridLineOffsetY(getGridGroupTop(0) + getGridLineCenterY(0), 1, 0),
+  0,
+  '压缩显示页误写成逻辑组坐标时应丢弃整组级偏移',
+);
+assert.equal(
+  getNormalizedGridLineOffsetY(canonicalSecondGroupY + 8, 1, 0),
+  8,
+  '小于一行的真实视觉微调应被保留',
+);
 
 const firstMergedCell = getGridMergedCellRect(0, 0);
 assert.deepEqual(firstMergedCell, {

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "sourceManifest": "https://data.akedata.wiki/manifest.json",
+  "sourceVersion": {
+    "id": "1.4.4@9433094-12",
+    "gameVersion": "1.4.4",
+    "hotfixVersion": "9433094-12",
+    "tableCfgPath": "public/1.4.4/9433094-12/TableCfg",
+    "publishedAt": "2026-08-16T07:04:11.991594+08:00"
+  },
+  "sharedRevision": "2026-08-22T03:01:50.274881+08:00",
+  "sourceUpdatedAt": "2026-08-21T21:52:35.842392+00:00",
+  "tableBaseUrl": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg",
+  "files": {
+    "CharGrowthTable.json": {
+      "bytes": 1501078,
+      "sha256": "ac9f83c22839013dce66cca2056c01483d69e256218d286db4e4e76d74d28fe8",
+      "source": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg/CharGrowthTable.json"
+    },
+    "CharProfessionTable.json": {
+      "bytes": 1377,
+      "sha256": "c6c414d758599ec735c2ca9808f207086e0885e8d17b2a46d5ca296440fff6cc",
+      "source": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg/CharProfessionTable.json"
+    },
+    "CharacterPotentialTable.json": {
+      "bytes": 70925,
+      "sha256": "e410f78addfbf60f9367047abd8e1bfa6cb11e53f8ee894485e1918ca49299cf",
+      "source": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg/CharacterPotentialTable.json"
+    },
+    "CharacterTable.json": {
+      "bytes": 10024466,
+      "sha256": "c8659b2a59e50095eea0befb321d6456463b8cce7d8c036155ab956090da3b64",
+      "source": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg/CharacterTable.json"
+    },
+    "EquipSuitTable.json": {
+      "bytes": 17086,
+      "sha256": "05d89256c2a9d44c64bb69a21f70208a27849643d3cd18e09d1c827fe2b3a8a2",
+      "source": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg/EquipSuitTable.json"
+    },
+    "EquipTable.json": {
+      "bytes": 574343,
+      "sha256": "75cd9863f1d6f52a48365f47cf751cb26574b4c9cb0dcd0a95cd444e19a05af9",
+      "source": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg/EquipTable.json"
+    },
+    "I18nTextTable_CN.json": {
+      "bytes": 11209911,
+      "sha256": "5dbfc98b2d58b46ff8377975e4ccf22e8d3ee0a88d6f3933b8289106cca9cec9",
+      "source": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg/I18nTextTable_CN.json"
+    },
+    "ItemTable.json": {
+      "bytes": 2628304,
+      "sha256": "6e4f00dbd13e6ff64c8bb8a8deb5ddbc1be3c5c16a7fa8a5fb20dd9ba4d33b35",
+      "source": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg/ItemTable.json"
+    },
+    "PotentialTalentEffectTable.json": {
+      "bytes": 542287,
+      "sha256": "b31a47150b62bd4a03348964848406c83ee28e7a1f73967724f8c9297e510c99",
+      "source": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg/PotentialTalentEffectTable.json"
+    },
+    "SkillPatchTable.json": {
+      "bytes": 6272889,
+      "sha256": "1ed8b010f6413b90f64cc68739ffd9bebef6613853ff7134f154eb2c87728a1d",
+      "source": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg/SkillPatchTable.json"
+    },
+    "WeaponBasicTable.json": {
+      "bytes": 54316,
+      "sha256": "b86558c2537212cc8f1172cbeca88c9cd952fa13746340ef5ddc657550804c8a",
+      "source": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg/WeaponBasicTable.json"
+    },
+    "WeaponBreakThroughTemplateTable.json": {
+      "bytes": 95132,
+      "sha256": "550fd17546c5de7c67d38d991e8461ae74a9e4509fcb8b6a06159fbe08235afa",
+      "source": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg/WeaponBreakThroughTemplateTable.json"
+    },
+    "WeaponTalentTemplateTable.json": {
+      "bytes": 3406,
+      "sha256": "b8bce084caa91af2363024cee28d9789de9b5a8cf3b75385f1ee3489a1d525a3",
+      "source": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg/WeaponTalentTemplateTable.json"
+    },
+    "WeaponUpgradeTemplateSumTable.json": {
+      "bytes": 187243,
+      "sha256": "d2be344678baba248a0ed0c579274209191d07b159c9f27ecbb66a41851c760e",
+      "source": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg/WeaponUpgradeTemplateSumTable.json"
+    },
+    "WeaponUpgradeTemplateTable.json": {
+      "bytes": 217128,
+      "sha256": "dbbf3b44caa17ec232ce09f66a72376457a9b454cfdfc79079d28ef9b3a7f9eb",
+      "source": "https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg/WeaponUpgradeTemplateTable.json"
+    }
+  }
+}

@@ -118,6 +118,145 @@ test('ResourceSystem suppresses rather than backfills post-spend recovery ticks'
         .map(entry => entry.frame), [1, 2, 5, 6]);
 });
 
+test('ResourceSystem tracks returned ATB, spends it first, and exposes USP eligibility', () => {
+    const resources = new ResourceSystem();
+    resources.registerPool({
+        id: 'squad:Atb',
+        resourceType: 'Atb',
+        scope: 'Shared',
+        initial: 150,
+        max: 300
+    });
+
+    resources.gain({
+        frame: 0,
+        poolId: 'squad:Atb',
+        amount: 30,
+        resourceGainMethod: 'Return',
+        sourceId: 'aurora'
+    });
+    assert.deepEqual(
+        Object.fromEntries(['current', 'returned', 'ordinary'].map(key => [
+            key,
+            resources.describePool('squad:Atb')[key]
+        ])),
+        { current: 180, returned: 30, ordinary: 150 }
+    );
+
+    const returnedOnly = resources.spend({
+        frame: 1,
+        poolId: 'squad:Atb',
+        amount: 25,
+        castId: 'liino:cast'
+    });
+    assert.equal(returnedOnly.returnedSpent, 25);
+    assert.equal(returnedOnly.eligibleSpend, 0);
+    assert.equal(resources.describePool('squad:Atb').returned, 5);
+    assert.equal(resources.spendEligibility({ castId: 'liino:cast' }).ratio, 0);
+
+    const mixed = resources.spend({
+        frame: 2,
+        poolId: 'squad:Atb',
+        amount: 50,
+        castId: 'mixed:cast'
+    });
+    assert.equal(mixed.returnedSpent, 5);
+    assert.equal(mixed.eligibleSpend, 45);
+    assert.equal(resources.spendEligibility({ castId: 'mixed:cast' }).ratio, 0.9);
+});
+
+test('ResourceSystem recovery suspension preserves one delayed tick and never backfills', () => {
+    const queue = scheduler();
+    const resources = new ResourceSystem({ schedule: queue.schedule, tickRate: 30 });
+    resources.registerPool({
+        id: 'squad:Atb',
+        resourceType: 'Atb',
+        scope: 'Shared',
+        initial: 0,
+        max: 300,
+        passiveRecovery: { amountPerTick: 1, firstTickFrame: 1 }
+    });
+    resources.suspendRecovery({
+        frame: 0,
+        poolId: 'squad:Atb',
+        token: 'ultimate:cast',
+        castId: 'ultimate:cast',
+        delayTicks: 2
+    });
+
+    queue.runUntil(4);
+    assert.equal(resources.describePool('squad:Atb').current, 1);
+    resources.resumeRecovery({
+        frame: 4,
+        poolId: 'squad:Atb',
+        token: 'ultimate:cast'
+    });
+    queue.runUntil(5);
+    assert.equal(resources.describePool('squad:Atb').current, 2);
+    assert.deepEqual(resources.trace
+        .filter(entry => entry.stage === 'ResourceGained' && entry.actual > 0)
+        .map(entry => entry.frame), [1, 5]);
+});
+
+test('ResourceSystem suppresses USP gain globally or by serialized recovery tag', () => {
+    const resources = new ResourceSystem();
+    resources.registerPool({
+        id: 'liino:UltimateSp',
+        resourceType: 'UltimateSp',
+        scope: 'Entity',
+        ownerId: 'liino',
+        initial: 0,
+        max: 100
+    });
+
+    resources.suppressGain({
+        frame: 0,
+        poolId: 'liino:UltimateSp',
+        token: 'tagged-window',
+        tags: [903366032]
+    });
+    assert.equal(resources.gain({
+        frame: 1,
+        poolId: 'liino:UltimateSp',
+        amount: 5,
+        resourceGainTags: [264623624]
+    }).actual, 5);
+    assert.equal(resources.gain({
+        frame: 2,
+        poolId: 'liino:UltimateSp',
+        amount: 7,
+        resourceGainTags: [903366032]
+    }).stage, 'ResourceGainSuppressed');
+    assert.equal(resources.describePool('liino:UltimateSp').current, 5);
+
+    resources.resumeGain({
+        frame: 3,
+        poolId: 'liino:UltimateSp',
+        token: 'tagged-window'
+    });
+    resources.suppressGain({
+        frame: 3,
+        poolId: 'liino:UltimateSp',
+        token: 'global-window',
+        tags: []
+    });
+    assert.equal(resources.gain({
+        frame: 4,
+        poolId: 'liino:UltimateSp',
+        amount: 9
+    }).stage, 'ResourceGainSuppressed');
+    resources.resumeGain({
+        frame: 5,
+        poolId: 'liino:UltimateSp',
+        token: 'global-window'
+    });
+    assert.equal(resources.gain({
+        frame: 6,
+        poolId: 'liino:UltimateSp',
+        amount: 9
+    }).actual, 9);
+});
+
 test('VitalMachine caps healing and consumes shields by priority then creation order', () => {
     const vitals = new VitalMachine();
     vitals.registerEntity({ id: 'enemy', maxHp: 100, currentHp: 60 });

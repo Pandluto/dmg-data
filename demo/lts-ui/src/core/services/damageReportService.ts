@@ -699,6 +699,9 @@ function readExtraHitStackCount(
 }
 
 function resolveAnomalyBaseMultiplierPercent(card: PersistedAnomalyCard): number {
+  if (typeof card.baseMultiplierPercent === 'number' && Number.isFinite(card.baseMultiplierPercent)) {
+    return card.baseMultiplierPercent;
+  }
   switch (card.key) {
     case 'magic-burst':
       return 160;
@@ -706,6 +709,8 @@ function resolveAnomalyBaseMultiplierPercent(card: PersistedAnomalyCard): number
       return 150 * (1 + card.level);
     case 'armor-break':
       return 50 * (1 + card.level);
+    case 'originium-shatter':
+      return 400;
     case 'shatter-ice':
       return 120 * (1 + card.level);
     case 'conductive':
@@ -737,6 +742,7 @@ function resolveBurnDamageMode(card: PersistedAnomalyCard): NonNullable<Persiste
 }
 
 function resolveAnomalyLevelCoefficient(card: PersistedAnomalyCard): number {
+  if (card.usesRawAtkScale || card.key === 'originium-shatter') return 1;
   return resolveSpecialDamageLevelCoefficient(
     card.key === 'shatter-ice' || card.category === 'magic' ? 'artsBurst' : 'physicalAnomaly',
   );
@@ -749,6 +755,7 @@ function resolveAnomalyElementKey(card: PersistedAnomalyCard, fallbackElement: s
     case 'launch':
     case 'shatter-ice':
     case 'armor-break':
+    case 'originium-shatter':
       return 'physical';
     case 'conductive':
       return 'electric';
@@ -767,6 +774,7 @@ function resolveAnomalyElementKey(card: PersistedAnomalyCard, fallbackElement: s
 
 function buildAnomalyReportHits(
   button: PersistedSkillButton,
+  mechanicAnomalyDamages: FixedDummyHitContext['mechanicAnomalyDamages'],
   characterDamageBonus: DamageBonusSnapshot,
   panel: { atk: number; critRate: number; critDmg: number },
   panelBase: ReturnType<typeof buildDamageReportPanelBase>,
@@ -777,7 +785,10 @@ function buildAnomalyReportHits(
   singleHitBuffTargetByBuffId: SingleHitBuffTargetByBuffId,
   stackCounts: Record<string, number> = {}
 ): DamageReportHitRow[] {
-  const anomalyCards = button.anomalyConfig?.selectedDamages ?? [];
+  const anomalyCards = [
+    ...mechanicAnomalyDamages,
+    ...(button.anomalyConfig?.selectedDamages ?? []),
+  ];
   const template = getRuntimeOperatorTemplateById(button.characterId || button.characterName);
   const fallbackElement = template?.element;
   const parsedDamageBonusRecord = characterDamageBonus as unknown as Record<string, number>;
@@ -789,7 +800,7 @@ function buildAnomalyReportHits(
     const levelCoefficient = resolveAnomalyLevelCoefficient(card);
     const elementKey = resolveAnomalyElementKey(card, fallbackElement);
     const disabledBuffIds = new Set(disabledBuffIdsBySegmentKey[card.id] ?? []);
-    const appliedBuffs = ((card.selectedBuffIds?.length ?? 0) === 0
+    const selectableBuffs = ((card.selectedBuffIds?.length ?? 0) === 0
       ? modifierBuffList
       : modifierBuffList.filter((buff) => card.selectedBuffIds.includes(buff.id)))
       .filter((buff) => (
@@ -797,9 +808,15 @@ function buildAnomalyReportHits(
           ? singleHitBuffTargetByBuffId[buff.id] === card.id
           : !disabledBuffIds.has(buff.id)
       ));
+    const intrinsicModifierBuffs = mechanicAnomalyDamages
+      .find((damage) => damage.id === card.id)
+      ?.intrinsicModifierBuffs ?? [];
+    const appliedBuffs = [...selectableBuffs, ...intrinsicModifierBuffs];
     const segmentPanel = buildDamageReportPanel(panelBase, panel, appliedBuffs, stackCounts);
     const buffTotals = calculateBuffTotals(appliedBuffs, stackCounts);
-    const sourceSkill = baseSourceSkill + buffTotals.sourceSkillBoost;
+    const sourceSkill = card.usesRawAtkScale || card.key === 'originium-shatter'
+      ? 0
+      : baseSourceSkill + buffTotals.sourceSkillBoost;
     const sourceSkillZone = 1 + sourceSkill / 100;
     const anomalyBaseMultiplier = (baseMultiplierPercent / 100) * levelCoefficient * sourceSkillZone;
     const multiplierAfterBonus = anomalyBaseMultiplier + buffTotals.multiplierBonus;
@@ -821,12 +838,13 @@ function buildAnomalyReportHits(
     const sequenceNumber = normalHitCount + anomalySequenceOffset + 1;
     const burnDamageMode = resolveBurnDamageMode(card);
 
+    const sourceKind: DamageReportHitRow['sourceKind'] = card.usesRawAtkScale ? 'extraHit' : 'anomaly';
     const initialRow: DamageReportHitRow = {
       id: `anomaly-${button.id}-${card.id}`,
       title: `${sequenceNumber}段 · ${card.label}`,
-      sourceKind: 'anomaly' as const,
-      damageSourceLabel: formatDamageSourceLabel('anomaly'),
-      skillTypeLabel: '异常',
+      sourceKind,
+      damageSourceLabel: formatDamageSourceLabel(sourceKind),
+      skillTypeLabel: card.usesRawAtkScale ? '额外' : '异常',
       elementLabel: formatElementLabel(elementKey),
       damage: expected,
       expected,
@@ -1020,8 +1038,10 @@ function resolveButtonInputs(
         ...anomalyStatuses.map((card) => card.key),
       ])),
       attachments: targetState.attachments,
-      physicalAnomalyTriggered: (button.anomalyConfig?.selectedDamages ?? [])
-        .some((card) => card.category === 'physical'),
+      physicalAnomalyTriggered: [
+        ...fixedDummyContext.mechanicAnomalyDamages,
+        ...(button.anomalyConfig?.selectedDamages ?? []),
+      ].some((card) => card.category === 'physical'),
     },
   );
   const traceIds = new Map(allBuffs.map((buff) => [buff.id, buildBuffTraceId(buff)]));
@@ -1184,6 +1204,7 @@ function evaluateButtonReportRow(
 
   const anomalyHits = buildAnomalyReportHits(
     button,
+    fixedDummyContext.mechanicAnomalyDamages,
     effectiveDamageBonus,
     panel,
     panelBase,

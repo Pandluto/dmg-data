@@ -750,6 +750,25 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
 }
 
 {
+  const actor = character('actor-consecutive-full-attacks');
+  const first = button('full-attack-1', actor.id, 0, 'A');
+  first.basicAttackStageCount = 4;
+  const second = button('full-attack-2', actor.id, 1, 'A');
+  const result = buildAkeRealtimeTimeline({
+    timelineData: timeline([{ characterId: actor.id, buttons: [first, second] }]),
+    selectedCharacters: [actor],
+    catalog: catalog({ [actor.id]: fourStageAttackProfiles() }),
+    staffCount: 1,
+  });
+  const firstCommand = result.commands.find(command => command.commandId === first.id)!;
+  const secondCommand = result.commands.find(command => command.commandId === second.id)!;
+  assertEqual(firstCommand.naturalEndFrame, 56, 'first full A keeps its native restart boundary');
+  assertEqual(secondCommand.requestedFrame, 56, 'planner places the second full A at that boundary');
+  assertEqual(secondCommand.actualFrame, 56, 'preview admits the second full A without a red invalid gap');
+  assertEqual(secondCommand.releaseVerdict, 'valid', 'consecutive complete normal attacks are legal');
+}
+
+{
   const actor = character('actor-combo-resume');
   const cutAttack = button('cut-attack', actor.id, 0, 'A');
   cutAttack.basicAttackStageCount = 2;
@@ -1161,6 +1180,160 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
   });
   assertEqual(missingResult.commands[0].success, false, 'combo cannot cast before its trigger');
   assertEqual(missingResult.commands[0].releaseReason, 'COMBO_TRIGGER_MISSING', 'missing combo trigger is explicit');
+}
+
+{
+  const zhuang = character('zhuang');
+  const pelica = character('pelica');
+  const source = button('zhuang-full-attack', zhuang.id, 0, 'A');
+  const comboButton = button('pelica-combo', pelica.id, 1, 'E');
+  comboButton.runtimeSkillId = 'pelica-combo-skill';
+  comboButton.releaseAnchor = {
+    schemaVersion: 1,
+    kind: 'damage-hit',
+    sourceButtonId: source.id,
+    sourceHitId: `${source.id}:preview-hit:3`,
+    sourceHitOffsetFrames: 42,
+    debounceFrames: 6,
+  };
+  const comboProfile = profile({
+    commandType: 'ComboSkill',
+    skillId: 'pelica-combo-skill',
+    bodyEndOffset: 10,
+    tailEndOffset: 10,
+    exclusiveFrames: 10,
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+    hits: [],
+  });
+  const trigger: AkeTimingComboTrigger = {
+    id: 'pelica-any-heavy',
+    eventType: 'BeforeHpDamage',
+    rootSkillIds: [],
+    sourceSkillIds: [],
+    rootSkillRole: 'heavy-attack',
+    damageAttributeType: 'Hp',
+    occurrence: 'first-per-cast-target',
+    comboSkillId: comboProfile.skillId,
+    pendingDurationFrames: 180,
+    ownerBinding: 'fixed',
+    ownerId: pelica.id,
+    requireComboOffCooldown: true,
+    pendingPolicy: 'replace-all',
+    selectionPolicy: 'newest',
+    consumePolicy: 'all-for-owner-and-skill',
+    confidence: 'confirmed-for-test',
+  };
+  const result = buildAkeRealtimeTimeline({
+    timelineData: timeline([
+      { characterId: zhuang.id, buttons: [source] },
+      { characterId: pelica.id, buttons: [comboButton] },
+    ]),
+    selectedCharacters: [zhuang, pelica],
+    catalog: catalog({
+      [zhuang.id]: fourStageAttackProfiles(),
+      [pelica.id]: [comboProfile],
+    }, {
+      [pelica.id]: { comboTriggers: [trigger] },
+    }),
+    staffCount: 1,
+  });
+  const comboCommand = result.commands.find(command => command.commandId === comboButton.id)!;
+  assertEqual(comboCommand.actualFrame, 48, 'Pelica can use another controlled operator heavy hit');
+  assertEqual(comboCommand.releaseVerdict, 'valid', 'cross-operator heavy trigger is verified');
+  assertEqual(result.comboWindows[0].characterId, pelica.id, 'pending window belongs to Pelica, not the attacker');
+}
+
+{
+  const chen = character('chen');
+  const admin = character('admin');
+  const chenCombo = button('chen-combo-source', chen.id, 0, 'E');
+  chenCombo.runtimeSkillId = 'chen-combo-skill';
+  const adminBefore = button('admin-before-hit', admin.id, 0, 'E');
+  adminBefore.runtimeSkillId = 'admin-combo-skill';
+  const adminAfter = button('admin-after-hit', admin.id, 1, 'E');
+  adminAfter.runtimeSkillId = 'admin-combo-skill';
+  adminAfter.releaseAnchor = {
+    schemaVersion: 1,
+    kind: 'damage-hit',
+    sourceButtonId: chenCombo.id,
+    sourceHitId: `${chenCombo.id}:preview-hit:0`,
+    sourceHitOffsetFrames: 10,
+    debounceFrames: 6,
+  };
+  const chenComboProfile = profile({
+    commandType: 'ComboSkill',
+    skillId: 'chen-combo-skill',
+    bodyEndOffset: 20,
+    tailEndOffset: 20,
+    exclusiveFrames: 20,
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+    hits: [{
+      offsetFrames: 10,
+      sourceSkillId: 'chen-combo-hit',
+      rootSkillId: 'chen-combo-skill',
+      kind: 'direct',
+      hitCount: 1,
+      damageTypes: ['Physical'],
+    }],
+  });
+  const adminComboProfile = profile({
+    commandType: 'ComboSkill',
+    skillId: 'admin-combo-skill',
+    bodyEndOffset: 10,
+    tailEndOffset: 10,
+    exclusiveFrames: 10,
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+    hits: [],
+  });
+  const adminTrigger: AkeTimingComboTrigger = {
+    id: 'admin-other-combo-hit',
+    eventType: 'BeforeHpDamage',
+    rootSkillIds: [],
+    sourceSkillIds: [],
+    sourceCommandTypes: ['ComboSkill'],
+    requireSourceOtherThanOwner: true,
+    damageAttributeType: 'Hp',
+    occurrence: 'first-per-cast-target',
+    comboSkillId: adminComboProfile.skillId,
+    pendingDurationFrames: 180,
+    ownerBinding: 'fixed',
+    ownerId: admin.id,
+    requireComboOffCooldown: true,
+    pendingPolicy: 'replace-all',
+    selectionPolicy: 'newest',
+    consumePolicy: 'all-for-owner-and-skill',
+    confidence: 'confirmed-for-test',
+  };
+  const result = buildAkeRealtimeTimeline({
+    timelineData: timeline([
+      { characterId: chen.id, buttons: [chenCombo] },
+      { characterId: admin.id, buttons: [adminBefore, adminAfter] },
+    ]),
+    selectedCharacters: [chen, admin],
+    catalog: catalog({
+      [chen.id]: [chenComboProfile],
+      [admin.id]: [adminComboProfile],
+    }, {
+      [admin.id]: { comboTriggers: [adminTrigger] },
+    }),
+    staffCount: 1,
+  });
+  assertEqual(
+    result.commands.find(command => command.commandId === adminBefore.id)?.releaseReason,
+    'COMBO_TRIGGER_MISSING',
+    'Administrator cannot combo before another operator combo deals damage',
+  );
+  assertEqual(
+    result.commands.find(command => command.commandId === adminAfter.id)?.releaseVerdict,
+    'valid',
+    'Administrator becomes legal after the other combo hit',
+  );
 }
 
 {

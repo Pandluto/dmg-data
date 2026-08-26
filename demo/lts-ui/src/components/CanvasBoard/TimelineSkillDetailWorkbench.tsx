@@ -1,11 +1,10 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { HitResistanceInput, SkillButtonBuff } from '../../types/storage';
 import type { AppliedBuffTagViewModel, FormulaViewModel } from '../../core/calculators/skillDamage.types';
 import { getBuffTypeRegistryEntry } from '../../core/domain/buffTypeRegistry';
 import { OptionalLiquidTideSurfaceEffects } from '../../platform/theme/OptionalLiquidTideEffects';
-import { TimelineBuffListPanel } from './TimelineBuffListPanel';
 import { TimelineHitTuningPanel } from './TimelineHitTuningPanel';
 import { TimelineInfoPanel } from './TimelineInfoPanel';
 import { TimelineStatusPanel } from './TimelineStatusPanel';
@@ -31,6 +30,11 @@ export interface TimelineDetailStatus {
   title: string;
   detail?: string;
   kind: string;
+  groupLabel?: string;
+  groupOrder?: number;
+  priority?: number;
+  iconUrl?: string;
+  iconAlt?: string;
   /** 手工添加的状态可移除；引擎解析出的命中/木桩状态为只读。 */
   onRemove?: () => void;
 }
@@ -71,6 +75,7 @@ interface TimelineSkillDetailWorkbenchProps {
   onEnableAllBuffs: () => void;
   onDisableAllBuffs: () => void;
   onResetBuffStacks: () => void;
+  statusContextLabel?: string;
   statuses: TimelineDetailStatus[];
   hits: TimelineDetailHit[];
   summary: {
@@ -256,7 +261,7 @@ function buildCalculationSections(formula: FormulaViewModel): CalculationSection
     {
       key: 'defense',
       label: '防御',
-      value: formula.defenseZoneText,
+      value: readFormulaResult(formula.defenseZoneText),
       lines: [{ label: '防御区系数', value: formula.defenseZoneText }],
       buffs: getSectionBuffs(formula, 'defense'),
     },
@@ -331,17 +336,7 @@ export function TimelineSkillDetailWorkbench({
   onOpenSearch,
   targetResistance,
   onResistanceChange,
-  buffs,
-  buffStackCounts,
-  onRemoveBuff,
-  onToggleBuffDisabled,
-  isBuffDisabled,
-  onDecrementBuff,
-  onIncrementBuff,
-  onClearBuffs,
-  onEnableAllBuffs,
-  onDisableAllBuffs,
-  onResetBuffStacks,
+  statusContextLabel,
   statuses,
   hits,
   summary,
@@ -354,23 +349,7 @@ export function TimelineSkillDetailWorkbench({
   const [activeCalculationSection, setActiveCalculationSection] = useState<CalculationSectionKey>('attack');
   const [isAbilityDetailExpanded, setIsAbilityDetailExpanded] = useState(false);
   const [isSummaryFormulaExpanded, setIsSummaryFormulaExpanded] = useState(false);
-  const [buffSourceFilter, setBuffSourceFilter] = useState('all');
   const calculationSections = formula ? buildCalculationSections(formula) : [];
-  const buffSourceOptions = useMemo(() => {
-    const sources = Array.from(new Set(
-      buffs.map((buff) => buff.sourceName || buff.source || '未知来源')
-    ));
-    return [
-      { key: 'all', label: '全部来源' },
-      ...sources.map((source) => ({ key: source, label: source })),
-    ];
-  }, [buffs]);
-  const visibleBuffs = useMemo(() => {
-    if (buffSourceFilter === 'all') {
-      return buffs;
-    }
-    return buffs.filter((buff) => (buff.sourceName || buff.source || '未知来源') === buffSourceFilter);
-  }, [buffSourceFilter, buffs]);
   const selectedCalculationSection = calculationSections.find((section) => section.key === activeCalculationSection)
     ?? calculationSections[0]
     ?? null;
@@ -398,16 +377,6 @@ export function TimelineSkillDetailWorkbench({
     ];
   })();
   const calculationSvgHeight = Math.max(calculationSections.length * 50, 50);
-
-  useEffect(() => {
-    if (buffSourceFilter === 'all') {
-      return;
-    }
-    const hasSource = buffs.some((buff) => (buff.sourceName || buff.source || '未知来源') === buffSourceFilter);
-    if (!hasSource) {
-      setBuffSourceFilter('all');
-    }
-  }, [buffSourceFilter, buffs]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -537,24 +506,7 @@ export function TimelineSkillDetailWorkbench({
         </aside>
 
         <section className="timeline-detail-middle">
-          <TimelineBuffListPanel
-            buffs={visibleBuffs}
-            totalBuffCount={buffs.length}
-            stackCounts={buffStackCounts}
-            onRemove={onRemoveBuff}
-            onToggleDisabled={onToggleBuffDisabled}
-            isDisabled={isBuffDisabled}
-            onDecrement={onDecrementBuff}
-            onIncrement={onIncrementBuff}
-            sourceFilter={buffSourceFilter}
-            sourceOptions={buffSourceOptions}
-            onSourceFilterChange={setBuffSourceFilter}
-            onClearAll={onClearBuffs}
-            onEnableAll={onEnableAllBuffs}
-            onDisableAll={onDisableAllBuffs}
-            onResetStacks={onResetBuffStacks}
-          />
-          <TimelineStatusPanel statuses={statuses} />
+          <TimelineStatusPanel statuses={statuses} contextLabel={statusContextLabel} />
         </section>
 
         <section className="timeline-detail-right-column">

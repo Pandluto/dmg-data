@@ -351,6 +351,10 @@ function resolveTimelineSkillIcon(button: SkillButtonData, character?: ReportOpe
     skillDisplayName: button.skillDisplayName,
     skillIconUrl: button.skillIconUrl,
     customHits: button.customHits,
+    timelineModuleKind: button.timelineModuleKind,
+    forcedWaitConfig: button.forcedWaitConfig,
+    laneWaitConfig: button.laneWaitConfig,
+    operatorSwitchConfig: button.operatorSwitchConfig,
     element: character?.element,
   });
   return normalizeAssetUrl(runtimeSkill?.iconUrl ?? button.skillIconUrl ?? resolveSkillIconUrl(button.characterName, button.skillType));

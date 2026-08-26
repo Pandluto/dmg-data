@@ -65,7 +65,10 @@ function formatHitBuffEffectSummary(effect: ResolvedHitBuffNumericEffect): strin
   return `${getBuffTypeLabel(effect.type)} ${formatHitBuffEffectValue(effect)}${duration}${stacks}`;
 }
 
-function buildHitEffectBuffs(hit: ResolvedHitTemplate): SkillButtonBuff[] {
+function buildHitEffectBuffs(
+  hit: ResolvedHitTemplate,
+  ownerCharacterId: string,
+): SkillButtonBuff[] {
   return (hit.hitBuffs ?? []).map((effect, index) => {
     const targetLabel = effect.targetLabel || (
       effect.target === 'self'
@@ -94,6 +97,9 @@ function buildHitEffectBuffs(hit: ResolvedHitTemplate): SkillButtonBuff[] {
       source: 'ake-hit-effect',
       condition: '与该 DamageAction 同事件组触发',
       category: 'passive',
+      ownerBuffDomain: 'operator',
+      ownerCharacterId,
+      ownerBuffGroup: 'skill',
       refCount: 1,
       displayOnly: true,
       target: { mode: 'damageKey', key: hit.key },
@@ -216,7 +222,8 @@ function calculateSingleHit(
   const effectiveBuffs = isDisabled ? [] : appliedModifierBuffs;
   const hitEffectBuffs = isDisabled
     ? []
-    : buildHitEffectBuffs(hit).filter((buff) => !disabledBuffIds.has(buff.id));
+    : buildHitEffectBuffs(hit, input.characterId)
+      .filter((buff) => !disabledBuffIds.has(buff.id));
   const displayOnlyBuffs = isDisabled
     ? []
     : filterDisplayOnlyBuffsForHit(hit, input.displayOnlyBuffs ?? [])

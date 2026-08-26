@@ -8,6 +8,7 @@ import {
     AkeLoadoutCompiler,
     LoadoutEffectManager
 } from '../src/core/ake-loadout-compiler.mjs';
+import { AkeSquadScenarioAssembler } from '../src/core/ake-squad-scenario-assembler.mjs';
 import { CombatRuntime } from '../src/core/combat-runtime.mjs';
 
 function readJson(relativePath) {
@@ -120,27 +121,40 @@ test('real Pelica potential listens for Pulse Buff output, stacks Atk and rolls 
     assert.equal(runtime.context.getAttribute('pelica', 'Atk'), 100);
 });
 
-test('real public BuffData executes periodic healing and exact USP quantization', () => {
+test('real public BuffData executes periodic healing and fans exact USP gain across allies', () => {
     const mappings = readJson('spec/engine-semantic-mappings.json');
     const compiler = new AkeActionCompiler({ semanticMappings: mappings });
     const heal = compiler.compileBuff(readBuff('buff_common_heal_moss_1'));
     const usp = compiler.compileBuff(readBuff('buff_common_obtain_ultimate_sp'));
     const runtime = new CombatRuntime({
         definitions: {
-            entities: [{
-                id: 'pelica',
-                kind: 'Character',
-                team: 'ally',
-                vital: { maxHp: 100, currentHp: 10 }
-            }],
-            resources: [{
-                id: 'pelica:UltimateSp',
-                resourceType: 'UltimateSp',
-                scope: 'Entity',
-                ownerId: 'pelica',
-                initial: 0,
-                max: 100
-            }],
+            entities: [
+                {
+                    id: 'pelica',
+                    kind: 'Character',
+                    team: 'ally',
+                    vital: { maxHp: 100, currentHp: 10 }
+                },
+                { id: 'chen', kind: 'Character', team: 'ally' }
+            ],
+            resources: [
+                {
+                    id: 'pelica:UltimateSp',
+                    resourceType: 'UltimateSp',
+                    scope: 'Entity',
+                    ownerId: 'pelica',
+                    initial: 0,
+                    max: 80
+                },
+                {
+                    id: 'chen:UltimateSp',
+                    resourceType: 'UltimateSp',
+                    scope: 'Entity',
+                    ownerId: 'chen',
+                    initial: 0,
+                    max: 70
+                }
+            ],
             buffs: {
                 [heal.buffId]: heal,
                 [usp.buffId]: usp
@@ -173,6 +187,225 @@ test('real public BuffData executes periodic healing and exact USP quantization'
         }),
         6.499999761581421
     );
+    assert.equal(
+        runtime.resources.get({
+            resourceType: 'UltimateSp',
+            scope: 'Entity',
+            ownerId: 'chen'
+        }),
+        6.499999761581421
+    );
+});
+
+test('real Wulfgard GainCostAction grants its literal one point of USP', () => {
+    const compiler = new AkeActionCompiler();
+    const buffId = 'buff_chr_0006_wolfgd_normal_skill_usp';
+    const definition = compiler.compileBuff(readBuff(buffId));
+    assert.equal(definition.compiler.status, 'executable');
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [{ id: 'wulfgard', kind: 'Character', team: 'ally' }],
+            resources: [{
+                id: 'wulfgard:UltimateSp',
+                resourceType: 'UltimateSp',
+                scope: 'Entity',
+                ownerId: 'wulfgard',
+                initial: 0,
+                max: 100
+            }],
+            buffs: { [buffId]: definition }
+        }
+    });
+    runtime.execute({ type: 'ApplyBuff', buffId }, {
+        frame: 0,
+        sourceId: 'wulfgard',
+        ownerId: 'wulfgard',
+        targetId: 'wulfgard'
+    });
+    assert.equal(runtime.resources.describePool('wulfgard:UltimateSp').current, 1);
+});
+
+test('real Mifu second skill reads abnormal layers and exposes the third skill at three stacks', () => {
+    const bundle = new AkeSquadScenarioAssembler().assemble({
+        enemyId: 'eny_0007_mimicw',
+        members: [{ memberId: 'mifu', characterId: 'chr_0031_mifu' }]
+    });
+    const compiler = new AkeActionCompiler({ semanticMappings: bundle.semanticMappings });
+    const noGuard = compiler.compileBuff(readBuff('buff_physical_no_guard'));
+    const skill = bundle.programs.get('chr_0031_mifu_normalskill_2');
+    assert.ok(skill);
+
+    const resolvedForm = (layers) => {
+        const definitions = structuredClone(bundle.definitions);
+        definitions.buffs = {
+            ...definitions.buffs,
+            [noGuard.buffId]: noGuard
+        };
+        const runtime = new CombatRuntime({
+            definitions,
+            damageResolver: createAkeDamageResolver()
+        });
+        const context = {
+            frame: 0,
+            sourceId: 'chr_0031_mifu',
+            ownerId: 'chr_0031_mifu',
+            targetId: 'eny_0007_mimicw',
+            skillId: skill.skillId,
+            rootSkillId: skill.skillId,
+            castId: `mifu-form-${layers}`
+        };
+        for (let index = 0; index < layers; index += 1) {
+            runtime.execute({ type: 'ApplyBuff', buffId: noGuard.buffId }, context);
+        }
+        runtime.scheduleProgram(skill, context);
+        runtime.runUntil(30);
+        return runtime.skillForms.resolveOverride({
+            targetId: 'chr_0031_mifu',
+            skillSlot: 'NormalSkill'
+        })?.targetSkillId ?? null;
+    };
+
+    assert.equal(resolvedForm(2), null);
+    assert.equal(resolvedForm(3), 'chr_0031_mifu_normalskill_3');
+});
+
+test('generic deck-attribute comparison drives both Jue forms without character code', () => {
+    const compiler = new AkeActionCompiler();
+    const definition = compiler.compileBuff(readBuff(
+        'buff_chr_0032_lizhiyan_passive'
+    ));
+    const formGate = definition.startActions.find(action => action.type === 'IfElseAction');
+    assert.equal(formGate.conditions[0].type, 'Compare');
+    assert.equal(formGate.conditions[0].left.values[0].attribute, 'Wisd');
+    assert.equal(formGate.conditions[0].right.values[0].attribute, 'Will');
+
+    const resolveForm = attributes => {
+        const runtime = new CombatRuntime({
+            definitions: {
+                entities: [{ id: 'jue', kind: 'Character', team: 'ally', attributes }],
+                buffs: { [definition.buffId]: definition }
+            }
+        });
+        runtime.execute({ type: 'ApplyBuff', buffId: definition.buffId }, {
+            frame: 0,
+            sourceId: 'jue',
+            ownerId: 'jue',
+            targetId: 'jue'
+        });
+        return runtime.snapshot().entityBlackboards.jue.EntityBB_wisd_greater_will;
+    };
+
+    assert.equal(resolveForm({ Wisd: 120, Will: 100 }), 1);
+    assert.equal(resolveForm({ Wisd: 80, Will: 100 }), 0);
+});
+
+test('real OnObtainAtb listener stores the event value and applies its extra gain once', () => {
+    const compiler = new AkeActionCompiler();
+    const buffId = 'buff_dung_atb_add_useskill';
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [{ id: 'caster', kind: 'Character', team: 'ally' }],
+            resources: [{
+                id: 'squad:Atb',
+                resourceType: 'Atb',
+                scope: 'Shared',
+                initial: 0,
+                max: 300
+            }],
+            buffs: { [buffId]: compiler.compileBuff(readBuff(buffId)) }
+        }
+    });
+    runtime.execute({ type: 'ApplyBuff', buffId }, {
+        frame: 0,
+        sourceId: 'caster',
+        ownerId: 'caster',
+        targetId: 'caster'
+    });
+
+    runtime.execute({
+        type: 'ResourceChange',
+        resourceType: 'Atb',
+        scope: 'Shared',
+        operation: 'Gain',
+        amount: 10,
+        resourceSourceType: 'Skill',
+        resourceGainMethod: 'Gain'
+    }, {
+        frame: 1,
+        sourceId: 'caster',
+        ownerId: 'caster',
+        targetId: 'caster',
+        skillId: 'skill:test',
+        castId: 'cast:test',
+        skillType: 'NormalSkill'
+    });
+
+    assert.equal(runtime.resources.describePool('squad:Atb').current, 20);
+    assert.deepEqual(runtime.resources.trace
+        .filter(entry => entry.stage === 'ResourceGained')
+        .map(entry => [
+            entry.requested,
+            entry.resourceSourceType,
+            entry.resourceGainMethod
+        ]), [
+        [10, 'Skill', 'Gain'],
+        [10, 'Default', 'Gain']
+    ]);
+    assert.equal(runtime.statusEffects.list({ buffId })[0].blackboard.atb_value, 10);
+    assert.equal(runtime.trace.filter(entry =>
+        entry.stage === 'AbilityEventNotified' && entry.eventType === 'OnObtainAtb'
+    ).length, 2);
+});
+
+test('real Liino Refrain Buff blocks USP gain only while the Buff is active', () => {
+    const compiler = new AkeActionCompiler();
+    const buffId = 'buff_chr_0035_liino_ultskill_refrainobtainusp';
+    const definition = compiler.compileBuff(readBuff(buffId));
+    assert.equal(definition.compiler.status, 'executable');
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [{ id: 'liino', kind: 'Character', team: 'ally' }],
+            resources: [{
+                id: 'liino:UltimateSp',
+                resourceType: 'UltimateSp',
+                scope: 'Entity',
+                ownerId: 'liino',
+                initial: 0,
+                max: 100
+            }],
+            buffs: { [buffId]: definition }
+        }
+    });
+    const context = {
+        frame: 0,
+        sourceId: 'liino',
+        ownerId: 'liino',
+        targetId: 'liino'
+    };
+    runtime.execute({ type: 'ApplyBuff', buffId }, context);
+    const blocked = runtime.execute({
+        type: 'ResourceChange',
+        resourceType: 'UltimateSp',
+        scope: 'Entity',
+        operation: 'Gain',
+        amount: 10
+    }, { ...context, frame: 1 });
+    assert.equal(blocked.stage, 'ResourceGainSuppressed');
+    assert.equal(runtime.resources.describePool('liino:UltimateSp').current, 0);
+
+    runtime.execute({ type: 'FinishBuff', target: 'Target', buffId }, {
+        ...context,
+        frame: 2
+    });
+    runtime.execute({
+        type: 'ResourceChange',
+        resourceType: 'UltimateSp',
+        scope: 'Entity',
+        operation: 'Gain',
+        amount: 10
+    }, { ...context, frame: 3 });
+    assert.equal(runtime.resources.describePool('liino:UltimateSp').current, 10);
+    assert.equal(runtime.resources.describePool('liino:UltimateSp').gainSuppressions.length, 0);
 });
 
 test('real tag-based dispel and layer-based FinishBuff use definition metadata', () => {
@@ -281,6 +514,203 @@ test('real global AuraAction applies assigned Buffs by faction and cleans them u
     }), false);
     assert.equal(runtime.statusEffects.has({
         targetId: 'teammate', buffId: targetBuff.buffId
+    }), false);
+});
+
+test('single-target scenario compiles Chen ranged AuraAction to its context enemy', () => {
+    const compiler = new AkeActionCompiler({
+        capabilities: {
+            damageResolver: true,
+            timeDilationResolver: true,
+            singleTargetSpatialBinding: true
+        }
+    });
+    const program = compiler.compileSkill(readJson(
+        'reference/public-data/akedata/Json/SkillData/chr_0005_chen_combo_skill.json'
+    ));
+    const aura = program.timeline.flatMap(group => group.actions)
+        .find(action => action.type === 'CreateAura');
+
+    assert.equal(aura.targetSelector.mode, 'ContextTarget');
+    assert.equal(aura.targetSelector.faction, 'Anti');
+    assert.ok(aura.definition.onApplyTargetActions.some(action =>
+        action.type === 'ResolveDamagePacket'));
+    assert.equal(program.compiler.unresolved.some(entry =>
+        entry.code === 'AKE_AURA_TARGET_PROVIDER_REQUIRED'), false);
+});
+
+test('real damage decorate masks notify independent Chen talent hit branches', () => {
+    const compiler = new AkeActionCompiler({ capabilities: { damageResolver: true } });
+    const talent = compiler.compileBuff(readBuff('buff_chr_0005_chen_talent_0'));
+    const trigger = compiler.compileBuff(readBuff('buff_chr_0005_chen_talent_0_1'));
+    const branches = talent.abilityEventActions.find(group =>
+        group.eventType === 'OnOutputDamage'
+    ).actions;
+    assert.deepEqual(branches.map(action => action.conditions[0].mask), [256, 512, 8192]);
+
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [
+                { id: 'chen', kind: 'Character', team: 'ally', attributes: { Atk: 100 } },
+                {
+                    id: 'enemy', kind: 'Enemy', team: 'enemy',
+                    attributes: { Def: 0 },
+                    vital: { maxHp: 10000, currentHp: 10000 }
+                }
+            ],
+            buffs: { [talent.buffId]: talent, [trigger.buffId]: trigger }
+        },
+        damageResolver: createAkeDamageResolver()
+    });
+    const context = { frame: 0, sourceId: 'chen', ownerId: 'chen', targetId: 'enemy' };
+    runtime.execute({
+        type: 'ApplyBuff',
+        buffId: talent.buffId,
+        target: 'Source',
+        blackboard: { atk: 0.1, duration: 5 },
+        inheritEventBlackboard: false
+    }, context);
+    for (const [index, damageDecorateMask] of [512, 8192].entries()) {
+        runtime.execute({
+            type: 'ResolveDamagePacket',
+            damageUnits: [{
+                damageType: 'Physical',
+                damageAttributeType: 'Hp',
+                damageDecorateMask,
+                scale: 1,
+                calculationType: 'SimpleAtkScaleCalculation'
+            }]
+        }, { ...context, frame: index + 1 });
+    }
+
+    assert.equal(runtime.statusEffects.list({
+        active: true, targetId: 'chen'
+    }).find(instance => instance.buffId === trigger.buffId).stackCount, 2);
+    assert.equal(runtime.context.getAttribute('chen', 'Atk'), 120);
+    assert.ok(runtime.trace.some(entry => entry.eventType === 'OnOutputDamage'
+        && entry.damageDecorateMask === 8192));
+});
+
+test('real Pograni weapon fans both ATB and added-combo Buff triggers across the team', () => {
+    const compiler = new AkeActionCompiler();
+    const passive = compiler.compilePassiveEventActions(readJson(
+        'reference/public-data/akedata/Json/SkillData/sk_wpn_sword_0012.json'
+    ), {
+        blackboard: { atk_up2: 0.08, duration: 20, lv: 4, max_stack: 2 }
+    });
+    const attackBuff = compiler.compileBuff(readBuff('buff_wpn_sword_0012_atk_up'));
+    const comboTrigger = compiler.compileBuff(readBuff('buff_common_affixes_combo_trigger'));
+    const listener = {
+        buffId: 'test:wpn_sword_0012:listener',
+        lifeType: 'Infinity',
+        blackboard: passive.blackboard,
+        abilityEventActions: passive.groups
+    };
+    assert.equal(passive.compiler.status, 'executable');
+
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [
+                { id: 'pograni', kind: 'Character', team: 'ally', attributes: { Atk: 100 } },
+                { id: 'teammate', kind: 'Character', team: 'ally', attributes: { Atk: 100 } },
+                { id: 'enemy', kind: 'Enemy', team: 'enemy' }
+            ],
+            buffs: {
+                [listener.buffId]: listener,
+                [attackBuff.buffId]: attackBuff,
+                [comboTrigger.buffId]: comboTrigger
+            }
+        }
+    });
+    const context = {
+        frame: 0, sourceId: 'pograni', ownerId: 'pograni', targetId: 'enemy'
+    };
+    runtime.execute({
+        type: 'ApplyBuff', buffId: listener.buffId, target: 'Source'
+    }, context);
+    runtime.execute({
+        type: 'TriggerStatusEvent', eventType: 'OnObtainAtb', target: 'Source'
+    }, {
+        ...context,
+        frame: 1,
+        payload: { resourceSourceType: 'Skill', resourceGainMethod: 'Gain' }
+    });
+    runtime.execute({
+        type: 'ApplyBuff', buffId: comboTrigger.buffId, target: 'Source'
+    }, { ...context, frame: 2 });
+
+    assert.ok(Math.abs(runtime.context.getAttribute('pograni', 'Atk') - 116) < 1e-12);
+    assert.ok(Math.abs(runtime.context.getAttribute('teammate', 'Atk') - 116) < 1e-12);
+    assert.equal(runtime.statusEffects.has({
+        targetId: 'enemy', buffId: attackBuff.buffId
+    }), false);
+    assert.deepEqual(runtime.statusEffects.list({ active: true })
+        .filter(instance => instance.buffId === attackBuff.buffId)
+        .map(instance => [instance.targetId, instance.stackCount, instance.maxStacks])
+        .sort(), [
+        ['pograni', 2, 2],
+        ['teammate', 2, 2]
+    ]);
+});
+
+test('real Originum Frozen ignite damages first, then fans the Admin talent to teammates', () => {
+    const compiler = new AkeActionCompiler({
+        capabilities: {
+            damageResolver: true,
+            singleTargetSpatialBinding: true,
+            timeDilationResolver: true
+        }
+    });
+    const buffIds = [
+        'buff_common_originum_frozen',
+        'buff_chr_0003_endminf_talent_1',
+        'buff_chr_0003_endminf_talent_1_tirgger',
+        'buff_chr_0003_endminf_potential2'
+    ];
+    const buffs = Object.fromEntries(buffIds.map(buffId => {
+        const definition = compiler.compileBuff(readBuff(buffId));
+        return [definition.buffId, definition];
+    }));
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [
+                { id: 'admin', kind: 'Character', team: 'ally', attributes: { Atk: 100 } },
+                { id: 'teammate', kind: 'Character', team: 'ally', attributes: { Atk: 100 } },
+                {
+                    id: 'enemy', kind: 'Enemy', team: 'enemy',
+                    attributes: { Def: 0 },
+                    vital: { maxHp: 10000, currentHp: 10000 }
+                }
+            ],
+            buffs
+        },
+        damageResolver: createAkeDamageResolver()
+    });
+    const context = { frame: 0, sourceId: 'admin', ownerId: 'admin', targetId: 'enemy' };
+    for (const buffId of [
+        'buff_chr_0003_endminf_talent_1',
+        'buff_chr_0003_endminf_potential2'
+    ]) {
+        runtime.execute({ type: 'ApplyBuff', buffId, target: 'Source' }, context);
+    }
+    runtime.execute({
+        type: 'ApplyBuff',
+        buffId: 'buff_common_originum_frozen',
+        target: 'Target',
+        blackboard: { atk_scale_trigger: 1 }
+    }, context);
+    runtime.execute({
+        type: 'TriggerStatusEvent',
+        eventType: 'EndminUlt',
+        target: 'Target',
+        sourceRef: 'Source'
+    }, { ...context, frame: 1 });
+
+    assert.equal(runtime.vitals.get('enemy').currentHp, 9900);
+    assert.ok(Math.abs(runtime.context.getAttribute('admin', 'Atk') - 115) < 1e-12);
+    assert.equal(runtime.context.getAttribute('teammate', 'Atk'), 107.5);
+    assert.equal(runtime.statusEffects.has({
+        targetId: 'enemy', buffId: 'buff_common_originum_frozen'
     }), false);
 });
 
@@ -457,6 +887,100 @@ test('real Pelica root skill launches its child hit program with patched Blackbo
     assert.ok(runtime.trace.some(entry => entry.stage === 'SkillProgramScheduled'
         && entry.skillId === 'chr_0004_pelica_attack1_projhit'
         && entry.frame === 8));
+});
+
+test('real Zhuang Fangyi sword projectile preserves its generic reach child skill', () => {
+    const compiler = new AkeActionCompiler({
+        targetMappings: { Context: 'Target' },
+        capabilities: { skillProgramResolver: true }
+    });
+    const program = compiler.compileSkill(readJson(
+        'reference/public-data/akedata/Json/SkillData/chr_0030_zhuangfy_normal_skill.json'
+    ));
+    const launches = [];
+    const visit = actions => {
+        for (const action of actions ?? []) {
+            if (action.type === 'LaunchSkillProgram') launches.push(action);
+            for (const key of ['actions', 'success', 'failure']) visit(action[key]);
+        }
+    };
+    for (const group of program.timeline) visit(group.actions);
+
+    const swordLaunches = launches.filter(action => (
+        action.childSkillId === 'chr_0030_zhuangfy_normal_skill_gene_sword_projhit'
+    ));
+    assert.ok(swordLaunches.length > 0);
+    assert.ok(swordLaunches.every(action => action.projectileTerminalEvent === 'Reach'));
+    assert.equal(
+        program.compiler.unresolved.some(entry => entry.code === 'AKE_PROJECTILE_TERMINAL_SKILL_MISSING'),
+        false
+    );
+});
+
+test('TickIntervalAction compiles to cancellable immediate-and-periodic program ticks', () => {
+    const compiler = new AkeActionCompiler();
+    const compiled = compiler.compileActions([{
+        $type: 'Beyond.Gameplay.Core.TickIntervalAction+Data, Gameplay.Beyond',
+        isEnable: true,
+        executeEachFrame: false,
+        tickInterval: 0.2,
+        useTickIntervalBlackboardKey: false,
+        actionOnTick: {
+            actionData: [{
+                $type: 'Beyond.Gameplay.Core.ModifyDynamicBlackboard+Data, Gameplay.Beyond',
+                isEnable: true,
+                directValue: true,
+                key: 'tick_count',
+                operation: 'Add',
+                value: { useBlackboardKey: false, value: 1, blackboardKey: '' }
+            }]
+        }
+    }], {
+        skillId: 'interval_fixture',
+        timelineStartFrame: 10,
+        timelineEndFrame: 27
+    });
+    assert.equal(compiled.unresolved.length, 0);
+    assert.deepEqual(compiled.actions.map(action => action.type), ['ScheduleIntervalActions']);
+    assert.equal(compiled.actions[0].durationTicks, 17);
+
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [
+                { id: 'source', kind: 'Character', team: 'ally' },
+                { id: 'target', kind: 'Enemy', team: 'enemy' }
+            ]
+        }
+    });
+    const scheduled = runtime.scheduleProgram({
+        skillId: 'interval_fixture',
+        blackboard: { tick_count: 0 },
+        timeline: [{
+            groupIndex: 0,
+            startFrame: 10,
+            endFrame: 27,
+            actions: compiled.actions,
+            cleanupActions: []
+        }]
+    }, {
+        frame: 0,
+        sourceId: 'source',
+        ownerId: 'source',
+        targetId: 'target'
+    });
+    runtime.runUntil(22);
+    assert.deepEqual(
+        runtime.effects.trace
+            .filter(entry => entry.type === 'ModifyBlackboard')
+            .map(entry => entry.frame),
+        [10, 16, 22]
+    );
+    runtime.cancelProgramExecution(scheduled.executionId, 23, 'fixture-stop');
+    runtime.runUntil(40);
+    assert.equal(
+        runtime.effects.trace.filter(entry => entry.type === 'ModifyBlackboard').length,
+        3
+    );
 });
 
 test('real equipment passive toggles its sourced Buff as HP condition changes', () => {

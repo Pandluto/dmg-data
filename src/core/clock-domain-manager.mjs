@@ -223,6 +223,16 @@ export class ClockDomainManager {
         return this.domains.has(domainId);
     }
 
+    listDomains({ includeGlobal = true } = {}) {
+        return [...this.domains.values()]
+            .filter(domain => includeGlobal || domain.id !== 'global')
+            .map(domain => ({
+                id: domain.id,
+                kind: domain.kind,
+                ownerId: domain.ownerId
+            }));
+    }
+
     #domain(domainId) {
         const id = identifier(domainId, 'domain id');
         const domain = this.domains.get(id);
@@ -233,6 +243,17 @@ export class ClockDomainManager {
     #record(record) {
         const frame = record.frame === undefined ? 0 : nonNegativeInteger(record.frame, 'trace frame');
         const stage = record.stage ?? record.type ?? 'ClockEvent';
+        const {
+            frame: ignoredFrame,
+            stage: ignoredStage,
+            type: ignoredType,
+            sourceId: ignoredSourceId,
+            ownerId: ignoredOwnerId,
+            targetId: ignoredTargetId,
+            reason: ignoredReason,
+            ruleId: ignoredRuleId,
+            ...extra
+        } = record;
         const normalized = {
             frame,
             stage,
@@ -242,15 +263,7 @@ export class ClockDomainManager {
             targetId: record.targetId ?? null,
             reason: record.reason ?? null,
             ruleId: record.ruleId ?? null,
-            ...record,
-            frame,
-            stage,
-            type: record.type ?? stage,
-            sourceId: record.sourceId ?? null,
-            ownerId: record.ownerId ?? null,
-            targetId: record.targetId ?? null,
-            reason: record.reason ?? null,
-            ruleId: record.ruleId ?? null
+            ...extra
         };
         this.trace.push(normalized);
         return normalized;

@@ -182,6 +182,10 @@ export interface HitBuffEffect {
   statusKey?: string;
   /** 状态自身的绝对量，例如本次命中的失衡值。 */
   statusValue?: number;
+  /** 技能等级对应的状态数值，例如源石结晶被击碎时的 atkScale。 */
+  statusValueLevels?: Record<string, number>;
+  /** AKE 源 SkillData 内的动作帧，用于让状态只落到对应 Hit。 */
+  offsetFrames?: number;
   effects?: Array<{
     id: string;
     sourceBuffId: string;

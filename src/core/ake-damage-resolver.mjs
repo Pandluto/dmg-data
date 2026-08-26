@@ -1,11 +1,15 @@
 import { calculateDamage } from './damage.mjs';
 
-function firstFiniteAttribute(context, entityId, names, fallback) {
+function firstFiniteAttributeEntry(context, entityId, names, fallback) {
     for (const name of names) {
         const value = context.getAttribute(entityId, name);
-        if (Number.isFinite(Number(value))) return Number(value);
+        if (Number.isFinite(Number(value))) return { attribute: name, value: Number(value) };
     }
-    return fallback;
+    return { attribute: names[0] ?? null, value: fallback };
+}
+
+function firstFiniteAttribute(context, entityId, names, fallback) {
+    return firstFiniteAttributeEntry(context, entityId, names, fallback).value;
 }
 
 function finite(value, label) {
@@ -20,6 +24,107 @@ function supportedHpCalculation(type) {
         || type === 'SimpleAtkScaleCalculation'
         || type === 'BreakingAttackCalculation'
         || String(type).endsWith('AtkCalculation');
+}
+
+const CONFIGURED_ELEMENT_BONUS_ATTRIBUTE = Object.freeze({
+    Physical: 'ConfiguredPhysicalDamageBonus',
+    Fire: 'ConfiguredFireDamageBonus',
+    Pulse: 'ConfiguredPulseDamageBonus',
+    Cryst: 'ConfiguredCrystDamageBonus',
+    Natural: 'ConfiguredNaturalDamageBonus'
+});
+
+const CONFIGURED_COMMAND_BONUS_ATTRIBUTE = Object.freeze({
+    Attack: 'ConfiguredNormalAttackDamageBonus',
+    NormalSkill: 'ConfiguredNormalSkillDamageBonus',
+    ComboSkill: 'ConfiguredComboSkillDamageBonus',
+    UltimateSkill: 'ConfiguredUltimateSkillDamageBonus'
+});
+
+const AKE_ELEMENT_DAMAGE_ATTRIBUTE = Object.freeze({
+    Physical: 'PhysicalDamageIncrease',
+    Fire: 'FireDamageIncrease',
+    Pulse: 'PulseDamageIncrease',
+    Cryst: 'CrystDamageIncrease',
+    Natural: 'NaturalDamageIncrease',
+    Ether: 'EtherDamageIncrease'
+});
+
+const AKE_COMMAND_DAMAGE_ATTRIBUTE = Object.freeze({
+    Attack: 'NormalAttackDamageIncrease',
+    NormalAttack: 'NormalAttackDamageIncrease',
+    NormalSkill: 'NormalSkillDamageIncrease',
+    ComboSkill: 'ComboSkillDamageIncrease',
+    UltimateSkill: 'UltimateSkillDamageIncrease'
+});
+
+function mergeDamageZone(base, additions = []) {
+    const zones = new Map((base.zones ?? []).map(zone => [zone.zoneName, zone.addition]));
+    for (const contribution of additions) {
+        zones.set(
+            contribution.zoneName,
+            (zones.get(contribution.zoneName) ?? 0) + contribution.addition
+        );
+    }
+    const zoneValues = [...zones.entries()].map(([zoneName, addition]) => ({
+        zoneName,
+        addition,
+        scale: 1 + addition
+    }));
+    return {
+        ...base,
+        scale: zoneValues.reduce((scale, zone) => scale * zone.scale, 1),
+        zones: zoneValues,
+        contributions: [
+            ...(base.contributions ?? []),
+            ...additions
+        ]
+    };
+}
+
+function attackerAttributeZone(context, sourceId, damageType, commandType) {
+    const attributes = [
+        AKE_ELEMENT_DAMAGE_ATTRIBUTE[damageType],
+        AKE_COMMAND_DAMAGE_ATTRIBUTE[commandType]
+    ].filter(Boolean);
+    return attributes.flatMap(attribute => {
+        const addition = Number(context.getAttribute(sourceId, attribute));
+        return Number.isFinite(addition) && addition !== 0 ? [{
+            sourceKey: `attribute:${sourceId}:${attribute}`,
+            sourceType: 'Attribute',
+            attribute,
+            side: 'Attacker',
+            zoneName: 'NormalCalcZone',
+            addition
+        }] : [];
+    });
+}
+
+function configuredDamageBonus(context, sourceId, damageType, commandType) {
+    let bonus = firstFiniteAttribute(
+        context,
+        sourceId,
+        ['ConfiguredAllDamageBonus'],
+        0
+    );
+    const elementAttribute = CONFIGURED_ELEMENT_BONUS_ATTRIBUTE[damageType];
+    if (elementAttribute) {
+        bonus += firstFiniteAttribute(context, sourceId, [elementAttribute], 0);
+    }
+    if (damageType === 'Fire' || damageType === 'Pulse'
+        || damageType === 'Cryst' || damageType === 'Natural') {
+        bonus += firstFiniteAttribute(
+            context,
+            sourceId,
+            ['ConfiguredMagicDamageBonus'],
+            0
+        );
+    }
+    const commandAttribute = CONFIGURED_COMMAND_BONUS_ATTRIBUTE[commandType];
+    if (commandAttribute) {
+        bonus += firstFiniteAttribute(context, sourceId, [commandAttribute], 0);
+    }
+    return bonus;
 }
 
 /**
@@ -44,12 +149,13 @@ export function createAkeDamageResolver({
                 hits: []
             };
         }
-        const attack = firstFiniteAttribute(
+        const attackEntry = firstFiniteAttributeEntry(
             runtime.context,
             sourceId,
             attackAttributes,
             Number.NaN
         );
+        const attack = attackEntry.value;
         const defense = firstFiniteAttribute(runtime.context, targetId, defenseAttributes, 0);
         const hits = [];
         const unresolved = [];
@@ -76,6 +182,8 @@ export function createAkeDamageResolver({
                     damageUnitIndex,
                     damageType: unit.damageType,
                     damageAttributeType: unit.damageAttributeType,
+                    damageDecorateMask: Number(unit.damageDecorateMask ?? 0),
+                    damageTypeMask: unit.damageTypeMask ?? null,
                     amount,
                     finalDamage: amount,
                     operands: { kind: 'Poise', amount }
@@ -102,16 +210,35 @@ export function createAkeDamageResolver({
             }
             const atkScale = finite(resolveValue(unit.scale ?? 0), 'attack scale')
                 * finite(resolveValue(unit.calculationMultiplier ?? 1), 'calculation multiplier');
-            const attackerZone = runtime.effectSources.damageZone({
+            const registeredAttackerZone = runtime.effectSources.damageZone({
                 targetId: sourceId,
+                attackerId: sourceId,
+                defenderId: targetId,
                 side: 'Attacker',
                 damageType: unit.damageType
-            }, eventContext);
+            }, {
+                ...eventContext,
+                payload: { ...eventContext.payload, damageType: unit.damageType }
+            });
+            const attackerZone = mergeDamageZone(
+                registeredAttackerZone,
+                attackerAttributeZone(
+                    runtime.context,
+                    sourceId,
+                    unit.damageType,
+                    eventContext.commandType ?? eventContext.skillType
+                )
+            );
             const defenderZone = runtime.effectSources.damageZone({
                 targetId,
+                attackerId: sourceId,
+                defenderId: targetId,
                 side: 'Defender',
                 damageType: unit.damageType
-            }, eventContext);
+            }, {
+                ...eventContext,
+                payload: { ...eventContext.payload, damageType: unit.damageType }
+            });
             const resistance = firstFiniteAttribute(runtime.context, targetId, [
                 `${unit.damageType}Resistance`,
                 `${unit.damageType}Res`,
@@ -123,6 +250,13 @@ export function createAkeDamageResolver({
                     'ExecutionDamageScalar', 'executionDamageScalar'
                 ], 1)
                 : 1;
+            const configuredBonus = configuredDamageBonus(
+                runtime.context,
+                sourceId,
+                unit.damageType,
+                eventContext.commandType
+            );
+            const configuredDamageBonusScale = Math.max(0, 1 + configuredBonus);
             const result = calculateDamage({
                 attack,
                 atkScale,
@@ -139,6 +273,7 @@ export function createAkeDamageResolver({
                 ], 0),
                 attackerZoneScale: attackerZone.scale,
                 defenderZoneScale: defenderZone.scale,
+                configuredDamageBonusScale,
                 specialScale,
                 criticalMode,
                 criticalRate: firstFiniteAttribute(runtime.context, sourceId, [
@@ -152,9 +287,23 @@ export function createAkeDamageResolver({
                 damageUnitIndex,
                 damageType: unit.damageType,
                 damageAttributeType: 'Hp',
+                damageDecorateMask: Number(unit.damageDecorateMask ?? 0),
+                damageTypeMask: unit.damageTypeMask ?? null,
                 amount: result.finalDamage,
                 ...result,
-                modifierSnapshot: { attackerZone, defenderZone, specialScale }
+                modifierSnapshot: {
+                    attackAttribute: attackEntry.attribute
+                        ? runtime.effectSources.attributeSnapshot({
+                            targetId: sourceId,
+                            attribute: attackEntry.attribute
+                        }, eventContext)
+                        : null,
+                    attackerZone,
+                    defenderZone,
+                    configuredBonus,
+                    configuredDamageBonusScale,
+                    specialScale
+                }
             });
         }
         return {

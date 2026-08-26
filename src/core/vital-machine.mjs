@@ -144,6 +144,17 @@ export class VitalMachine {
             ? 0
             : nonNegativeInteger(record.frame, 'vital trace frame');
         const stage = record.stage ?? record.type ?? 'VitalEvent';
+        const {
+            frame: ignoredFrame,
+            stage: ignoredStage,
+            type: ignoredType,
+            sourceId: ignoredSourceId,
+            ownerId: ignoredOwnerId,
+            targetId: ignoredTargetId,
+            reason: ignoredReason,
+            ruleId: ignoredRuleId,
+            ...extra
+        } = record;
         const normalized = {
             frame,
             stage,
@@ -153,15 +164,7 @@ export class VitalMachine {
             targetId: record.targetId ?? null,
             reason: record.reason ?? null,
             ruleId: record.ruleId ?? null,
-            ...record,
-            frame,
-            stage,
-            type: record.type ?? stage,
-            sourceId: record.sourceId ?? null,
-            ownerId: record.ownerId ?? null,
-            targetId: record.targetId ?? null,
-            reason: record.reason ?? null,
-            ruleId: record.ruleId ?? null
+            ...extra
         };
         this.trace.push(normalized);
         return normalized;

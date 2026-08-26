@@ -140,6 +140,95 @@ test('CombatRuntime composes resources, aura buffs, reactions, vitals and resili
     assert.ok(runtime.reactions.trace.some(entry => entry.stage === 'ReactionTriggered'));
 });
 
+test('delegated damage uses an explicit target fallback when an AKE group is empty', () => {
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [{
+                id: 'character',
+                kind: 'Character',
+                team: 'ally'
+            }, {
+                id: 'enemy',
+                kind: 'Enemy',
+                team: 'enemy',
+                vital: { maxHp: 500, currentHp: 500 }
+            }]
+        },
+        damageResolver: () => ({
+            status: 'Resolved',
+            hits: [{ damageAttributeType: 'Hp', amount: 1 }]
+        })
+    });
+    runtime.execute({
+        type: 'ResolveDamagePacket',
+        targetRef: {
+            type: 'TargetGroup',
+            key: 'abilityTargets',
+            index: 0,
+            fallback: 'Target'
+        },
+        damageUnits: []
+    }, {
+        frame: 0,
+        eventType: 'Hit',
+        sourceId: 'character',
+        ownerId: 'character',
+        targetId: 'enemy',
+        blackboard: { __akeTargetGroups: { abilityTargets: [] } }
+    });
+
+    assert.equal(runtime.vitals.get('enemy').currentHp, 499);
+});
+
+test('single-target ranged aura binds to the explicit context target', () => {
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [{
+                id: 'character',
+                kind: 'Character',
+                team: 'ally'
+            }, {
+                id: 'enemy',
+                kind: 'Enemy',
+                team: 'enemy'
+            }],
+            buffs: {
+                'buff.ranged-hit': { stackingPolicy: 'Refresh' }
+            }
+        }
+    });
+
+    const created = runtime.execute({
+        type: 'CreateAura',
+        auraId: 'aura.ranged-hit',
+        targetSelector: {
+            mode: 'ContextTarget',
+            faction: 'Anti',
+            objectType: 'Character'
+        },
+        definition: {
+            onApplyTargetActions: [{
+                type: 'ApplyBuff',
+                target: 'Target',
+                buffId: 'buff.ranged-hit'
+            }]
+        }
+    }, {
+        frame: 4,
+        eventType: 'SkillTimelineGroupStarted',
+        sourceId: 'character',
+        ownerId: 'character',
+        targetId: 'enemy',
+        castId: 'cast:ranged-hit'
+    });
+
+    assert.deepEqual(created.targetIds, ['enemy']);
+    assert.equal(runtime.statusEffects.has({
+        targetId: 'enemy',
+        buffId: 'buff.ranged-hit'
+    }), true);
+});
+
 test('status-effect duration follows its selected local clock and source cleanup is explicit', () => {
     const runtime = makeRuntime({
         clockDomains: [{ id: 'enemy-local', kind: 'Enemy', ownerId: 'enemy' }]

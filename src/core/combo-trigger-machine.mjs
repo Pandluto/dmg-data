@@ -2,7 +2,7 @@ const OCCURRENCES = new Set(['every-event', 'first-per-cast', 'first-per-cast-ta
 const PENDING_POLICIES = new Set(['append', 'keep-existing', 'refresh-newest', 'replace-all']);
 const SELECTION_POLICIES = new Set(['newest', 'oldest']);
 const CONSUME_POLICIES = new Set(['selected', 'all-for-owner-and-skill']);
-const OWNER_BINDINGS = new Set(['event-source', 'none']);
+const OWNER_BINDINGS = new Set(['event-source', 'fixed', 'none']);
 const TARGET_BINDINGS = new Set(['event-target', 'none']);
 
 function requiredString(value, label) {
@@ -25,8 +25,22 @@ function normalizeRule(rawRule, index) {
     const effect = rawRule.effect ?? {};
     const rootSkillIds = selector.rootSkillIds
         ?? (selector.rootSkillId ? [selector.rootSkillId] : []);
-    if (!Array.isArray(rootSkillIds) || rootSkillIds.length === 0) {
-        throw new Error(`Combo trigger rule ${id} must select at least one root skill.`);
+    if (!Array.isArray(rootSkillIds)) {
+        throw new Error(`Combo trigger rule ${id} selector.rootSkillIds must be an array.`);
+    }
+    const rootSkillRole = selector.rootSkillRole ?? null;
+    const statusBuffIds = selector.statusBuffIds ?? [];
+    const sourceCommandTypes = selector.sourceCommandTypes ?? [];
+    if (!Array.isArray(statusBuffIds) || !Array.isArray(sourceCommandTypes)) {
+        throw new Error(
+            `Combo trigger rule ${id} statusBuffIds/sourceCommandTypes must be arrays.`
+        );
+    }
+    if (rootSkillIds.length === 0 && !rootSkillRole
+        && statusBuffIds.length === 0 && sourceCommandTypes.length === 0) {
+        throw new Error(
+            `Combo trigger rule ${id} must select a root skill, semantic role, status, or command type.`
+        );
     }
     const durationTicks = Number(effect.pendingDurationTicks);
     if (!Number.isInteger(durationTicks) || durationTicks <= 0) {
@@ -46,12 +60,25 @@ function normalizeRule(rawRule, index) {
             rootSkillIds: [...new Set(rootSkillIds.map((skillId, skillIndex) =>
                 requiredString(skillId, `combo trigger rule ${id} rootSkillIds[${skillIndex}]`)
             ))],
+            rootSkillRole: rootSkillRole === null
+                ? null
+                : requiredString(rootSkillRole, `combo trigger rule ${id} selector.rootSkillRole`),
+            statusBuffIds: [...new Set(statusBuffIds.map((buffId, buffIndex) =>
+                requiredString(buffId, `combo trigger rule ${id} statusBuffIds[${buffIndex}]`)
+            ))],
+            sourceCommandTypes: [...new Set(sourceCommandTypes.map((commandType, commandIndex) =>
+                requiredString(
+                    commandType,
+                    `combo trigger rule ${id} sourceCommandTypes[${commandIndex}]`
+                )
+            ))],
+            requireSourceOtherThanOwner: selector.requireSourceOtherThanOwner === true,
             sourceSkillIds: selector.sourceSkillIds
                 ? [...new Set(selector.sourceSkillIds.map((skillId, skillIndex) =>
                     requiredString(skillId, `combo trigger rule ${id} sourceSkillIds[${skillIndex}]`)
                 ))]
                 : undefined,
-            damageAttributeType: selector.damageAttributeType ?? 'Hp',
+            damageAttributeType: selector.damageAttributeType ?? null,
             occurrence: selectedPolicy(
                 selector.occurrence ?? 'every-event',
                 OCCURRENCES,
@@ -70,6 +97,9 @@ function normalizeRule(rawRule, index) {
                 OWNER_BINDINGS,
                 `combo trigger rule ${id} effect.ownerBinding`
             ),
+            ownerId: effect.ownerBinding === 'fixed'
+                ? requiredString(effect.ownerId, `combo trigger rule ${id} effect.ownerId`)
+                : effect.ownerId ?? null,
             triggerTargetBinding: selectedPolicy(
                 effect.triggerTargetBinding ?? 'event-target',
                 TARGET_BINDINGS,
@@ -136,9 +166,20 @@ export class ComboTriggerMachine {
 
     #matches(rule, event) {
         if (event.eventType !== rule.eventType) return false;
-        if (!rule.selector.rootSkillIds.includes(event.rootSkillId)) return false;
+        const selectsRoot = rule.selector.rootSkillIds.length > 0
+            || rule.selector.rootSkillRole !== null;
+        if (selectsRoot) {
+            const idMatched = rule.selector.rootSkillIds.includes(event.rootSkillId);
+            const roleMatched = rule.selector.rootSkillRole !== null
+                && (event.rootSkillRoles ?? []).includes(rule.selector.rootSkillRole);
+            if (!idMatched && !roleMatched) return false;
+        }
         if (rule.selector.sourceSkillIds
             && !rule.selector.sourceSkillIds.includes(event.sourceSkillId)) return false;
+        if (rule.selector.statusBuffIds.length > 0
+            && !rule.selector.statusBuffIds.includes(event.buffId)) return false;
+        if (rule.selector.sourceCommandTypes.length > 0
+            && !rule.selector.sourceCommandTypes.includes(event.sourceCommandType)) return false;
         if (rule.selector.damageAttributeType
             && event.damageAttributeType !== rule.selector.damageAttributeType) return false;
         return true;
@@ -146,6 +187,7 @@ export class ComboTriggerMachine {
 
     #boundOwner(rule, event) {
         if (rule.effect.ownerBinding === 'event-source') return event.sourceId;
+        if (rule.effect.ownerBinding === 'fixed') return rule.effect.ownerId;
         if (rule.effect.ownerBinding === 'none') return null;
         throw new Error(`Unsupported combo owner binding: ${rule.effect.ownerBinding}`);
     }
@@ -245,6 +287,15 @@ export class ComboTriggerMachine {
                 skillId: rule.effect.comboSkillId,
                 triggerTargetId: this.#boundTarget(rule, event)
             };
+            if (rule.selector.requireSourceOtherThanOwner
+                && slot.ownerId === event.sourceId) {
+                decisions.push({
+                    ruleId: rule.id,
+                    status: 'ignored',
+                    reason: 'SOURCE_IS_PENDING_OWNER'
+                });
+                continue;
+            }
             const existing = [...this.pending.values()].filter(candidate => sameSlot(candidate, slot));
             let pending;
             let stage = 'PENDING_CREATED';

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "description": "Calc public simulation endpoint black-box squad resource observations",
+    "url": "https://calc.perlica.tech/api/simulations",
+    "method": "POST",
+    "authentication": "none"
+  },
+  "recordedAt": "2026-08-25T01:41:47.495Z",
+  "calcDataVersion": "9163343-11",
+  "files": [
+    {
+      "path": "fixtures/calc/squad-resource-boundaries.oracle.json",
+      "bytes": 1869907,
+      "sha256": "6e0891aa3b1edfabc3fc5053ee7a6ad635b81d8f1ba54ec498267aec3b8b4b81"
+    }
+  ]
+}

@@ -43,6 +43,15 @@ function clone(value) {
     return JSON.parse(JSON.stringify(value));
 }
 
+function normalizedTags(value) {
+    const entries = Array.isArray(value)
+        ? value
+        : (Array.isArray(value?.predefinedTag) ? value.predefinedTag : []);
+    return [...new Set(entries
+        .map(entry => (entry && typeof entry === 'object' ? entry.tagId : entry))
+        .filter(entry => entry !== null && entry !== undefined && entry !== 0))];
+}
+
 function normalizePassiveRecovery(value, tickRate, resourceType) {
     if (value === undefined || value === null || value === false) return null;
     if (typeof value === 'number' || typeof value === 'string') {
@@ -104,6 +113,17 @@ function normalizePoolDefinition(definition, fallbackId, tickRate) {
     const max = nonNegativeNumber(input.max, `${id}.max`);
     const initial = nonNegativeNumber(input.initial ?? input.current ?? 0, `${id}.initial`);
     if (initial > max) throw new RangeError(`${id}.initial cannot exceed max.`);
+    const trackReturned = input.trackReturned === undefined
+        ? scope === 'Shared' && resourceType === 'Atb'
+        : Boolean(input.trackReturned);
+    const returned = nonNegativeNumber(
+        input.returned ?? input.returnedInitial ?? input.reserved ?? 0,
+        `${id}.returned`
+    );
+    if (returned > initial) throw new RangeError(`${id}.returned cannot exceed initial.`);
+    if (!trackReturned && returned !== 0) {
+        throw new RangeError(`${id}.returned requires trackReturned.`);
+    }
     const clockDomainId = identifier(input.clockDomainId ?? 'global', 'clockDomainId');
     return {
         id,
@@ -113,6 +133,10 @@ function normalizePoolDefinition(definition, fallbackId, tickRate) {
         initial,
         max,
         current: initial,
+        trackReturned,
+        returned,
+        recoverySuspensions: new Map(),
+        gainSuppressions: new Map(),
         passiveRecovery: normalizePassiveRecovery(input.passiveRecovery, tickRate, resourceType),
         clockDomainId,
         metadata: input.metadata && typeof input.metadata === 'object'
@@ -154,6 +178,7 @@ export class ResourceSystem {
         this.clockDomainManager = clockDomainManager;
         this.strictSpend = strictSpend;
         this.pools = new Map();
+        this.spendLedger = new Map();
         this.trace = [];
 
         if (definitions !== null) {
@@ -184,6 +209,17 @@ export class ResourceSystem {
             ? 0
             : nonNegativeInteger(record.frame, 'resource trace frame');
         const stage = record.stage ?? record.type ?? 'ResourceEvent';
+        const {
+            frame: ignoredFrame,
+            stage: ignoredStage,
+            type: ignoredType,
+            sourceId: ignoredSourceId,
+            ownerId: ignoredOwnerId,
+            targetId: ignoredTargetId,
+            reason: ignoredReason,
+            ruleId: ignoredRuleId,
+            ...extra
+        } = record;
         const normalized = {
             frame,
             stage,
@@ -193,15 +229,7 @@ export class ResourceSystem {
             targetId: record.targetId ?? null,
             reason: record.reason ?? null,
             ruleId: record.ruleId ?? null,
-            ...record,
-            frame,
-            stage,
-            type: record.type ?? stage,
-            sourceId: record.sourceId ?? null,
-            ownerId: record.ownerId ?? null,
-            targetId: record.targetId ?? null,
-            reason: record.reason ?? null,
-            ruleId: record.ruleId ?? null
+            ...extra
         };
         this.trace.push(normalized);
         return normalized;
@@ -235,7 +263,11 @@ export class ResourceSystem {
             discarded: 0,
             discardedDelta: 0,
             after: pool.initial,
-            cap: pool.max
+            cap: pool.max,
+            returnedBefore: 0,
+            returnedAfter: pool.returned,
+            ordinaryBefore: 0,
+            ordinaryAfter: pool.initial - pool.returned
         });
         if (pool.passiveRecovery && (this.schedule || this.clockDomainManager)) {
             this.#schedulePassive(pool, 0);
@@ -291,6 +323,12 @@ export class ResourceSystem {
             current: pool.current,
             value: pool.current,
             max: pool.max,
+            trackReturned: pool.trackReturned,
+            returned: pool.returned,
+            reserved: pool.returned,
+            ordinary: pool.current - pool.returned,
+            recoverySuspensions: [...pool.recoverySuspensions.values()].map(clone),
+            gainSuppressions: [...pool.gainSuppressions.values()].map(clone),
             passiveRecovery: pool.passiveRecovery ? { ...pool.passiveRecovery } : null,
             clockDomainId: pool.clockDomainId,
             metadata: clone(pool.metadata)
@@ -313,6 +351,10 @@ export class ResourceSystem {
             ruleId: null
         });
         return this.#publicPool(pool);
+    }
+
+    describePool(poolRef) {
+        return this.#publicPool(this.#pool(poolRef));
     }
 
     get(poolRef, frame = 0) {
@@ -393,6 +435,16 @@ export class ResourceSystem {
         input.ownerId = identifier(input.ownerId, `${operation} ownerId`, { allowNull: true });
         input.targetId = identifier(input.targetId, `${operation} targetId`, { allowNull: true });
         input.ruleId = identifier(input.ruleId, `${operation} ruleId`, { allowNull: true });
+        input.resourceSourceType = input.resourceSourceType ?? input.atbSourceType ?? null;
+        input.resourceGainMethod = input.resourceGainMethod ?? input.atbGainMethod ?? null;
+        input.resourceGainTags = normalizedTags(
+            input.resourceGainTags ?? input.uspRecoverTags ?? input.uspRecoverTag
+        );
+        input.commandId = identifier(input.commandId, `${operation} commandId`, { allowNull: true });
+        input.castId = identifier(input.castId, `${operation} castId`, { allowNull: true });
+        input.skillId = identifier(input.skillId, `${operation} skillId`, { allowNull: true });
+        input.replaceReturnedOnCap = input.replaceReturnedOnCap !== false;
+        input.spendReturnedFirst = input.spendReturnedFirst !== false;
         input.strict = input.strict === undefined ? this.strictSpend : input.strict;
         if (typeof input.strict !== 'boolean') throw new TypeError(`${operation} strict must be boolean.`);
         return input;
@@ -401,12 +453,80 @@ export class ResourceSystem {
     #change(pool, input, operation) {
         const requestedAmount = input.amount;
         const before = pool.current;
+        const returnedBefore = pool.returned;
+        if (operation === 'gain' && pool.gainSuppressions.size > 0) {
+            const matchingSuppression = [...pool.gainSuppressions.values()].find(suppression =>
+                suppression.tags.length === 0
+                || suppression.tags.some(tag => input.resourceGainTags.includes(tag))
+            );
+            if (matchingSuppression) {
+                return this.#record({
+                    frame: input.frame,
+                    stage: 'ResourceGainSuppressed',
+                    type: 'GainSuppressed',
+                    kind: 'Gain',
+                    poolId: pool.id,
+                    resourceType: pool.resourceType,
+                    scope: pool.scope,
+                    clockDomainId: pool.clockDomainId,
+                    sourceId: input.sourceId,
+                    ownerId: input.ownerId ?? pool.ownerId,
+                    targetId: input.targetId ?? (pool.scope === 'Entity' ? pool.ownerId : null),
+                    reason: input.reason,
+                    ruleId: input.ruleId,
+                    commandId: input.commandId,
+                    castId: input.castId,
+                    skillId: input.skillId,
+                    resourceSourceType: input.resourceSourceType,
+                    resourceGainMethod: input.resourceGainMethod,
+                    resourceGainTags: clone(input.resourceGainTags),
+                    suppressionToken: matchingSuppression.token,
+                    suppressionTags: clone(matchingSuppression.tags),
+                    before,
+                    requested: requestedAmount,
+                    requestedAmount,
+                    requestedDelta: requestedAmount,
+                    actual: 0,
+                    actualAmount: 0,
+                    actualDelta: 0,
+                    discarded: requestedAmount,
+                    discardedAmount: requestedAmount,
+                    discardedDelta: requestedAmount,
+                    after: before,
+                    cap: pool.max,
+                    returnedBefore,
+                    returnedAfter: returnedBefore,
+                    ordinaryBefore: before - returnedBefore,
+                    ordinaryAfter: before - returnedBefore,
+                    success: false,
+                    failure: 'ResourceGainSuppressed'
+                });
+            }
+        }
         let success = true;
         let actualAmount = requestedAmount;
         let failure = null;
+        let returnedGained = 0;
+        let returnedSpent = 0;
+        let returnedReplaced = 0;
+        let eligibleSpend = 0;
         if (operation === 'gain') {
             actualAmount = Math.min(requestedAmount, pool.max - before);
             pool.current += actualAmount;
+            const gainMethod = String(input.resourceGainMethod ?? '').toLowerCase();
+            if (pool.trackReturned && gainMethod === 'return') {
+                returnedGained = actualAmount;
+                pool.returned += returnedGained;
+            } else if (pool.trackReturned && input.replaceReturnedOnCap) {
+                // Normal recovery has precedence over returned ATB at the cap.
+                // It replaces the returned composition without changing the
+                // displayed total, matching Calc's reserved-ATB boundary.
+                returnedReplaced = Math.min(
+                    requestedAmount - actualAmount,
+                    pool.returned
+                );
+                pool.returned -= returnedReplaced;
+            }
         } else {
             if (requestedAmount > before) {
                 success = false;
@@ -415,6 +535,11 @@ export class ResourceSystem {
             } else {
                 pool.current -= requestedAmount;
                 actualAmount = requestedAmount;
+                if (pool.trackReturned && input.spendReturnedFirst) {
+                    returnedSpent = Math.min(requestedAmount, pool.returned);
+                    pool.returned -= returnedSpent;
+                }
+                eligibleSpend = actualAmount - returnedSpent;
             }
         }
         const requestedDelta = operation === 'gain' ? requestedAmount : -requestedAmount;
@@ -434,6 +559,12 @@ export class ResourceSystem {
             targetId: input.targetId ?? (pool.scope === 'Entity' ? pool.ownerId : null),
             reason: input.reason,
             ruleId: input.ruleId,
+            commandId: input.commandId,
+            castId: input.castId,
+            skillId: input.skillId,
+            resourceSourceType: input.resourceSourceType,
+            resourceGainMethod: input.resourceGainMethod,
+            resourceGainTags: clone(input.resourceGainTags),
             before,
             requested: requestedAmount,
             requestedAmount,
@@ -446,6 +577,20 @@ export class ResourceSystem {
             discardedDelta: requestedDelta - actualDelta,
             after: pool.current,
             cap: pool.max,
+            returnedBefore,
+            returnedGained,
+            returnedSpent,
+            returnedReplaced,
+            returnedAfter: pool.returned,
+            reservedBefore: returnedBefore,
+            reservedAfter: pool.returned,
+            ordinaryBefore: before - returnedBefore,
+            ordinaryAfter: pool.current - pool.returned,
+            eligibleSpend,
+            uspEligibleSpend: eligibleSpend,
+            uspEligibilityRatio: operation === 'spend' && actualAmount > 0
+                ? eligibleSpend / actualAmount
+                : null,
             success,
             failure,
             insufficient: failure === 'InsufficientResource',
@@ -458,12 +603,73 @@ export class ResourceSystem {
                 localFrame + pool.passiveRecovery.resumeDelayTicksAfterSpend
             );
         }
+        if (operation === 'spend' && success && pool.resourceType === 'Atb') {
+            this.#rememberSpend(record);
+        }
         if (!success && input.strict) {
             throw new Error(
                 `Insufficient ${pool.resourceType}: need ${requestedAmount}, have ${before}.`
             );
         }
         return record;
+    }
+
+    #spendLedgerKeys(input) {
+        return [
+            input.castId === null || input.castId === undefined
+                ? null
+                : `cast:${String(input.castId)}`,
+            input.commandId === null || input.commandId === undefined
+                ? null
+                : `command:${String(input.commandId)}`
+        ].filter(Boolean);
+    }
+
+    #rememberSpend(record) {
+        for (const key of this.#spendLedgerKeys(record)) {
+            const previous = this.spendLedger.get(key) ?? {
+                requested: 0,
+                actual: 0,
+                returnedSpent: 0,
+                eligibleSpend: 0,
+                events: []
+            };
+            previous.requested += record.requestedAmount;
+            previous.actual += record.actualAmount;
+            previous.returnedSpent += record.returnedSpent;
+            previous.eligibleSpend += record.eligibleSpend;
+            previous.events.push({
+                frame: record.frame,
+                poolId: record.poolId,
+                skillId: record.skillId,
+                sourceId: record.sourceId
+            });
+            this.spendLedger.set(key, previous);
+        }
+    }
+
+    spendEligibility(input = {}) {
+        const descriptor = isObjectStyle(input) ? input : { castId: input };
+        const key = descriptor.castId !== null && descriptor.castId !== undefined
+            ? `cast:${String(descriptor.castId)}`
+            : (descriptor.commandId !== null && descriptor.commandId !== undefined
+                ? `command:${String(descriptor.commandId)}`
+                : null);
+        const entry = key === null ? null : this.spendLedger.get(key);
+        if (!entry) return {
+            found: false,
+            requested: 0,
+            actual: 0,
+            returnedSpent: 0,
+            eligibleSpend: 0,
+            ratio: 1,
+            events: []
+        };
+        return {
+            found: true,
+            ...clone(entry),
+            ratio: entry.actual > 0 ? entry.eligibleSpend / entry.actual : 1
+        };
     }
 
     gain(...args) {
@@ -476,6 +682,178 @@ export class ResourceSystem {
         const input = this.#parseChangeArgs(args, 'spend');
         const pool = this.#pool(input.poolRef);
         return this.#change(pool, input, 'spend');
+    }
+
+    #matchingPools(input) {
+        if (input.poolRef !== undefined || input.poolId !== undefined
+            || input.resourcePoolId !== undefined) {
+            return [this.#pool(input.poolRef ?? input.poolId ?? input.resourcePoolId)];
+        }
+        const resourceType = input.resourceType ?? null;
+        const scope = input.scope ?? null;
+        const ownerId = input.ownerId ?? null;
+        const matches = [...this.pools.values()].filter(pool =>
+            (resourceType === null || pool.resourceType === resourceType)
+            && (scope === null || pool.scope === scope)
+            && (ownerId === null || pool.ownerId === ownerId)
+        );
+        if (matches.length === 0) throw new Error('No resource pool matches recovery suspension.');
+        return matches;
+    }
+
+    suspendRecovery(input = {}) {
+        if (!isObjectStyle(input)) throw new TypeError('suspendRecovery requires an object.');
+        const frame = nonNegativeInteger(input.frame ?? 0, 'recovery suspension frame');
+        const delayTicks = nonNegativeInteger(input.delayTicks ?? 0, 'recovery suspension delayTicks');
+        const token = identifier(
+            input.token ?? input.sourceKey ?? input.castId,
+            'recovery suspension token'
+        );
+        const results = [];
+        for (const pool of this.#matchingPools(input)) {
+            const suspension = {
+                token,
+                poolId: pool.id,
+                frame,
+                activeFromFrame: frame + delayTicks,
+                sourceId: input.sourceId ?? null,
+                ownerId: input.ownerId ?? pool.ownerId,
+                castId: input.castId ?? null,
+                skillId: input.skillId ?? null,
+                reason: input.reason ?? 'SuspendRecovery'
+            };
+            pool.recoverySuspensions.set(token, suspension);
+            results.push(this.#record({
+                ...suspension,
+                stage: 'ResourceRecoverySuspended',
+                type: 'SuspendRecovery',
+                resourceType: pool.resourceType,
+                scope: pool.scope,
+                targetId: pool.scope === 'Entity' ? pool.ownerId : null,
+                ruleId: input.ruleId ?? null
+            }));
+        }
+        return results.length === 1 ? results[0] : results;
+    }
+
+    resumeRecovery(input = {}) {
+        if (!isObjectStyle(input)) throw new TypeError('resumeRecovery requires an object.');
+        const frame = nonNegativeInteger(input.frame ?? 0, 'recovery resume frame');
+        const token = identifier(
+            input.token ?? input.sourceKey ?? input.castId,
+            'recovery suspension token'
+        );
+        const results = [];
+        for (const pool of this.#matchingPools(input)) {
+            const suspension = pool.recoverySuspensions.get(token);
+            if (!suspension) continue;
+            pool.recoverySuspensions.delete(token);
+            results.push(this.#record({
+                frame,
+                stage: 'ResourceRecoveryResumed',
+                type: 'ResumeRecovery',
+                poolId: pool.id,
+                resourceType: pool.resourceType,
+                scope: pool.scope,
+                sourceId: input.sourceId ?? suspension.sourceId,
+                ownerId: input.ownerId ?? suspension.ownerId,
+                targetId: pool.scope === 'Entity' ? pool.ownerId : null,
+                reason: input.reason ?? 'ResumeRecovery',
+                ruleId: input.ruleId ?? null,
+                token,
+                castId: suspension.castId,
+                skillId: suspension.skillId,
+                activeFromFrame: suspension.activeFromFrame
+            }));
+        }
+        return results.length === 1 ? results[0] : results;
+    }
+
+    resumeRecoveryByCastId(castId, frame = 0, reason = 'CastEnded') {
+        const id = identifier(castId, 'recovery suspension castId');
+        const results = [];
+        for (const pool of this.pools.values()) {
+            for (const suspension of [...pool.recoverySuspensions.values()]) {
+                if (suspension.castId !== id) continue;
+                results.push(this.resumeRecovery({
+                    frame,
+                    poolRef: pool.id,
+                    token: suspension.token,
+                    sourceId: suspension.sourceId,
+                    ownerId: suspension.ownerId,
+                    reason
+                }));
+            }
+        }
+        return results;
+    }
+
+    suppressGain(input = {}) {
+        if (!isObjectStyle(input)) throw new TypeError('suppressGain requires an object.');
+        const frame = nonNegativeInteger(input.frame ?? 0, 'resource gain suppression frame');
+        const token = identifier(
+            input.token ?? input.sourceKey ?? input.castId,
+            'resource gain suppression token'
+        );
+        const tags = normalizedTags(input.tags ?? input.resourceGainTags);
+        const results = [];
+        for (const pool of this.#matchingPools(input)) {
+            const suppression = {
+                token,
+                poolId: pool.id,
+                frame,
+                tags,
+                sourceId: input.sourceId ?? null,
+                ownerId: input.ownerId ?? pool.ownerId,
+                castId: input.castId ?? null,
+                skillId: input.skillId ?? null,
+                reason: input.reason ?? 'SuppressResourceGain'
+            };
+            pool.gainSuppressions.set(token, suppression);
+            results.push(this.#record({
+                ...suppression,
+                stage: 'ResourceGainSuppressionStarted',
+                type: 'SuppressResourceGain',
+                resourceType: pool.resourceType,
+                scope: pool.scope,
+                targetId: pool.scope === 'Entity' ? pool.ownerId : null,
+                ruleId: input.ruleId ?? null
+            }));
+        }
+        return results.length === 1 ? results[0] : results;
+    }
+
+    resumeGain(input = {}) {
+        if (!isObjectStyle(input)) throw new TypeError('resumeGain requires an object.');
+        const frame = nonNegativeInteger(input.frame ?? 0, 'resource gain resume frame');
+        const token = identifier(
+            input.token ?? input.sourceKey ?? input.castId,
+            'resource gain suppression token'
+        );
+        const results = [];
+        for (const pool of this.#matchingPools(input)) {
+            const suppression = pool.gainSuppressions.get(token);
+            if (!suppression) continue;
+            pool.gainSuppressions.delete(token);
+            results.push(this.#record({
+                frame,
+                stage: 'ResourceGainSuppressionEnded',
+                type: 'ResumeResourceGain',
+                poolId: pool.id,
+                resourceType: pool.resourceType,
+                scope: pool.scope,
+                sourceId: input.sourceId ?? suppression.sourceId,
+                ownerId: input.ownerId ?? suppression.ownerId,
+                targetId: pool.scope === 'Entity' ? pool.ownerId : null,
+                reason: input.reason ?? 'ResumeResourceGain',
+                ruleId: input.ruleId ?? null,
+                token,
+                tags: clone(suppression.tags),
+                castId: suppression.castId,
+                skillId: suppression.skillId
+            }));
+        }
+        return results.length === 1 ? results[0] : results;
     }
 
     #parseTransferArgs(args) {
@@ -624,6 +1002,34 @@ export class ResourceSystem {
         const localFrame = this.#localFrame(pool, frame);
         if (pool.nextRecoveryLocalFrame === undefined) {
             pool.nextRecoveryLocalFrame = pool.passiveRecovery.firstTickFrame;
+        }
+        const suspensions = [...pool.recoverySuspensions.values()].filter(suspension =>
+            frame >= suspension.activeFromFrame
+        );
+        if (suspensions.length > 0) {
+            pool.nextRecoveryLocalFrame = Math.max(
+                pool.nextRecoveryLocalFrame,
+                localFrame + 1
+            );
+            this.#record({
+                frame,
+                stage: 'ResourceRecoverySuppressed',
+                type: 'RecoverySuppressed',
+                poolId: pool.id,
+                resourceType: pool.resourceType,
+                scope: pool.scope,
+                sourceId: suspensions[0].sourceId,
+                ownerId: pool.ownerId,
+                targetId: pool.scope === 'Entity' ? pool.ownerId : null,
+                reason: 'ExplicitSuspension',
+                ruleId: null,
+                suspensionTokens: suspensions.map(item => item.token),
+                before: pool.current,
+                after: pool.current,
+                returnedBefore: pool.returned,
+                returnedAfter: pool.returned
+            });
+            return [];
         }
         if (pool.resumeAfterLocalFrame !== undefined
             && localFrame < pool.resumeAfterLocalFrame) {

@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 
 import { calculateSkillButtonDamageV2 } from '../calculators/skillButtonDamageCalculatorV2';
 import {
+  buildFixedDummyContextForButton,
   buildFixedDummyHitContext,
   reduceFixedDummyState,
+  resolveFixedDummyEvent,
   type FixedDummyEvent,
 } from './fixedDummyStateMachine';
 
@@ -239,6 +241,19 @@ assert.equal(
   '物理脆弱·物理脆弱',
   'persisted AKE hit Buff should expose the parsed effect type instead of an internal key',
 );
+assert.deepEqual(
+  (({ ownerCharacterId, ownerBuffDomain, ownerBuffGroup }) => ({
+    ownerCharacterId,
+    ownerBuffDomain,
+    ownerBuffGroup,
+  }))(sourceContext.modifierBuffs.find((buff) => buff.id === targetEffectId)!),
+  {
+    ownerCharacterId: 'source-operator',
+    ownerBuffDomain: 'operator',
+    ownerBuffGroup: 'skill',
+  },
+  '持续到后续节点的命中 Buff 也必须保留技能来源',
+);
 assert.ok(sourceBuffIds.has(teamEffectId) && teammateBuffIds.has(teamEffectId), 'team state should affect every operator');
 assert.ok(sourceBuffIds.has(selfEffectId), 'self state should return to its source operator');
 assert.ok(!teammateBuffIds.has(selfEffectId), 'self state must not leak to another operator');
@@ -301,7 +316,259 @@ const crushState = reduceFixedDummyState([{
   stateSnapshots: [],
 }], 2);
 assert.equal(crushState.noGuardStacks, 0, 'the second crush should consume accumulated break defense');
-assert.equal(crushState.armorBreakLevel, 1, 'consumed break defense should enter fixed fracture Lv1');
+assert.equal(crushState.armorBreakLevel, 0, 'crush damage must not be conflated with the fracture state');
+
+const fourNoGuardState = reduceFixedDummyState(Array.from({ length: 4 }, (_, index): FixedDummyEvent => ({
+  buttonId: `no-guard-${index + 1}`,
+  nodeIndex: index,
+  hitElements: ['physical'],
+  hitBuffs: [{
+    id: `buff_physical_no_guard_${index + 1}`,
+    displayName: '破防',
+    target: 'target',
+    kind: 'status',
+    statusKey: 'no-guard',
+  }],
+  anomalyCards: [],
+  stateSnapshots: [],
+})), 4);
+const crushResolution = resolveFixedDummyEvent(fourNoGuardState, {
+  buttonId: 'real-crush',
+  characterId: 'crush-operator',
+  nodeIndex: 4,
+  hitElements: ['physical'],
+  hitBuffs: [{
+    id: 'ake_status_physical_crush',
+    displayName: '猛击',
+    target: 'target',
+    kind: 'status',
+    statusKey: 'crush',
+  }],
+  anomalyCards: [],
+  stateSnapshots: [],
+});
+assert.equal(crushResolution.state.noGuardStacks, 0, 'real crush must finish every no-guard layer');
+assert.equal(crushResolution.state.armorBreakLevel, 0, 'real crush must not create fracture');
+assert.equal(crushResolution.mechanicAnomalyDamages.length, 1, 'real crush should emit one mechanic damage segment');
+assert.equal(crushResolution.mechanicAnomalyDamages[0]?.key, 'smash');
+assert.equal(crushResolution.mechanicAnomalyDamages[0]?.level, 4);
+assert.equal(crushResolution.mechanicAnomalyDamages[0]?.secondaryText, '750% 物理异常 hit');
+assert.equal(crushResolution.mechanicAnomalyDamages[0]?.isMandatoryMechanic, true);
+
+const administratorSetupState = reduceFixedDummyState([{
+  buttonId: 'chen-no-guard-1',
+  nodeIndex: 0,
+  hitElements: ['physical'],
+  hitBuffs: [{
+    id: 'chen-no-guard-1',
+    displayName: '破防',
+    target: 'target',
+    statusKey: 'no-guard',
+  }],
+  anomalyCards: [],
+  stateSnapshots: [],
+}, {
+  buttonId: 'chen-no-guard-2',
+  nodeIndex: 1,
+  hitElements: ['physical'],
+  hitBuffs: [{
+    id: 'chen-no-guard-2',
+    displayName: '破防',
+    target: 'target',
+    statusKey: 'no-guard',
+  }],
+  anomalyCards: [],
+  stateSnapshots: [],
+}, {
+  buttonId: 'administrator-combo',
+  characterId: 'chr_0003_endminf',
+  nodeIndex: 2,
+  hitElements: ['physical'],
+  hitBuffs: [{
+    id: 'buff_common_originum_frozen',
+    displayName: '源石结晶封印',
+    target: 'target',
+    statusKey: 'originium-seal',
+    statusValue: 4,
+  }],
+  anomalyCards: [],
+  stateSnapshots: [],
+}], 3);
+assert.equal(administratorSetupState.noGuardStacks, 2);
+assert.ok(administratorSetupState.statuses.includes('originium-seal'));
+
+const administratorEnhancedSkill = resolveFixedDummyEvent(administratorSetupState, {
+  buttonId: 'administrator-enhanced-skill',
+  characterId: 'chr_0003_endminf',
+  nodeIndex: 3,
+  hitElements: ['physical'],
+  hitBuffs: [{
+    id: 'ake_status_physical_crush',
+    displayName: '猛击',
+    target: 'target',
+    statusKey: 'crush',
+    offsetFrames: 11,
+  }],
+  anomalyCards: [],
+  stateSnapshots: [],
+});
+assert.deepEqual(
+  administratorEnhancedSkill.mechanicAnomalyDamages.map((damage) => damage.key),
+  ['smash', 'originium-shatter'],
+  'administrator enhanced skill should emit Smash and crystal shatter as two independent mechanic hits',
+);
+assert.equal(administratorEnhancedSkill.mechanicAnomalyDamages[0]?.secondaryText, '450% 物理异常 hit');
+assert.equal(administratorEnhancedSkill.mechanicAnomalyDamages[1]?.secondaryText, '400% 物理额外 hit');
+assert.equal(administratorEnhancedSkill.state.noGuardStacks, 0);
+assert.ok(!administratorEnhancedSkill.state.statuses.includes('originium-seal'), 'crystal seal must be consumed by the physical-status ignite');
+
+const runtimeTimelineButtons = [
+  { id: 'runtime-no-guard-1', skillType: 'B' as const },
+  { id: 'runtime-no-guard-2', skillType: 'B' as const },
+  { id: 'runtime-administrator-combo', skillType: 'E' as const },
+  { id: 'runtime-administrator-skill', skillType: 'B' as const },
+].map((entry, index) => ({
+  ...entry,
+  characterId: entry.id.includes('administrator') ? 'chr_0003_endminf' : 'chr_0005_chen',
+  characterName: entry.id.includes('administrator') ? '管理员' : '陈千语',
+  staffIndex: entry.id.includes('administrator') ? 0 : 1,
+  nodeIndex: index,
+  nodeNumber: index + 1,
+  position: { x: index * 80, y: 0 },
+  // Deliberately stale: the runtime-resolved profile must supersede these hits.
+  customHits: [],
+}));
+const runtimeResolvedContext = buildFixedDummyContextForButton({
+  timelineData: {
+    version: 'test',
+    createdAt: 0,
+    updatedAt: 0,
+    staffLines: [{
+      staffIndex: 0,
+      characterName: '测试队伍',
+      occupiedNodes: [0, 1, 2, 3],
+      buttons: runtimeTimelineButtons,
+    }],
+  },
+  buttonTable: {},
+  currentButtonId: 'runtime-administrator-skill',
+  currentNodeIndex: 3,
+  resolveStateSnapshots: () => [],
+  resolvedEvents: [{
+    buttonId: 'runtime-no-guard-1',
+    executionFrame: 0,
+    isExecutable: true,
+    hits: [{
+      damageType: 'Physical',
+      hitBuffs: [{ id: 'ake_status_physical_airborne', displayName: '击飞', target: 'target', statusKey: 'airborne' }],
+    }],
+  }, {
+    buttonId: 'runtime-no-guard-2',
+    executionFrame: 10,
+    isExecutable: true,
+    hits: [{
+      damageType: 'Physical',
+      hitBuffs: [{ id: 'ake_status_physical_airborne', displayName: '击飞', target: 'target', statusKey: 'airborne' }],
+    }],
+  }, {
+    buttonId: 'runtime-administrator-combo',
+    executionFrame: 20,
+    isExecutable: true,
+    hits: [{
+      damageType: 'Physical',
+      hitBuffs: [{
+        id: 'buff_common_originum_frozen',
+        displayName: '源石结晶封印',
+        target: 'target',
+        statusKey: 'originium-seal',
+        statusValue: 4,
+      }],
+    }],
+  }, {
+    buttonId: 'runtime-administrator-skill',
+    executionFrame: 30,
+    isExecutable: true,
+    hits: [{
+      damageType: 'Physical',
+      hitBuffs: [{
+        id: 'ake_status_physical_crush',
+        displayName: '猛击',
+        target: 'target',
+        statusKey: 'crush',
+        offsetFrames: 11,
+      }],
+    }],
+  }],
+});
+assert.deepEqual(
+  runtimeResolvedContext.mechanicAnomalyDamages.map((damage) => damage.key),
+  ['smash', 'originium-shatter'],
+  'runtime AKE profiles must drive the fixed dummy even when persisted button hits are stale',
+);
+assert.equal(runtimeResolvedContext.state.noGuardStacks, 2, 'the calculator must retain the pre-hit state for normal damage');
+assert.equal(runtimeResolvedContext.afterState.noGuardStacks, 0, 'the UI must receive the current hit post-state');
+assert.ok(runtimeResolvedContext.stateTransitions.some((transition) => (
+  transition.key === 'no-guard'
+  && transition.beforeText === '2层'
+  && transition.afterText === '0层'
+  && transition.change === 'consumed'
+)), 'the current button must expose an auditable no-guard consumption transition');
+assert.ok(!runtimeResolvedContext.afterStateBadges.some((badge) => badge.key === 'no-guard'));
+
+const legacyRepeatedCrushResolution = resolveFixedDummyEvent(noGuardState, {
+  buttonId: 'legacy-repeated-crush',
+  nodeIndex: 1,
+  hitElements: ['physical', 'physical'],
+  hitBuffs: Array.from({ length: 2 }, () => ({
+    id: 'ake_status_physical_crush',
+    displayName: '猛击',
+    target: 'target',
+    kind: 'status',
+    statusKey: 'crush',
+  })),
+  anomalyCards: [],
+  stateSnapshots: [],
+});
+assert.equal(legacyRepeatedCrushResolution.mechanicAnomalyDamages.length, 1, 'legacy skill-wide markers copied to several hits must resolve once');
+assert.equal(legacyRepeatedCrushResolution.state.noGuardStacks, 0, 'a duplicated legacy marker must not add a phantom no-guard layer after consuming');
+
+const fractureResolution = resolveFixedDummyEvent(
+  reduceFixedDummyState(Array.from({ length: 3 }, (_, index): FixedDummyEvent => ({
+    buttonId: `fracture-no-guard-${index + 1}`,
+    nodeIndex: index,
+    hitElements: ['physical'],
+    hitBuffs: [{
+      id: `fracture-no-guard-${index + 1}`,
+      displayName: '破防',
+      target: 'target',
+      kind: 'status',
+      statusKey: 'no-guard',
+    }],
+    anomalyCards: [],
+    stateSnapshots: [],
+  })), 3),
+  {
+    buttonId: 'real-fracture',
+    characterId: 'fracture-operator',
+    nodeIndex: 3,
+    hitElements: ['physical'],
+    hitBuffs: [{
+      id: 'ake_status_physical_fracture',
+      displayName: '碎甲',
+      target: 'target',
+      kind: 'status',
+      statusKey: 'fracture',
+    }],
+    anomalyCards: [],
+    stateSnapshots: [],
+  },
+);
+assert.equal(fractureResolution.state.noGuardStacks, 0, 'fracture must finish every no-guard layer');
+assert.equal(fractureResolution.state.armorBreakLevel, 3, 'fracture should enter the consumed-stack state tier');
+assert.ok(fractureResolution.state.statuses.includes('fracture'));
+assert.equal(fractureResolution.mechanicAnomalyDamages[0]?.key, 'armor-break');
+assert.equal(fractureResolution.mechanicAnomalyDamages[0]?.level, 3);
+assert.equal(fractureResolution.mechanicAnomalyDamages[0]?.intrinsicModifierBuffs[0]?.value, 0.2);
 
 const knockdownOnly = reduceFixedDummyState([{
   buttonId: 'knockdown-only',
@@ -318,7 +585,27 @@ const knockdownOnly = reduceFixedDummyState([{
   stateSnapshots: [],
 }], 1);
 assert.equal(knockdownOnly.isImbalanced, false, '倒地 and 失衡 remain distinct stable states');
-assert.equal(knockdownOnly.noGuardStacks, 1, '倒地 should still advance the fixed physical break chain');
+assert.equal(knockdownOnly.noGuardStacks, 1, 'a knockdown attempt without no-guard should only add one no-guard layer');
+assert.ok(!knockdownOnly.statuses.includes('knockdown'), 'failed knockdown must not masquerade as an active knockdown state');
+
+const knockdownResolution = resolveFixedDummyEvent(noGuardState, {
+  buttonId: 'real-knockdown',
+  nodeIndex: 1,
+  hitElements: ['physical'],
+  hitBuffs: [{
+    id: 'ake_status_physical_knockdown',
+    displayName: '倒地',
+    target: 'target',
+    kind: 'status',
+    statusKey: 'knockdown',
+  }],
+  anomalyCards: [],
+  stateSnapshots: [],
+});
+assert.equal(knockdownResolution.state.noGuardStacks, 2, 'the fixed boss dummy must keep stacking no-guard when knockdown fails again');
+assert.ok(!knockdownResolution.state.statuses.includes('knockdown'));
+assert.equal(knockdownResolution.state.isImbalanced, false, 'a failed knockdown still must not be conflated with poise imbalance');
+assert.equal(knockdownResolution.mechanicAnomalyDamages.length, 0, 'failed boss control must not invent a physical-anomaly damage hit');
 
 const poiseState = reduceFixedDummyState([{
   buttonId: 'poise-60',

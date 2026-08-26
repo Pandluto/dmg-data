@@ -74,6 +74,24 @@ ake-calc-cleanroom/
 
 ## 快速使用
 
+本地交互 Demo 直接复用了 LTS 工作台的 React + TypeScript 源码，而不是重新仿写页面。原来的“选择干员 → 干员配置 → 排轴 → 伤害报表”组件、状态快照、角色/武器/装备数据库与面板计算链都保留；只在点击“计算伤害”的边界新增 AKE provider，并在原报告上增加可收起的 AKE 实际时序抽屉：
+
+```powershell
+npm run demo:install # 首次运行
+npm run demo
+```
+
+浏览器打开 `http://127.0.0.1:43821`。这个端口与 LTS 的 `3030` 完全分离。当前 AKE 内核仍是单角色、单目标的确定性时间轴；界面支持最多四名干员，并暂时按角色独立结算后汇总。当前接通佩丽卡、陈千语、狼卫和五个公开数据目标，每个原排轴节点换算为 15 帧（0.5 秒）。服务端直接调用 `AkeScenarioAssembler` 与 `AkeScenarioRunner`，前端不复制战斗公式。四槽装备与武器的静态面板收益沿用 LTS 面板结果，攻击、暴击、物理/元素以及普通攻击、战技、连携技、终结技加成都进入 AKE 伤害乘区并显示在结算抽屉；尚未映射到 AKE 语义的条件型动态装备效果会明确保留为未接入项，不会伪造执行结果。
+
+AKE 数据/API 接线位于 `demo/demo-service.mjs`，复用的 LTS 前端位于 `demo/lts-ui/`，唯一新增的前端计算适配层集中在 `demo/lts-ui/src/integrations/ake/`。
+
+构建后可用 `npm run demo:serve` 从同一独立端口提供静态页面与 AKE API：
+
+```powershell
+npm run demo:build
+npm run demo:serve
+```
+
 直接复算并查看结果：
 
 ```powershell

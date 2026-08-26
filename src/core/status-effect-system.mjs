@@ -23,6 +23,14 @@ function finiteNonNegative(value, label) {
     return number;
 }
 
+function finiteNumber(value, label) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+        throw new Error(`${label} must be a finite number.`);
+    }
+    return number;
+}
+
 function definitionFrom(definitions, buffId) {
     if (definitions instanceof Map) return definitions.get(buffId) ?? {};
     return definitions?.[buffId] ?? {};
@@ -42,7 +50,7 @@ function resolveDescriptor(descriptor, blackboard, fallback = 0) {
     return descriptor.value ?? fallback;
 }
 
-function normalizedStacking(definition, input) {
+function normalizedStacking(definition, input, blackboard = {}) {
     const raw = input.stacking ?? definition.stacking ?? {};
     const policy = input.stackingPolicy
         ?? definition.stackingPolicy
@@ -68,13 +76,20 @@ function normalizedStacking(definition, input) {
         AddStack: 'AddStack'
     };
     if (!aliases[policy]) throw new Error(`Unsupported status-effect stacking policy: ${policy}`);
+    const keyedMaxStacks = raw.maxStackCountKey
+        ? blackboard?.[raw.maxStackCountKey]
+        : undefined;
     const requestedMaxStacks = Number(input.maxStacks
+        ?? keyedMaxStacks
         ?? definition.maxStacks
         ?? raw.maxStackCount
         ?? 1);
-    const maxStacks = aliases[policy] === 'Independent' && requestedMaxStacks === 0
-        ? 1
-        : requestedMaxStacks;
+    // Zero and negative values are AKE sentinels (Unlimited and unresolved
+    // keyed limits), never usable shared-stack caps. Independent instances do
+    // not share this value, so one is also the correct public per-instance cap.
+    const maxStacks = Number.isInteger(requestedMaxStacks) && requestedMaxStacks > 0
+        ? requestedMaxStacks
+        : 1;
     if (!Number.isInteger(maxStacks) || maxStacks < 1) {
         throw new Error('maxStacks must be a positive integer.');
     }
@@ -116,7 +131,8 @@ export class StatusEffectSystem {
         schedule = null,
         clockDomains = null,
         tickRate = 30,
-        executeActions = () => []
+        executeActions = () => [],
+        onTransition = () => {}
     } = {}) {
         if (schedule !== null && typeof schedule !== 'function') {
             throw new Error('schedule must be a function when provided.');
@@ -124,12 +140,16 @@ export class StatusEffectSystem {
         if (typeof executeActions !== 'function') {
             throw new Error('executeActions must be a function.');
         }
+        if (typeof onTransition !== 'function') {
+            throw new Error('onTransition must be a function.');
+        }
         this.definitions = definitions;
         this.schedule = schedule;
         this.clockDomains = clockDomains;
         this.tickRate = finiteNonNegative(tickRate, 'tickRate');
         if (this.tickRate === 0) throw new Error('tickRate must be greater than zero.');
         this.executeActions = executeActions;
+        this.onTransition = onTransition;
         this.instances = new Map();
         this.trace = [];
         this.nextInstanceId = 1;
@@ -143,7 +163,6 @@ export class StatusEffectSystem {
         const buffId = requireId(input.buffId, 'buffId');
         const targetId = requireId(input.targetId ?? eventContext.targetId, 'targetId');
         const definition = definitionFrom(this.definitions, buffId);
-        const stacking = normalizedStacking(definition, input);
         const attribution = {
             sourceId: input.sourceId ?? eventContext.sourceId ?? null,
             // Owner and source are deliberately independent. Summons, auras
@@ -153,9 +172,21 @@ export class StatusEffectSystem {
             sourceSkillId: input.sourceSkillId ?? eventContext.skillId ?? null,
             rootSkillId: input.rootSkillId ?? eventContext.rootSkillId ?? null,
             castId: input.castId ?? eventContext.castId ?? null,
+            commandType: input.commandType ?? eventContext.commandType
+                ?? eventContext.payload?.commandType ?? null,
+            skillType: input.skillType ?? eventContext.skillType
+                ?? eventContext.payload?.skillType ?? null,
             clockDomainId: input.clockDomainId ?? eventContext.clockDomainId ?? 'global',
             ruleId: input.ruleId ?? eventContext.ruleId ?? null
         };
+        // A Buff can measure its lifetime on one clock while the actions fired
+        // by that Buff still belong to the carrier's combat clock. AKE uses
+        // this for HitStop Buffs whose timeline is global-time, but whose
+        // ResolveTimeDilation action must pause the affected character.
+        const actionClockDomainId = input.actionClockDomainId
+            ?? eventContext.actionClockDomainId
+            ?? eventContext.clockDomainId
+            ?? attribution.clockDomainId;
         const nextBlackboard = {
             ...plainClone(definition.blackboard ?? {}),
             ...(input.inheritEventBlackboard === false
@@ -163,6 +194,7 @@ export class StatusEffectSystem {
                 : plainClone(eventContext.blackboard ?? {})),
             ...plainClone(input.blackboard ?? {})
         };
+        const stacking = normalizedStacking(definition, input, nextBlackboard);
         const durationTicks = this.#durationTicks(input, definition, nextBlackboard);
         const existing = this.#matchingInstance(targetId, buffId, stacking, attribution);
 
@@ -187,9 +219,10 @@ export class StatusEffectSystem {
             existing.durationTicks = durationTicks;
             existing.expireFrame = durationTicks === null ? null : frame + durationTicks;
             Object.assign(existing, attribution);
+            existing.actionClockDomainId = actionClockDomainId;
             this.#scheduleExpiry(existing);
             this.#schedulePeriodicTrigger(existing, frame);
-            this.trace.push(this.#record(existing, frame, 'StatusEffectRefreshed', {
+            const transition = this.#record(existing, frame, 'StatusEffectRefreshed', {
                 before,
                 requested: before + (stacking.policy === 'AddStack' ? 1 : 0),
                 actual: existing.stackCount - before,
@@ -197,7 +230,9 @@ export class StatusEffectSystem {
                     ? Math.max(0, before + 1 - existing.stackCount)
                     : 0,
                 after: existing.stackCount
-            }));
+            });
+            this.trace.push(transition);
+            this.onTransition(plainClone(transition));
             if (input.triggerEnhancementEvent === true
                 && !existing.processingEnhancement) {
                 existing.processingEnhancement = true;
@@ -213,12 +248,19 @@ export class StatusEffectSystem {
                     existing.processingEnhancement = false;
                 }
             }
-            this.#executeLifecycle(definition.onRefreshActions ?? [], existing, frame, 'OnBuffRefresh');
+            this.#executeLifecycle(
+                definition.onRefreshActions ?? [],
+                existing,
+                frame,
+                'OnBuffRefresh',
+                eventContext
+            );
             this.#executeLifecycle(
                 definition.duringEnableActions ?? this.#eventActions(definition, 'DuringBuffEnable'),
                 existing,
                 frame,
-                'DuringBuffEnable'
+                'DuringBuffEnable',
+                eventContext
             );
             return this.#publicInstance(existing);
         }
@@ -238,6 +280,7 @@ export class StatusEffectSystem {
             stackCount: Math.min(requestedStackCount, stacking.maxStacks),
             maxStacks: stacking.maxStacks,
             ...attribution,
+            actionClockDomainId,
             blackboard: nextBlackboard,
             metadata: plainClone(input.metadata ?? {}),
             startFrame: frame,
@@ -247,36 +290,42 @@ export class StatusEffectSystem {
             active: true,
             timerId: null,
             triggerTimerId: null,
+            triggerTimerDomainId: null,
             timelineTimerIds: [],
             triggerCount: 0,
             processingEnhancement: false
         };
         this.instances.set(instance.instanceId, instance);
         this.#scheduleExpiry(instance);
-        this.trace.push(this.#record(instance, frame, 'StatusEffectApplied', {
+        const transition = this.#record(instance, frame, 'StatusEffectApplied', {
             before: 0,
             requested: instance.stackCount,
             actual: instance.stackCount,
             discarded: 0,
             after: instance.stackCount
-        }));
+        });
+        this.trace.push(transition);
+        this.onTransition(plainClone(transition));
         this.#executeLifecycle(
             definition.onApplyActions ?? definition.startActions ?? [],
             instance,
             frame,
-            'OnBuffStart'
+            'OnBuffStart',
+            eventContext
         );
         this.#executeLifecycle(
             definition.onEnableActions ?? this.#eventActions(definition, 'OnBuffEnable'),
             instance,
             frame,
-            'OnBuffEnable'
+            'OnBuffEnable',
+            eventContext
         );
         this.#executeLifecycle(
             definition.duringEnableActions ?? this.#eventActions(definition, 'DuringBuffEnable'),
             instance,
             frame,
-            'DuringBuffEnable'
+            'DuringBuffEnable',
+            eventContext
         );
         this.#scheduleTimeline(instance, frame);
         this.#schedulePeriodicTrigger(instance, frame);
@@ -365,6 +414,14 @@ export class StatusEffectSystem {
             throw new Error('StatusEffectSystem.finish requires an input object.');
         }
         const frame = frameNumber(input.frame ?? eventContext.frame ?? 0);
+        const triggerAttribution = {
+            triggerSourceId: eventContext.sourceId ?? null,
+            triggerOwnerId: eventContext.ownerId ?? null,
+            triggerTargetId: eventContext.targetId ?? null,
+            triggerSkillId: eventContext.skillId ?? null,
+            triggerRootSkillId: eventContext.rootSkillId ?? null,
+            triggerCastId: eventContext.castId ?? null
+        };
         const matches = this.#select(input).filter(instance => instance.active);
         for (const instance of matches) {
             const requestedLayers = input.finishAll === false
@@ -375,6 +432,7 @@ export class StatusEffectSystem {
                 instance.stackCount -= requestedLayers;
                 this.trace.push(this.#record(instance, frame, 'StatusEffectStackRemoved', {
                     reason: input.reason ?? 'Finished',
+                    ...triggerAttribution,
                     before,
                     requested: requestedLayers,
                     actual: requestedLayers,
@@ -395,6 +453,7 @@ export class StatusEffectSystem {
             this.#cancelTimer(instance, frame, input.reason ?? 'Finished');
             this.trace.push(this.#record(instance, frame, 'StatusEffectFinished', {
                 reason: input.reason ?? 'Finished',
+                ...triggerAttribution,
                 before: instance.stackCount,
                 requested: instance.stackCount,
                 actual: instance.stackCount,
@@ -474,19 +533,25 @@ export class StatusEffectSystem {
         }
         if (String(definition.lifeType ?? '').toLowerCase() === 'infinity') return null;
         if (definition.duration !== undefined && definition.duration !== null) {
-            return Math.round(finiteNonNegative(
+            const duration = finiteNumber(
                 resolveDescriptor(definition.duration, blackboard),
                 'duration'
-            ) * this.tickRate);
+            );
+            // AKE uses a resolved -1 duration as an infinity sentinel even on
+            // a few dynamically configured Buffs whose lifeType is Limited.
+            if (duration < 0) return null;
+            return Math.round(duration * this.tickRate);
         }
         if (definition.durationTicks !== undefined && definition.durationTicks !== null) {
             return frameNumber(definition.durationTicks, 'durationTicks');
         }
         if (definition.durationSeconds !== undefined && definition.durationSeconds !== null) {
-            return Math.round(finiteNonNegative(
+            const durationSeconds = finiteNumber(
                 resolveDescriptor(definition.durationSeconds, blackboard),
                 'durationSeconds'
-            ) * this.tickRate);
+            );
+            if (durationSeconds < 0) return null;
+            return Math.round(durationSeconds * this.tickRate);
         }
         return null;
     }
@@ -595,12 +660,15 @@ export class StatusEffectSystem {
         if (instance.triggerTimerId !== null && this.clockDomains
             && typeof this.clockDomains.cancelTimer === 'function') {
             this.clockDomains.cancelTimer(
-                instance.clockDomainId,
+                instance.triggerTimerDomainId
+                    ?? instance.actionClockDomainId
+                    ?? instance.clockDomainId,
                 instance.triggerTimerId,
                 frame,
                 'TriggerRescheduled'
             );
             instance.triggerTimerId = null;
+            instance.triggerTimerDomainId = null;
         }
         const intervalTicks = this.#triggerIntervalTicks(instance);
         if (intervalTicks === null) return;
@@ -610,6 +678,7 @@ export class StatusEffectSystem {
         const run = completionFrame => {
             if (!instance.active || instance.generation !== generation) return;
             instance.triggerTimerId = null;
+            instance.triggerTimerDomainId = null;
             this.trigger({
                 frame: completionFrame,
                 instanceId: instance.instanceId,
@@ -632,7 +701,10 @@ export class StatusEffectSystem {
             )
             : intervalTicks;
         if (this.clockDomains) {
-            instance.triggerTimerId = this.clockDomains.startTimer(instance.clockDomainId, {
+            const triggerTimerDomainId = instance.actionClockDomainId
+                ?? instance.clockDomainId;
+            instance.triggerTimerDomainId = triggerTimerDomainId;
+            instance.triggerTimerId = this.clockDomains.startTimer(triggerTimerDomainId, {
                 frame,
                 durationTicks: delayTicks,
                 priority: 80,
@@ -718,18 +790,25 @@ export class StatusEffectSystem {
     #cancelTimer(instance, frame, reason) {
         if (!this.clockDomains) return;
         if (typeof this.clockDomains.cancelTimer === 'function') {
-            for (const timerId of [
-                instance.timerId,
-                instance.triggerTimerId,
-                ...(instance.timelineTimerIds ?? [])
-            ]) {
+            for (const timerId of [instance.timerId, ...(instance.timelineTimerIds ?? [])]) {
                 if (timerId !== null) {
                     this.clockDomains.cancelTimer(instance.clockDomainId, timerId, frame, reason);
                 }
             }
+            if (instance.triggerTimerId !== null) {
+                this.clockDomains.cancelTimer(
+                    instance.triggerTimerDomainId
+                        ?? instance.actionClockDomainId
+                        ?? instance.clockDomainId,
+                    instance.triggerTimerId,
+                    frame,
+                    reason
+                );
+            }
         }
         instance.timerId = null;
         instance.triggerTimerId = null;
+        instance.triggerTimerDomainId = null;
         instance.timelineTimerIds = [];
     }
 
@@ -747,12 +826,22 @@ export class StatusEffectSystem {
             skillId: incomingContext.skillId ?? instance.sourceSkillId,
             rootSkillId: incomingContext.rootSkillId ?? instance.rootSkillId,
             castId: incomingContext.castId ?? instance.castId,
+            commandType: incomingContext.commandType
+                ?? incomingContext.payload?.commandType
+                ?? instance.commandType,
+            skillType: incomingContext.skillType
+                ?? incomingContext.payload?.skillType
+                ?? instance.skillType,
             buffInstanceId: instance.instanceId,
-            clockDomainId: instance.clockDomainId,
+            clockDomainId: instance.actionClockDomainId ?? instance.clockDomainId,
             ruleId: instance.ruleId,
             blackboard: {
-                ...plainClone(instance.blackboard),
-                ...plainClone(incomingContext.blackboard ?? {})
+                // Event-local scratch values remain available, but a listener's
+                // configured/dynamic Blackboard owns colliding keys. Otherwise
+                // receiving an unrelated Buff with `duration = 4` can silently
+                // replace a weapon passive's own `duration = 20`.
+                ...plainClone(incomingContext.blackboard ?? {}),
+                ...plainClone(instance.blackboard)
             },
             payload: {
                 buffId: instance.buffId,
@@ -792,8 +881,11 @@ export class StatusEffectSystem {
             targetId: instance.targetId,
             sourceSkillId: instance.sourceSkillId,
             rootSkillId: instance.rootSkillId,
+            commandType: instance.commandType,
+            skillType: instance.skillType,
             castId: instance.castId,
             clockDomainId: instance.clockDomainId,
+            actionClockDomainId: instance.actionClockDomainId ?? instance.clockDomainId,
             ruleId: instance.ruleId,
             stackCount: instance.stackCount,
             durationTicks: instance.durationTicks,

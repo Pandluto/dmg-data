@@ -63,6 +63,27 @@ export function getGridGroupTop(staffIndex: number): number {
   return GRID_STACK_PADDING_TOP + staffIndex * GRID_GROUP_STRIDE;
 }
 
+/**
+ * Return the small visual offset of a button from its canonical logical row.
+ *
+ * Older drag writes could combine a compressed visual page Y with a logical
+ * source-group index.  That produces an offset of one or more whole groups and
+ * projects the button outside the canvas.  A real visual adjustment never
+ * exceeds one row, so group-sized offsets are safely normalized back to zero.
+ */
+export function getNormalizedGridLineOffsetY(
+  positionY: number,
+  staffIndex: number,
+  lineIndex: number,
+): number {
+  const offset = Number(positionY)
+    - getGridGroupTop(Math.max(0, Number(staffIndex) || 0))
+    - getGridLineCenterY(Math.max(0, Number(lineIndex) || 0));
+  return Number.isFinite(offset) && Math.abs(offset) <= GRID_ROW_HEIGHT
+    ? offset
+    : 0;
+}
+
 export function getGridGroupBottom(staffIndex: number): number {
   return getGridGroupTop(staffIndex) + GRID_GROUP_HEIGHT;
 }

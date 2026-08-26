@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import type { Character, SkillButton } from '../../types';
 import { ForcedWaitConfigDialog } from './ForcedWaitConfigDialog';
 import { SkillSandbox } from './SkillSandbox';
-import { TimelineWaitSegment } from './TimelineWaitSegment';
+import { TimelineWaitContextMenu, TimelineWaitSegment } from './TimelineWaitSegment';
 
 const character = {
   id: 'operator-1',
@@ -75,5 +75,19 @@ assert.match(waitSegmentHtml, /timeline-wait-cursor is-end/);
 assert.match(waitSegmentHtml, /1\.00秒/);
 assert.match(waitSegmentHtml, /2\.00秒/);
 assert.doesNotMatch(waitSegmentHtml, /skill-button-orb/);
+
+const waitContextMenuHtml = renderToStaticMarkup(
+  <TimelineWaitContextMenu
+    position={{ x: 100, y: 120 }}
+    onConfigure={() => undefined}
+    onCopy={() => undefined}
+    onRemove={() => undefined}
+    onCancel={() => undefined}
+  />,
+);
+assert.match(waitContextMenuHtml, /修改等待/);
+assert.match(waitContextMenuHtml, /复制/);
+assert.match(waitContextMenuHtml, /删除/);
+assert.match(waitContextMenuHtml, /取消/);
 
 console.log('Timeline fifth-toolbox controls: PASS');

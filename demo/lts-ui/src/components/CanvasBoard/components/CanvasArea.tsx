@@ -479,6 +479,10 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
       onMouseDown={onButtonMouseDown}
       onContextMenu={onButtonContextMenu}
       onConfigure={onConfigureTimelineModule}
+      contextMenuState={contextMenuState}
+      onConfirmRemove={onConfirmRemove}
+      onCloseContextMenu={onCloseContextMenu}
+      onCopy={onCopy}
     />
   ));
 

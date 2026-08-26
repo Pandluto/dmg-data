@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, type CSSProperties, type MouseEvent } from 'react';
+import { createPortal } from 'react-dom';
 import type { SkillButton } from '../../types';
 
 interface TimelineWaitSegmentProps {
@@ -14,6 +15,18 @@ interface TimelineWaitSegmentProps {
   onMouseDown: (event: MouseEvent, buttonId: string) => void;
   onContextMenu: (event: MouseEvent, buttonId: string) => void;
   onConfigure?: (button: SkillButton) => void;
+  contextMenuState?: { buttonId: string; position: { x: number; y: number } } | null;
+  onConfirmRemove?: () => void;
+  onCloseContextMenu?: () => void;
+  onCopy?: () => void;
+}
+
+interface TimelineWaitContextMenuProps {
+  position: { x: number; y: number };
+  onConfigure: () => void;
+  onCopy?: () => void;
+  onRemove: () => void;
+  onCancel: () => void;
 }
 
 function formatSeconds(frame: number | null, tickRate: number): string {
@@ -24,6 +37,50 @@ function formatSeconds(frame: number | null, tickRate: number): string {
 function formatDuration(seconds: number): string {
   if (Number.isInteger(seconds)) return `${seconds}秒`;
   return `${seconds.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}秒`;
+}
+
+export function TimelineWaitContextMenu({
+  position,
+  onConfigure,
+  onCopy,
+  onRemove,
+  onCancel,
+}: TimelineWaitContextMenuProps) {
+  const run = (callback: () => void) => (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    callback();
+  };
+
+  return (
+    <div
+      className="skill-button-context-menu timeline-wait-context-menu"
+      role="menu"
+      aria-label="等待操作"
+      style={{ left: position.x, top: position.y }}
+      onMouseDown={event => event.stopPropagation()}
+    >
+      <button type="button" role="menuitem" className="context-menu-item" onClick={run(onConfigure)}>
+        修改等待
+      </button>
+      {onCopy ? (
+        <button type="button" role="menuitem" className="context-menu-item" onClick={run(onCopy)}>
+          复制
+        </button>
+      ) : null}
+      <button
+        type="button"
+        role="menuitem"
+        className="context-menu-item context-menu-item-danger"
+        onClick={run(onRemove)}
+      >
+        删除
+      </button>
+      <button type="button" role="menuitem" className="context-menu-item" onClick={run(onCancel)}>
+        取消
+      </button>
+    </div>
+  );
 }
 
 /**
@@ -43,6 +100,10 @@ export function TimelineWaitSegment({
   onMouseDown,
   onContextMenu,
   onConfigure,
+  contextMenuState = null,
+  onConfirmRemove,
+  onCloseContextMenu,
+  onCopy,
 }: TimelineWaitSegmentProps) {
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isInteractionDisabled = isBrowseMode || isDragDisabled || Boolean(button.isLocked);
@@ -50,6 +111,9 @@ export function TimelineWaitSegment({
   const isFixedDuration = config.mode === 'fixed-duration';
   const label = isFixedDuration ? '普通等待' : '封组等待';
   const detail = isFixedDuration ? formatDuration(config.durationSeconds) : '0秒';
+  const shouldRenderContextMenu = !isBrowseMode
+    && contextMenuState?.buttonId === button.id
+    && typeof document !== 'undefined';
 
   const clearLongPress = useCallback(() => {
     if (longPressTimerRef.current) {
@@ -93,37 +157,52 @@ export function TimelineWaitSegment({
   }, [button.id, clearLongPress, isBrowseMode, onContextMenu]);
 
   return (
-    <div
-      className={`timeline-wait-segment is-${config.mode}${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-disabled' : ''}`}
-      data-skill-button-id={button.id}
-      data-timeline-module="forced-wait"
-      data-wait-mode={config.mode}
-      role="button"
-      tabIndex={isBrowseMode ? -1 : 0}
-      aria-label={`${label}，${formatSeconds(startFrame, tickRate)}到${formatSeconds(endFrame, tickRate)}`}
-      aria-disabled={isInteractionDisabled}
-      title={`${label} · ${formatSeconds(startFrame, tickRate)}—${formatSeconds(endFrame, tickRate)}；双击设置，长按拖动`}
-      style={{ left, top, width } as CSSProperties}
-      onMouseDown={handleMouseDown}
-      onDoubleClick={handleDoubleClick}
-      onContextMenu={handleContextMenu}
-      onKeyDown={(event) => {
-        if ((event.key === 'Enter' || event.key === ' ') && !isBrowseMode) {
-          event.preventDefault();
-          onConfigure?.(button);
-        }
-      }}
-    >
-      <i className="timeline-wait-cursor is-start" aria-hidden="true">
-        <b>{formatSeconds(startFrame, tickRate)}</b>
-      </i>
-      <span className="timeline-wait-track">
-        <b>{label}</b>
-        <small>{detail}</small>
-      </span>
-      <i className="timeline-wait-cursor is-end" aria-hidden="true">
-        <b>{formatSeconds(endFrame, tickRate)}</b>
-      </i>
-    </div>
+    <>
+      <div
+        className={`timeline-wait-segment is-${config.mode}${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-disabled' : ''}`}
+        data-skill-button-id={button.id}
+        data-timeline-module="forced-wait"
+        data-wait-mode={config.mode}
+        role="button"
+        tabIndex={isBrowseMode ? -1 : 0}
+        aria-label={`${label}，${formatSeconds(startFrame, tickRate)}到${formatSeconds(endFrame, tickRate)}`}
+        aria-disabled={isInteractionDisabled}
+        title={`${label} · ${formatSeconds(startFrame, tickRate)}—${formatSeconds(endFrame, tickRate)}；双击设置，长按拖动`}
+        style={{ left, top, width } as CSSProperties}
+        onMouseDown={handleMouseDown}
+        onDoubleClick={handleDoubleClick}
+        onContextMenu={handleContextMenu}
+        onKeyDown={(event) => {
+          if ((event.key === 'Enter' || event.key === ' ') && !isBrowseMode) {
+            event.preventDefault();
+            onConfigure?.(button);
+          }
+        }}
+      >
+        <i className="timeline-wait-cursor is-start" aria-hidden="true">
+          <b>{formatSeconds(startFrame, tickRate)}</b>
+        </i>
+        <span className="timeline-wait-track">
+          <b>{label}</b>
+          <small>{detail}</small>
+        </span>
+        <i className="timeline-wait-cursor is-end" aria-hidden="true">
+          <b>{formatSeconds(endFrame, tickRate)}</b>
+        </i>
+      </div>
+      {shouldRenderContextMenu ? createPortal(
+        <TimelineWaitContextMenu
+          position={contextMenuState.position}
+          onConfigure={() => {
+            onCloseContextMenu?.();
+            onConfigure?.(button);
+          }}
+          onCopy={onCopy ? () => onCopy() : undefined}
+          onRemove={() => onConfirmRemove?.()}
+          onCancel={() => onCloseContextMenu?.()}
+        />,
+        document.body,
+      ) : null}
+    </>
   );
 }

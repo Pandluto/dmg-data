@@ -128,3 +128,109 @@ test('status transitions distinguish actual consumption from ordinary finish', (
     assert.equal(ordinary.consumption, false);
     assert.equal('consumerId' in ordinary, false);
 });
+
+test('OnConsumeBuff routes to the consumer while preserving the consumed target', () => {
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [
+                { id: 'actor', kind: 'Character', team: 'ally' },
+                { id: 'other', kind: 'Character', team: 'ally' },
+                { id: 'enemy', kind: 'Enemy', team: 'enemy' }
+            ],
+            buffs: {
+                'buff.fixture.observer': {
+                    stackingPolicy: 'Unique',
+                    blackboard: { handled: 0, consumed: 0 },
+                    abilityEventActions: [{
+                        eventType: 'OnConsumeBuff',
+                        actions: [{
+                            type: 'ModifyBlackboard',
+                            key: 'handled',
+                            operation: 'Add',
+                            value: 1
+                        }, {
+                            type: 'ModifyBlackboard',
+                            key: 'consumed',
+                            operation: 'Add',
+                            value: { type: 'Payload', key: 'consumedStacks' }
+                        }, {
+                            type: 'ApplyBuff',
+                            target: { type: 'EventTarget', fallback: 'Target' },
+                            buffId: 'buff.fixture.followup'
+                        }]
+                    }]
+                },
+                'buff.fixture.victim': {
+                    stackingPolicy: 'AddStack',
+                    maxStacks: 3,
+                    tagIds: [1075718177],
+                    blackboard: { count: 9 }
+                },
+                'buff.fixture.followup': { stackingPolicy: 'Refresh' }
+            }
+        }
+    });
+    runtime.execute({
+        type: 'ApplyBuff', target: 'actor', buffId: 'buff.fixture.observer'
+    }, {
+        frame: 0, sourceId: 'actor', ownerId: 'actor', targetId: 'actor'
+    });
+    const observer = () => runtime.statusEffects.list({
+        active: true, targetId: 'actor', buffId: 'buff.fixture.observer'
+    })[0];
+    const applyVictim = frame => runtime.execute({
+        type: 'ApplyBuff', target: 'enemy', buffId: 'buff.fixture.victim'
+    }, {
+        frame, sourceId: 'actor', ownerId: 'actor', targetId: 'enemy'
+    });
+
+    applyVictim(1);
+    runtime.execute({
+        type: 'FinishBuff', target: 'enemy', buffId: 'buff.fixture.victim'
+    }, {
+        frame: 2, sourceId: 'actor', ownerId: 'actor', targetId: 'enemy'
+    });
+    assert.equal(observer().blackboard.handled, 0,
+        'ordinary finish must not masquerade as consumption');
+
+    applyVictim(3);
+    applyVictim(4);
+    runtime.execute({
+        type: 'FinishBuff',
+        target: 'enemy',
+        buffId: 'buff.fixture.victim',
+        finishAll: false,
+        stackCount: 1,
+        consumption: true,
+        consumerRef: 'Source'
+    }, {
+        frame: 5,
+        sourceId: 'actor',
+        ownerId: 'actor',
+        targetId: 'enemy',
+        skillId: 'skill.actor.consume',
+        skillType: 'NormalSkill'
+    });
+    assert.equal(observer().blackboard.handled, 1);
+    assert.equal(observer().blackboard.consumed, 1);
+    assert.equal(runtime.statusEffects.has({
+        targetId: 'enemy', buffId: 'buff.fixture.followup'
+    }), true, 'listener EventTarget must remain the consumed Buff carrier');
+
+    runtime.execute({
+        type: 'FinishBuff',
+        target: 'enemy',
+        buffId: 'buff.fixture.victim',
+        consumption: true,
+        consumerRef: 'Source'
+    }, {
+        frame: 6,
+        sourceId: 'other',
+        ownerId: 'other',
+        targetId: 'enemy',
+        skillId: 'skill.other.consume',
+        skillType: 'NormalSkill'
+    });
+    assert.equal(observer().blackboard.handled, 1,
+        'a different consumer must not trigger actor-owned listeners');
+});

@@ -89,6 +89,19 @@ test('AKE elemental attachment slot follows same-element burst and cross-element
     assert.equal(reaction.sourceId, 'chr_0016_laevat');
     assert.equal(reaction.blackboard.consumed_layer, 2);
     assert.equal(reaction.blackboard.count, 2);
+    const consumedAttachment = runtime.statusEffects.trace.find(event =>
+        event.buffId === attachmentBuffIds.Cryst
+        && event.stage === 'StatusEffectFinished'
+        && event.frame === 2
+    );
+    assert.equal(consumedAttachment.consumption, true);
+    assert.equal(consumedAttachment.consumerId, 'chr_0016_laevat');
+    assert.equal(consumedAttachment.consumeKind, 'ElementalReaction');
+    assert.equal(runtime.trace.some(event =>
+        event.stage === 'AbilityEventNotified'
+        && event.eventType === 'OnConsumeBuff'
+        && event.listenerTargetId === 'chr_0016_laevat'
+    ), true);
 });
 
 test('all four AKE attachments share one generic 4x4 reaction matrix', () => {

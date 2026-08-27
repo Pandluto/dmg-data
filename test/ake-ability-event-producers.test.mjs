@@ -36,11 +36,12 @@ test('public BuffData ability events are measured against concrete runtime produ
 
     assert.equal(counts.size, 82);
     assert.equal([...counts.values()].reduce((sum, count) => sum + count, 0), 953);
-    assert.equal(publicProducerEntries.length, 25);
-    assert.equal(publicProducerEntries.reduce((sum, [, count]) => sum + count, 0), 786);
+    assert.equal(publicProducerEntries.length, 26);
+    assert.equal(publicProducerEntries.reduce((sum, [, count]) => sum + count, 0), 796);
     assert.ok(RUNTIME_ABILITY_EVENT_TYPES.includes('OnRemoveAllPendingComboSkill'));
     assert.ok(RUNTIME_ABILITY_EVENT_TYPES.includes('OnPoiseZero'));
     assert.ok(RUNTIME_ABILITY_EVENT_TYPES.includes('OnPoiseRecover'));
+    assert.ok(RUNTIME_ABILITY_EVENT_TYPES.includes('OnConsumeBuff'));
 });
 
 test('top-level Buff listeners fail closed on missing or malformed event producers', () => {
@@ -77,15 +78,17 @@ test('top-level Buff listeners fail closed on missing or malformed event produce
     assert.equal(definition.compiler.status, 'unresolved');
 });
 
-test('Skill passive listener groups use the same producer audit', () => {
+test('Skill passive listener groups recognize the consume producer independently of conditions', () => {
     const raw = readJson(new URL('sk_wpn_claym_0014.json', SKILL_DATA_URL));
     const passive = new AkeActionCompiler().compilePassiveEventActions(raw);
+    const consume = passive.groups.find(group => group.eventType === 'OnConsumeBuff');
 
-    assert.ok(passive.groups.some(group =>
-        group.eventType === 'OnConsumeBuff'
-        && group.unresolved.some(gap =>
-            gap.code === 'AKE_ABILITY_EVENT_EMITTER_REQUIRED'
-        )
-    ));
+    assert.equal(consume.unresolved.some(gap =>
+        gap.code === 'AKE_ABILITY_EVENT_EMITTER_REQUIRED'
+    ), false);
+    assert.equal(consume.unresolved.some(gap =>
+        gap.code === 'AKE_CONDITION_UNSUPPORTED'
+        && gap.sourceType === 'CheckConsumeBuffLayer'
+    ), true);
     assert.equal(passive.compiler.status, 'unresolved');
 });

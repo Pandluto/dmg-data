@@ -187,6 +187,9 @@ export class EnemyMechanicResolver {
                     instanceId: instance.instanceId,
                     target: targetId,
                     finishAll: true,
+                    consumption: true,
+                    consumerRef: 'Source',
+                    consumeKind: 'ElementalReaction',
                     reason: `ElementalReaction:${element}`
                 }))
             ];
@@ -324,6 +327,9 @@ export class EnemyMechanicResolver {
                 target: targetId,
                 finishAll: amount >= stackCount,
                 stackCount: amount,
+                consumption: true,
+                consumerRef: 'Source',
+                consumeKind: 'ForcedSpellStatus',
                 reason: `ForceSpellStatus:${String(spellStatusType)}`
             });
             remaining -= amount;

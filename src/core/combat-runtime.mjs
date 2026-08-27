@@ -3116,6 +3116,9 @@ export class CombatRuntime {
                         target: attribution.targetId,
                         buffId: executionGateBuffId,
                         finishAll: true,
+                        consumption: true,
+                        consumerRef: attribution.sourceId,
+                        consumeKind: 'PoiseExecution',
                         reason: 'PoiseExecutionConsumed'
                     }, eventContext)
                     : null;
@@ -4525,7 +4528,14 @@ export class CombatRuntime {
     }
 
     #onStatusEffectTransition(transition) {
-        if (!isRecord(transition) || transition.stage !== 'StatusEffectFinished') return;
+        if (!isRecord(transition)) return;
+        if (transition.consumption === true
+            && ['StatusEffectStackRemoved', 'StatusEffectFinished'].includes(
+                transition.stage
+            )) {
+            this.#notifyConsumedBuff(transition);
+        }
+        if (transition.stage !== 'StatusEffectFinished') return;
         const definition = this.statusEffects.getDefinition(transition.buffId);
         const context = this.context.createEventContext({
             frame: transition.frame,
@@ -4558,6 +4568,65 @@ export class CombatRuntime {
             buffInstanceId: transition.instanceId,
             reason: 'OwnerBuffFinished'
         }, context);
+    }
+
+    #notifyConsumedBuff(transition) {
+        const consumerId = transition.consumerId
+            ?? transition.triggerSourceId
+            ?? transition.triggerOwnerId
+            ?? null;
+        if (consumerId === null || consumerId === undefined
+            || !this.context.hasEntity(consumerId)) return [];
+        const definition = this.statusEffects.getDefinition(transition.buffId);
+        const context = this.context.createEventContext({
+            frame: transition.frame,
+            eventType: 'OnConsumeBuff',
+            sourceId: consumerId,
+            ownerId: transition.triggerOwnerId ?? consumerId,
+            targetId: transition.targetId,
+            skillId: transition.triggerSkillId,
+            rootSkillId: transition.triggerRootSkillId,
+            castId: transition.triggerCastId,
+            commandType: transition.triggerCommandType,
+            skillType: transition.triggerSkillType,
+            buffInstanceId: transition.instanceId,
+            clockDomainId: this.#entityClockDomainId(
+                consumerId,
+                transition.actionClockDomainId ?? transition.clockDomainId ?? 'global'
+            ),
+            transactionId: transition.triggerTransactionId
+                ?? transition.transactionId,
+            parentEventId: transition.eventId,
+            parentHitId: transition.triggerParentHitId
+                ?? transition.parentHitId,
+            hitEventPhase: transition.triggerHitEventPhase
+                ?? transition.hitEventPhase,
+            payload: {
+                buffId: transition.buffId,
+                buffTagIds: cloneValue(definition?.tagIds ?? []),
+                consumedBuffInstanceId: transition.instanceId,
+                consumedStacks: Number(
+                    transition.consumedStacks ?? transition.actual ?? 0
+                ),
+                beforeStacks: Number(transition.before ?? 0),
+                afterStacks: Number(transition.after ?? 0),
+                consumedBuffBlackboard: cloneValue(
+                    transition.consumedBuffBlackboard ?? {}
+                ),
+                bySource: cloneValue(transition.bySource ?? []),
+                consumerId,
+                consumeReason: transition.reason ?? 'Consume',
+                consumeKind: transition.consumeKind ?? 'Consume',
+                isAbsorbed: transition.isAbsorbed === true,
+                commandType: transition.triggerCommandType ?? null,
+                skillType: transition.triggerSkillType ?? null
+            }
+        });
+        return this.#notifyLifecycleAbilityEvent(
+            'OnConsumeBuff',
+            context,
+            consumerId
+        );
     }
 
     #onAuraTargetEntered(eventContext, instance) {

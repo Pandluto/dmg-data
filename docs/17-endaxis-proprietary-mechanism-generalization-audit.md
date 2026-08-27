@@ -958,3 +958,71 @@ OnBeforeOutputDamage -> OnBeforeTakeDamage
 重跑全库审计后，84 个事件键和 1072 个消费者组总量不变；已闭环事件由 22 增至 23，complete 消费者由 693 增至 798，缺生产者消费者由 372 降至 267。非法事件值仍为 2 种、7 组。全量 241 项测试和前端严格类型检查通过。
 
 这一步没有修改共享水位、变量斜率、画布排版或 UI 投影。下一组高覆盖公共边沿是 `OnPoiseZero` 与 `OnPoiseRecover`；两者应从同一韧性状态机的“首次进入破韧”和“恢复完成”事务发出，不能从伤害数字或前端图标反推。
+
+## 14. 失衡生命周期与双状态机分叉
+
+### 14.1 当前首要问题不是缺两个事件名，而是 Poise 被送进了错误的状态机
+
+项目已经存在两套名字相近、语义不同的核心：
+
+| 核心 | 已证明的职责 | 当前入口 |
+|---|---|---|
+| `PoiseMachine` | AKE 失衡条累积、节点、完整破韧、处决窗口、敌方局部时钟恢复、快速破韧保护 | 早期 Calc/Pelica 模拟器 |
+| `ResilienceMachine` | 位移/控制抗性、超级护甲、击飞/倒地门禁、显式恢复与处决量表 | 新 `CombatRuntime` |
+
+`docs/07-poise-execution-engine.md` 已明确两者不是同一系统，但新通用运行时仍把 `damageAttributeType=Poise` 与 `Resilience` 一起路由到 `ResilienceMachine.applyImpact()`。AKE assembler 也把敌人 `attrType=20 maxPoise` 填进 `maxResilience`，同时丢掉了 `attrType=21 poiseRecTime`、失衡节点列表、失衡易伤和处决生命周期。其结果不是单纯少了 UI 标签，而是：
+
+1. 失衡条方向从 AKE/Calc 的 `0 -> max` 变成 `max -> 0`；
+2. `OnPoiseZero` 虽然名字表示归零，实际应在累积条达到上限、进入 broken 时发出，不能靠 `ResilienceMachine.after===0` 猜测后宣称两套语义相同；
+3. 通用运行时没有自动 Poise 恢复计时，`recoveryPerTick=0` 使 `OnPoiseRecover` 永远不可达；
+4. 当前 `ResilienceMachine.recover()` 在第一个正恢复量就从 `Staggered` 转回 `Stable`，而 Calc 的 Poise recovery 是完整 broken 周期结束后一次性清零累积条；
+5. Poise 节点与完整破韧、击飞/倒地控制和超级护甲被挤进同一个状态字段，后续 listener 很容易在错误边沿响应。
+
+因此禁止直接在 `ResilienceMachine` 上补 `OnPoiseZero/OnPoiseRecover` callback。正确升级是恢复已经被边界测试证明的 Poise 核心，并让 `ResilienceMachine` 回到控制韧性的独立职责。
+
+### 14.2 三方证据冻结的 Poise 生命周期
+
+AKE 原始 BuffData 中有 49 组 `OnPoiseZero`、19 组 `OnPoiseRecover` listener。`buff_common_lower_superarmor_when_interrupted` 在 zero 时移除超级护甲、recover 时重新创建；`buff_dung_poisebreak_enemy` 在 zero 时移除减伤、recover 时按条件恢复；`buff_gambling_poise_recover_heal` 只在 recover 时治疗 owner。它们共同证明两个事件都是失衡目标自己的生命周期事件，而不是攻击者的输出事件。
+
+Calc 的既有黑盒 oracle 又冻结了时序：恰好达到上限和溢出达到上限都只在首次 broken 帧发一次 `OnPoiseZero`；broken 期间继续命中不会重复发；敌方局部恢复计时完成时发 `OnPoiseRecover`。佩丽卡样本分别观察到 `426 -> 613/617/620` 和 `293 -> 484`，差值来自敌方局部时钟暂停，不能替换成固定墙钟秒数。
+
+Endaxis 的 `EnemyState.addStagger()` 可作为简化实现对照：它同样累积到 `maxStagger` 后开放 break window，并把失衡节点与完整破韧分开；但它在破韧时立即把数值清零，仅用 `breakEndTime` 推导状态，也没有 AKE ability-event consumer/producer 链。因此可借鉴其职责拆分，不能把它当作事件顺序或局部时钟真值。
+
+统一事务应为：
+
+```text
+Poise DamageUnit
+  -> PoiseMachine.applyDamage(target，先提交数值/状态)
+  -> OnTakePoiseDamage(target，保留完整输出/实际填充/overflow)
+  -> 若本周期首次达到 max：
+       （此时 Broken + execution gate + recovery timer 已提交）
+       -> OnPoiseZero(target owner)
+  -> 敌方 local-clock timer complete：
+       commit Recovered + clear accumulated/nodes/gate
+       -> OnPoiseRecover(target owner)
+       -> 可选 rapid-break guard
+```
+
+事件边界约束：
+
+1. 节点跨越只产生 knot 生命周期，不得冒充 `OnPoiseZero`；
+2. zero/recover 各周期各一次；broken 中的后续 Poise 输出可记录，但不再推进条或重发 zero；
+3. zero listener 在 `broken=true`、处决门票与恢复 timer 已提交后运行；recover listener在 `broken=false`、累积归零、节点清空后运行；
+4. 两个 listener 都绑定失衡实体；上下文继续保留造成破韧的 source/owner/skill/cast/hit，自动恢复则保留上一次破韧来源作为因果元数据，但事件 owner 仍是目标；
+5. `Poise` DamageUnit 只进入 Poise 核心；明确的 `Resilience`/`ApplyImpact`/控制动作继续进入控制韧性核心；
+6. 恢复 timer 使用目标自己的 `clockDomainId`，由现有 `ClockDomainManager` 承担暂停与确定性调度；禁止 UI 自己倒计时并反向修改核心；
+7. AKE assembler 必须传入 `maxPoise`、`poiseRecTime`、节点阈值/Buff、处决参数和证据 profile；无法证明的 rapid-break 等阶仍保持 profile 未解析，不套普通敌人常量；
+8. 画布最终只消费统一 runtime ledger 的 Poise 状态与事件。这一轮核心改造不能修改共享变量速率、水位列、按钮位置或伤害点投影。
+
+### 14.3 分步迁移契约
+
+为避免一次重写同时破坏 Calc oracle 与 AKE 画布，代码按以下独立提交推进：
+
+1. 给既有 `PoiseMachine` 增加 `onBroken/onRecovered` 事务回调，并用当前 Calc oracle 锁定回调发生在 settled state 之后；
+2. 增加多目标 Poise registry/adapter，每个目标持有独立 PoiseMachine、clock domain、cycle 和 trace；
+3. `CombatRuntime` 分流 `Poise` 与 `Resilience`，把两个 Poise 边沿桥接到 ability listener，并让直接 Poise 原语与伤害包共用入口；
+4. AKE assembler 改为同时注册 `poise` 与控制 `resilience`，不再用一个字段承载两套状态；
+5. 重跑能力事件审计。只有真实 AKE 运行时也能达到 zero/recover 时，才把两类生产者标为 complete；
+6. 最后把 runtime ledger 的 Poise 快照映射给 UI，并验证布局、水位求解、技能合法性完全不变。
+
+本节先冻结架构和可证伪边界；下一提交才开始第 1 步实现。

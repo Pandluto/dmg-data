@@ -47,6 +47,27 @@ function emptyAttributeComponent(rawValue = 0) {
     };
 }
 
+function sourceCategory(sourceType) {
+    const normalized = String(sourceType ?? 'Effect').toLowerCase();
+    if (normalized.includes('talent')) return 'Talent';
+    if (normalized.includes('potential')) return 'Potential';
+    if (normalized.includes('weapon')) return 'Weapon';
+    if (normalized.includes('set')) return 'EquipmentSet';
+    if (normalized.includes('equipment')) return 'Equipment';
+    if (normalized.includes('enemy')) return 'EnemyStatus';
+    if (normalized.includes('reaction')) return 'Reaction';
+    if (normalized.includes('skill')) return 'Skill';
+    if (normalized.includes('status')) return 'StatusEffect';
+    if (normalized.includes('global')) return 'Global';
+    return 'System';
+}
+
+function resolveModifierOperand(rawValue, modifier) {
+    return modifier.metadata?.operandSemantics === 'rate-to-factor'
+        ? 1 + rawValue
+        : rawValue;
+}
+
 /**
  * Reversible source registry for equipment, talents, potentials, contracts
  * and status effects.
@@ -134,6 +155,7 @@ export class EffectSourceRegistry {
                 throw new Error('Unsupported attribute modifier zone: ' + zone + '.');
             }
             return {
+                modifierIndex: index,
                 attribute,
                 zone,
                 value: cloneValue(modifier.value ?? modifier.param ?? 0),
@@ -146,11 +168,13 @@ export class EffectSourceRegistry {
                 throw new TypeError('damageModifiers[' + index + '] must be an object.');
             }
             return {
+                modifierIndex: index,
                 side: modifier.side ?? null,
                 damageTypes: cloneValue(modifier.damageTypes ?? []),
                 conditions: cloneValue(modifier.conditions ?? []),
                 conditionsExecutable: modifier.conditionsExecutable !== false,
-                processors: (modifier.processors ?? []).map(processor => ({
+                processors: (modifier.processors ?? []).map((processor, processorIndex) => ({
+                    processorIndex,
                     side: processor.side ?? modifier.side ?? null,
                     zoneName: processor.zoneName ?? 'NormalCalcZone',
                     addition: cloneValue(processor.addition ?? 0)
@@ -160,10 +184,22 @@ export class EffectSourceRegistry {
         const source = {
             sourceKey: key,
             sourceType: input.sourceType ?? 'Effect',
+            sourceCategory: sourceCategory(
+                input.sourceCategory ?? input.sourceType ?? 'Effect'
+            ),
             sourceId: input.sourceId ?? eventContext.sourceId ?? null,
             ownerId: input.ownerId ?? eventContext.ownerId ?? null,
+            carrierId: input.carrierId ?? targetId,
             targetId,
+            damageSourceId: input.damageSourceId
+                ?? eventContext.damageSourceId
+                ?? input.sourceId
+                ?? eventContext.sourceId
+                ?? null,
             buffInstanceId: input.buffInstanceId ?? eventContext.buffInstanceId ?? null,
+            buffId: input.buffId ?? eventContext.payload?.buffId ?? null,
+            sourceSkillId: input.sourceSkillId ?? eventContext.skillId ?? null,
+            transactionId: input.transactionId ?? eventContext.transactionId ?? null,
             ruleId: input.ruleId ?? eventContext.ruleId ?? null,
             blackboard: cloneValue(eventContext.blackboard ?? {}),
             payload: cloneValue(eventContext.payload ?? {}),
@@ -267,14 +303,10 @@ export class EffectSourceRegistry {
         return this.remove({ ownerId, frame });
     }
 
-    damageZone({
-        targetId,
-        side,
-        damageType,
-        attackerId = eventContext.sourceId,
-        defenderId = eventContext.targetId
-    }, eventContext = {}) {
+    damageZone({ targetId, side, damageType, attackerId, defenderId }, eventContext = {}) {
         identifier(targetId, 'damage-zone targetId');
+        attackerId ??= eventContext.sourceId ?? null;
+        defenderId ??= eventContext.targetId ?? null;
         const zones = new Map();
         const contributions = [];
         for (const source of this.sources.values()) {
@@ -311,12 +343,31 @@ export class EffectSourceRegistry {
                     );
                     zones.set(processor.zoneName, (zones.get(processor.zoneName) ?? 0) + addition);
                     contributions.push({
+                        contributionId: `${String(source.sourceKey)}:damage:${modifier.modifierIndex}:${processor.processorIndex}`,
+                        semanticKey: `damage-zone.${String(processor.zoneName)}`,
                         sourceKey: source.sourceKey,
                         sourceType: source.sourceType,
+                        sourceCategory: source.sourceCategory,
+                        sourceId: source.sourceId,
+                        ownerId: source.ownerId,
+                        carrierId: source.carrierId,
+                        targetId: source.targetId,
+                        damageSourceId: source.damageSourceId,
+                        buffId: source.buffId,
                         buffInstanceId: source.buffInstanceId,
+                        sourceSkillId: source.sourceSkillId,
                         side: effectiveSide,
                         zoneName: processor.zoneName,
-                        addition
+                        operation: 'AddRate',
+                        rawField: processor.zoneName,
+                        rawValue: addition,
+                        resolvedValue: addition,
+                        addition,
+                        stackCount: Number(source.payload?.stackCount ?? 1),
+                        appliedFrame: source.appliedFrame,
+                        expireFrame: source.metadata?.expireFrame ?? null,
+                        transactionId: source.transactionId,
+                        metadata: cloneValue(source.metadata)
                     });
                 }
             }
@@ -373,26 +424,44 @@ export class EffectSourceRegistry {
                     blackboard: source.blackboard,
                     payload: source.payload
                 }), attribute + '.' + modifier.zone);
+                const resolvedValue = resolveModifierOperand(value, modifier);
                 const field = modifier.zone[0].toLowerCase() + modifier.zone.slice(1);
                 if (modifier.zone === 'BaseFinalMultiplier'
                     || modifier.zone === 'FinalMultiplier') {
-                    component[field] *= value;
+                    component[field] *= resolvedValue;
                 } else {
-                    component[field] += value;
+                    component[field] += resolvedValue;
                 }
                 contributions.push({
+                    contributionId: `${String(source.sourceKey)}:attribute:${attribute}:${modifier.modifierIndex}`,
+                    semanticKey: `${attribute}.${modifier.zone}`,
                     sourceKey: source.sourceKey,
                     sourceType: source.sourceType,
+                    sourceCategory: source.sourceCategory,
                     sourceId: source.sourceId,
                     ownerId: source.ownerId,
+                    carrierId: source.carrierId,
                     buffInstanceId: source.buffInstanceId,
+                    buffId: source.buffId,
                     targetId: source.targetId,
+                    damageSourceId: source.damageSourceId,
+                    sourceSkillId: source.sourceSkillId,
                     attribute,
                     zone: modifier.zone,
-                    value,
+                    operation: modifier.zone.endsWith('Multiplier')
+                        ? 'Multiply'
+                        : 'Add',
+                    rawField: modifier.metadata?.rawFormulaItem ?? modifier.zone,
+                    rawFormulaItem: modifier.metadata?.rawFormulaItem ?? modifier.zone,
+                    rawValue: value,
+                    resolvedValue,
+                    value: resolvedValue,
+                    stackCount: Number(source.payload?.stackCount ?? 1),
                     metadata: cloneValue(modifier.metadata),
                     sourceMetadata: cloneValue(source.metadata),
-                    appliedFrame: source.appliedFrame
+                    appliedFrame: source.appliedFrame,
+                    expireFrame: source.metadata?.expireFrame ?? null,
+                    transactionId: source.transactionId
                 });
             }
         }
@@ -432,12 +501,13 @@ export class EffectSourceRegistry {
                 blackboard: source.blackboard,
                 payload: source.payload
             }), attribute + '.' + modifier.zone);
+            const resolvedValue = resolveModifierOperand(value, modifier);
             const field = modifier.zone[0].toLowerCase() + modifier.zone.slice(1);
             if (modifier.zone === 'BaseFinalMultiplier'
                 || modifier.zone === 'FinalMultiplier') {
-                component[field] *= value;
+                component[field] *= resolvedValue;
             } else {
-                component[field] += value;
+                component[field] += resolvedValue;
             }
         }
         const evaluation = evaluateAttributeComponent(component);
@@ -481,8 +551,13 @@ export class EffectSourceRegistry {
             sourceType: source.sourceType,
             sourceId: source.sourceId,
             ownerId: source.ownerId,
+            carrierId: source.carrierId ?? source.targetId,
             targetId: source.targetId,
+            damageSourceId: source.damageSourceId ?? source.sourceId,
             buffInstanceId: source.buffInstanceId,
+            buffId: source.buffId ?? null,
+            sourceSkillId: source.sourceSkillId ?? null,
+            transactionId: source.transactionId ?? eventContext.transactionId ?? null,
             reason: eventContext.reason ?? stage,
             ruleId: source.ruleId,
             ...cloneValue(details)

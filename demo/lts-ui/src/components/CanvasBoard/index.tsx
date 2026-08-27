@@ -838,36 +838,47 @@ export function CanvasBoard({
     ? resolveAkeCalculationEndFrame(akeRealtimeTimeline)
     : null;
 
+  const akeSimulationSignature = React.useMemo(() => {
+    const configSnapshots = getOperatorConfigPageCache();
+    const catalog = getInstalledAkeCatalog();
+    return JSON.stringify({
+      contract: {
+        report: 3,
+        runtime: 'ake-squad-combat-runtime-v3',
+        semanticMapping: 'engine-semantic-mappings-v1',
+        timeline: 'shared-variable-rate-v1',
+      },
+      catalog: {
+        schemaVersion: catalog?.schemaVersion ?? null,
+        version: catalog?.source.version ?? null,
+        sharedRevision: catalog?.source.sharedRevision ?? null,
+      },
+      enemy: { id: 'eny_0007_mimicw', profile: 'ordinary-fixed-dummy-v1' },
+      characters: selectedCharacters.map((character) => ({
+        id: character.id,
+        name: character.name,
+        config: configSnapshots[character.id] ?? null,
+      })),
+      commands: (akeRealtimeTimeline?.commands ?? []).map((command) => ({
+        id: command.commandId,
+        characterId: command.characterId,
+        commandType: command.commandType,
+        frame: command.requestedFrame,
+        skillId: command.profile.skillId,
+      })),
+      endFrame: akeRequestedEndFrame,
+      configRevision: resistanceRevision,
+    });
+  }, [akeRealtimeTimeline, akeRequestedEndFrame, resistanceRevision, selectedCharacters]);
+
   const activeAkeTeamReport = React.useMemo(() => {
     if (!akeTeamReport || !akeRealtimeTimeline) return null;
-    const currentCommands = akeRealtimeTimeline.commands
-      .map(command => [command.commandId, command.requestedFrame] as const)
-      .sort((left, right) => left[0].localeCompare(right[0]));
-    const settledCommands = akeTeamReport.timeline.commands
-      .map(command => [command.commandId, command.requestedFrame] as const)
-      .sort((left, right) => left[0].localeCompare(right[0]));
-    const currentCharacters = selectedCharacters.map(character => character.id).sort();
-    const settledCharacters = akeTeamReport.characters
-      .map(character => character.localCharacterId).sort();
-    return JSON.stringify(currentCommands) === JSON.stringify(settledCommands)
-      && JSON.stringify(currentCharacters) === JSON.stringify(settledCharacters)
+    return akeTeamReport.executionDigest === akeSimulationSignature
+      && akeTeamReport.timelineMode === 'shared-variable-rate'
       && akeTeamReport.requestedEndFrame === akeRequestedEndFrame
       ? akeTeamReport
       : null;
-  }, [akeRealtimeTimeline, akeRequestedEndFrame, akeTeamReport, selectedCharacters]);
-
-  const akeSimulationSignature = React.useMemo(() => JSON.stringify({
-    characters: selectedCharacters.map((character) => character.id),
-    commands: (akeRealtimeTimeline?.commands ?? []).map((command) => ({
-      id: command.commandId,
-      characterId: command.characterId,
-      commandType: command.commandType,
-      frame: command.requestedFrame,
-      skillId: command.profile.skillId,
-    })),
-    endFrame: akeRequestedEndFrame,
-    configRevision: resistanceRevision,
-  }), [akeRealtimeTimeline, akeRequestedEndFrame, resistanceRevision, selectedCharacters]);
+  }, [akeRealtimeTimeline, akeRequestedEndFrame, akeSimulationSignature, akeTeamReport]);
 
   useEffect(() => {
     if (import.meta.env.VITE_AKE_DEMO !== '1'
@@ -880,6 +891,7 @@ export function CanvasBoard({
       runAkeTeamCalculation({
         timelineData,
         selectedCharacters,
+        executionDigest: akeSimulationSignature,
         signal: controller.signal,
       }).catch((error) => {
         if (controller.signal.aborted
@@ -4714,6 +4726,7 @@ export function CanvasBoard({
         const report = await runAkeTeamCalculation({
           timelineData,
           selectedCharacters,
+          executionDigest: akeSimulationSignature,
         });
         const failed = report.characters.filter((character) => character.status === 'error').length;
         setWorkNodeSaveNotice(failed > 0

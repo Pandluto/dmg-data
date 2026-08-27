@@ -234,6 +234,8 @@ export class EffectRuntime {
             throw new TypeError('trace must be an array.');
         }
         this.trace = config.trace ?? [];
+        this.nextTraceSequence = 1;
+        this.nextTransactionSequence = 1;
         this.handlers = new Map();
         this.conditionHandlers = new Map();
         this.actionHandlers = new Map();
@@ -303,7 +305,10 @@ export class EffectRuntime {
     }
 
     #traceRecord(stage, type, eventContext, details = {}) {
+        const sequence = this.nextTraceSequence++;
         const record = {
+            eventId: `effect-event:${sequence}`,
+            sequence,
             frame: eventContext?.frame ?? null,
             stage,
             type,
@@ -315,6 +320,10 @@ export class EffectRuntime {
             castId: eventContext?.castId ?? null,
             buffInstanceId: eventContext?.buffInstanceId ?? null,
             clockDomainId: eventContext?.clockDomainId ?? null,
+            transactionId: eventContext?.transactionId ?? null,
+            parentEventId: eventContext?.parentEventId ?? null,
+            carrierId: eventContext?.carrierId ?? eventContext?.targetId ?? null,
+            damageSourceId: eventContext?.damageSourceId ?? eventContext?.sourceId ?? null,
             reason: details.reason ?? eventContext?.reason ?? stage,
             ruleId: details.ruleId ?? eventContext?.ruleId ?? null,
             ...cloneValue(details)
@@ -329,6 +338,10 @@ export class EffectRuntime {
         record.castId = eventContext?.castId ?? null;
         record.buffInstanceId = eventContext?.buffInstanceId ?? null;
         record.clockDomainId = eventContext?.clockDomainId ?? null;
+        record.transactionId = eventContext?.transactionId ?? null;
+        record.parentEventId = eventContext?.parentEventId ?? null;
+        record.carrierId = eventContext?.carrierId ?? eventContext?.targetId ?? null;
+        record.damageSourceId = eventContext?.damageSourceId ?? eventContext?.sourceId ?? null;
         if (record.reason === undefined || record.reason === null) record.reason = stage;
         this.trace.push(record);
         return cloneValue(record);
@@ -580,6 +593,9 @@ export class EffectRuntime {
      */
     executeTransaction(actionOrArray, eventContext) {
         const context = this.#event(eventContext);
+        if (context.transactionId === undefined || context.transactionId === null) {
+            context.transactionId = `effect-tx:${this.nextTransactionSequence++}`;
+        }
         const isArray = Array.isArray(actionOrArray);
         const actions = isArray ? actionOrArray : [actionOrArray];
         if (actions.length === 0) {

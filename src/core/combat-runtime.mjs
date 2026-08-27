@@ -9,6 +9,7 @@ import { ResilienceMachine } from './resilience-machine.mjs';
 import { StatusEffectSystem } from './status-effect-system.mjs';
 import { EffectSourceRegistry } from './effect-source-registry.mjs';
 import { SkillFormStateRegistry } from './skill-form-state-registry.mjs';
+import { CombatStatusResolver } from './combat-status-resolver.mjs';
 
 function isRecord(value) {
     return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -154,6 +155,7 @@ export class CombatRuntime {
         this.nextProgramSequence = 1;
         this.nextIntervalSequence = 1;
         this.nextAbilityEntitySequence = 1;
+        this.nextDamageHitSequence = 1;
         this.programExecutions = new Map();
         this.entityBlackboards = new Map();
         this.skillLoadoutPatchSources = new Map();
@@ -231,6 +233,12 @@ export class CombatRuntime {
                     )
                 }
             )
+        });
+        this.combatStatuses = new CombatStatusResolver({
+            statusEffects: this.statusEffects,
+            executeTransaction: (actions, eventContext) =>
+                this.effects.executeTransaction(actions, eventContext),
+            getEffectTrace: () => this.effects?.trace ?? []
         });
         this.auras = new AuraMachine({
             definitions: definitions.auras ?? {},
@@ -2287,12 +2295,14 @@ export class CombatRuntime {
                                 : {}),
                             ...cloneValue(candidate.blackboard ?? {})
                         };
-                        this.#notifyBeforeOutputBuff(
-                            candidate,
-                            attribution,
-                            candidateBlackboard,
-                            eventContext
-                        );
+                        if (definition !== null) {
+                            this.#notifyBeforeOutputBuff(
+                                candidate,
+                                attribution,
+                                candidateBlackboard,
+                                eventContext
+                            );
+                        }
                         const applied = this.statusEffects.apply({
                             ...attribution,
                             // Buff lifetime/timeline scheduling and the domain
@@ -2334,8 +2344,10 @@ export class CombatRuntime {
                             }
                         }, eventContext);
                         results.push(applied);
-                        this.#notifyAddedBuff(applied, eventContext);
-                        this.#notifyOutputBuff(applied, eventContext);
+                        if (applied?.status !== 'Unresolved') {
+                            this.#notifyAddedBuff(applied, eventContext);
+                            this.#notifyOutputBuff(applied, eventContext);
+                        }
                     }
                 }
                 return Array.isArray(action.buffs) || count !== 1 ? results : results[0];
@@ -2381,65 +2393,7 @@ export class CombatRuntime {
                     eventContext,
                     'Target'
                 );
-                const initialBuffId = identifier(
-                    action.initialBuffId ?? 'buff_physical_no_guard',
-                    'combat-status initialBuffId'
-                );
-                const statusBuffId = identifier(
-                    action.statusBuffId,
-                    'combat-status statusBuffId'
-                );
-                const layerCount = () => this.statusEffects.list({
-                    active: true,
-                    targetId,
-                    buffId: initialBuffId
-                }).reduce((sum, instance) => sum + Number(instance.stackCount ?? 0), 0);
-                const before = layerCount();
-                const firstApplication = before === 0;
-                const buffId = firstApplication ? initialBuffId : statusBuffId;
-                const transaction = this.effects.executeTransaction([{
-                    type: 'ApplyBuff',
-                    target: targetId,
-                    buffs: [{
-                        buffId,
-                        assignBlackboard: false,
-                        assignments: []
-                    }],
-                    count: 1,
-                    inheritEventBlackboard: false,
-                    triggerEnhancementEvent: true,
-                    // Physical control/status Buffs use a shared presentation
-                    // stacking key. Every actual anomaly still owns a gameplay
-                    // transaction and must execute its OnBuffStart payload.
-                    ...(firstApplication ? {} : { stackingPolicy: 'Independent' }),
-                    blackboard: cloneValue(action.blackboard ?? {}),
-                    metadata: {
-                        ...cloneValue(action.metadata ?? {}),
-                        akePhysicalStateTransaction: true,
-                        initialNoGuardLayers: before
-                    },
-                    reason: firstApplication
-                        ? `${String(action.statusKey)}:EnterNoGuard`
-                        : `${String(action.statusKey)}:TriggerPhysicalStatus`
-                }], {
-                    ...cloneValue(eventContext),
-                    targetId,
-                    eventType: 'PhysicalStatusTransaction'
-                });
-                const after = layerCount();
-                return {
-                    status: 'Applied',
-                    statusKey: action.statusKey ?? null,
-                    targetId,
-                    firstApplication,
-                    appliedBuffId: buffId,
-                    before,
-                    requested: firstApplication ? 1 : before + 1,
-                    actual: after,
-                    discarded: Math.max(0, (firstApplication ? 1 : before + 1) - after),
-                    after,
-                    transaction
-                };
+                return this.combatStatuses.resolve(action, eventContext, targetId);
             },
             ApplyInfliction: (action, eventContext) => this.reactions.applyInfliction({
                 ...this.#attribution(action, eventContext),
@@ -2728,10 +2682,20 @@ export class CombatRuntime {
                 const sourceListenerId = damageEventContext.sourceId
                     ?? damageEventContext.ownerId;
                 const targetListenerId = damageEventContext.targetId;
+                const hitIdentityByUnit = new Map((action.damageUnits ?? []).map(
+                    (_unit, damageUnitIndex) => {
+                        const sequence = this.nextDamageHitSequence++;
+                        return [damageUnitIndex, {
+                            hitId: `runtime-hit:${sequence}`,
+                            sequence
+                        }];
+                    }
+                ));
                 const beforeAbilityEvents = (action.damageUnits ?? []).map(
                     (unit, damageUnitIndex) => {
                         const pendingHit = {
                             ...cloneValue(unit),
+                            ...hitIdentityByUnit.get(damageUnitIndex),
                             damageUnitIndex,
                             damageAttributeType: unit.damageAttributeType ?? 'Hp',
                             damageDecorateMask: Number(unit.damageDecorateMask ?? 0)
@@ -2767,7 +2731,46 @@ export class CombatRuntime {
                 if (resolution.status === 'Unresolved') return cloneValue(resolution);
                 const hits = resolution.hits ?? [];
                 if (!Array.isArray(hits)) throw new TypeError('damageResolver hits must be an array.');
-                const appliedHits = hits.map(hit => {
+                const identifiedHits = hits.map(hit => {
+                    const existingIdentity = hitIdentityByUnit.get(hit.damageUnitIndex);
+                    const fallbackSequence = existingIdentity
+                        ? existingIdentity.sequence
+                        : this.nextDamageHitSequence++;
+                    const sourceBuffId = damageEventContext.buffInstanceId
+                        ? this.statusEffects.get(damageEventContext.buffInstanceId)?.buffId
+                            ?? eventContext.payload?.buffId
+                            ?? null
+                        : eventContext.payload?.buffId ?? null;
+                    const semanticHitType = hit.semanticHitType
+                        ?? action.semanticHitType
+                        ?? eventContext.payload?.statusMetadata?.akeCombatStatus
+                        ?? eventContext.payload?.statusKey
+                        ?? (sourceBuffId ? 'buff-derived' : 'skill');
+                    return {
+                        ...cloneValue(hit),
+                        hitId: hit.hitId
+                            ?? existingIdentity?.hitId
+                            ?? `runtime-hit:${fallbackSequence}`,
+                        sequence: hit.sequence ?? fallbackSequence,
+                        parentTransactionId: damageEventContext.transactionId ?? null,
+                        parentEventId: damageEventContext.parentEventId ?? null,
+                        sourceBuffInstanceId: damageEventContext.buffInstanceId ?? null,
+                        sourceBuffId,
+                        semanticHitType,
+                        displayName: hit.displayName
+                            ?? action.displayName
+                            ?? action.metadata?.displayName
+                            ?? null,
+                        sourceId: damageEventContext.sourceId,
+                        ownerId: damageEventContext.ownerId,
+                        carrierId: damageEventContext.carrierId
+                            ?? damageEventContext.sourceId,
+                        targetId: damageEventContext.targetId,
+                        damageSourceId: damageEventContext.damageSourceId
+                            ?? damageEventContext.sourceId
+                    };
+                });
+                const appliedHits = identifiedHits.map(hit => {
                     const amount = finite(
                         hit.amount ?? hit.finalDamage,
                         'resolved damage amount'
@@ -2846,7 +2849,7 @@ export class CombatRuntime {
                 });
                 return {
                     status: resolution.status ?? 'Applied',
-                    resolution: cloneValue(resolution),
+                    resolution: cloneValue({ ...resolution, hits: identifiedHits }),
                     hits: appliedHits,
                     abilityEvents: {
                         before: beforeAbilityEvents,
@@ -2856,6 +2859,9 @@ export class CombatRuntime {
             },
             RefreshCurrentBuffEffectSource: (_action, eventContext) => {
                 const buffId = eventContext.payload?.buffId;
+                const currentBuff = eventContext.buffInstanceId
+                    ? this.statusEffects.get(eventContext.buffInstanceId)
+                    : null;
                 const definition = buffId
                     ? this.statusEffects.getDefinition(buffId)
                     : null;
@@ -2881,10 +2887,17 @@ export class CombatRuntime {
                     ...this.#attribution({}, eventContext),
                     sourceKey: eventContext.buffInstanceId,
                     sourceType: 'StatusEffect',
+                    sourceCategory: eventContext.payload?.statusMetadata?.sourceType,
                     modifiers,
                     damageModifiers,
                     tags,
-                    metadata: { buffId, refreshedDuringStart: true }
+                    metadata: {
+                        ...cloneValue(currentBuff?.metadata ?? {}),
+                        buffId,
+                        appliedFrame: currentBuff?.startFrame ?? eventContext.frame,
+                        expireFrame: currentBuff?.expireFrame ?? null,
+                        refreshedDuringStart: true
+                    }
                 }, eventContext);
             },
             ApplyEffectSource: (action, eventContext) => {
@@ -2905,10 +2918,18 @@ export class CombatRuntime {
                     ...this.#attribution(action, sourceContext),
                     sourceKey: action.sourceKey ?? sourceContext.buffInstanceId,
                     sourceType: action.sourceType ?? 'Effect',
+                    sourceCategory: action.sourceCategory
+                        ?? currentBuff?.metadata?.sourceType,
                     modifiers: action.modifiers ?? [],
                     damageModifiers: action.damageModifiers ?? [],
                     tags: action.tags ?? [],
-                    metadata: action.metadata
+                    metadata: {
+                        ...cloneValue(currentBuff?.metadata ?? {}),
+                        ...cloneValue(action.metadata ?? {}),
+                        buffId: currentBuff?.buffId ?? sourceContext.payload?.buffId ?? null,
+                        appliedFrame: currentBuff?.startFrame ?? sourceContext.frame,
+                        expireFrame: currentBuff?.expireFrame ?? null
+                    }
                 }, sourceContext);
             },
             RemoveEffectSource: (action, eventContext) => this.effectSources.remove({
@@ -3138,8 +3159,14 @@ export class CombatRuntime {
         try {
             const context = this.context.createEventContext(eventContext, {
                 eventType,
+                parentHitId: hit.hitId ?? null,
+                hitEventPhase: eventType.startsWith('OnBefore') ? 'before' : 'after',
                 payload: {
                     damageUnitIndex: hit.damageUnitIndex ?? null,
+                    hitId: hit.hitId ?? null,
+                    parentTransactionId: hit.parentTransactionId
+                        ?? eventContext.transactionId
+                        ?? null,
                     damageType: hit.damageType ?? null,
                     damageTypeMask: hit.damageTypeMask ?? null,
                     damageAttributeType: hit.damageAttributeType ?? 'Hp',
@@ -3164,6 +3191,7 @@ export class CombatRuntime {
                 listenerTargetId,
                 handled: results.length,
                 damageUnitIndex: hit.damageUnitIndex ?? null,
+                hitId: hit.hitId ?? null,
                 damageDecorateMask: Number(hit.damageDecorateMask ?? 0)
             });
             return results;
@@ -3257,6 +3285,7 @@ export class CombatRuntime {
             throw new Error(`Maximum ability-event depth ${this.maxDerivedDepth} exceeded.`);
         }
         const definition = this.statusEffects.getDefinition(candidate.buffId);
+        if (definition === null) return [];
         const listenerTargetId = attribution.sourceId
             ?? eventContext.sourceId
             ?? eventContext.ownerId;

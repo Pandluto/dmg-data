@@ -81,7 +81,7 @@ npm run demo:install # 首次运行
 npm run demo
 ```
 
-浏览器打开 `http://127.0.0.1:43821`。这个端口与 LTS 的 `3030` 完全分离。当前 AKE 内核仍是单角色、单目标的确定性时间轴；界面支持最多四名干员，并暂时按角色独立结算后汇总。当前接通佩丽卡、陈千语、狼卫和五个公开数据目标，每个原排轴节点换算为 15 帧（0.5 秒）。服务端直接调用 `AkeScenarioAssembler` 与 `AkeScenarioRunner`，前端不复制战斗公式。四槽装备与武器的静态面板收益沿用 LTS 面板结果，攻击、暴击、物理/元素以及普通攻击、战技、连携技、终结技加成都进入 AKE 伤害乘区并显示在结算抽屉；尚未映射到 AKE 语义的条件型动态装备效果会明确保留为未接入项，不会伪造执行结果。
+浏览器打开 `http://127.0.0.1:43821`。这个端口与 LTS 的 `3030` 完全分离。当前界面支持最多四名干员；时间轴已采用“真实动作时序权威、视觉列按共享变速规则投影”的模型，不再把正常节点统一换算为固定 15 帧。只有动作资料无法解析时才允许产生带诊断的回退资料，不能把回退结果宣称为已验证。服务端直接调用 `AkeScenarioAssembler` 与 `AkeScenarioRunner`，前端不应复制战斗公式。四槽装备与武器的静态面板收益沿用 LTS 面板结果，攻击、暴击、物理/元素以及普通攻击、战技、连携技、终结技加成都进入 AKE 伤害乘区并显示在结算抽屉；尚未映射到 AKE 语义的条件型动态装备效果会明确保留为未接入项，不会伪造执行结果。
 
 AKE 数据/API 接线位于 `demo/demo-service.mjs`，复用的 LTS 前端位于 `demo/lts-ui/`，唯一新增的前端计算适配层集中在 `demo/lts-ui/src/integrations/ake/`。
 
@@ -162,5 +162,8 @@ AKE 与 Calc 当前并非相同数据版本。行为差异必须先做版本归�
 11. [公开数据自动装配与佩丽卡通用运行时回放](docs/11-automatic-assembly-and-generic-pelica-replay.md)
 12. [Calc 轨道指令、打断与脱手效果差分实验](docs/12-calc-interruption-probe.md)
 13. [数据驱动的指令准入与优先级](docs/13-data-driven-command-admission.md)
+14. [Endaxis × cleanroom × dmg-end-field 对比研究](docs/14-endaxis-comparative-architecture-study.md)
+15. [统一引擎、状态机、加载链路与事件账本升级方案](docs/15-unified-runtime-ledger-upgrade-plan.md)
+16. [状态机、引擎与前端正确性专项研究](docs/16-state-engine-ui-correctness-research.md)
 
 实现代码读取 [引擎语义映射](spec/engine-semantic-mappings.json)，并把 [未决依赖](spec/unresolved-dependencies.json) 当作显式错误或外部输入处理，不能静默猜值。精确层仍是固定单人、单目标用例的闭环；通用层是可组合代码骨架。两者都不等于已经完整复现整个游戏引擎。

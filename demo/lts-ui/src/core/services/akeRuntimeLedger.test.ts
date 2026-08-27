@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import type { AkeRuntimeHit, AkeRuntimeStatusEvent, AkeTeamReport } from '../../integrations/ake/akeProvider';
 import {
   buildAkeRuntimeCommandLedger,
+  buildAkeRuntimeCommandViewState,
   buildAkeRuntimeStatusLabelMap,
 } from './akeRuntimeLedger';
 
@@ -352,3 +353,201 @@ assert.equal(
 );
 assert.match(ledger.summary?.title ?? '', /^测试战技 · 运行时 3 个独立 Hit$/);
 assert.equal(ledger.summary?.parts.length, 3);
+
+assert.equal(buildAkeRuntimeCommandViewState({
+  runtimeMode: false,
+  report: null,
+  commandId: 'button-current',
+}).kind, 'manual-preview');
+assert.equal(buildAkeRuntimeCommandViewState({
+  runtimeMode: true,
+  report: null,
+  commandId: 'button-current',
+}).kind, 'pending');
+assert.equal(buildAkeRuntimeCommandViewState({
+  runtimeMode: true,
+  report,
+  commandId: 'button-from-another-timeline',
+}).kind, 'stale');
+
+const rejectedReport = structuredClone(report);
+rejectedReport.timeline.commands[0].success = false;
+rejectedReport.timeline.commands[0].state = 'failed';
+rejectedReport.timeline.commands[0].reason = 'ComboWindowExpired';
+const rejected = buildAkeRuntimeCommandViewState({
+  runtimeMode: true,
+  report: rejectedReport,
+  commandId: 'button-current',
+});
+assert.equal(rejected.kind, 'rejected');
+assert.match(rejected.message, /ComboWindowExpired/);
+
+assert.equal(buildAkeRuntimeCommandViewState({
+  runtimeMode: true,
+  report,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+}).kind, 'settled');
+
+const sameNameReport = structuredClone(report);
+sameNameReport.schemaVersion = 3;
+sameNameReport.statusEvents.push({
+  ...statusBase,
+  traceIndex: 20,
+  frame: 12,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:same-name-a',
+  buffId: 'buff_same_name_a',
+  targetId: 'actor-a',
+  before: 0,
+  after: 1,
+  castId: 'cast:current',
+  displayName: '同名增益',
+}, {
+  ...statusBase,
+  traceIndex: 21,
+  frame: 12,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:same-name-b',
+  buffId: 'buff_same_name_b',
+  targetId: 'actor-a',
+  before: 0,
+  after: 1,
+  castId: 'cast:current',
+  displayName: '同名增益',
+});
+sameNameReport.hits[0].factors = [{
+  factorId: 'damage-factor:same-name',
+  semanticKey: 'attacker-zone',
+  displayName: '攻击方增伤区',
+  operation: 'AddRate',
+  rawValue: 0.2,
+  additive: 0.2,
+  multiplier: 1.2,
+  finalValue: 1.2,
+  contributions: ['a', 'b'].map((suffix) => ({
+    contributionId: `contribution:same-name-${suffix}`,
+    semanticKey: 'damage-zone.NormalCalcZone',
+    sourceKey: `status:same-name-${suffix}`,
+    sourceType: 'StatusEffect',
+    sourceCategory: suffix === 'a' ? 'Talent' : 'Weapon',
+    sourceId: 'actor-a',
+    ownerId: 'actor-a',
+    carrierId: 'actor-a',
+    targetId: 'actor-a',
+    damageSourceId: 'actor-a',
+    buffId: `buff_same_name_${suffix}`,
+    buffInstanceId: `status:same-name-${suffix}`,
+    rawValue: 0.1,
+    resolvedValue: 0.1,
+    value: 0.1,
+  })),
+}];
+const sameNameLedger = buildAkeRuntimeCommandLedger({
+  report: sameNameReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+});
+assert.equal(sameNameLedger?.hits[0].formula.buffTags.filter((buff) => (
+  buff.label === '同名增益'
+)).length, 2, 'same-label Buffs must remain distinct by contribution identity');
+
+const sameFrameReport = structuredClone(report);
+sameFrameReport.schemaVersion = 3;
+sameFrameReport.hits = [runtimeHit(0, null, 1), runtimeHit(1, null, 1)];
+sameFrameReport.hits[0].frame = 20;
+sameFrameReport.hits[0].hitId = 'runtime-hit:same-frame-a';
+sameFrameReport.hits[1].frame = 20;
+sameFrameReport.hits[1].hitId = 'runtime-hit:same-frame-b';
+sameFrameReport.statusEvents = ['a', 'b'].map((suffix, index) => ({
+  ...statusBase,
+  traceIndex: 30 + index,
+  frame: 20,
+  stage: 'StatusEffectApplied',
+  instanceId: `status:transition-${suffix}`,
+  buffId: `buff_transition_${suffix}`,
+  targetId: 'enemy-shared',
+  before: 0,
+  after: 1,
+  castId: 'cast:current',
+  displayName: `命中状态${suffix.toUpperCase()}`,
+  parentHitId: `runtime-hit:same-frame-${suffix}`,
+  hitEventPhase: 'after' as const,
+}));
+const sameFrameLedger = buildAkeRuntimeCommandLedger({
+  report: sameFrameReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+});
+assert.ok(sameFrameLedger?.hits[0].statuses.some((status) => status.title === '命中状态A'));
+assert.ok(!sameFrameLedger?.hits[0].statuses.some((status) => status.title === '命中状态B'));
+assert.ok(sameFrameLedger?.hits[1].statuses.some((status) => status.title === '命中状态B'));
+assert.ok(!sameFrameLedger?.hits[1].statuses.some((status) => status.title === '命中状态A'));
+
+const expiredReport = structuredClone(report);
+expiredReport.schemaVersion = 3;
+expiredReport.hits = [runtimeHit(0, null, 1)];
+expiredReport.hits[0].frame = 300;
+expiredReport.hits[0].hitId = 'runtime-hit:after-expiry';
+expiredReport.statusEvents = [{
+  ...statusBase,
+  traceIndex: 40,
+  frame: 0,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:short-lived',
+  buffId: 'buff_short_lived',
+  before: 0,
+  after: 1,
+  castId: 'older-cast',
+  displayName: '短时易伤',
+  durationFrames: 24,
+  expireFrame: 24,
+}, {
+  ...statusBase,
+  traceIndex: 41,
+  frame: 24,
+  stage: 'StatusEffectExpired',
+  instanceId: 'status:short-lived',
+  buffId: 'buff_short_lived',
+  before: 1,
+  after: 0,
+  castId: 'older-cast',
+  displayName: '短时易伤',
+  durationFrames: 24,
+  expireFrame: 24,
+}];
+const expiredLedger = buildAkeRuntimeCommandLedger({
+  report: expiredReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+});
+assert.ok(!expiredLedger?.hits[0].statuses.some((status) => status.title.includes('短时易伤')),
+  'expired runtime status must not remain active on a later Hit');
+
+const partialReport = structuredClone(report);
+partialReport.schemaVersion = 3;
+partialReport.diagnostics = {
+  unresolvedEffectCount: 1,
+  compilerUnresolvedEffectCount: 0,
+  runtimeDiagnostics: [{
+    eventId: 'effect-event:partial',
+    frame: 13,
+    actionType: 'ResolveDamagePacket',
+    status: 'PartiallyApplied',
+    code: 'AKE_DAMAGE_PACKET_PARTIAL',
+    castId: 'cast:current',
+  }],
+};
+const partialState = buildAkeRuntimeCommandViewState({
+  runtimeMode: true,
+  report: partialReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+});
+assert.equal(partialState.kind, 'partial');
+assert.match(partialState.message, /未完全解析/);

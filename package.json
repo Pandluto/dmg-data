@@ -25,8 +25,8 @@
     "simulate:pelica-generic": "node ./src/generic-cli.mjs",
     "verify:cross-character": "node ./scripts/verify-cross-character-smoke.mjs",
     "simulate:poise": "node ./src/cli.mjs pelica-poise",
-    "test": "node --test",
-    "verify": "node --test"
+    "test": "node --test test/*.test.mjs",
+    "verify": "node --test test/*.test.mjs"
   },
   "engines": {
     "node": ">=20"

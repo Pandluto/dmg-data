@@ -693,7 +693,9 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
       .filter(point => point.commandId)
       .map(point => ({ event: point, point: visualPointForFrame(point.frame, 'after') }))
       .filter(entry => entry.point?.pageIndex === staffIndex);
-    const comboWindows = akeRealtimeTimeline.comboWindows
+    // A settled report is authoritative. Preview windows are shown only while
+    // the current execution digest has not produced a settled ledger yet.
+    const comboWindows = (akeTimeline?.comboWindows ?? akeRealtimeTimeline.comboWindows)
       .map(window => ({ window, point: visualPointForFrame(window.createdFrame, 'after') }))
       .filter(entry => entry.point?.pageIndex === staffIndex);
     const actionsOnPage = variableTimeline.actions.filter(action => (
@@ -851,7 +853,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           if (!point) return null;
           const lineIndex = selectedCharacters.findIndex(character => character.id === window.characterId);
           if (lineIndex < 0) return null;
-          const stateLabel = window.state === 'ready'
+          const stateLabel = window.state === 'ready' || window.state === 'active'
             ? '待释放'
             : window.state === 'consumed'
               ? `${seconds(window.consumedFrame ?? window.createdFrame)} 已消耗`

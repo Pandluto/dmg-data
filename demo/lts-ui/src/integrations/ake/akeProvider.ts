@@ -9,7 +9,7 @@ import {
 } from './akeRealtimeTimeline';
 import { GRID_NODE_COUNT } from '../../core/calculators/gridSnapLayout';
 
-export const AKE_REPORT_STORAGE_KEY = 'def.ake-demo.latest-report.v2';
+export const AKE_REPORT_STORAGE_KEY = 'def.ake-demo.latest-report.v3';
 export const AKE_REPORT_UPDATED_EVENT = 'def:ake-report-updated';
 const WEAPON_LIBRARY_STORAGE_KEY = 'def.weapon-sheet.library.v1';
 const DEFAULT_ENEMY_ID = 'eny_0007_mimicw';
@@ -48,15 +48,60 @@ export type AkeCommandSettlement = {
 };
 
 export type AkeRuntimeModifierContribution = {
+  contributionId?: string | null;
+  semanticKey?: string | null;
   buffInstanceId?: string | null;
+  buffId?: string | null;
   sourceKey?: string | null;
+  sourceType?: string | null;
+  sourceCategory?: string | null;
   sourceId?: string | null;
   ownerId?: string | null;
+  carrierId?: string | null;
+  targetId?: string | null;
+  damageSourceId?: string | null;
+  sourceSkillId?: string | null;
   type?: string | null;
   operation?: string | null;
+  rawField?: string | null;
+  rawValue?: unknown;
+  resolvedValue?: number | null;
   value?: number | null;
   scale?: number | null;
   [key: string]: unknown;
+};
+
+export type AkeRuntimeDamageFactor = {
+  factorId: string;
+  semanticKey: string;
+  displayName: string;
+  operation: string;
+  rawValue: unknown;
+  additive?: number | null;
+  multiplier: number;
+  finalValue: number;
+  affectsNonCritical?: boolean;
+  evidenceStatus?: string;
+  contributions: AkeRuntimeModifierContribution[];
+};
+
+export type AkeRuntimeDiagnostic = {
+  eventId?: string | null;
+  sequence?: number | null;
+  frame?: number | null;
+  stage?: string | null;
+  actionType?: string | null;
+  status?: string | null;
+  code?: string | null;
+  sourceId?: string | null;
+  ownerId?: string | null;
+  carrierId?: string | null;
+  targetId?: string | null;
+  damageSourceId?: string | null;
+  skillId?: string | null;
+  castId?: string | null;
+  transactionId?: string | null;
+  parentEventId?: string | null;
 };
 
 export type AkeRuntimeZoneSnapshot = {
@@ -87,6 +132,13 @@ export type AkeRuntimeAttributeSnapshot = {
 };
 
 export type AkeRuntimeHit = {
+  hitId?: string;
+  sequence?: number;
+  parentTransactionId?: string | null;
+  parentEventId?: string | null;
+  parentHitId?: string | null;
+  hitEventPhase?: 'before' | 'after' | null;
+  sourceMetadata?: Record<string, unknown>;
   hitIndex: number;
   traceIndex: number | null;
   frame: number;
@@ -94,12 +146,17 @@ export type AkeRuntimeHit = {
   characterId: string | null;
   sourceId: string | null;
   ownerId: string | null;
+  carrierId?: string | null;
   targetId: string | null;
+  damageSourceId?: string | null;
   castId: string | null;
   skillId: string | null;
   rootSkillId: string | null;
   buffInstanceId: string | null;
+  sourceBuffInstanceId?: string | null;
   sourceBuffId: string | null;
+  semanticHitType?: string | null;
+  displayName?: string | null;
   reason: string | null;
   sourcePath: string | null;
   damageUnitIndex: number | null;
@@ -126,9 +183,20 @@ export type AkeRuntimeHit = {
     [key: string]: unknown;
   };
   operands: Record<string, number>;
+  factors?: AkeRuntimeDamageFactor[];
+  factorValidation?: {
+    reconstructedNonCritical: number;
+    expectedNonCritical: number;
+    delta: number;
+    valid: boolean;
+  } | null;
+  diagnostics?: Array<Record<string, unknown>>;
+  confidence?: string;
 };
 
 export type AkeRuntimeStatusEvent = {
+  eventId?: string | null;
+  sequence?: number;
   traceIndex: number;
   frame: number;
   stage: string;
@@ -136,11 +204,20 @@ export type AkeRuntimeStatusEvent = {
   buffId: string;
   sourceId: string | null;
   ownerId: string | null;
+  carrierId?: string | null;
   targetId: string | null;
+  damageSourceId?: string | null;
+  transactionId?: string | null;
+  parentEventId?: string | null;
+  parentHitId?: string | null;
+  hitEventPhase?: 'before' | 'after' | null;
+  sourceMetadata?: Record<string, unknown>;
   stackCount: number | null;
   before: number | null;
   requested: number | null;
   actual: number | null;
+  consumedStacks?: number | null;
+  bySource?: Array<{ sourceId?: string | null; ownerId?: string | null; count?: number }>;
   discarded: number | null;
   after: number | null;
   durationFrames: number | null;
@@ -219,6 +296,19 @@ export type AkeProjectedTimeline = {
     points: AkeTimelinePoint[];
   }>;
   cooldowns: Array<Record<string, unknown>>;
+  comboWindows?: Array<{
+    id: string;
+    pendingId: number | string;
+    ruleId: string | null;
+    characterId: string | null;
+    skillId: string | null;
+    createdFrame: number;
+    expireFrame: number;
+    consumedFrame: number | null;
+    consumedCommandId: string | null;
+    state: 'active' | 'ready' | 'consumed' | 'expired' | 'suppressed';
+    reason: string | null;
+  }>;
 };
 
 type AkeSquadMemberResult = {
@@ -258,7 +348,7 @@ type AkeSquadMemberResult = {
 };
 
 type AkeSquadSimulation = {
-  schemaVersion: 2;
+  schemaVersion: 2 | 3;
   generatedAt: string;
   engine: string;
   tickRate: number;
@@ -287,6 +377,7 @@ type AkeSquadSimulation = {
   diagnostics: {
     unresolvedEffectCount: number;
     compilerUnresolvedEffectCount: number;
+    runtimeDiagnostics?: AkeRuntimeDiagnostic[];
   };
 };
 
@@ -329,7 +420,7 @@ export type AkeCharacterReport = {
 };
 
 export type AkeTeamReport = {
-  schemaVersion: 2;
+  schemaVersion: 2 | 3;
   generatedAt: string;
   engine: string;
   enemyId: string;
@@ -338,6 +429,12 @@ export type AkeTeamReport = {
   tickRate: number;
   durationFrames: number;
   requestedEndFrame?: number;
+  executionDigest?: string;
+  diagnostics?: {
+    unresolvedEffectCount: number;
+    compilerUnresolvedEffectCount: number;
+    runtimeDiagnostics: AkeRuntimeDiagnostic[];
+  };
   characters: AkeCharacterReport[];
   timeline: AkeProjectedTimeline;
   hits: AkeRuntimeHit[];
@@ -620,6 +717,7 @@ export async function runAkeTeamCalculation(input: {
   timelineData: TimelineData;
   selectedCharacters: Character[];
   enemyId?: string;
+  executionDigest?: string;
   signal?: AbortSignal;
 }): Promise<AkeTeamReport> {
   const enemyId = input.enemyId ?? DEFAULT_ENEMY_ID;
@@ -674,7 +772,7 @@ export async function runAkeTeamCalculation(input: {
       : errorReport(member, '共享运行时没有返回该队员。');
   });
   const report: AkeTeamReport = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     generatedAt: payload.generatedAt,
     engine: payload.engine,
     enemyId,
@@ -683,6 +781,12 @@ export async function runAkeTeamCalculation(input: {
     tickRate: payload.tickRate,
     durationFrames: payload.durationFrames,
     requestedEndFrame,
+    executionDigest: input.executionDigest,
+    diagnostics: {
+      unresolvedEffectCount: payload.diagnostics.unresolvedEffectCount,
+      compilerUnresolvedEffectCount: payload.diagnostics.compilerUnresolvedEffectCount,
+      runtimeDiagnostics: payload.diagnostics.runtimeDiagnostics ?? [],
+    },
     characters,
     timeline: payload.timeline,
     hits: payload.hits ?? [],
@@ -711,11 +815,17 @@ export function readLatestAkeTeamReport(): AkeTeamReport | null {
   if (!raw) return null;
   try {
     const value = JSON.parse(raw) as Partial<AkeTeamReport>;
-    return value?.schemaVersion === 2 && Array.isArray(value.characters) && value.timeline
+    return (value?.schemaVersion === 2 || value?.schemaVersion === 3)
+      && Array.isArray(value.characters) && value.timeline
       ? {
           ...value,
           hits: Array.isArray(value.hits) ? value.hits : [],
           statusEvents: Array.isArray(value.statusEvents) ? value.statusEvents : [],
+          diagnostics: value.diagnostics ?? {
+            unresolvedEffectCount: 0,
+            compilerUnresolvedEffectCount: 0,
+            runtimeDiagnostics: [],
+          },
         } as AkeTeamReport : null;
   } catch {
     return null;

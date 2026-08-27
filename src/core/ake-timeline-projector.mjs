@@ -311,6 +311,50 @@ function projectCooldowns(trace, durationFrames, tickRate) {
     });
 }
 
+function projectComboWindows(trace, durationFrames, tickRate) {
+    const ordered = [...(trace ?? [])].sort(byFrame);
+    const terminalByPendingId = new Map();
+    for (const event of ordered) {
+        if (event.pendingId === null || event.pendingId === undefined) continue;
+        if (['PENDING_CONSUMED', 'PENDING_EXPIRED'].includes(event.stage)) {
+            terminalByPendingId.set(event.pendingId, event);
+        }
+    }
+    return ordered
+        .filter(event => ['PENDING_CREATED', 'PENDING_REFRESHED', 'PENDING_REPLACED']
+            .includes(event.stage))
+        .map(event => {
+            const createdFrame = finite(event.frame);
+            const expireFrame = createdFrame
+                + Math.max(1, finite(event.pendingRemainingFrames, 1)) - 1;
+            const terminal = terminalByPendingId.get(event.pendingId) ?? null;
+            const state = terminal?.stage === 'PENDING_CONSUMED'
+                ? 'consumed'
+                : terminal?.stage === 'PENDING_EXPIRED' || expireFrame <= durationFrames
+                    ? 'expired'
+                    : 'active';
+            return {
+                id: `combo-window:${String(event.pendingId)}`,
+                pendingId: event.pendingId,
+                ruleId: event.ruleId ?? null,
+                characterId: event.targetId ?? null,
+                skillId: event.skillId ?? null,
+                sourceCommandId: event.sourceCommandId ?? null,
+                createdFrame,
+                createdSeconds: createdFrame / tickRate,
+                expireFrame,
+                expireSeconds: expireFrame / tickRate,
+                consumedFrame: terminal?.stage === 'PENDING_CONSUMED'
+                    ? finite(terminal.frame)
+                    : null,
+                consumedCommandId: terminal?.commandId ?? null,
+                state,
+                reason: terminal?.reason ?? event.reason ?? null,
+                triggerTargetId: event.triggerTargetId ?? null
+            };
+        });
+}
+
 export function projectAkeTimeline(result) {
     if (!result || typeof result !== 'object') {
         throw new TypeError('projectAkeTimeline requires a scenario result object.');
@@ -341,12 +385,13 @@ export function projectAkeTimeline(result) {
         tickRate
     );
     const cooldowns = projectCooldowns(result.cooldownTrace, durationFrames, tickRate);
+    const comboWindows = projectComboWindows(result.comboTrace, durationFrames, tickRate);
     const sharedAtb = resourcePools.find(pool =>
         pool.resourceType === 'Atb' && pool.scope === 'Shared'
     ) ?? null;
     const uspPools = resourcePools.filter(pool => pool.resourceType === 'UltimateSp');
     return {
-        schemaVersion: 1,
+        schemaVersion: 3,
         tickRate,
         durationFrames,
         durationSeconds: durationFrames / tickRate,
@@ -357,6 +402,7 @@ export function projectAkeTimeline(result) {
         sharedAtb,
         uspPools,
         cooldowns,
+        comboWindows,
         lanes: [
             { id: 'inputs', kind: 'CommandInput', items: commands },
             { id: 'casts', kind: 'SkillCast', items: casts },
@@ -368,7 +414,10 @@ export function projectAkeTimeline(result) {
                 ownerId: pool.ownerId,
                 items: pool.points
             })),
-            { id: 'cooldowns', kind: 'Cooldown', items: cooldowns }
+            { id: 'cooldowns', kind: 'Cooldown', items: cooldowns },
+            ...(comboWindows.length > 0
+                ? [{ id: 'combo-windows', kind: 'ComboWindow', items: comboWindows }]
+                : [])
         ]
     };
 }

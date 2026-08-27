@@ -36,10 +36,6 @@ import {
   validateOperatorControlTimeline,
 } from '../../core/domain/operatorControlTimeline';
 import {
-  createFixedDummyState,
-  resolveFixedDummyEvent,
-} from '../../core/services/fixedDummyStateMachine';
-import {
   akeProfileToActionTailContract,
   akeProfileToTailSuccessor,
 } from './akeActionTailAdapter';
@@ -797,7 +793,10 @@ function simulateAkeRealtimeTimeline(
   const comboWindows: AkeRealtimeComboWindow[] = [];
   const seenComboOccurrences = new Set<string>();
   let comboSequence = 0;
-  let fixedDummyState = createFixedDummyState();
+  // Preview keeps only the minimum no-guard observation needed to draw a
+  // provisional combo marker. Damage, modifiers and derived hits belong to
+  // the settled runtime report and are never executed here.
+  let previewNoGuardStacks = 0;
   let formSequence = 0;
   let ordinary = Math.max(0, Math.min(atbConfig.max, atbConfig.initial));
   let returned = 0;
@@ -1154,25 +1153,23 @@ function simulateAkeRealtimeTimeline(
       buffId: null,
     });
 
-    const beforeNoGuard = fixedDummyState.noGuardStacks;
-    const resolution = resolveFixedDummyEvent(fixedDummyState, {
-      buttonId: hit.commandId,
-      characterId: hit.characterId,
-      nodeIndex: frame,
-      hitElements: hit.damageTypes.map((damageType) => {
-        const normalized = damageType.toLowerCase();
-        if (normalized.includes('fire')) return 'fire';
-        if (normalized.includes('pulse') || normalized.includes('electric')) return 'electric';
-        if (normalized.includes('cryst') || normalized.includes('ice')) return 'ice';
-        if (normalized.includes('natural')) return 'nature';
-        return 'physical';
-      }),
-      hitBuffs: hit.hitBuffs,
-      anomalyCards: [],
-      stateSnapshots: [],
-    });
-    fixedDummyState = resolution.state;
-    if (beforeNoGuard === 0 && fixedDummyState.noGuardStacks > 0) {
+    const beforeNoGuard = previewNoGuardStacks;
+    const statusKeys = new Set(hit.hitBuffs.map(effect => effect.statusKey).filter(Boolean));
+    // A physical attempt and its explicit result can coexist in one profile.
+    // The attempt is the transaction root, so the result must not be replayed
+    // as a second stack in preview.
+    const physicalStatus = ['fracture', 'crush', 'knockdown', 'airborne']
+      .find(statusKey => statusKeys.has(statusKey));
+    if (physicalStatus === 'knockdown' || physicalStatus === 'airborne') {
+      previewNoGuardStacks = Math.min(4, previewNoGuardStacks + 1);
+    } else if (physicalStatus === 'crush') {
+      previewNoGuardStacks = previewNoGuardStacks > 0 ? 0 : 1;
+    } else if (physicalStatus === 'fracture') {
+      if (previewNoGuardStacks > 0) previewNoGuardStacks = 0;
+    } else if (statusKeys.has('no-guard')) {
+      previewNoGuardStacks = Math.min(4, previewNoGuardStacks + 1);
+    }
+    if (beforeNoGuard === 0 && previewNoGuardStacks > 0) {
       observeForCombos({
         eventType: 'StatusEffectApplied',
         frame,

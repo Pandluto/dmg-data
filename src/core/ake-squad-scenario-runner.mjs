@@ -197,11 +197,21 @@ function damageLogFromTrace(trace, memberIdByCharacterId, statusTrace = []) {
             const applied = appliedHits[index]?.result ?? null;
             return {
                 traceIndex,
+                hitId: hit.hitId ?? `legacy-hit:${traceIndex}:${index}`,
+                sequence: hit.sequence ?? traceIndex,
+                parentTransactionId: hit.parentTransactionId
+                    ?? entry.transactionId
+                    ?? null,
+                parentEventId: hit.parentEventId ?? entry.parentEventId ?? null,
                 frame: entry.frame,
                 memberId: memberIdByCharacterId[entry.sourceId] ?? null,
                 characterId: entry.sourceId,
                 sourceId: entry.sourceId,
                 ownerId: entry.ownerId,
+                carrierId: hit.carrierId ?? entry.carrierId ?? entry.sourceId,
+                damageSourceId: hit.damageSourceId
+                    ?? entry.damageSourceId
+                    ?? entry.sourceId,
                 targetId: applied?.targetId
                     ?? applied?.record?.targetId
                     ?? entry.targetId,
@@ -209,7 +219,14 @@ function damageLogFromTrace(trace, memberIdByCharacterId, statusTrace = []) {
                 rootSkillId: entry.rootSkillId,
                 castId: entry.castId,
                 buffInstanceId: entry.buffInstanceId ?? null,
-                sourceBuffId: buffIdByInstanceId.get(entry.buffInstanceId) ?? null,
+                sourceBuffInstanceId: hit.sourceBuffInstanceId
+                    ?? entry.buffInstanceId
+                    ?? null,
+                sourceBuffId: hit.sourceBuffId
+                    ?? buffIdByInstanceId.get(entry.buffInstanceId)
+                    ?? null,
+                semanticHitType: hit.semanticHitType ?? 'skill',
+                displayName: hit.displayName ?? null,
                 reason: entry.reason ?? entry.action?.reason ?? null,
                 sourcePath: entry.action?.sourcePath ?? null,
                 damageUnitIndex: hit.damageUnitIndex ?? index,
@@ -232,6 +249,12 @@ function damageLogFromTrace(trace, memberIdByCharacterId, statusTrace = []) {
                 targetHpAfter: applied?.after ?? null,
                 modifierSnapshot: clone(hit.modifierSnapshot ?? {}),
                 operands: clone(hit.operands ?? {}),
+                factors: clone(hit.factors ?? []),
+                factorValidation: clone(hit.factorValidation ?? null),
+                diagnostics: clone(hit.diagnostics ?? []),
+                confidence: hit.confidence ?? (entry.result?.resolution?.status === 'Applied'
+                    ? 'verified'
+                    : 'partial'),
                 application: clone(applied)
             };
         });
@@ -1071,7 +1094,8 @@ export class AkeSquadScenarioRunner {
                         targetId: command.targetId ?? enemyId,
                         cooldownEnd: state.cooldowns.get(skillId) ?? 0,
                         currentSkillId: state.currentSkill?.skillId ?? null,
-                        currentPriority: state.currentSkill?.priority ?? 0
+                        currentPriority: state.currentSkill?.priority ?? 0,
+                        commandId: command.commandId
                     });
                     if (!comboGate.ready) {
                         failCommand(state, command, frame, 'COMBO_NOT_READY', skillId, skillSource);
@@ -1141,7 +1165,9 @@ export class AkeSquadScenarioRunner {
                     frame,
                     pendingId: comboGate.pending.id,
                     currentSkillId: state.currentSkill.skillId,
-                    currentPriority: state.currentSkill.priority
+                    currentPriority: state.currentSkill.priority,
+                    commandId: command.commandId,
+                    castId: state.currentSkill.castId
                 });
             }
         };
@@ -1203,9 +1229,12 @@ export class AkeSquadScenarioRunner {
         );
         const resourceSnapshot = runtime.resources.snapshot();
         const vital = runtime.vitals.get(enemyId, durationTicks);
+        const unresolvedStatuses = new Set([
+            'Unresolved', 'PartiallyApplied', 'Unsupported'
+        ]);
         const unresolvedEffects = runtime.effects.trace.filter(entry =>
-            entry.result?.status === 'Unresolved'
-            || entry.result?.resolution?.status === 'Unresolved'
+            unresolvedStatuses.has(entry.result?.status)
+            || unresolvedStatuses.has(entry.result?.resolution?.status)
         );
         const sharedAtbPool = resourceSnapshot.byPoolId['squad:Atb']
             ?? resourceSnapshot.pools.find(pool =>
@@ -1222,7 +1251,7 @@ export class AkeSquadScenarioRunner {
             Object.fromEntries(state.cooldowns)
         ]));
         return {
-            schemaVersion: 1,
+            schemaVersion: 3,
             engine: 'ake-squad-combat-runtime',
             tickRate: bundle.tickRate,
             durationTicks,

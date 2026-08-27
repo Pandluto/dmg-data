@@ -149,6 +149,14 @@ export type AkeRuntimeCommandLedger = {
   } | null;
 };
 
+export type RuntimeCommandViewState =
+  | { kind: 'pending'; message: string; ledger: null }
+  | { kind: 'stale'; message: string; ledger: null }
+  | { kind: 'rejected'; message: string; ledger: null; command: AkeCommandSettlement }
+  | { kind: 'partial'; message: string; ledger: AkeRuntimeCommandLedger; command: AkeCommandSettlement }
+  | { kind: 'settled'; message: string; ledger: AkeRuntimeCommandLedger; command: AkeCommandSettlement }
+  | { kind: 'manual-preview'; message: string; ledger: null };
+
 type ActiveRuntimeStatus = {
   event: AkeRuntimeStatusEvent;
   stackCount: number;
@@ -343,8 +351,8 @@ function activeStatusesBeforeHit(events: AkeRuntimeStatusEvent[], hit: AkeRuntim
   events.forEach((event) => {
     const isBeforeHit = event.frame < hit.frame
       || (event.frame === hit.frame
-        && hit.traceIndex !== null
-        && event.traceIndex < hit.traceIndex);
+        && event.parentHitId === hit.hitId
+        && event.hitEventPhase === 'before');
     if (isBeforeHit) applyStatusEvent(state, event);
   });
   return state;
@@ -499,22 +507,36 @@ function contributionBuffTags(
       sameFrameStatusByInstanceId.set(event.instanceId, event);
     }
   });
-  const contributions = [
+  const factorContributions = (hit.factors ?? []).flatMap((factor) => (
+    (factor.contributions ?? []).map((contribution) => ({ contribution, factor }))
+  ));
+  const legacyFactor = (semanticKey: string, displayName: string) => ({
+    semanticKey,
+    displayName,
+  });
+  const contributions = factorContributions.length > 0 ? factorContributions : [
     ...(hit.modifierSnapshot.attackAttribute?.contributions ?? []).map((contribution) => ({
       contribution,
-      kind: 'attribute' as const,
+      factor: legacyFactor('attack', '攻击力'),
     })),
     ...(hit.modifierSnapshot.attackerZone?.contributions ?? []).map((contribution) => ({
       contribution,
-      kind: 'damage-zone' as const,
+      factor: legacyFactor('attacker-zone', '攻击方增伤区'),
     })),
     ...(hit.modifierSnapshot.defenderZone?.contributions ?? []).map((contribution) => ({
       contribution,
-      kind: 'damage-zone' as const,
+      factor: legacyFactor('defender-zone', '敌方伤害区'),
     })),
   ];
   const seen = new Set<string>();
-  return contributions.flatMap(({ contribution, kind }, index) => {
+  return contributions.flatMap(({ contribution, factor }, index) => {
+    const resolvedValue = finite(
+      contribution.resolvedValue ?? contribution.value ?? contribution.addition,
+      0,
+    );
+    if (contribution.sourceCategory === 'BaseAttribute'
+      || contribution.sourceCategory === 'Skill'
+      || (contribution.sourceType === 'ConfiguredAttribute' && resolvedValue === 0)) return [];
     const activeStatus = contribution.buffInstanceId
       ? activeStatusByInstanceId.get(contribution.buffInstanceId) ?? null
       : null;
@@ -526,36 +548,60 @@ function contributionBuffTags(
       ?? status?.stackCount
       ?? undefined;
     const sourceKey = String(contribution.sourceKey ?? `runtime-zone-${index}`);
+    const identityStatus = status ?? statusEvents.find((event) => (
+      Boolean(contribution.buffId)
+      && event.buffId === contribution.buffId
+      && event.frame <= hit.frame
+      && (contribution.ownerId == null || event.ownerId === contribution.ownerId)
+      && (contribution.carrierId == null || event.carrierId === contribution.carrierId)
+      && (contribution.targetId == null || event.targetId === contribution.targetId)
+    )) ?? null;
     const sourceParts = sourceKey.split(':');
     const attribute = String(contribution.attribute
-      || (kind === 'attribute' ? hit.modifierSnapshot.attackAttribute?.attribute : '')
       || contribution.type
+      || contribution.rawField
       || sourceParts[sourceParts.length - 1]
       || '');
-    const statusMetadata = status ? runtimeStatusMetadata(status.buffId, labels, status) : null;
+    const statusMetadata = identityStatus
+      ? runtimeStatusMetadata(identityStatus.buffId, labels, identityStatus)
+      : null;
     const sourceMetadataName = readableContributionName(contribution.sourceMetadata)
       || readableContributionName(contribution.metadata);
     const label = statusMetadata?.label
       || sourceMetadataName
       || ATTRIBUTE_LABELS[attribute]
+      || factor.displayName
       || '运行时加成';
     const side = contribution.side === 'Defender' ? 'Defender' : 'Attacker';
-    const addition = finite(contribution.addition ?? contribution.value, 0);
+    const addition = resolvedValue;
     const damageTypePrefix = DAMAGE_TYPE_BUFF_PREFIX[String(hit.damageType)] ?? 'physical';
-    const dedupeKey = [kind, sourceKey, attribute, addition].join('|');
+    const dedupeKey = String(contribution.contributionId
+      ?? [factor.semanticKey, sourceKey, attribute, addition].join('|'));
     if (seen.has(dedupeKey)) return [];
     seen.add(dedupeKey);
+    const category = String(contribution.sourceCategory ?? contribution.sourceType ?? 'System');
+    const sourceName = ({
+      EnemyStatus: '敌方状态机', Talent: '干员天赋', Potential: '干员潜能',
+      Weapon: '武器', Equipment: '装备', EquipmentSet: '三件套',
+      Skill: '技能', StatusEffect: side === 'Defender' ? '敌方状态机' : '自身状态机',
+      Loadout: '角色配置', Attribute: '运行时属性状态机',
+    } as Record<string, string>)[category]
+      ?? (side === 'Defender' ? '敌方状态机' : '运行时状态机');
+    const semanticType = factor.semanticKey.endsWith('-vulnerable')
+      ? `${damageTypePrefix}Fragile`
+      : side === 'Defender' ? `${damageTypePrefix}Fragile` : 'allDmgBonus';
     return [{
-      id: `${sourceKey}:${index}`,
+      id: dedupeKey || `${sourceKey}:${index}`,
+      contributionId: contribution.contributionId ?? undefined,
+      sourceKey,
+      buffId: contribution.buffId ?? identityStatus?.buffId ?? undefined,
+      buffInstanceId: contribution.buffInstanceId ?? identityStatus?.instanceId ?? undefined,
       label,
       displayLabel: label,
-      sourceName: kind === 'attribute'
-        ? status?.targetId === hit.sourceId ? '自身属性状态机' : '运行时属性状态机'
-        : side === 'Defender' ? '敌方状态机' : '攻击方状态机',
+      sourceName,
       type: statusMetadata?.effectType
-        ?? (kind === 'attribute'
-          ? ATTRIBUTE_BUFF_TYPES[attribute]
-          : side === 'Defender' ? `${damageTypePrefix}Fragile` : 'allDmgBonus'),
+        ?? ATTRIBUTE_BUFF_TYPES[attribute]
+        ?? semanticType,
       value: addition,
       effectiveValue: addition,
       stackCount: statusStackCount,
@@ -572,21 +618,24 @@ function buildRuntimeFormula(
   labels: AkeRuntimeStatusLabelMap,
 ): FormulaViewModel {
   const operands = hit.operands ?? {};
-  const attack = finite(operands.attack);
-  const atkScale = finite(operands.atkScale, hit.atkScale);
+  const factors = hit.factors ?? [];
+  const factor = (semanticKey: string) => factors.find((item) => item.semanticKey === semanticKey);
+  const attack = finite(factor('attack')?.multiplier, finite(operands.attack));
+  const atkScale = finite(factor('attack-scale')?.multiplier, finite(operands.atkScale, hit.atkScale));
   const defense = finite(operands.defense);
   const defEfficiency = finite(operands.defEfficiency, 0.01);
-  const defScale = finite(operands.defScale, 1);
+  const defScale = finite(factor('defense')?.multiplier, finite(operands.defScale, 1));
   const resistance = finite(operands.resistance);
-  const resistanceScale = finite(operands.damageTypeResistanceScale, 1);
-  const weaknessScale = finite(operands.weaknessDmgScalar, 1);
-  const shelterScale = finite(operands.shelterScale, 1);
-  const igniteScale = finite(operands.igniteDamageScalar, 1);
-  const physicalInflictionScale = finite(operands.physicalInflictionDamageScalar, 1);
-  const attackerScale = finite(operands.attackerZoneScale, 1);
-  const defenderScale = finite(operands.defenderZoneScale, 1);
-  const configuredScale = finite(operands.configuredDamageBonusScale, 1);
-  const specialScale = finite(operands.specialScale, 1);
+  const resistanceScale = finite(factor('resistance')?.multiplier, finite(operands.resistanceScale, 1));
+  const damageTakenScale = finite(factor('damage-taken')?.multiplier, finite(operands.damageTakenScalar, 1));
+  const weaknessScale = finite(factor('weakness')?.multiplier, finite(operands.weaknessDmgScalar, 1));
+  const shelterScale = finite(factor('shelter')?.multiplier, finite(operands.shelterScale, 1));
+  const attackerScale = finite(factor('attacker-zone')?.multiplier, finite(operands.attackerZoneScale, 1));
+  const defenderScale = finite(factor('defender-zone')?.multiplier, finite(operands.defenderZoneScale, 1));
+  const configuredScale = finite(factor('configured-damage-bonus')?.multiplier, finite(operands.configuredDamageBonusScale, 1));
+  const specialScale = finite(factor('special')?.multiplier, finite(operands.specialScale, 1));
+  const vulnerableFactor = factors.find((item) => item.semanticKey.endsWith('-vulnerable'));
+  const vulnerableScale = finite(vulnerableFactor?.multiplier, finite(operands.vulnerableDmgScale, 1));
   const expectedCriticalScale = finite(operands.expectedCriticalScale, 1);
   const allCriticalScale = finite(operands.allCriticalScale, 1);
   const criticalRate = finite(operands.criticalRate);
@@ -596,20 +645,20 @@ function buildRuntimeFormula(
   const attackSourceCount = attackAttribute?.contributions?.length ?? 0;
   const attackerCombinedScale = attackerScale * configuredScale;
   const buffTags = contributionBuffTags(hit, statusEvents, labels);
-  const nonCritFactors = [
-    attack,
-    atkScale,
-    defScale,
-    resistanceScale,
-    weaknessScale,
-    shelterScale,
-    igniteScale,
-    physicalInflictionScale,
-    attackerScale,
-    defenderScale,
-    configuredScale,
-    specialScale,
-  ];
+  const nonCritFactors = factors.length > 0
+    ? factors.filter((item) => item.affectsNonCritical !== false).map((item) => item.multiplier)
+    : [attack, atkScale, attackerScale, configuredScale, defScale, resistanceScale,
+      damageTakenScale, vulnerableScale, defenderScale, weaknessScale, shelterScale, specialScale];
+  const unavailable = '运行时未提供';
+  const rateFormula = (selected: typeof factors[number] | undefined) => selected
+    ? `${trimNumber(finite(selected.rawValue), 4)} → ×${trimNumber(selected.multiplier, 4)}`
+    : unavailable;
+  const fragileScale = vulnerableScale * defenderScale;
+  const fragileFormula = vulnerableFactor || factor('defender-zone')
+    ? `${trimNumber(vulnerableScale, 4)} × ${trimNumber(defenderScale, 4)} = ${trimNumber(fragileScale, 4)}`
+    : operands.defenderZoneScale !== undefined
+      ? `1 + ${percent(defenderScale - 1)} = ${trimNumber(defenderScale)}`
+      : unavailable;
   return {
     title: `${title} 运行时计算过程`,
     panelLines: [
@@ -630,18 +679,22 @@ function buildRuntimeFormula(
     baseMultiplierText: percent(atkScale, 2),
     multiplierFormulaText: `${percent(atkScale, 2)} = ${trimNumber(atkScale, 4)}`,
     formulaText: `${trimNumber(attack)} × ${trimNumber(atkScale, 4)} = ${trimNumber(hit.rawDamage)}`,
-    elementBonusText: '0.0%',
-    skillBonusText: '0.0%',
+    elementBonusText: factor('configured-damage-bonus')
+      ? percent(finite(factor('configured-damage-bonus')?.rawValue), 1)
+      : unavailable,
+    skillBonusText: factor('attacker-zone')
+      ? percent(attackerScale - 1, 1)
+      : unavailable,
     allDamageBonusText: percent(attackerCombinedScale - 1),
     damageBonusRateText: trimNumber(attackerCombinedScale),
     damageBonusFormulaText: `${trimNumber(attackerScale)} × ${trimNumber(configuredScale)} = ${trimNumber(attackerCombinedScale)}`,
     resistanceEffectiveText: trimNumber(resistance, 1),
     resistanceFormulaText: `1 - ${trimNumber(resistance, 1)}% = ${trimNumber(resistanceScale)}`,
-    amplifyFormulaText: `1 × ${trimNumber(finite(operands.damageTakenScalar, 1))} = ${trimNumber(finite(operands.damageTakenScalar, 1))}`,
-    fragileFormulaText: `1 + ${percent(defenderScale - 1)} = ${trimNumber(defenderScale)}`,
-    vulnerabilityFormulaText: '1 + 0.0% = 1.000',
-    comboFormulaText: '1 + 0.0% = 1.000',
-    imbalanceFormulaText: '1 + 0.0% = 1.000',
+    amplifyFormulaText: rateFormula(factor('damage-taken')),
+    fragileFormulaText: fragileFormula,
+    vulnerabilityFormulaText: unavailable,
+    comboFormulaText: rateFormula(factor('combo-damage')),
+    imbalanceFormulaText: rateFormula(factor('imbalance-damage')),
     defenseZoneText: `1 / (1 + ${trimNumber(defense)} × ${trimNumber(defEfficiency, 3)}) = ${trimNumber(defScale)}`,
     nonCritFormulaText: `${nonCritFactors.map((factor) => trimNumber(factor, 4)).join(' × ')} = ${fixedDamage(hit.nonCriticalDamage)}`,
     expectedText: `${fixedDamage(hit.expectedDamage)} (×${trimNumber(expectedCriticalScale, 4)})`,
@@ -653,21 +706,11 @@ function buildRuntimeFormula(
 function transitionBelongsToHit(
   event: AkeRuntimeStatusEvent,
   hit: AkeRuntimeHit,
-  runtimeHits: AkeRuntimeHit[],
+  _runtimeHits: AkeRuntimeHit[],
   castId: string,
 ): boolean {
   if (event.frame !== hit.frame || !transitionBelongsToCast(event, castId)) return false;
-  const sameFrameHits = runtimeHits
-    .filter((candidate) => candidate.frame === event.frame)
-    .sort((left, right) => (
-      finite(left.traceIndex, Number.MAX_SAFE_INTEGER) - finite(right.traceIndex, Number.MAX_SAFE_INTEGER)
-      || left.hitIndex - right.hitIndex
-    ));
-  if (sameFrameHits.length <= 1) return sameFrameHits[0]?.hitIndex === hit.hitIndex;
-  const precedingHits = sameFrameHits
-    .filter((candidate) => candidate.traceIndex !== null && candidate.traceIndex <= event.traceIndex);
-  const precedingHit = precedingHits[precedingHits.length - 1];
-  return (precedingHit ?? sameFrameHits[0]).hitIndex === hit.hitIndex;
+  return Boolean(hit.hitId) && event.parentHitId === hit.hitId;
 }
 
 function buildHitStatusViews(input: {
@@ -693,24 +736,32 @@ function buildHitStatusViews(input: {
     castId,
   } = input;
   const statusesByKey = new Map<string, AkeRuntimeStatusView>();
-  const appliedBuffsByLabel = new Map<string, AppliedBuffTagViewModel>();
+  const appliedBuffsByIdentity = new Map<string, AppliedBuffTagViewModel>();
   formula.buffTags.forEach((buff) => {
-    if (!appliedBuffsByLabel.has(buff.label)) appliedBuffsByLabel.set(buff.label, buff);
+    const identity = buff.buffInstanceId
+      ? `instance:${buff.buffInstanceId}`
+      : buff.sourceKey
+        ? `source:${buff.sourceKey}`
+        : buff.buffId ? `buff:${buff.buffId}` : `contribution:${buff.id}`;
+    appliedBuffsByIdentity.set(identity, buff);
   });
-  const matchedAppliedBuffLabels = new Set<string>();
+  const matchedAppliedBuffIds = new Set<string>();
 
   activeStatusesBeforeHit(statusEvents, hit).forEach((active) => {
     if (active.event.targetId !== enemyId && active.event.targetId !== hit.sourceId) return;
     const metadata = runtimeStatusMetadata(active.event.buffId, labels, active.event);
     if (metadata.hidden) return;
-    const matchedBuff = appliedBuffsByLabel.get(metadata.label);
+    const matchedBuff = (active.event.instanceId
+      ? appliedBuffsByIdentity.get(`instance:${active.event.instanceId}`)
+      : undefined)
+      ?? appliedBuffsByIdentity.get(`buff:${active.event.buffId}`);
     if (isPassiveRegistration(active.event) && !matchedBuff) return;
     const view = snapshotStatusView(
       'ake-runtime-hit-before', active, command, enemyId, tickRate, labels, '命中前',
     );
     if (!view) return;
     if (matchedBuff) {
-      matchedAppliedBuffLabels.add(matchedBuff.label);
+      matchedAppliedBuffIds.add(matchedBuff.id);
       const source = sourceGroupLabel(matchedBuff.sourceName);
       const isCritical = isCriticalRuntimeStatus(active.event.buffId, metadata);
       view.kind = '当前 Hit 生效';
@@ -722,7 +773,7 @@ function buildHitStatusViews(input: {
   });
 
   formula.buffTags.forEach((buff, index) => {
-    if (matchedAppliedBuffLabels.has(buff.label)) return;
+    if (matchedAppliedBuffIds.has(buff.id)) return;
     const syntheticMetadata: RuntimeStatusMetadata = {
       label: buff.label,
       shortLabel: buff.label.slice(0, 1),
@@ -777,12 +828,16 @@ function hitTitle(
   labels: AkeRuntimeStatusLabelMap,
   statusEvents: AkeRuntimeStatusEvent[],
 ): string {
+  if (hit.displayName?.trim()) return hit.displayName.trim();
   if (hit.sourceBuffId) {
-    const statusEvent = [...statusEvents].reverse().find((event) => (
-      event.buffId === hit.sourceBuffId && event.frame <= hit.frame
-    ));
+    const statusEvent = hit.sourceBuffInstanceId
+      ? statusEvents.find((event) => event.instanceId === hit.sourceBuffInstanceId)
+      : undefined;
     const metadata = runtimeStatusMetadata(hit.sourceBuffId, labels, statusEvent);
     return metadata.extraHitLabel ?? `${metadata.label}·额外伤害`;
+  }
+  if (hit.semanticHitType && hit.semanticHitType !== 'skill') {
+    return `${hit.semanticHitType}·额外伤害`;
   }
   return `技能命中 ${index + 1}`;
 }
@@ -959,4 +1014,73 @@ export function buildAkeRuntimeCommandLedger(input: {
   };
 
   return { command, hits, statuses: sortRuntimeStatusViews(statuses), compactStatuses, summary };
+}
+
+export function buildAkeRuntimeCommandViewState(input: {
+  runtimeMode: boolean;
+  report: AkeTeamReport | null | undefined;
+  commandId: string;
+  labels?: AkeRuntimeStatusLabelMap;
+  skillName?: string;
+}): RuntimeCommandViewState {
+  if (!input.runtimeMode) {
+    return { kind: 'manual-preview', message: '手动演示模式', ledger: null };
+  }
+  if (!input.report) {
+    return { kind: 'pending', message: '等待当前排轴的运行时结算', ledger: null };
+  }
+  const command = input.report.timeline.commands.find((candidate) => (
+    candidate.commandId === input.commandId
+  ));
+  if (!command) {
+    return { kind: 'stale', message: '当前按钮不属于这份运行时账本', ledger: null };
+  }
+  if (!command.success) {
+    return {
+      kind: 'rejected',
+      message: `运行时拒绝释放${command.reason ? `：${command.reason}` : ''}`,
+      ledger: null,
+      command,
+    };
+  }
+  const ledger = buildAkeRuntimeCommandLedger(input);
+  if (!ledger) {
+    return {
+      kind: 'partial',
+      message: '技能已执行，但运行时命中账本不完整',
+      ledger: {
+        command,
+        hits: [],
+        statuses: [],
+        compactStatuses: [],
+        summary: null,
+      },
+      command,
+    };
+  }
+  const affectedHits = (input.report.hits ?? []).filter((hit) => (
+    hit.castId === command.castId
+    && ((hit.diagnostics?.length ?? 0) > 0
+      || hit.confidence === 'partial'
+      || hit.factorValidation?.valid === false)
+  ));
+  const affectedDiagnostics = (input.report.diagnostics?.runtimeDiagnostics ?? []).filter(
+    (diagnostic) => Boolean(command.castId) && diagnostic.castId === command.castId,
+  );
+  const affectedStatusDiagnostics = (input.report.statusEvents ?? []).filter((event) => (
+    event.stage === 'StatusEffectUnresolved'
+    && Boolean(command.castId)
+    && (event.castId === command.castId || event.triggerCastId === command.castId)
+  ));
+  const partialCount = affectedHits.length
+    + affectedDiagnostics.length
+    + affectedStatusDiagnostics.length;
+  return partialCount > 0
+    ? {
+        kind: 'partial',
+        message: `${partialCount} 项运行时结果未完全解析`,
+        ledger,
+        command,
+      }
+    : { kind: 'settled', message: '运行时结算完成', ledger, command };
 }

@@ -3,9 +3,11 @@ import { calculateDamage } from './damage.mjs';
 function firstFiniteAttributeEntry(context, entityId, names, fallback) {
     for (const name of names) {
         const value = context.getAttribute(entityId, name);
-        if (Number.isFinite(Number(value))) return { attribute: name, value: Number(value) };
+        if (Number.isFinite(Number(value))) {
+            return { attribute: name, value: Number(value), found: true };
+        }
     }
-    return { attribute: names[0] ?? null, value: fallback };
+    return { attribute: names[0] ?? null, value: fallback, found: false };
 }
 
 function firstFiniteAttribute(context, entityId, names, fallback) {
@@ -58,6 +60,67 @@ const AKE_COMMAND_DAMAGE_ATTRIBUTE = Object.freeze({
     UltimateSkill: 'UltimateSkillDamageIncrease'
 });
 
+const AKE_VULNERABLE_ATTRIBUTE = Object.freeze({
+    Physical: 'PhysicalVulnerableDmgIncrease',
+    Fire: 'FireVulnerableDmgIncrease',
+    Pulse: 'PulseVulnerableDmgIncrease',
+    Cryst: 'CrystVulnerableDmgIncrease',
+    Natural: 'NaturalVulnerableDmgIncrease',
+    Ether: 'EtherVulnerableDmgIncrease'
+});
+
+function attributeContribution(entityId, snapshot, value) {
+    if (snapshot?.contributions?.length > 0) return snapshot.contributions;
+    return [{
+        contributionId: `attribute:${String(entityId)}:${String(snapshot?.attribute ?? 'unknown')}:base`,
+        semanticKey: `attribute.${String(snapshot?.attribute ?? 'unknown')}`,
+        sourceKey: `attribute:${String(entityId)}:${String(snapshot?.attribute ?? 'unknown')}`,
+        sourceType: 'Attribute',
+        sourceCategory: 'BaseAttribute',
+        sourceId: entityId,
+        ownerId: entityId,
+        carrierId: entityId,
+        targetId: entityId,
+        damageSourceId: entityId,
+        buffId: null,
+        buffInstanceId: null,
+        sourceSkillId: null,
+        rawField: snapshot?.attribute ?? null,
+        rawValue: value,
+        resolvedValue: value,
+        value,
+        stackCount: 1,
+        appliedFrame: 0,
+        expireFrame: null,
+        metadata: { baseAttribute: true }
+    }];
+}
+
+function damageFactor({
+    semanticKey,
+    displayName,
+    rawValue,
+    multiplier,
+    contributions = [],
+    operation = 'Multiply',
+    affectsNonCritical = true,
+    evidenceStatus = 'runtime'
+}) {
+    return {
+        factorId: `damage-factor:${semanticKey}`,
+        semanticKey,
+        displayName,
+        operation,
+        rawValue,
+        additive: operation === 'AddRate' ? rawValue : null,
+        multiplier,
+        finalValue: multiplier,
+        affectsNonCritical,
+        evidenceStatus,
+        contributions
+    };
+}
+
 function mergeDamageZone(base, additions = []) {
     const zones = new Map((base.zones ?? []).map(zone => [zone.zoneName, zone.addition]));
     for (const contribution of additions) {
@@ -90,41 +153,56 @@ function attackerAttributeZone(context, sourceId, damageType, commandType) {
     return attributes.flatMap(attribute => {
         const addition = Number(context.getAttribute(sourceId, attribute));
         return Number.isFinite(addition) && addition !== 0 ? [{
+            contributionId: `attribute:${String(sourceId)}:${attribute}:damage-zone`,
+            semanticKey: `damage-zone.${attribute}`,
             sourceKey: `attribute:${sourceId}:${attribute}`,
             sourceType: 'Attribute',
+            sourceCategory: 'Attribute',
+            sourceId,
+            ownerId: sourceId,
+            carrierId: sourceId,
+            targetId: sourceId,
+            damageSourceId: sourceId,
+            buffId: null,
+            buffInstanceId: null,
+            sourceSkillId: null,
             attribute,
             side: 'Attacker',
             zoneName: 'NormalCalcZone',
-            addition
+            operation: 'AddRate',
+            rawField: attribute,
+            rawValue: addition,
+            resolvedValue: addition,
+            addition,
+            stackCount: 1,
+            appliedFrame: 0,
+            expireFrame: null,
+            metadata: { attributeDamageZone: true }
         }] : [];
     });
 }
 
 function configuredDamageBonus(context, sourceId, damageType, commandType) {
-    let bonus = firstFiniteAttribute(
-        context,
-        sourceId,
-        ['ConfiguredAllDamageBonus'],
-        0
-    );
+    const components = [];
+    const read = (attribute, category) => {
+        const value = firstFiniteAttribute(context, sourceId, [attribute], 0);
+        components.push({ attribute, category, value });
+        return value;
+    };
+    let bonus = read('ConfiguredAllDamageBonus', 'all');
     const elementAttribute = CONFIGURED_ELEMENT_BONUS_ATTRIBUTE[damageType];
     if (elementAttribute) {
-        bonus += firstFiniteAttribute(context, sourceId, [elementAttribute], 0);
+        bonus += read(elementAttribute, 'element');
     }
     if (damageType === 'Fire' || damageType === 'Pulse'
         || damageType === 'Cryst' || damageType === 'Natural') {
-        bonus += firstFiniteAttribute(
-            context,
-            sourceId,
-            ['ConfiguredMagicDamageBonus'],
-            0
-        );
+        bonus += read('ConfiguredMagicDamageBonus', 'magic');
     }
     const commandAttribute = CONFIGURED_COMMAND_BONUS_ATTRIBUTE[commandType];
     if (commandAttribute) {
-        bonus += firstFiniteAttribute(context, sourceId, [commandAttribute], 0);
+        bonus += read(commandAttribute, 'command');
     }
-    return bonus;
+    return { total: bonus, components };
 }
 
 /**
@@ -156,7 +234,13 @@ export function createAkeDamageResolver({
             Number.NaN
         );
         const attack = attackEntry.value;
-        const defense = firstFiniteAttribute(runtime.context, targetId, defenseAttributes, 0);
+        const defenseEntry = firstFiniteAttributeEntry(
+            runtime.context,
+            targetId,
+            defenseAttributes,
+            0
+        );
+        const defense = defenseEntry.value;
         const hits = [];
         const unresolved = [];
         for (const [damageUnitIndex, unit] of (action.damageUnits ?? []).entries()) {
@@ -239,12 +323,16 @@ export function createAkeDamageResolver({
                 ...eventContext,
                 payload: { ...eventContext.payload, damageType: unit.damageType }
             });
-            const resistance = firstFiniteAttribute(runtime.context, targetId, [
+            const commandType = eventContext.commandType
+                ?? eventContext.payload?.commandType
+                ?? eventContext.skillType;
+            const resistanceEntry = firstFiniteAttributeEntry(runtime.context, targetId, [
                 `${unit.damageType}Resistance`,
                 `${unit.damageType}Res`,
                 'Resistance',
                 'resistance'
             ], 0);
+            const resistance = resistanceEntry.value;
             const specialScale = unit.calculationType === 'BreakingAttackCalculation'
                 ? firstFiniteAttribute(runtime.context, targetId, [
                     'ExecutionDamageScalar', 'executionDamageScalar'
@@ -254,35 +342,218 @@ export function createAkeDamageResolver({
                 runtime.context,
                 sourceId,
                 unit.damageType,
-                eventContext.commandType
+                commandType
             );
-            const configuredDamageBonusScale = Math.max(0, 1 + configuredBonus);
+            const configuredDamageBonusScale = Math.max(0, 1 + configuredBonus.total);
+            const damageTakenEntry = firstFiniteAttributeEntry(runtime.context, targetId, [
+                'DamageTakenScalar', 'damageTakenScalar'
+            ], 1);
+            const weaknessEntry = firstFiniteAttributeEntry(runtime.context, targetId, [
+                'WeaknessDmgScalar', 'weaknessDmgScalar'
+            ], 1);
+            const shelterEntry = firstFiniteAttributeEntry(runtime.context, targetId, [
+                'ShelterDmgScalar', 'shelterDmgScalar'
+            ], 0);
+            const vulnerableAttribute = AKE_VULNERABLE_ATTRIBUTE[unit.damageType] ?? null;
+            const vulnerableEntry = vulnerableAttribute
+                ? firstFiniteAttributeEntry(
+                    runtime.context,
+                    targetId,
+                    [vulnerableAttribute],
+                    0
+                )
+                : { attribute: null, value: 0, found: false };
+            const criticalRateEntry = firstFiniteAttributeEntry(runtime.context, sourceId, [
+                'CriticalRate', 'criticalRate'
+            ], defaultCriticalRate);
+            const criticalDamageEntry = firstFiniteAttributeEntry(runtime.context, sourceId, [
+                'CriticalDamageIncrease', 'criticalDamageIncrease'
+            ], defaultCriticalDamageIncrease);
             const result = calculateDamage({
                 attack,
                 atkScale,
                 defense,
                 resistance,
-                damageTakenScalar: firstFiniteAttribute(runtime.context, targetId, [
-                    'DamageTakenScalar', 'damageTakenScalar'
-                ], 1),
-                weaknessDmgScalar: firstFiniteAttribute(runtime.context, targetId, [
-                    'WeaknessDmgScalar', 'weaknessDmgScalar'
-                ], 1),
-                shelterDmgScalar: firstFiniteAttribute(runtime.context, targetId, [
-                    'ShelterDmgScalar', 'shelterDmgScalar'
-                ], 0),
+                damageTakenScalar: damageTakenEntry.value,
+                vulnerableDmgIncrease: vulnerableEntry.value,
+                weaknessDmgScalar: weaknessEntry.value,
+                shelterDmgScalar: shelterEntry.value,
                 attackerZoneScale: attackerZone.scale,
                 defenderZoneScale: defenderZone.scale,
                 configuredDamageBonusScale,
                 specialScale,
                 criticalMode,
-                criticalRate: firstFiniteAttribute(runtime.context, sourceId, [
-                    'CriticalRate', 'criticalRate'
-                ], defaultCriticalRate),
-                criticalDamageIncrease: firstFiniteAttribute(runtime.context, sourceId, [
-                    'CriticalDamageIncrease', 'criticalDamageIncrease'
-                ], defaultCriticalDamageIncrease)
+                criticalRate: criticalRateEntry.value,
+                criticalDamageIncrease: criticalDamageEntry.value
             });
+            const snapshotFor = (entityId, entry) => entry.found && entry.attribute
+                ? runtime.effectSources.attributeSnapshot({
+                    targetId: entityId,
+                    attribute: entry.attribute
+                }, eventContext)
+                : null;
+            const attackSnapshot = snapshotFor(sourceId, attackEntry);
+            const defenseSnapshot = snapshotFor(targetId, defenseEntry);
+            const resistanceSnapshot = snapshotFor(targetId, resistanceEntry);
+            const damageTakenSnapshot = snapshotFor(targetId, damageTakenEntry);
+            const vulnerableSnapshot = snapshotFor(targetId, vulnerableEntry);
+            const weaknessSnapshot = snapshotFor(targetId, weaknessEntry);
+            const shelterSnapshot = snapshotFor(targetId, shelterEntry);
+            const criticalRateSnapshot = snapshotFor(sourceId, criticalRateEntry);
+            const criticalDamageSnapshot = snapshotFor(sourceId, criticalDamageEntry);
+            const configuredContributions = configuredBonus.components.map(component => ({
+                contributionId: `attribute:${String(sourceId)}:${component.attribute}:configured`,
+                semanticKey: `configured-bonus.${component.category}`,
+                sourceKey: `attribute:${String(sourceId)}:${component.attribute}`,
+                sourceType: 'ConfiguredAttribute',
+                sourceCategory: 'Loadout',
+                sourceId,
+                ownerId: sourceId,
+                carrierId: sourceId,
+                targetId: sourceId,
+                damageSourceId: sourceId,
+                buffId: null,
+                buffInstanceId: null,
+                sourceSkillId: eventContext.skillId ?? null,
+                rawField: component.attribute,
+                rawValue: component.value,
+                resolvedValue: component.value,
+                value: component.value,
+                stackCount: 1,
+                appliedFrame: 0,
+                expireFrame: null,
+                metadata: { configuredBonusCategory: component.category }
+            }));
+            const factors = [
+                damageFactor({
+                    semanticKey: 'attack', displayName: '攻击力',
+                    rawValue: attack, multiplier: attack,
+                    contributions: attributeContribution(sourceId, attackSnapshot, attack)
+                }),
+                damageFactor({
+                    semanticKey: 'attack-scale', displayName: '技能倍率',
+                    rawValue: atkScale, multiplier: atkScale,
+                    contributions: [{
+                        contributionId: `skill:${String(eventContext.skillId)}:unit:${damageUnitIndex}:scale`,
+                        semanticKey: 'skill.attack-scale',
+                        sourceKey: `skill:${String(eventContext.skillId)}`,
+                        sourceType: 'Skill', sourceCategory: 'Skill',
+                        sourceId, ownerId: eventContext.ownerId ?? sourceId,
+                        carrierId: sourceId, targetId, damageSourceId: sourceId,
+                        buffId: eventContext.payload?.buffId ?? null,
+                        buffInstanceId: eventContext.buffInstanceId ?? null,
+                        sourceSkillId: eventContext.skillId ?? null,
+                        rawField: 'scale', rawValue: atkScale,
+                        resolvedValue: atkScale, value: atkScale,
+                        stackCount: 1, appliedFrame: eventContext.frame,
+                        expireFrame: null, metadata: { damageUnitIndex }
+                    }]
+                }),
+                damageFactor({
+                    semanticKey: 'attacker-zone', displayName: '攻击方增伤区',
+                    rawValue: attackerZone.zones, multiplier: attackerZone.scale,
+                    contributions: attackerZone.contributions
+                }),
+                damageFactor({
+                    semanticKey: 'configured-damage-bonus', displayName: '配置增伤区',
+                    rawValue: configuredBonus.total,
+                    multiplier: configuredDamageBonusScale,
+                    contributions: configuredContributions,
+                    operation: 'AddRate'
+                }),
+                damageFactor({
+                    semanticKey: 'defense', displayName: '防御结算',
+                    rawValue: defense, multiplier: result.operands.defScale,
+                    contributions: attributeContribution(targetId, defenseSnapshot, defense)
+                }),
+                damageFactor({
+                    semanticKey: 'resistance', displayName: '抗性',
+                    rawValue: resistance, multiplier: result.operands.resistanceScale,
+                    contributions: attributeContribution(targetId, resistanceSnapshot, resistance)
+                }),
+                damageFactor({
+                    semanticKey: 'damage-taken', displayName: '承伤倍率',
+                    rawValue: damageTakenEntry.value,
+                    multiplier: result.operands.normalizedDamageTakenScalar,
+                    contributions: attributeContribution(
+                        targetId,
+                        damageTakenSnapshot,
+                        damageTakenEntry.value
+                    )
+                }),
+                damageFactor({
+                    semanticKey: `${String(unit.damageType).toLowerCase()}-vulnerable`,
+                    displayName: unit.damageType === 'Physical'
+                        ? '物理易伤'
+                        : `${unit.damageType}易伤`,
+                    rawValue: vulnerableEntry.value,
+                    multiplier: result.operands.vulnerableDmgScale,
+                    contributions: vulnerableSnapshot
+                        ? attributeContribution(targetId, vulnerableSnapshot, vulnerableEntry.value)
+                        : [],
+                    operation: 'AddRate'
+                }),
+                damageFactor({
+                    semanticKey: 'defender-zone', displayName: '敌方伤害区',
+                    rawValue: defenderZone.zones, multiplier: defenderZone.scale,
+                    contributions: defenderZone.contributions
+                }),
+                damageFactor({
+                    semanticKey: 'weakness', displayName: '弱点倍率',
+                    rawValue: weaknessEntry.value,
+                    multiplier: result.operands.weaknessDmgScalar,
+                    contributions: attributeContribution(
+                        targetId,
+                        weaknessSnapshot,
+                        weaknessEntry.value
+                    )
+                }),
+                damageFactor({
+                    semanticKey: 'shelter', displayName: '庇护减伤',
+                    rawValue: shelterEntry.value,
+                    multiplier: result.operands.shelterScale,
+                    contributions: attributeContribution(
+                        targetId,
+                        shelterSnapshot,
+                        shelterEntry.value
+                    )
+                }),
+                damageFactor({
+                    semanticKey: 'special', displayName: '特殊结算',
+                    rawValue: specialScale, multiplier: specialScale
+                }),
+                damageFactor({
+                    semanticKey: 'critical', displayName: '暴击结算',
+                    rawValue: {
+                        rate: criticalRateEntry.value,
+                        damageIncrease: criticalDamageEntry.value,
+                        mode: criticalMode
+                    },
+                    multiplier: result.operands.selectedCriticalScale,
+                    contributions: [
+                        ...attributeContribution(
+                            sourceId,
+                            criticalRateSnapshot,
+                            criticalRateEntry.value
+                        ),
+                        ...attributeContribution(
+                            sourceId,
+                            criticalDamageSnapshot,
+                            criticalDamageEntry.value
+                        )
+                    ],
+                    affectsNonCritical: false
+                })
+            ];
+            const reconstructedNonCritical = factors
+                .filter(factor => factor.affectsNonCritical !== false)
+                .reduce((value, factor) => value * Number(factor.multiplier ?? 1), 1);
+            const factorValidation = {
+                reconstructedNonCritical,
+                expectedNonCritical: result.nonCriticalDamage,
+                delta: reconstructedNonCritical - result.nonCriticalDamage,
+                valid: Math.abs(reconstructedNonCritical - result.nonCriticalDamage) <= 1e-8
+            };
             hits.push({
                 damageUnitIndex,
                 damageType: unit.damageType,
@@ -291,20 +562,42 @@ export function createAkeDamageResolver({
                 damageTypeMask: unit.damageTypeMask ?? null,
                 amount: result.finalDamage,
                 ...result,
+                factors,
+                factorValidation,
+                diagnostics: [],
+                confidence: factorValidation.valid ? 'verified' : 'partial',
                 modifierSnapshot: {
-                    attackAttribute: attackEntry.attribute
-                        ? runtime.effectSources.attributeSnapshot({
-                            targetId: sourceId,
-                            attribute: attackEntry.attribute
-                        }, eventContext)
-                        : null,
+                    attackAttribute: attackSnapshot,
+                    defenseAttribute: defenseSnapshot,
+                    resistanceAttribute: resistanceSnapshot,
+                    damageTakenAttribute: damageTakenSnapshot,
+                    vulnerableAttribute: vulnerableSnapshot,
+                    weaknessAttribute: weaknessSnapshot,
+                    shelterAttribute: shelterSnapshot,
+                    criticalRateAttribute: criticalRateSnapshot,
+                    criticalDamageAttribute: criticalDamageSnapshot,
                     attackerZone,
                     defenderZone,
-                    configuredBonus,
+                    configuredBonus: configuredBonus.total,
+                    configuredBonusComponents: configuredBonus.components,
                     configuredDamageBonusScale,
                     specialScale
                 }
             });
+        }
+        if (unresolved.length > 0 && hits.length > 0) {
+            const packetDiagnostic = {
+                code: 'AKE_DAMAGE_PACKET_PARTIAL',
+                severity: 'error',
+                castId: eventContext.castId ?? null,
+                skillId: eventContext.skillId ?? null,
+                unresolvedDamageUnitIndexes: unresolved.map(entry => entry.damageUnitIndex),
+                unresolved: structuredClone(unresolved)
+            };
+            for (const hit of hits) {
+                hit.diagnostics = [...(hit.diagnostics ?? []), packetDiagnostic];
+                hit.confidence = 'partial';
+            }
         }
         return {
             status: hits.length === 0 && unresolved.length > 0

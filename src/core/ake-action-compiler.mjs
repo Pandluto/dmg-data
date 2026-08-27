@@ -405,7 +405,20 @@ export class AkeActionCompiler {
                     ]
                 }
                 : clone(modifier.param),
-            metadata: { modifyAttributeType: modifier.modifyAttributeType }
+            metadata: {
+                modifyAttributeType: modifier.modifyAttributeType,
+                rawFormulaItem: modifier.formulaItem,
+                // Calc/AKE serializes Weakness as a signed rate in a factor
+                // slot.  This evidence-scoped conversion must not be applied
+                // to arbitrary FinalMultiplier attributes.
+                ...(modifier.attributeType === 'WeaknessDmgScalar'
+                    && modifier.formulaItem === 'FinalMultiplier'
+                    ? {
+                        operandSemantics: 'rate-to-factor',
+                        evidenceKey: 'ake:WeaknessDmgScalar:FinalMultiplier'
+                    }
+                    : { operandSemantics: 'direct-factor' })
+            }
         }));
         const persistentTags = tagIds(raw.applyTags).map(tagId => `ake-tag:${tagId}`);
         const damageModifierConditionResults = (raw.damageModifier ?? []).map(

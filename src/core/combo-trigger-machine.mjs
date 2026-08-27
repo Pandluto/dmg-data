@@ -151,6 +151,16 @@ export class ComboTriggerMachine {
         this.pending = new Map();
         this.seenOccurrences = new Set();
         this.nextPendingId = 1;
+        this.nextTraceSequence = 1;
+    }
+
+    #record(event) {
+        const sequence = this.nextTraceSequence++;
+        this.trace.push({
+            eventId: `combo-event:${sequence}`,
+            sequence,
+            ...event
+        });
     }
 
     #occurrenceKey(rule, event) {
@@ -202,7 +212,7 @@ export class ComboTriggerMachine {
         const pending = this.pending.get(pendingId);
         if (!pending || pending.expireFrame !== frame) return false;
         this.pending.delete(pendingId);
-        this.trace.push({
+        this.#record({
             frame,
             stage: 'PENDING_EXPIRED',
             ruleId: pending.ruleId,
@@ -335,7 +345,7 @@ export class ComboTriggerMachine {
                     break;
             }
 
-            this.trace.push({
+            this.#record({
                 frame: event.frame,
                 stage,
                 ruleId: rule.id,
@@ -355,7 +365,7 @@ export class ComboTriggerMachine {
     }
 
     gate({ frame, skillId, ownerId, targetId, cooldownEnd = 0, currentSkillId = null,
-        currentPriority = 0 }) {
+        currentPriority = 0, commandId = null, castId = null }) {
         this.#expireDueBeforeOrAt(frame);
         const candidates = [...this.pending.values()].filter(pending =>
             pending.skillId === skillId
@@ -376,7 +386,7 @@ export class ComboTriggerMachine {
         const reason = ready
             ? 'COMBO_PENDING_READY'
             : (pending ? 'COOLDOWN' : 'COMBO_PENDING_MISSING');
-        this.trace.push({
+        this.#record({
             frame,
             stage: 'COMMAND_GATE',
             pendingId: pending?.id ?? null,
@@ -384,6 +394,8 @@ export class ComboTriggerMachine {
             currentSkillId,
             currentPriority,
             targetId,
+            commandId,
+            castId,
             triggerTargetId: pending?.triggerTargetId ?? null,
             pendingRemainingFrames: pending ? pending.expireFrame - frame : null,
             result: ready,
@@ -392,7 +404,8 @@ export class ComboTriggerMachine {
         return { ready, reason, pending };
     }
 
-    consume({ frame, pendingId, currentSkillId, currentPriority = 0 }) {
+    consume({ frame, pendingId, currentSkillId, currentPriority = 0,
+        commandId = null, castId = null }) {
         const selected = this.pending.get(pendingId);
         if (!selected) throw new Error(`Cannot consume missing combo pending ${pendingId}.`);
         if (selected.consumePolicy === 'all-for-owner-and-skill') {
@@ -404,7 +417,7 @@ export class ComboTriggerMachine {
         } else {
             this.pending.delete(selected.id);
         }
-        this.trace.push({
+        this.#record({
             frame,
             stage: 'PENDING_CONSUMED',
             ruleId: selected.ruleId,
@@ -413,6 +426,8 @@ export class ComboTriggerMachine {
             currentSkillId,
             currentPriority,
             targetId: selected.ownerId,
+            commandId,
+            castId,
             triggerTargetId: selected.triggerTargetId,
             pendingRemainingFrames: selected.expireFrame - frame,
             result: true,

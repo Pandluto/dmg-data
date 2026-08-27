@@ -32,8 +32,8 @@ function finiteNumber(value, label) {
 }
 
 function definitionFrom(definitions, buffId) {
-    if (definitions instanceof Map) return definitions.get(buffId) ?? {};
-    return definitions?.[buffId] ?? {};
+    if (definitions instanceof Map) return definitions.get(buffId) ?? null;
+    return definitions?.[buffId] ?? null;
 }
 
 function plainClone(value) {
@@ -153,6 +153,7 @@ export class StatusEffectSystem {
         this.instances = new Map();
         this.trace = [];
         this.nextInstanceId = 1;
+        this.nextEventSequence = 1;
     }
 
     apply(input, eventContext = {}) {
@@ -163,6 +164,44 @@ export class StatusEffectSystem {
         const buffId = requireId(input.buffId, 'buffId');
         const targetId = requireId(input.targetId ?? eventContext.targetId, 'targetId');
         const definition = definitionFrom(this.definitions, buffId);
+        if (definition === null) {
+            const unresolved = {
+                eventId: `status-event:${this.nextEventSequence}`,
+                sequence: this.nextEventSequence++,
+                frame,
+                stage: 'StatusEffectUnresolved',
+                status: 'Unresolved',
+                code: 'STATUS_DEFINITION_MISSING',
+                reason: 'MissingStatusDefinition',
+                instanceId: null,
+                buffId,
+                sourceId: input.sourceId ?? eventContext.sourceId ?? null,
+                ownerId: input.ownerId ?? eventContext.ownerId ?? null,
+                carrierId: targetId,
+                targetId,
+                damageSourceId: input.damageSourceId
+                    ?? eventContext.damageSourceId
+                    ?? input.sourceId
+                    ?? eventContext.sourceId
+                    ?? null,
+                sourceSkillId: input.sourceSkillId ?? eventContext.skillId ?? null,
+                rootSkillId: input.rootSkillId ?? eventContext.rootSkillId ?? null,
+                castId: input.castId ?? eventContext.castId ?? null,
+                transactionId: input.transactionId ?? eventContext.transactionId ?? null,
+                parentEventId: input.parentEventId ?? eventContext.parentEventId ?? null,
+                parentHitId: input.parentHitId ?? eventContext.parentHitId ?? null,
+                hitEventPhase: input.hitEventPhase ?? eventContext.hitEventPhase ?? null,
+                sourceMetadata: plainClone(input.metadata ?? {}),
+                before: 0,
+                requested: Number(input.stackCount ?? 1),
+                actual: 0,
+                discarded: Number(input.stackCount ?? 1),
+                after: 0
+            };
+            this.trace.push(unresolved);
+            this.onTransition(plainClone(unresolved));
+            return plainClone(unresolved);
+        }
         const attribution = {
             sourceId: input.sourceId ?? eventContext.sourceId ?? null,
             // Owner and source are deliberately independent. Summons, auras
@@ -177,7 +216,17 @@ export class StatusEffectSystem {
             skillType: input.skillType ?? eventContext.skillType
                 ?? eventContext.payload?.skillType ?? null,
             clockDomainId: input.clockDomainId ?? eventContext.clockDomainId ?? 'global',
-            ruleId: input.ruleId ?? eventContext.ruleId ?? null
+            ruleId: input.ruleId ?? eventContext.ruleId ?? null,
+            carrierId: targetId,
+            damageSourceId: input.damageSourceId
+                ?? eventContext.damageSourceId
+                ?? input.sourceId
+                ?? eventContext.sourceId
+                ?? null,
+            transactionId: input.transactionId ?? eventContext.transactionId ?? null,
+            parentEventId: input.parentEventId ?? eventContext.parentEventId ?? null,
+            parentHitId: input.parentHitId ?? eventContext.parentHitId ?? null,
+            hitEventPhase: input.hitEventPhase ?? eventContext.hitEventPhase ?? null
         };
         // A Buff can measure its lifetime on one clock while the actions fired
         // by that Buff still belong to the carrier's combat clock. AKE uses
@@ -233,6 +282,14 @@ export class StatusEffectSystem {
             });
             this.trace.push(transition);
             this.onTransition(plainClone(transition));
+            const addedStacks = Math.max(0, existing.stackCount - before);
+            if (addedStacks > 0) {
+                existing.stackSources.push({
+                    sourceId: attribution.sourceId,
+                    ownerId: attribution.ownerId,
+                    count: addedStacks
+                });
+            }
             if (input.triggerEnhancementEvent === true
                 && !existing.processingEnhancement) {
                 existing.processingEnhancement = true;
@@ -242,7 +299,11 @@ export class StatusEffectSystem {
                         existing,
                         frame,
                         'OnBuffAfterTryEnhanced',
-                        eventContext
+                        {
+                            ...plainClone(eventContext),
+                            transactionId: transition.transactionId,
+                            parentEventId: transition.eventId
+                        }
                     );
                 } finally {
                     existing.processingEnhancement = false;
@@ -253,14 +314,22 @@ export class StatusEffectSystem {
                 existing,
                 frame,
                 'OnBuffRefresh',
-                eventContext
+                {
+                    ...plainClone(eventContext),
+                    transactionId: transition.transactionId,
+                    parentEventId: transition.eventId
+                }
             );
             this.#executeLifecycle(
                 definition.duringEnableActions ?? this.#eventActions(definition, 'DuringBuffEnable'),
                 existing,
                 frame,
                 'DuringBuffEnable',
-                eventContext
+                {
+                    ...plainClone(eventContext),
+                    transactionId: transition.transactionId,
+                    parentEventId: transition.eventId
+                }
             );
             return this.#publicInstance(existing);
         }
@@ -295,6 +364,11 @@ export class StatusEffectSystem {
             triggerCount: 0,
             processingEnhancement: false
         };
+        instance.stackSources = [{
+            sourceId: attribution.sourceId,
+            ownerId: attribution.ownerId,
+            count: instance.stackCount
+        }];
         this.instances.set(instance.instanceId, instance);
         this.#scheduleExpiry(instance);
         const transition = this.#record(instance, frame, 'StatusEffectApplied', {
@@ -311,21 +385,33 @@ export class StatusEffectSystem {
             instance,
             frame,
             'OnBuffStart',
-            eventContext
+            {
+                ...plainClone(eventContext),
+                transactionId: transition.transactionId,
+                parentEventId: transition.eventId
+            }
         );
         this.#executeLifecycle(
             definition.onEnableActions ?? this.#eventActions(definition, 'OnBuffEnable'),
             instance,
             frame,
             'OnBuffEnable',
-            eventContext
+            {
+                ...plainClone(eventContext),
+                transactionId: transition.transactionId,
+                parentEventId: transition.eventId
+            }
         );
         this.#executeLifecycle(
             definition.duringEnableActions ?? this.#eventActions(definition, 'DuringBuffEnable'),
             instance,
             frame,
             'DuringBuffEnable',
-            eventContext
+            {
+                ...plainClone(eventContext),
+                transactionId: transition.transactionId,
+                parentEventId: transition.eventId
+            }
         );
         this.#scheduleTimeline(instance, frame);
         this.#schedulePeriodicTrigger(instance, frame);
@@ -420,7 +506,25 @@ export class StatusEffectSystem {
             triggerTargetId: eventContext.targetId ?? null,
             triggerSkillId: eventContext.skillId ?? null,
             triggerRootSkillId: eventContext.rootSkillId ?? null,
-            triggerCastId: eventContext.castId ?? null
+            triggerCastId: eventContext.castId ?? null,
+            triggerTransactionId: eventContext.transactionId ?? null,
+            triggerParentEventId: eventContext.parentEventId ?? null,
+            triggerParentHitId: eventContext.parentHitId ?? null,
+            triggerHitEventPhase: eventContext.hitEventPhase ?? null,
+            // A finish/consume transition belongs to the event that caused it,
+            // not to the historical transaction that created the instance.
+            ...(eventContext.transactionId === undefined
+                ? {}
+                : { transactionId: eventContext.transactionId }),
+            ...(eventContext.parentEventId === undefined
+                ? {}
+                : { parentEventId: eventContext.parentEventId }),
+            ...(eventContext.parentHitId === undefined
+                ? {}
+                : { parentHitId: eventContext.parentHitId }),
+            ...(eventContext.hitEventPhase === undefined
+                ? {}
+                : { hitEventPhase: eventContext.hitEventPhase })
         };
         const matches = this.#select(input).filter(instance => instance.active);
         for (const instance of matches) {
@@ -430,43 +534,63 @@ export class StatusEffectSystem {
             if (input.finishAll === false && requestedLayers < instance.stackCount) {
                 const before = instance.stackCount;
                 instance.stackCount -= requestedLayers;
-                this.trace.push(this.#record(instance, frame, 'StatusEffectStackRemoved', {
+                const bySource = this.#consumeStackSources(instance, requestedLayers);
+                const transition = this.#record(instance, frame, 'StatusEffectStackRemoved', {
                     reason: input.reason ?? 'Finished',
                     ...triggerAttribution,
                     before,
                     requested: requestedLayers,
                     actual: requestedLayers,
+                    consumedStacks: requestedLayers,
+                    bySource,
                     discarded: 0,
                     after: instance.stackCount
-                }));
+                });
+                this.trace.push(transition);
+                this.onTransition(plainClone(transition));
                 this.#executeLifecycle(
                     instance.definition.duringEnableActions
                         ?? this.#eventActions(instance.definition, 'DuringBuffEnable'),
                     instance,
                     frame,
-                    'DuringBuffEnable'
+                    'DuringBuffEnable',
+                    {
+                        ...plainClone(eventContext),
+                        transactionId: transition.transactionId,
+                        parentEventId: transition.eventId
+                    }
                 );
                 continue;
             }
             instance.active = false;
             instance.generation += 1;
             this.#cancelTimer(instance, frame, input.reason ?? 'Finished');
-            this.trace.push(this.#record(instance, frame, 'StatusEffectFinished', {
+            const bySource = this.#consumeStackSources(instance, instance.stackCount);
+            const transition = this.#record(instance, frame, 'StatusEffectFinished', {
                 reason: input.reason ?? 'Finished',
                 ...triggerAttribution,
                 before: instance.stackCount,
                 requested: instance.stackCount,
                 actual: instance.stackCount,
+                consumedStacks: instance.stackCount,
+                bySource,
                 discarded: 0,
                 after: 0
-            }));
+            });
+            this.trace.push(transition);
+            this.onTransition(plainClone(transition));
             this.#executeLifecycle(
                 instance.definition.onRemoveActions
                     ?? instance.definition.endActions
                     ?? this.#eventActions(instance.definition, 'OnBuffFinish'),
                 instance,
                 frame,
-                'OnBuffFinish'
+                'OnBuffFinish',
+                {
+                    ...plainClone(eventContext),
+                    transactionId: transition.transactionId,
+                    parentEventId: transition.eventId
+                }
             );
         }
         return matches.map(instance => this.#publicInstance(instance));
@@ -835,6 +959,13 @@ export class StatusEffectSystem {
             buffInstanceId: instance.instanceId,
             clockDomainId: instance.actionClockDomainId ?? instance.clockDomainId,
             ruleId: instance.ruleId,
+            sourceMetadata: plainClone(instance.metadata ?? {}),
+            carrierId: instance.carrierId,
+            damageSourceId: incomingContext.damageSourceId ?? instance.damageSourceId,
+            transactionId: incomingContext.transactionId ?? instance.transactionId,
+            parentEventId: incomingContext.parentEventId ?? instance.parentEventId,
+            parentHitId: incomingContext.parentHitId ?? instance.parentHitId,
+            hitEventPhase: incomingContext.hitEventPhase ?? instance.hitEventPhase,
             blackboard: {
                 // Event-local scratch values remain available, but a listener's
                 // configured/dynamic Blackboard owns colliding keys. Otherwise
@@ -869,7 +1000,10 @@ export class StatusEffectSystem {
     }
 
     #record(instance, frame, stage, extra = {}) {
+        const sequence = this.nextEventSequence++;
         return {
+            eventId: `status-event:${sequence}`,
+            sequence,
             frame,
             stage,
             instanceId: instance.instanceId,
@@ -878,7 +1012,9 @@ export class StatusEffectSystem {
             stackingIdentifierType: instance.stackingIdentifierType,
             sourceId: instance.sourceId,
             ownerId: instance.ownerId,
+            carrierId: instance.carrierId ?? instance.targetId,
             targetId: instance.targetId,
+            damageSourceId: instance.damageSourceId ?? instance.sourceId,
             sourceSkillId: instance.sourceSkillId,
             rootSkillId: instance.rootSkillId,
             commandType: instance.commandType,
@@ -890,8 +1026,48 @@ export class StatusEffectSystem {
             stackCount: instance.stackCount,
             durationTicks: instance.durationTicks,
             expireFrame: instance.expireFrame,
-            ...extra
+            sourceMetadata: plainClone(instance.metadata ?? {}),
+            ...extra,
+            // Keep causal identity canonical even when an optional field in
+            // `extra` is undefined. This prevents an old instance identity or
+            // an undefined spread from erasing the active transaction.
+            transactionId: extra.transactionId
+                ?? instance.transactionId
+                ?? null,
+            parentEventId: extra.parentEventId
+                ?? instance.parentEventId
+                ?? null,
+            parentHitId: extra.parentHitId
+                ?? instance.parentHitId
+                ?? null,
+            hitEventPhase: extra.hitEventPhase
+                ?? instance.hitEventPhase
+                ?? null
         };
+    }
+
+    #consumeStackSources(instance, requestedCount) {
+        let remaining = Math.max(0, Number(requestedCount) || 0);
+        const consumed = new Map();
+        for (let index = instance.stackSources.length - 1;
+            index >= 0 && remaining > 0;
+            index -= 1) {
+            const source = instance.stackSources[index];
+            const amount = Math.min(remaining, source.count);
+            if (amount <= 0) continue;
+            const key = `${String(source.sourceId)}\u0000${String(source.ownerId)}`;
+            const current = consumed.get(key) ?? {
+                sourceId: source.sourceId,
+                ownerId: source.ownerId,
+                count: 0
+            };
+            current.count += amount;
+            consumed.set(key, current);
+            source.count -= amount;
+            remaining -= amount;
+            if (source.count <= 0) instance.stackSources.splice(index, 1);
+        }
+        return [...consumed.values()];
     }
 
     #publicInstance(instance) {

@@ -577,7 +577,8 @@ function compactStatusEvents(trace, { projectRoot = defaultProjectRoot } = {}) {
         'StatusEffectStackRemoved',
         'StatusEffectFinished',
         'StatusEffectExpired',
-        'StatusEffectRemoved'
+        'StatusEffectRemoved',
+        'StatusEffectUnresolved'
     ]);
     return trace.map((event, traceIndex) => ({ event, traceIndex }))
         .filter(({ event }) => lifecycleStages.has(event.stage))
@@ -589,17 +590,28 @@ function compactStatusEvents(trace, { projectRoot = defaultProjectRoot } = {}) {
         );
         return {
         traceIndex,
+        eventId: event.eventId ?? null,
+        sequence: event.sequence ?? traceIndex,
         frame: event.frame,
         stage: event.stage,
         instanceId: event.instanceId ?? null,
         buffId: event.buffId,
         sourceId: event.sourceId ?? null,
         ownerId: event.ownerId ?? null,
+        carrierId: event.carrierId ?? event.targetId ?? null,
         targetId: event.targetId,
+        damageSourceId: event.damageSourceId ?? event.sourceId ?? null,
+        transactionId: event.transactionId ?? null,
+        parentEventId: event.parentEventId ?? null,
+        parentHitId: event.parentHitId ?? null,
+        hitEventPhase: event.hitEventPhase ?? null,
+        sourceMetadata: structuredClone(event.sourceMetadata ?? {}),
         stackCount: event.stackCount ?? null,
         before: event.before ?? null,
         requested: event.requested ?? null,
         actual: event.actual ?? null,
+        consumedStacks: event.consumedStacks ?? null,
+        bySource: structuredClone(event.bySource ?? []),
         discarded: event.discarded ?? null,
         after: event.after ?? event.stackCount ?? null,
         durationFrames: event.durationTicks ?? null,
@@ -757,6 +769,27 @@ export function simulateDemo(input, { projectRoot = defaultProjectRoot } = {}) {
         diagnostics: {
             unresolvedEffectCount: result.diagnostics.unresolvedEffectCount,
             compilerUnresolvedEffectCount: bundle.compiler.unresolved.length,
+            runtimeDiagnostics: result.diagnostics.unresolvedEffects.map(event => ({
+                eventId: event.eventId ?? null,
+                sequence: event.sequence ?? null,
+                frame: event.frame ?? null,
+                stage: event.stage ?? null,
+                actionType: event.type ?? event.action?.type ?? null,
+                status: event.result?.resolution?.status ?? event.result?.status ?? 'Unresolved',
+                code: event.result?.code
+                    ?? event.result?.reason
+                    ?? event.result?.resolution?.unresolved?.[0]?.code
+                    ?? null,
+                sourceId: event.sourceId ?? null,
+                ownerId: event.ownerId ?? null,
+                carrierId: event.carrierId ?? event.targetId ?? null,
+                targetId: event.targetId ?? null,
+                damageSourceId: event.damageSourceId ?? event.sourceId ?? null,
+                skillId: event.skillId ?? null,
+                castId: event.castId ?? null,
+                transactionId: event.transactionId ?? null,
+                parentEventId: event.parentEventId ?? null
+            })),
             dependencySummary: structuredClone(bundle.dependencySummary),
             assemblerDiagnostics: structuredClone(bundle.diagnostics)
         }
@@ -981,18 +1014,27 @@ function getSquadBundle(projectRoot, request) {
 function compactSquadHits(damageLog) {
     return damageLog.slice(0, 1200).map((hit, hitIndex) => ({
         hitIndex,
+        hitId: hit.hitId ?? `legacy-hit:${hitIndex}`,
+        sequence: hit.sequence ?? hitIndex,
+        parentTransactionId: hit.parentTransactionId ?? null,
+        parentEventId: hit.parentEventId ?? null,
         traceIndex: hit.traceIndex ?? null,
         frame: hit.frame,
         memberId: hit.memberId,
         characterId: hit.characterId,
         sourceId: hit.sourceId ?? hit.characterId ?? null,
         ownerId: hit.ownerId ?? null,
+        carrierId: hit.carrierId ?? hit.sourceId ?? null,
         targetId: hit.targetId ?? null,
+        damageSourceId: hit.damageSourceId ?? hit.sourceId ?? null,
         castId: hit.castId,
         skillId: hit.skillId,
         rootSkillId: hit.rootSkillId,
         buffInstanceId: hit.buffInstanceId ?? null,
+        sourceBuffInstanceId: hit.sourceBuffInstanceId ?? hit.buffInstanceId ?? null,
         sourceBuffId: hit.sourceBuffId ?? null,
+        semanticHitType: hit.semanticHitType ?? 'skill',
+        displayName: hit.displayName ?? null,
         reason: hit.reason ?? null,
         sourcePath: hit.sourcePath ?? null,
         damageUnitIndex: hit.damageUnitIndex ?? null,
@@ -1010,7 +1052,11 @@ function compactSquadHits(damageLog) {
         targetHpBefore: hit.targetHpBefore,
         targetHpAfter: hit.targetHpAfter,
         modifierSnapshot: structuredClone(hit.modifierSnapshot ?? {}),
-        operands: structuredClone(hit.operands ?? {})
+        operands: structuredClone(hit.operands ?? {}),
+        factors: structuredClone(hit.factors ?? []),
+        factorValidation: structuredClone(hit.factorValidation ?? null),
+        diagnostics: structuredClone(hit.diagnostics ?? []),
+        confidence: hit.confidence ?? 'partial'
     }));
 }
 
@@ -1082,7 +1128,7 @@ export function simulateSquadDemo(input, { projectRoot = defaultProjectRoot } = 
         };
     });
     return {
-        schemaVersion: 2,
+        schemaVersion: 3,
         generatedAt: new Date().toISOString(),
         engine: result.engine,
         tickRate: result.tickRate,

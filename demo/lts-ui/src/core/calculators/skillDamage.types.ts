@@ -165,6 +165,10 @@ export interface HitDetailViewModel {
 
 export interface AppliedBuffTagViewModel {
   id: string;
+  contributionId?: string;
+  sourceKey?: string;
+  buffId?: string;
+  buffInstanceId?: string;
   label: string;
   displayLabel?: string;
   sourceName: string;

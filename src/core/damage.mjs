@@ -4,6 +4,7 @@ export function calculateDamage({
     defense,
     resistance = 0,
     damageTakenScalar = 1,
+    vulnerableDmgIncrease = 0,
     weaknessDmgScalar = 1,
     shelterDmgScalar = 0,
     attackerZoneScale = 1,
@@ -18,16 +19,19 @@ export function calculateDamage({
     const defEfficiency = 0.01;
     const defScale = 1 / (1 + defense * defEfficiency);
     const resistancePercentDivisor = 100;
-    const damageTypeResistanceScale = Math.max(
-        0,
-        (1 - resistance / resistancePercentDivisor) * damageTakenScalar
-    );
-    const shelterScale = 1 - shelterDmgScalar;
+    const resistanceScale = Math.max(0, 1 - resistance / resistancePercentDivisor);
+    const normalizedDamageTakenScalar = Math.max(0, damageTakenScalar);
+    // Kept as an alias for older report consumers; v3 exposes both operands.
+    const damageTypeResistanceScale = resistanceScale * normalizedDamageTakenScalar;
+    const vulnerableDmgScale = Math.max(0, 1 + vulnerableDmgIncrease);
+    const normalizedWeaknessDmgScalar = Math.max(0, weaknessDmgScalar);
+    const shelterScale = Math.max(0, 1 - shelterDmgScalar);
     const igniteDamageScalar = 1;
     const physicalInflictionDamageScalar = 1;
     const sharedScale = defScale
         * damageTypeResistanceScale
-        * weaknessDmgScalar
+        * vulnerableDmgScale
+        * normalizedWeaknessDmgScalar
         * shelterScale
         * igniteDamageScalar
         * physicalInflictionDamageScalar;
@@ -72,8 +76,12 @@ export function calculateDamage({
             resistance,
             resistancePercentDivisor,
             damageTakenScalar,
+            normalizedDamageTakenScalar,
+            resistanceScale,
             damageTypeResistanceScale,
-            weaknessDmgScalar,
+            vulnerableDmgIncrease,
+            vulnerableDmgScale,
+            weaknessDmgScalar: normalizedWeaknessDmgScalar,
             shelterDmgScalar,
             shelterScale,
             igniteDamageScalar,

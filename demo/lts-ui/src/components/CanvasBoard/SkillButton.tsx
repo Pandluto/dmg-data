@@ -61,7 +61,7 @@ import {
   type FixedDummyHitContext,
 } from '../../core/services/fixedDummyStateMachine';
 import {
-  buildAkeRuntimeCommandLedger,
+  buildAkeRuntimeCommandViewState,
   buildAkeRuntimeStatusLabelMap,
 } from '../../core/services/akeRuntimeLedger';
 import { getAnomalyStateSnapshotsByIds } from '../../core/services/anomalyStateSnapshotStorage';
@@ -395,6 +395,7 @@ export function SkillButtonComponent({
   const isDotButton = button.skillType === 'Dot' && !timelineModuleKind;
   const { state, dispatch, refreshSelectedCharacters } = useAppContext();
   const isAkeTemporalButton = Boolean(akePreviewCommand);
+  const isAkeRuntimeMode = isAkeTemporalButton || Boolean(akeRuntimeReport);
   // AKE 的时间节点只占一个 80px 逻辑单格。圆钮是上半格的图标，
   // 不再沿用普通按钮的 44px 直径，否则命中盒仍会向相邻列外溢。
   const visualSize = isAkeTemporalButton ? 24 : size;
@@ -1145,12 +1146,14 @@ export function SkillButtonComponent({
     () => buildAkeRuntimeStatusLabelMap(getInstalledAkeCatalog()),
     [akeRuntimeReport, candidateBuffRefreshToken],
   );
-  const akeRuntimeLedger = useMemo(() => buildAkeRuntimeCommandLedger({
+  const akeRuntimeCommandViewState = useMemo(() => buildAkeRuntimeCommandViewState({
+    runtimeMode: isAkeRuntimeMode,
     report: akeRuntimeReport,
     commandId: button.id,
     labels: akeRuntimeStatusLabels,
     skillName: displayName,
-  }), [akeRuntimeReport, akeRuntimeStatusLabels, button.id, displayName]);
+  }), [akeRuntimeReport, akeRuntimeStatusLabels, button.id, displayName, isAkeRuntimeMode]);
+  const akeRuntimeLedger = akeRuntimeCommandViewState.ledger;
   const compactTargetStateItems = useMemo(
     () => akeRuntimeLedger?.compactStatuses.filter((item) => item.mainDisplay) ?? [],
     [akeRuntimeLedger],
@@ -1259,11 +1262,15 @@ export function SkillButtonComponent({
       id: character.id,
       name: character.name,
     })),
-    modifierBuffList: [...modifierBuffList, ...fixedDummyContext.modifierBuffs],
+    modifierBuffList: isAkeRuntimeMode
+      ? []
+      : [...modifierBuffList, ...fixedDummyContext.modifierBuffs],
   });
   const calculatedAnomalyDamages = useMemo(
-    () => [...fixedDummyContext.mechanicAnomalyDamages, ...selectedAnomalyDamages],
-    [fixedDummyContext.mechanicAnomalyDamages, selectedAnomalyDamages],
+    () => isAkeRuntimeMode
+      ? []
+      : [...fixedDummyContext.mechanicAnomalyDamages, ...selectedAnomalyDamages],
+    [fixedDummyContext.mechanicAnomalyDamages, isAkeRuntimeMode, selectedAnomalyDamages],
   );
   const mandatoryAnomalyDamageIds = useMemo(
     () => new Set(fixedDummyContext.mechanicAnomalyDamages.map((damage) => damage.id)),
@@ -1309,16 +1316,20 @@ export function SkillButtonComponent({
     ],
   );
   const fullCombinedModifierBuffList = useMemo(
-    () => [...anomalyCombinedModifierBuffList, ...configuredHitBuffs.modifierBuffs],
-    [anomalyCombinedModifierBuffList, configuredHitBuffs.modifierBuffs],
+    () => isAkeRuntimeMode
+      ? []
+      : [...anomalyCombinedModifierBuffList, ...configuredHitBuffs.modifierBuffs],
+    [anomalyCombinedModifierBuffList, configuredHitBuffs.modifierBuffs, isAkeRuntimeMode],
   );
   const hitDisplayOnlyBuffs = useMemo(
-    () => [...configuredHitBuffs.displayOnlyBuffs, ...fixedDummyContext.displayOnlyBuffs],
-    [configuredHitBuffs.displayOnlyBuffs, fixedDummyContext.displayOnlyBuffs],
+    () => isAkeRuntimeMode
+      ? []
+      : [...configuredHitBuffs.displayOnlyBuffs, ...fixedDummyContext.displayOnlyBuffs],
+    [configuredHitBuffs.displayOnlyBuffs, fixedDummyContext.displayOnlyBuffs, isAkeRuntimeMode],
   );
   const fullExtraHitBuffList = useMemo(
-    () => [...extraHitBuffList, ...configuredHitBuffs.extraHitBuffs],
-    [configuredHitBuffs.extraHitBuffs, extraHitBuffList],
+    () => isAkeRuntimeMode ? [] : [...extraHitBuffList, ...configuredHitBuffs.extraHitBuffs],
+    [configuredHitBuffs.extraHitBuffs, extraHitBuffList, isAkeRuntimeMode],
   );
   const panelBase = useMemo<SkillDamagePanelBase | null>(() => {
     const computedPanel = getCharacterComputedCache(button.characterId)?.panel;
@@ -1759,6 +1770,7 @@ export function SkillButtonComponent({
         nonCrit: akeRuntimeLedger.summary.nonCrit,
       };
     }
+    if (isAkeRuntimeMode) return { expected: '-', nonCrit: '-' };
     if (!damageViewModel) {
       return { expected: '-', nonCrit: '-' };
     }
@@ -1766,7 +1778,7 @@ export function SkillButtonComponent({
       expected: (Number(damageViewModel.summary.totalExpectedText) + anomalyDamageSummary.expected).toFixed(0),
       nonCrit: (Number(damageViewModel.summary.totalNonCritText) + anomalyDamageSummary.nonCrit).toFixed(0),
     };
-  }, [akeRuntimeLedger, anomalyDamageSummary.expected, anomalyDamageSummary.nonCrit, damageViewModel]);
+  }, [akeRuntimeLedger, anomalyDamageSummary.expected, anomalyDamageSummary.nonCrit, damageViewModel, isAkeRuntimeMode]);
 
   useEffect(() => {
     if (!akeRuntimeLedger || selectedHitIndex === null) return;
@@ -2614,16 +2626,16 @@ export function SkillButtonComponent({
           onEnableAllBuffs={enableAllBuffs}
           onDisableAllBuffs={disableAllBuffs}
           onResetBuffStacks={resetAllBuffStacks}
-          statusContextLabel={akeRuntimeLedger
+          statusContextLabel={isAkeRuntimeMode
             ? selectedHitIndex === null
-              ? '整次技能'
-              : `当前 Hit · ${akeRuntimeLedger.hits[selectedHitIndex]?.title ?? '未选择'}`
+              ? `运行时 · ${akeRuntimeCommandViewState.message}`
+              : `当前 Hit · ${akeRuntimeLedger?.hits[selectedHitIndex]?.title ?? '未选择'}`
             : selectedHitIndex === null
               ? '整次技能'
               : `当前 Hit · ${damageViewModel?.hitCards[selectedHitIndex]?.displayName ?? '未选择'}`}
           statuses={[
-            ...(akeRuntimeLedger
-              ? (selectedHitIndex === null
+            ...(isAkeRuntimeMode
+              ? (akeRuntimeLedger ? (selectedHitIndex === null
                 ? akeRuntimeLedger.statuses
                 : akeRuntimeLedger.hits[selectedHitIndex]?.statuses ?? akeRuntimeLedger.statuses
               ).map((status) => ({
@@ -2636,7 +2648,15 @@ export function SkillButtonComponent({
                   priority: status.priority,
                   iconUrl: status.iconUrl,
                   iconAlt: status.iconAlt,
-                }))
+                })) : [{
+                  key: `ake-runtime-state:${button.id}`,
+                  title: akeRuntimeCommandViewState.message,
+                  detail: '不会回退到手动伤害计算器；请以当前运行时账本为准。',
+                  kind: `运行时 · ${akeRuntimeCommandViewState.kind}`,
+                  groupLabel: '运行时结算状态',
+                  groupOrder: 0,
+                  priority: 0,
+                }])
               : [
                   ...(selectedHitIndex === null
                     ? detectedHitStatuses
@@ -2647,35 +2667,35 @@ export function SkillButtonComponent({
                   ...inheritedDummyStatuses,
                   ...fixedDummyOutcomeStatuses,
                 ]),
-            ...selectedStatusCards.map((card) => ({
+            ...(isAkeRuntimeMode ? [] : selectedStatusCards.map((card) => ({
               key: card.id,
               title: card.primaryText,
               detail: [card.secondaryText, card.tertiaryText].filter(Boolean).join(' · '),
               kind: akeRuntimeLedger ? '演示状态（不参与运行时）' : '状态',
               onRemove: () => removeAnomalyCard('state', card.id),
-            })),
-            ...selectedAnomalyStateSnapshots.map((snapshot) => ({
+            }))),
+            ...(isAkeRuntimeMode ? [] : selectedAnomalyStateSnapshots.map((snapshot) => ({
               key: `snapshot-${snapshot.id}`,
               title: formatAnomalyStateSnapshotName(snapshot),
               detail: snapshot.sourceCharacterName,
               kind: akeRuntimeLedger ? '演示异常（不参与运行时）' : '异常状态',
               onRemove: () => removeAnomalyStateSnapshotCard(snapshot.id),
-            })),
-            ...selectedAnomalyDamages.map((card) => ({
+            }))),
+            ...(isAkeRuntimeMode ? [] : selectedAnomalyDamages.map((card) => ({
               key: card.id,
               title: card.primaryText,
               detail: [card.secondaryText, card.tertiaryText].filter(Boolean).join(' · '),
               kind: akeRuntimeLedger ? '演示伤害（不参与运行时）' : '异常伤害',
               onRemove: () => removeAnomalyCard('damage', card.id),
-            })),
-            ...(akeRuntimeLedger ? [] : fixedDummyContext.mechanicAnomalyDamages.map((card) => ({
+            }))),
+            ...(isAkeRuntimeMode ? [] : fixedDummyContext.mechanicAnomalyDamages.map((card) => ({
               key: card.id,
               title: card.primaryText,
               detail: [card.secondaryText, card.tertiaryText].filter(Boolean).join(' · '),
               kind: '真实机制',
             }))),
           ]}
-          hits={akeRuntimeLedger ? akeRuntimeLedger.hits.map((hit, index) => ({
+          hits={isAkeRuntimeMode ? (akeRuntimeLedger?.hits.map((hit, index) => ({
             key: hit.key,
             title: hit.title,
             meta: hit.meta,
@@ -2688,7 +2708,7 @@ export function SkillButtonComponent({
               setSelectedHitIndex(isCurrentHit ? null : index);
               setSelectedAnomalySegmentKey(null);
             },
-          })) : [
+          })) ?? []) : [
             ...(damageViewModel?.hitCards.map((hitCard, index) => ({
               ...(() => {
                 const hit = resolvedTemplate?.hits[index];
@@ -2797,8 +2817,8 @@ export function SkillButtonComponent({
               };
             }),
           ]}
-          summary={akeRuntimeLedger
-            ? akeRuntimeLedger.summary
+          summary={isAkeRuntimeMode
+            ? akeRuntimeLedger?.summary ?? null
             : damageViewModel ? {
             title: damageViewModel.header.fullText,
             expected: (Number(damageViewModel.summary.totalExpectedText) + anomalyDamageSummary.expected).toFixed(0),
@@ -2807,10 +2827,10 @@ export function SkillButtonComponent({
             formula: totalNonCritSummaryFormula,
             parts: totalNonCritSummaryParts,
           } : null}
-          formula={akeRuntimeLedger
+          formula={isAkeRuntimeMode
             ? selectedHitIndex === null
               ? null
-              : akeRuntimeLedger.hits[selectedHitIndex]?.formula ?? null
+              : akeRuntimeLedger?.hits[selectedHitIndex]?.formula ?? null
             : isShowingAnomalyDetail ? activeAnomalyFormula : damageViewModel?.activeHitFormula ?? null}
           infoLines={infoSnapshotLines}
         />

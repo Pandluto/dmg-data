@@ -6,6 +6,9 @@ const OPERATOR_LIBRARY_KEY = 'def.operator-editor.library.v1';
 const WEAPON_LIBRARY_KEY = 'def.weapon-sheet.library.v1';
 const EQUIPMENT_LIBRARY_KEY = 'def.equipment-sheet.library.v1';
 const CATALOG_REVISION_KEY = 'def.ake-catalog.revision.v1';
+// v24 projects action-created chained combo pending from the settled runtime.
+// Existing browsers must discard v23 catalogs because a changed ComboSkill
+// form could otherwise appear while its matching release window is absent.
 // v23 adds multi-event combo triggers plus their normalized runtime conditions.
 // Existing browsers must discard v22 catalogs because omitting those fields
 // makes compound AKE combo windows either impossible or falsely unconditional.
@@ -19,7 +22,7 @@ const CATALOG_REVISION_KEY = 'def.ake-catalog.revision.v1';
 // and Originium were present in SkillData but absent from the visible hit.
 // Keep this revision in sync with adapter output changes so an existing browser
 // cannot retain a pre-state-machine catalog.
-const CATALOG_ADAPTER_VERSION = 23;
+const CATALOG_ADAPTER_VERSION = 24;
 
 const LEVEL_KEYS = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'M1', 'M2', 'M3'] as const;
 
@@ -104,6 +107,7 @@ export type AkeTimingSkillProfile = {
     targetSkillId?: string;
     modeId?: string;
   }>;
+  comboPendingEvents?: AkeTimingComboPendingEvent[];
   interruptibleAt: number[];
   statusEffects?: AkeHitBuffProfile[];
   hits: AkeTimingHitProfile[];
@@ -123,6 +127,24 @@ export type AkeTimingSkillProfile = {
   resolutionSource?: 'base-intent' | 'combo-mapping' | 'skill-form-override' | 'skill-mode';
   /** Runtime-only metadata for a basic attack expanded into its complete combo. */
   comboStageSkillIds?: string[];
+};
+
+export type AkeTimingComboPendingEvent = {
+  offsetFrames: number;
+  operation: 'trigger';
+  ruleId: string;
+  ownerCharacterId: string;
+  triggerTargetId: string | null;
+  skillSlot: string;
+  targetSkillId: string;
+  pendingDurationFrames: number;
+  requireComboOffCooldown: boolean;
+  bypassSkillCooldown: boolean;
+  pendingPolicy: string;
+  selectionPolicy: string;
+  consumePolicy: string;
+  sourceActionType: string;
+  sourceActionPath?: string | null;
 };
 
 export type AkeTimingComboCondition = {
@@ -161,6 +183,7 @@ export type AkeTimingComboTrigger = {
   ownerBinding?: 'event-source' | 'fixed' | 'none' | string;
   ownerId?: string | null;
   requireComboOffCooldown: boolean;
+  bypassSkillCooldown?: boolean;
   pendingPolicy: string;
   selectionPolicy: string;
   consumePolicy: string;

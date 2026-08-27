@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "tickRate": 30,
   "nodeFrameScale": 15,
   "source": {
@@ -44,6 +44,7 @@
           "ownerBinding": "fixed",
           "ownerId": "chr_0002_endminm",
           "requireComboOffCooldown": true,
+          "bypassSkillCooldown": false,
           "pendingPolicy": "replace-all",
           "selectionPolicy": "newest",
           "consumePolicy": "all-for-owner-and-skill",
@@ -618,6 +619,7 @@
           "ownerBinding": "fixed",
           "ownerId": "chr_0003_endminf",
           "requireComboOffCooldown": true,
+          "bypassSkillCooldown": false,
           "pendingPolicy": "replace-all",
           "selectionPolicy": "newest",
           "consumePolicy": "all-for-owner-and-skill",
@@ -7448,6 +7450,7 @@
           "ownerBinding": "fixed",
           "ownerId": "chr_0028_wulfa",
           "requireComboOffCooldown": true,
+          "bypassSkillCooldown": false,
           "pendingPolicy": "replace-all",
           "selectionPolicy": "newest",
           "consumePolicy": "all-for-owner-and-skill",
@@ -7489,6 +7492,7 @@
           "ownerBinding": "fixed",
           "ownerId": "chr_0028_wulfa",
           "requireComboOffCooldown": true,
+          "bypassSkillCooldown": false,
           "pendingPolicy": "replace-all",
           "selectionPolicy": "newest",
           "consumePolicy": "all-for-owner-and-skill",
@@ -9812,6 +9816,25 @@
               "stateKey": "override:ake:buffEventAction[0].actions[0][1]:skill-override:ComboSkill",
               "skillSlot": "ComboSkill",
               "targetSkillId": "chr_0028_wulfa_combo_2_skill"
+            }
+          ],
+          "comboPendingEvents": [
+            {
+              "offsetFrames": 37,
+              "operation": "trigger",
+              "ruleId": "ake-trigger-combo:actionGroupData.timelineActions[21][1].success[0].success[0]",
+              "ownerCharacterId": "chr_0028_wulfa",
+              "triggerTargetId": "eny_0007_mimicw",
+              "skillSlot": "ComboSkill",
+              "targetSkillId": "chr_0028_wulfa_combo_3_skill",
+              "pendingDurationFrames": 180,
+              "requireComboOffCooldown": false,
+              "bypassSkillCooldown": true,
+              "pendingPolicy": "replace-all",
+              "selectionPolicy": "newest",
+              "consumePolicy": "selected",
+              "sourceActionType": "TriggerComboSkillAction",
+              "sourceActionPath": "actionGroupData.timelineActions[21][1].success[0].success[0]"
             }
           ],
           "derivation": "isolated-runtime-probe"
@@ -15174,6 +15197,7 @@
           "ownerBinding": "fixed",
           "ownerId": "chr_0004_pelica",
           "requireComboOffCooldown": true,
+          "bypassSkillCooldown": false,
           "pendingPolicy": "append",
           "selectionPolicy": "newest",
           "consumePolicy": "all-for-owner-and-skill",
@@ -15688,6 +15712,7 @@
           "ownerBinding": "fixed",
           "ownerId": "chr_0005_chen",
           "requireComboOffCooldown": true,
+          "bypassSkillCooldown": false,
           "pendingPolicy": "replace-all",
           "selectionPolicy": "newest",
           "consumePolicy": "all-for-owner-and-skill",

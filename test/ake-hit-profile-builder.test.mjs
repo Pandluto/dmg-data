@@ -221,6 +221,27 @@ test('cross-operator audit keeps real multipliers, compact bodies and stable sta
         ['apply'],
         'an infinite override created by OnBuffFinish must survive instead of removing itself'
     );
+    assert.deepEqual(
+        wulfaCombo2.comboPendingEvents.map(event => ({
+            offsetFrames: event.offsetFrames,
+            operation: event.operation,
+            skillSlot: event.skillSlot,
+            targetSkillId: event.targetSkillId,
+            pendingDurationFrames: event.pendingDurationFrames,
+            bypassSkillCooldown: event.bypassSkillCooldown,
+            sourceActionType: event.sourceActionType
+        })),
+        [{
+            offsetFrames: 37,
+            operation: 'trigger',
+            skillSlot: 'ComboSkill',
+            targetSkillId: 'chr_0028_wulfa_combo_3_skill',
+            pendingDurationFrames: 180,
+            bypassSkillCooldown: true,
+            sourceActionType: 'TriggerComboSkillAction'
+        }],
+        'the timing catalog projects the settled chained-combo pending transaction'
+    );
 
     const catalogStatusKeys = new Set(Object.values(enriched.characters)
         .flatMap(character => character.profiles)

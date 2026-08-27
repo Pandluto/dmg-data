@@ -255,6 +255,44 @@ function profileResourceEvents(result, characterId) {
     });
 }
 
+function profileComboPendingEvents(result, bundle, characterId) {
+    const actionRule = bundle.semanticMappings.find(mapping => (
+        mapping.actionType === 'TriggerComboSkillAction'
+        && mapping.effect?.operation === 'TriggerComboPending'
+    ));
+    if (!actionRule) return [];
+    const effect = actionRule.effect ?? {};
+    return (result?.comboTrace ?? []).flatMap(event => {
+        if (!['PENDING_CREATED', 'PENDING_REPLACED', 'PENDING_REFRESHED']
+            .includes(event.stage)
+            || event.sourceActionType !== 'TriggerComboSkillAction'
+            || event.targetId !== characterId
+            || typeof event.skillId !== 'string'
+            || event.skillId.length === 0) return [];
+        return [{
+            offsetFrames: Number(event.frame ?? 0),
+            operation: 'trigger',
+            ruleId: event.ruleId,
+            ownerCharacterId: event.targetId,
+            triggerTargetId: event.triggerTargetId ?? null,
+            skillSlot: effect.skillSlot ?? 'ComboSkill',
+            targetSkillId: event.skillId,
+            pendingDurationFrames: Number(
+                event.pendingRemainingFrames ?? effect.pendingDurationTicks ?? 0
+            ),
+            requireComboOffCooldown: effect.requireComboOffCooldown === true,
+            bypassSkillCooldown: event.bypassSkillCooldown === true
+                || effect.bypassSkillCooldown === true,
+            pendingPolicy: effect.pendingPolicy ?? 'replace-all',
+            selectionPolicy: effect.selectionPolicy ?? 'newest',
+            consumePolicy: effect.consumePolicy ?? 'selected',
+            sourceActionType: event.sourceActionType,
+            sourceActionPath: event.sourceActionPath ?? null
+        }];
+    }).sort((left, right) => left.offsetFrames - right.offsetFrames
+        || left.ruleId.localeCompare(right.ruleId));
+}
+
 function comboTriggers(bundle, skillIds) {
     return bundle.semanticMappings.flatMap(mapping => {
         if (mapping.actionType !== 'ComboTriggerRule'
@@ -281,6 +319,7 @@ function comboTriggers(bundle, skillIds) {
             ownerBinding: mapping.effect.ownerBinding ?? 'event-source',
             ownerId: mapping.effect.ownerId ?? null,
             requireComboOffCooldown: mapping.effect.requireComboOffCooldown === true,
+            bypassSkillCooldown: mapping.effect.bypassSkillCooldown === true,
             pendingPolicy: mapping.effect.pendingPolicy ?? 'append',
             selectionPolicy: mapping.effect.selectionPolicy ?? 'newest',
             consumePolicy: mapping.effect.consumePolicy ?? 'selected',
@@ -309,6 +348,7 @@ function simulateProfile(
     let timeline = null;
     let diagnostic = null;
     let formEvents = [];
+    let comboPendingEvents = [];
     let runner = null;
     try {
         runner = new AkeSquadScenarioRunner(forcedBundle(bundle, commandType, skillId));
@@ -322,6 +362,7 @@ function simulateProfile(
             endFrame: simulationEndFrame
         });
         formEvents = formEventsFromRunner(runner, characterId);
+        comboPendingEvents = profileComboPendingEvents(result, bundle, characterId);
         timeline = projectAkeTimeline(result);
         const resourceProbeBundle = ['Attack', 'ComboSkill'].includes(commandType)
             ? emptyResourcesBundle
@@ -397,11 +438,17 @@ function simulateProfile(
     }));
     return {
         bodyEndOffset,
-        tailEndOffset: Math.max(bodyEndOffset, ...hits.map(hit => hit.offsetFrames), 0),
+        tailEndOffset: Math.max(
+            bodyEndOffset,
+            ...hits.map(hit => hit.offsetFrames),
+            ...comboPendingEvents.map(event => event.offsetFrames),
+            0
+        ),
         hits,
         resourceEvents: profileResourceEvents(resourceResult ?? result, characterId),
         recoveryPauses,
         formEvents,
+        comboPendingEvents,
         derivation: diagnostic ? 'compiled-fallback' : 'isolated-runtime-probe',
         ...(diagnostic ? { diagnostic } : {})
     };
@@ -471,6 +518,9 @@ for (const character of catalog.characters.filter(entry => entry.id !== 'chr_900
             resourceEvents: probe.resourceEvents,
             recoveryPauses: probe.recoveryPauses,
             formEvents: probe.formEvents,
+            ...(probe.comboPendingEvents.length > 0
+                ? { comboPendingEvents: probe.comboPendingEvents }
+                : {}),
             derivation: probe.derivation,
             ...(probe.diagnostic ? { diagnostic: probe.diagnostic } : {})
         };
@@ -492,7 +542,7 @@ const atbRule = JSON.parse(fs.readFileSync(
 ))?.effect;
 
 const output = {
-    schemaVersion: 5,
+    schemaVersion: 6,
     tickRate: 30,
     nodeFrameScale: 15,
     source: {

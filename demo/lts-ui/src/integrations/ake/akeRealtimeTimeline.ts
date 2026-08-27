@@ -9,6 +9,7 @@ import type {
   AkeCatalog,
   AkeTimingCatalog,
   AkeTimingComboCondition,
+  AkeTimingComboPendingEvent,
   AkeTimingComboTrigger,
   AkeTimingHitProfile,
   AkeTimingSkillProfile,
@@ -106,6 +107,7 @@ export type AkeRealtimeComboWindow = {
   consumedCommandId: string | null;
   state: 'ready' | 'consumed' | 'expired' | 'suppressed';
   reason: string;
+  bypassSkillCooldown?: boolean;
 };
 
 export type AkeRealtimeCommand = AkeCommandSettlement & {
@@ -204,6 +206,13 @@ type PendingFormEvent = {
   event: NonNullable<AkeTimingSkillProfile['formEvents']>[number];
 };
 
+type PendingComboActionEvent = {
+  frame: number;
+  commandId: string;
+  sourceCharacterId: string;
+  event: AkeTimingComboPendingEvent;
+};
+
 type PendingResourceEvent = {
   frame: number;
   commandId: string;
@@ -256,6 +265,7 @@ function fallbackProfile(commandType: string): AkeTimingSkillProfile {
     allowNext: [],
     commandMappings: [],
     formEvents: [],
+    comboPendingEvents: [],
     interruptibleAt: [],
     hits: [],
     resourceEvents: [],
@@ -379,6 +389,7 @@ function composeFullAttackProfile(
   const hits: AkeTimingHitProfile[] = [];
   const resourceEvents: AkeTimingSkillProfile['resourceEvents'] = [];
   const formEvents: NonNullable<AkeTimingSkillProfile['formEvents']> = [];
+  const comboPendingEvents: NonNullable<AkeTimingSkillProfile['comboPendingEvents']> = [];
   const recoveryPauses: AkeTimingSkillProfile['recoveryPauses'] = [];
   const interruptibleAt: number[] = [];
   const stageStarts: number[] = [];
@@ -427,6 +438,10 @@ function composeFullAttackProfile(
       ...event,
       offsetFrames: stageStart + event.offsetFrames,
     })));
+    comboPendingEvents.push(...(stage.comboPendingEvents ?? []).map(event => ({
+      ...event,
+      offsetFrames: stageStart + event.offsetFrames,
+    })));
     recoveryPauses.push(...stage.recoveryPauses.map(pause => ({
       startOffsetFrames: stageStart + pause.startOffsetFrames,
       endOffsetFrames: stageStart + pause.endOffsetFrames,
@@ -445,6 +460,7 @@ function composeFullAttackProfile(
     bodyEndOffset,
     ...hits.map(hit => hit.offsetFrames),
     ...resourceEvents.map(event => event.offsetFrames),
+    ...comboPendingEvents.map(event => event.offsetFrames),
     ...recoveryPauses.map(pause => pause.endOffsetFrames),
   );
   return {
@@ -465,6 +481,7 @@ function composeFullAttackProfile(
     })),
     commandMappings: [...(finalStage.commandMappings ?? [])],
     formEvents,
+    comboPendingEvents,
     interruptibleAt: [...new Set(interruptibleAt)].sort((left, right) => left - right),
     hits: hits.sort((left, right) => left.offsetFrames - right.offsetFrames),
     resourceEvents: resourceEvents.sort((left, right) => left.offsetFrames - right.offsetFrames),
@@ -687,6 +704,7 @@ function pruneFutureCommandEvents(
   pendingResources: Map<number, PendingResourceEvent[]>,
   pendingHits: Map<number, AkeRealtimeHit[]>,
   pendingForms: Map<number, PendingFormEvent[]>,
+  pendingComboActions: Map<number, PendingComboActionEvent[]>,
 ) {
   const survivesCancellation = (hit: AkeRealtimeHit) => (
     // Frame events settle before same-frame successor inputs in the preview
@@ -728,6 +746,12 @@ function pruneFutureCommandEvents(
     ));
     if (remaining.length > 0) pendingForms.set(eventFrame, remaining);
     else pendingForms.delete(eventFrame);
+  }
+  for (const [eventFrame, events] of pendingComboActions) {
+    if (eventFrame < frame) continue;
+    const remaining = events.filter(event => event.commandId !== command.commandId);
+    if (remaining.length > 0) pendingComboActions.set(eventFrame, remaining);
+    else pendingComboActions.delete(eventFrame);
   }
 }
 
@@ -811,6 +835,7 @@ function simulateAkeRealtimeTimeline(
   const pendingResources = new Map<number, PendingResourceEvent[]>();
   const pendingHits = new Map<number, AkeRealtimeHit[]>();
   const pendingForms = new Map<number, PendingFormEvent[]>();
+  const pendingComboActions = new Map<number, PendingComboActionEvent[]>();
   const pauseWindows: Array<{ start: number; end: number; commandId: string }> = [];
   const actors = new Map<string, ActorState>();
   const commands: AkeRealtimeCommand[] = [];
@@ -844,6 +869,7 @@ function simulateAkeRealtimeTimeline(
       ...profile.hits.map(hit => hit.offsetFrames),
       ...profile.resourceEvents.map(event => event.offsetFrames),
       ...(profile.formEvents ?? []).map(event => event.offsetFrames),
+      ...(profile.comboPendingEvents ?? []).map(event => event.offsetFrames),
     ])));
   const actorQueuedBudgets = new Map<string, number>();
   for (const commandInput of inputs) {
@@ -1037,8 +1063,12 @@ function simulateAkeRealtimeTimeline(
     .flatMap(([ownerCharacterId, characterTiming]) => (
       (characterTiming.comboTriggers ?? []).map(rule => ({ ownerCharacterId, rule }))
     ));
+  const actionManagedComboRules = new Map<string, {
+    ownerCharacterId: string;
+    rule: AkeTimingComboTrigger;
+  }>();
   const comboRulesFor = (characterId: string, skillId?: string) => (
-    ownedComboRules
+    [...ownedComboRules, ...actionManagedComboRules.values()]
       .filter(entry => (
         entry.ownerCharacterId === characterId
         && (skillId === undefined || entry.rule.comboSkillId === skillId)
@@ -1128,6 +1158,7 @@ function simulateAkeRealtimeTimeline(
         consumedCommandId: null,
         state: 'suppressed',
         reason: 'COOLDOWN_ACTIVE_AT_TRIGGER',
+        bypassSkillCooldown: rule.bypassSkillCooldown === true,
         rule,
       };
       pendingCombos.push(suppressed);
@@ -1168,10 +1199,80 @@ function simulateAkeRealtimeTimeline(
       consumedCommandId: null,
       state: 'ready',
       reason: 'TRIGGER_MATCHED',
+      bypassSkillCooldown: rule.bypassSkillCooldown === true,
       rule,
     };
     pendingCombos.push(created);
     comboWindows.push(created);
+  };
+
+  const applyComboPendingAction = (pending: PendingComboActionEvent) => {
+    const ownerCharacterId = pending.event.ownerCharacterId
+      || pending.sourceCharacterId;
+    if (!selectedCharacterIds.has(ownerCharacterId)) {
+      diagnostics.push(
+        `${pending.commandId}: combo pending owner ${ownerCharacterId} is not selected.`,
+      );
+      return;
+    }
+    const actor = actorFor(ownerCharacterId);
+    const activeOverride = [...actor.skillOverrides.values()]
+      .filter(override => override.skillSlot === pending.event.skillSlot)
+      .sort((left, right) => right.sequence - left.sequence)[0];
+    const targetSkillId = activeOverride?.targetSkillId
+      ?? pending.event.targetSkillId;
+    const targetProfile = characterProfiles(timing, ownerCharacterId)
+      .find(profile => (
+        profile.commandType === 'ComboSkill'
+        && profile.skillId === targetSkillId
+      ));
+    if (!targetProfile) {
+      diagnostics.push(
+        `${pending.commandId}: combo pending slot ${pending.event.skillSlot} resolved to missing ${targetSkillId}.`,
+      );
+      return;
+    }
+    const rule: AkeTimingComboTrigger = {
+      id: pending.event.ruleId,
+      eventType: 'TriggerComboSkillAction',
+      eventTypes: ['TriggerComboSkillAction'],
+      rootSkillIds: [],
+      sourceSkillIds: [],
+      rootSkillRole: null,
+      statusBuffIds: [],
+      sourceCommandTypes: [],
+      requireSourceOtherThanOwner: false,
+      conditions: [],
+      damageAttributeType: null,
+      occurrence: 'every-event',
+      comboSkillId: targetSkillId,
+      pendingDurationFrames: Math.max(1, pending.event.pendingDurationFrames),
+      ownerBinding: 'fixed',
+      ownerId: ownerCharacterId,
+      requireComboOffCooldown: pending.event.requireComboOffCooldown,
+      bypassSkillCooldown: pending.event.bypassSkillCooldown,
+      pendingPolicy: pending.event.pendingPolicy,
+      selectionPolicy: pending.event.selectionPolicy,
+      consumePolicy: pending.event.consumePolicy,
+      confidence: 'settled-runtime-action',
+    };
+    actionManagedComboRules.set(
+      `${ownerCharacterId}:${targetSkillId}:${rule.id}`,
+      { ownerCharacterId, rule },
+    );
+    createComboWindow(ownerCharacterId, rule, {
+      eventType: 'TriggerComboSkillAction',
+      frame: pending.frame,
+      characterId: pending.sourceCharacterId,
+      commandId: pending.commandId,
+      sourceSkillId: commandById.get(pending.commandId)?.skillId ?? '',
+      rootSkillId: commandById.get(pending.commandId)?.skillId ?? '',
+      rootSkillRoles: [],
+      sourceCommandType: commandById.get(pending.commandId)?.commandType ?? '',
+      targetId: pending.event.triggerTargetId ?? 'fixed-dummy',
+      damageAttributeType: null,
+      buffId: null,
+    }, pending.frame);
   };
 
   const ruleMatchesComboObservation = (
@@ -1435,12 +1536,13 @@ function simulateAkeRealtimeTimeline(
       fail('preview-combo-not-ready', 'COMBO_NOT_READY', 'COMBO_TRIGGER_MISSING');
       return;
     }
-    if (comboPending && cooldownEnd > frame) {
+    const comboBypassesCooldown = comboPending?.rule.bypassSkillCooldown === true;
+    if (comboPending && cooldownEnd > frame && !comboBypassesCooldown) {
       fail('preview-cooldown', 'COMBO_NOT_READY', 'COMBO_COOLDOWN_ACTIVE');
       command.cooldownEndFrame = cooldownEnd;
       return;
     }
-    if (cooldownEnd > frame) {
+    if (cooldownEnd > frame && !comboBypassesCooldown) {
       fail('preview-cooldown', 'COOLDOWN_ACTIVE');
       command.cooldownEndFrame = cooldownEnd;
       return;
@@ -1501,6 +1603,7 @@ function simulateAkeRealtimeTimeline(
         pendingResources,
         pendingHits,
         pendingForms,
+        pendingComboActions,
       );
     }
     if (command.commandType === 'UltimateSkill') actor.basicComboCursor = null;
@@ -1555,6 +1658,21 @@ function simulateAkeRealtimeTimeline(
         const events = pendingForms.get(pending.frame) ?? [];
         events.push(pending);
         pendingForms.set(pending.frame, events);
+      }
+    }
+    for (const event of profile.comboPendingEvents ?? []) {
+      const pending: PendingComboActionEvent = {
+        frame: frame + event.offsetFrames,
+        commandId: command.commandId,
+        sourceCharacterId: command.characterId ?? '',
+        event,
+      };
+      if (pending.frame === frame) {
+        applyComboPendingAction(pending);
+      } else {
+        const events = pendingComboActions.get(pending.frame) ?? [];
+        events.push(pending);
+        pendingComboActions.set(pending.frame, events);
       }
     }
     for (const pause of profile.recoveryPauses) {
@@ -1665,6 +1783,9 @@ function simulateAkeRealtimeTimeline(
       clearNaturallyCompletedActive(actor, frame);
     }
     for (const formEvent of pendingForms.get(frame) ?? []) applyFormEvent(formEvent);
+    for (const comboAction of pendingComboActions.get(frame) ?? []) {
+      applyComboPendingAction(comboAction);
+    }
     const resourceEvents = pendingResources.get(frame) ?? [];
     for (const event of resourceEvents) applyResourceEvent(event);
     const recoveryPaused = pauseWindows.some(window => frame >= window.start && frame < window.end);
@@ -1728,6 +1849,7 @@ function simulateAkeRealtimeTimeline(
         pendingResources,
         pendingHits,
         pendingForms,
+        pendingComboActions,
       );
       actor.basicComboCursor = null;
       actor.active = null;
@@ -1768,7 +1890,10 @@ function simulateAkeRealtimeTimeline(
       };
     }),
     comboWindows,
-    verifiedComboSkills: [...new Map(ownedComboRules.map(({ ownerCharacterId, rule }) => [
+    verifiedComboSkills: [...new Map([
+      ...ownedComboRules,
+      ...actionManagedComboRules.values(),
+    ].map(({ ownerCharacterId, rule }) => [
       `${ownerCharacterId}:${rule.comboSkillId}`,
       { characterId: ownerCharacterId, skillId: rule.comboSkillId },
     ])).values()],

@@ -1160,6 +1160,110 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
 }
 
 {
+  const actor = character('actor-action-combo');
+  const sharedGroup = `${actor.id}:ComboSkill`;
+  const combo2 = profile({
+    commandType: 'ComboSkill',
+    skillId: 'combo-2',
+    variantIndex: 0,
+    durationFrames: 2,
+    bodyEndOffset: 1,
+    tailEndOffset: 1,
+    exclusiveFrames: 1,
+    cooldownFrames: 60,
+    cooldownGroupId: sharedGroup,
+    cooldownSkillType: 'ComboSkill',
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+    formEvents: [{
+      offsetFrames: 0,
+      operation: 'apply',
+      kind: 'override',
+      stateKey: 'combo-stage-3',
+      skillSlot: 'ComboSkill',
+      targetSkillId: 'combo-3',
+    }],
+    comboPendingEvents: [{
+      offsetFrames: 0,
+      operation: 'trigger',
+      ruleId: 'fixture:trigger-combo-stage',
+      ownerCharacterId: actor.id,
+      triggerTargetId: 'fixed-dummy',
+      skillSlot: 'ComboSkill',
+      targetSkillId: 'combo-3',
+      pendingDurationFrames: 180,
+      requireComboOffCooldown: false,
+      bypassSkillCooldown: true,
+      pendingPolicy: 'replace-all',
+      selectionPolicy: 'newest',
+      consumePolicy: 'selected',
+      sourceActionType: 'TriggerComboSkillAction',
+      sourceActionPath: 'fixture.combo2.trigger',
+    }],
+    hits: [],
+  });
+  const combo3 = profile({
+    commandType: 'ComboSkill',
+    skillId: 'combo-3',
+    variantIndex: 1,
+    durationFrames: 2,
+    bodyEndOffset: 1,
+    tailEndOffset: 1,
+    exclusiveFrames: 1,
+    cooldownFrames: 0,
+    cooldownGroupId: sharedGroup,
+    cooldownSkillType: 'ComboSkill',
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+    hits: [],
+  });
+  const firstButton = button('combo-stage-2', actor.id, 0, 'E');
+  firstButton.releaseAnchor = { schemaVersion: 1, kind: 'group-start', debounceFrames: 0 };
+  const secondButton = button('combo-stage-3', actor.id, 1, 'E');
+  secondButton.releaseAnchor = {
+    schemaVersion: 1,
+    kind: 'action-end',
+    sourceButtonId: firstButton.id,
+    debounceFrames: 0,
+  };
+  const repeatedButton = button('combo-stage-3-repeat', actor.id, 2, 'E');
+  repeatedButton.releaseAnchor = {
+    schemaVersion: 1,
+    kind: 'action-end',
+    sourceButtonId: secondButton.id,
+    debounceFrames: 0,
+  };
+  const result = buildAkeRealtimeTimeline({
+    timelineData: timeline([{ characterId: actor.id, buttons: [
+      firstButton,
+      secondButton,
+      repeatedButton,
+    ] }]),
+    selectedCharacters: [actor],
+    catalog: catalog({ [actor.id]: [combo2, combo3] }),
+    staffCount: 1,
+  });
+  const first = result.commands.find(command => command.commandId === firstButton.id)!;
+  const second = result.commands.find(command => command.commandId === secondButton.id)!;
+  const repeated = result.commands.find(command => command.commandId === repeatedButton.id)!;
+  const chainedWindow = result.comboWindows.find(window => (
+    window.ruleId === 'fixture:trigger-combo-stage'
+  ));
+
+  assertEqual(first.cooldownEndFrame, 60, 'first combo stage starts the shared cooldown');
+  assertEqual(second.skillId, 'combo-3', 'same-frame form change resolves the chained stage');
+  assertEqual(second.actualFrame, 1, 'chained stage starts at the requested action boundary');
+  assertEqual(second.success, true, 'action-created pending admits the chained stage');
+  assertEqual(second.releaseVerdict, 'valid', 'settled action pending is verified');
+  assertEqual(chainedWindow?.bypassSkillCooldown, true, 'pending owns the cooldown bypass');
+  assertEqual(chainedWindow?.consumedFrame, 1, 'pending is consumed exactly once');
+  assertEqual(repeated.success, false, 'consumed chained pending cannot be reused');
+  assertEqual(repeated.releaseReason, 'COMBO_TRIGGER_MISSING', 'repeat failure is a combo gate');
+}
+
+{
   const actor = character('actor-a');
   const attack = profile({
     commandType: 'Attack',

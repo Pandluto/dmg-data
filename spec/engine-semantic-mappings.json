@@ -422,6 +422,114 @@
       "notes": "StatusEffectApplied is intentional: refreshing an existing NoGuard stack must not reopen a window described as 'enters NoGuard'."
     },
     {
+      "id": "wulfa.no-guard-with-spell-infliction",
+      "actionType": "ComboTriggerRule",
+      "eventTypes": [
+        "StatusEffectApplied",
+        "StatusEffectRefreshed"
+      ],
+      "selector": {
+        "statusBuffIds": [
+          "buff_physical_no_guard"
+        ],
+        "occurrence": "every-event"
+      },
+      "conditions": [
+        {
+          "type": "BuffStackCompare",
+          "target": "Target",
+          "buffIds": [
+            "buff_common_energy_shard_attached_fire",
+            "buff_common_energy_shard_attached_pulse",
+            "buff_common_energy_shard_attached_cryst",
+            "buff_common_energy_shard_attached_natural"
+          ],
+          "operator": "GE",
+          "value": 1
+        }
+      ],
+      "effect": {
+        "operation": "CreateComboPending",
+        "comboSkillId": "chr_0028_wulfa_combo_2_skill",
+        "pendingDurationTicks": 180,
+        "ownerBinding": "fixed",
+        "ownerId": "chr_0028_wulfa",
+        "triggerTargetBinding": "event-target",
+        "requireComboOffCooldown": true,
+        "pendingPolicy": "replace-all",
+        "selectionPolicy": "newest",
+        "consumePolicy": "all-for-owner-and-skill"
+      },
+      "confidence": "public-data-derived",
+      "evidence": [
+        {
+          "type": "public-description",
+          "path": "reference/public-data/akedata/TableCfg/CharGrowthTable.json",
+          "observation": "Rossi's combo becomes available when an enemy is simultaneously in NoGuard and any spell-infliction state."
+        },
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0028_wulfa_combo_2_skill.json",
+          "observation": "The first public combo stage transitions the ComboSkill slot to chr_0028_wulfa_combo_3_skill; it does not serialize the global trigger condition."
+        }
+      ],
+      "notes": "This half opens the window when NoGuard is applied or stacked after an attachment already exists. The counterpart rule handles the reverse state-transition order."
+    },
+    {
+      "id": "wulfa.spell-infliction-with-no-guard",
+      "actionType": "ComboTriggerRule",
+      "eventTypes": [
+        "StatusEffectApplied",
+        "StatusEffectRefreshed"
+      ],
+      "selector": {
+        "statusBuffIds": [
+          "buff_common_energy_shard_attached_fire",
+          "buff_common_energy_shard_attached_pulse",
+          "buff_common_energy_shard_attached_cryst",
+          "buff_common_energy_shard_attached_natural"
+        ],
+        "occurrence": "every-event"
+      },
+      "conditions": [
+        {
+          "type": "BuffStackCompare",
+          "target": "Target",
+          "buffIds": [
+            "buff_physical_no_guard"
+          ],
+          "operator": "GE",
+          "value": 1
+        }
+      ],
+      "effect": {
+        "operation": "CreateComboPending",
+        "comboSkillId": "chr_0028_wulfa_combo_2_skill",
+        "pendingDurationTicks": 180,
+        "ownerBinding": "fixed",
+        "ownerId": "chr_0028_wulfa",
+        "triggerTargetBinding": "event-target",
+        "requireComboOffCooldown": true,
+        "pendingPolicy": "replace-all",
+        "selectionPolicy": "newest",
+        "consumePolicy": "all-for-owner-and-skill"
+      },
+      "confidence": "public-data-derived",
+      "evidence": [
+        {
+          "type": "public-description",
+          "path": "reference/public-data/akedata/TableCfg/CharGrowthTable.json",
+          "observation": "The condition is symmetric: applying any spell infliction to an already NoGuard enemy also establishes the simultaneous state."
+        },
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0028_wulfa_combo_1_skill.json",
+          "observation": "The internal combo proxy uses a six-second ChangeSkillAction lifetime, providing an E1 duration boundary for the chained pending state."
+        }
+      ],
+      "notes": "StatusEffectApplied and StatusEffectRefreshed share the same rule because AKE serializes a later attachment layer as a refresh; both are applications for this public trigger wording."
+    },
+    {
       "id": "endminm.other-operator-combo-damage",
       "actionType": "ComboTriggerRule",
       "eventType": "BeforeHpDamage",

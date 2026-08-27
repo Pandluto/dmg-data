@@ -23,6 +23,18 @@ function normalizeRule(rawRule, index) {
     const id = requiredString(rawRule?.id, `combo trigger rule ${index} id`);
     const selector = rawRule.selector ?? {};
     const effect = rawRule.effect ?? {};
+    const eventTypes = rawRule.eventTypes
+        ?? (rawRule.eventType === undefined ? [] : [rawRule.eventType]);
+    if (!Array.isArray(eventTypes) || eventTypes.length === 0) {
+        throw new Error(`Combo trigger rule ${id} must declare eventType or eventTypes.`);
+    }
+    const conditions = rawRule.conditions
+        ?? (rawRule.condition === undefined ? [] : [rawRule.condition]);
+    if (!Array.isArray(conditions) || conditions.some(condition => (
+        condition === null || typeof condition !== 'object' || Array.isArray(condition)
+    ))) {
+        throw new Error(`Combo trigger rule ${id} conditions must be an array of objects.`);
+    }
     const rootSkillIds = selector.rootSkillIds
         ?? (selector.rootSkillId ? [selector.rootSkillId] : []);
     if (!Array.isArray(rootSkillIds)) {
@@ -54,7 +66,11 @@ function normalizeRule(rawRule, index) {
     return {
         ...rawRule,
         id,
-        eventType: requiredString(rawRule.eventType, `combo trigger rule ${id} eventType`),
+        eventType: requiredString(eventTypes[0], `combo trigger rule ${id} eventTypes[0]`),
+        eventTypes: [...new Set(eventTypes.map((eventType, eventIndex) =>
+            requiredString(eventType, `combo trigger rule ${id} eventTypes[${eventIndex}]`)
+        ))],
+        conditions: structuredClone(conditions),
         selector: {
             ...selector,
             rootSkillIds: [...new Set(rootSkillIds.map((skillId, skillIndex) =>
@@ -143,11 +159,16 @@ export function normalizeComboTriggerRules(rules = []) {
 }
 
 export class ComboTriggerMachine {
-    constructor({ rules = [], schedule = null, trace = [], getCooldownEnd = () => 0 } = {}) {
+    constructor({ rules = [], schedule = null, trace = [], getCooldownEnd = () => 0,
+        evaluateCondition = null } = {}) {
+        if (evaluateCondition !== null && typeof evaluateCondition !== 'function') {
+            throw new TypeError('combo evaluateCondition must be a function or null.');
+        }
         this.rules = normalizeComboTriggerRules(rules);
         this.schedule = schedule;
         this.trace = trace;
         this.getCooldownEnd = getCooldownEnd;
+        this.evaluateCondition = evaluateCondition;
         this.pending = new Map();
         this.pauseLeases = new Map();
         this.seenOccurrences = new Set();
@@ -176,7 +197,7 @@ export class ComboTriggerMachine {
     }
 
     #matches(rule, event) {
-        if (event.eventType !== rule.eventType) return false;
+        if (!rule.eventTypes.includes(event.eventType)) return false;
         const selectsRoot = rule.selector.rootSkillIds.length > 0
             || rule.selector.rootSkillRole !== null;
         if (selectsRoot) {
@@ -194,6 +215,50 @@ export class ComboTriggerMachine {
         if (rule.selector.damageAttributeType
             && event.damageAttributeType !== rule.selector.damageAttributeType) return false;
         return true;
+    }
+
+    #conditionContext(rule, event, ownerId) {
+        return {
+            ...structuredClone(event),
+            eventType: event.eventType,
+            frame: event.frame,
+            sourceId: event.sourceId ?? null,
+            ownerId: ownerId ?? event.ownerId ?? event.sourceId ?? null,
+            targetId: event.targetId ?? null,
+            skillId: event.sourceSkillId ?? null,
+            rootSkillId: event.rootSkillId ?? null,
+            castId: event.sourceCastId ?? null,
+            commandType: event.sourceCommandType ?? null,
+            ruleId: rule.id,
+            payload: {
+                ...structuredClone(event.payload ?? {}),
+                buffId: event.buffId ?? null,
+                damageAttributeType: event.damageAttributeType ?? null,
+                sourceCommandType: event.sourceCommandType ?? null
+            }
+        };
+    }
+
+    #conditionsPass(rule, event, ownerId) {
+        if (rule.conditions.length === 0) return { passed: true, reason: 'NO_CONDITIONS' };
+        if (!this.evaluateCondition) {
+            return { passed: false, reason: 'CONDITION_EVALUATOR_MISSING' };
+        }
+        const conditionContext = this.#conditionContext(rule, event, ownerId);
+        try {
+            for (let index = 0; index < rule.conditions.length; index += 1) {
+                if (!this.evaluateCondition(rule.conditions[index], conditionContext)) {
+                    return { passed: false, reason: 'CONDITION_FAILED', conditionIndex: index };
+                }
+            }
+            return { passed: true, reason: 'CONDITIONS_PASSED' };
+        } catch (error) {
+            return {
+                passed: false,
+                reason: 'CONDITION_EVALUATION_ERROR',
+                error: error instanceof Error ? error.message : String(error)
+            };
+        }
     }
 
     #boundOwner(rule, event) {
@@ -384,6 +449,28 @@ export class ComboTriggerMachine {
         for (const rule of this.rules) {
             if (!this.#matches(rule, event)) continue;
 
+            const ownerId = this.#boundOwner(rule, event);
+            const conditionResult = this.#conditionsPass(rule, event, ownerId);
+            if (!conditionResult.passed) {
+                this.#record({
+                    frame: event.frame,
+                    stage: 'PENDING_REJECTED',
+                    ruleId: rule.id,
+                    pendingId: null,
+                    skillId: rule.effect.comboSkillId,
+                    targetId: ownerId,
+                    triggerTargetId: this.#boundTarget(rule, event),
+                    result: false,
+                    ...conditionResult
+                });
+                decisions.push({
+                    ruleId: rule.id,
+                    status: 'ignored',
+                    ...conditionResult
+                });
+                continue;
+            }
+
             const occurrenceKey = this.#occurrenceKey(rule, event);
             if (occurrenceKey !== null) {
                 if (event.sourceCastId === undefined || event.sourceCastId === null) {
@@ -408,7 +495,7 @@ export class ComboTriggerMachine {
             }
 
             const slot = {
-                ownerId: this.#boundOwner(rule, event),
+                ownerId,
                 skillId: rule.effect.comboSkillId,
                 triggerTargetId: this.#boundTarget(rule, event)
             };

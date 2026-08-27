@@ -521,7 +521,9 @@ export class AkeSquadScenarioRunner {
             ),
             schedule: runtime.schedule,
             trace: comboTrace,
-            getCooldownEnd: cooldownEnd
+            getCooldownEnd: cooldownEnd,
+            evaluateCondition: (condition, eventContext) =>
+                runtime.effects.evaluate(condition, eventContext)
         });
         this.lastRuntime = runtime;
         this.lastComboMachine = comboMachine;

@@ -356,7 +356,9 @@ export class AkeScenarioRunner {
             ),
             schedule: runtime.schedule,
             trace: comboTrace,
-            getCooldownEnd: skillId => runtime.cooldowns.getEndFrame(characterId, skillId)
+            getCooldownEnd: skillId => runtime.cooldowns.getEndFrame(characterId, skillId),
+            evaluateCondition: (condition, eventContext) =>
+                runtime.effects.evaluate(condition, eventContext)
         });
         this.lastRuntime = runtime;
         this.lastComboMachine = comboMachine;

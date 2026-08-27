@@ -526,13 +526,28 @@ export class CombatRuntime {
         if (!isRecord(input)) {
             throw new TypeError('finishSkillActionLifetimes requires an input object.');
         }
-        return this.statusEffects.endSkillTransition({
-            frame: input.frame ?? eventContext.frame ?? this.currentFrame,
+        const frame = input.frame ?? eventContext.frame ?? this.currentFrame;
+        const castId = input.castId ?? eventContext.castId;
+        const transition = this.statusEffects.endSkillTransition({
+            frame,
             actorId: input.actorId ?? eventContext.sourceId,
             skillId: input.skillId ?? eventContext.skillId,
-            castId: input.castId ?? eventContext.castId,
+            castId,
             reason: input.reason ?? 'SkillEnded'
         }, eventContext);
+        if (castId !== null && castId !== undefined) {
+            this.effectSources.remove({
+                frame,
+                castId,
+                sourceType: 'SkillActionTag'
+            }, {
+                ...eventContext,
+                frame,
+                castId,
+                reason: input.reason ?? 'SkillEnded'
+            });
+        }
+        return transition;
     }
 
     scheduleProgram(program, eventContext = {}) {
@@ -932,6 +947,15 @@ export class CombatRuntime {
             cancelFrame,
             `ProgramCancelled:${reason}`
         );
+        this.effectSources.remove({
+            frame: cancelFrame,
+            castId: execution.castId,
+            sourceType: 'SkillActionTag'
+        }, {
+            ...execution.context,
+            frame: cancelFrame,
+            reason: `ProgramCancelled:${reason}`
+        });
         this.#record('SkillProgramCancelled', {
             ...execution.context,
             frame: cancelFrame

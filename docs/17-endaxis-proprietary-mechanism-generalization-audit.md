@@ -113,7 +113,7 @@ AKE SkillData / BuffData / TableCfg
 | Xaihi / `chr_0011_seraph` | 辅助晶体、双元素增幅、队伍消费 | owner/controlled 目标、队伍状态、元素筛选、消费 | `DispelAction`、`EnhancedAction`；验证队友伤害读取敌方而非施法者私有状态 |
 | Avywenna / `chr_0012_avywen` | 雷枪/强化雷枪、返回、按消费层缩放 | 来源实体、独立状态层、消费读数、倍率/失衡缩放 | ability entity 与 source attribution；验证返回不是重复施加 |
 | Gilberta / `chr_0013_aglina` | 队伍光环、终结技法术脆弱、附着层 | recipient scope、敌方 debuff、堆叠/刷新 | 脆弱必须进入目标乘区，并被所有队友后续 Hit 读取 |
-| Snowshine / `chr_0014_aurora` | 元素附着与保护 | 附着、`Shelter`/伤害减免状态 | `ShelterAction`；验证状态启停和伤害因子来源 |
+| Snowshine / `chr_0014_aurora` | 元素附着与保护 | 附着、`Shelter`/伤害减免状态 | `ShelterAction` 已闭合；Buff 生命周期内的 `AddTagAction` 仍需绑定准确 owner lifetime |
 | Lifeng / `chr_0015_lifeng` | 消耗接续、派生增益、击倒 | `actionLinkConsumed`、source link、派生值、物理状态 | action link 事务；验证消费发生在同一 admission/commit 边界 |
 | Laevatain / `chr_0016_laevat` | 终结技增强窗口、强化普攻/战技、熔火消费 | 形态状态机、状态时间暂停/延长、技能替换、消费 | `PauseBuffTime`、概率分支；不得保留角色 ID 的时间延长特例 |
 | Yvonne / `chr_0017_yvonne` | 强化形态、末段强化、冻结消费 | 形态 overlay、继承状态、强制元素状态、patch Tick | `InheritBuffAction`、`ForceSpellStatusAction`；验证末段才消费/触发 |
@@ -133,7 +133,7 @@ AKE SkillData / BuffData / TableCfg
 | Mifu / `chr_0031_mifu` | 三段战技、失衡目标分支、猛击视作反应 | 条件形态选择、目标状态、反应别名、护盾/脆弱 | `PauseBuffTime`、`TakeDownAction`、目标 provider；验证第三段由状态自动选择 |
 | Arcane / `chr_0032_lizhiyan` | 双形态、属性比较、终结技冷却、收尾触发簇击 | selector/form、冷却条件、owner 消费、消费层读取、子动作簇 | `CastSkill`、ability entity、`VulnerableAction`；“诀”不是独立引擎，只是原语组合压力测试 |
 | Camille / `chr_0033_camille` | 追击状态、末段触发伤害、自身/队伍分离 Buff | final-hit 事件、triggered damage、recipient scope | 验证 team/self 两份来源不合并且末段只触发一次 |
-| Liino / `chr_0035_liino` | 战斗开始状态、技能冷却、受控目标、倒计时伤害/治疗、姿态、零消费强制导电 | `onBattleStart`、冷却就绪、controlled target、事件监听、继承 Buff、非技能动作、强制元素状态 | `AddTagAction`、`EventListenerAction`、`ChannelingCasting`；强制导电必须允许 `consumedLayer=0`，其余仍需要完整生命周期场景测试 |
+| Liino / `chr_0035_liino` | 战斗开始状态、技能冷却、受控目标、倒计时伤害/治疗、姿态、零消费强制导电 | `onBattleStart`、冷却就绪、controlled target、事件监听、继承 Buff、非技能动作、强制元素状态 | 技能时间窗 `AddTagAction` 已闭合；Buff/Event tag lifetime、`EventListenerAction`、`ChannelingCasting` 仍需完整生命周期场景测试；强制导电允许 `consumedLayer=0` |
 
 ### 3.1 表格揭示出的真实规律
 
@@ -513,7 +513,7 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 
 本轮严格按“原始数据证据 → 通用编译原语 → runtime 事务 → 账本/UI 投影 → 逐干员审计”推进，没有修改共享变速水位轴的布局或坐标模型：
 
-1. 已建立 31 名具体干员的逐路径机制审计；当前报告共 3088 条 finding，其中 349 条 combat-blocking、160 条 combat-partial、422 条 evidence-missing、1767 条 spatial-assumption、390 条 presentation-only；
+1. 已建立 31 名具体干员的逐路径机制审计；当前报告共 3074 条 finding，其中 335 条 combat-blocking、160 条 combat-partial、422 条 evidence-missing、1767 条 spatial-assumption、390 条 presentation-only；
 2. `PauseBuffTime` 已进入统一 Buff 生命周期，暂停时同时冻结到期、周期触发和 Buff 时间线，恢复后从剩余本地时间继续；
 3. Blackboard 动态子 Buff、fallback dependency 与 `asChildBuff` 父子所有权已统一，父实例结束只级联回滚自己的子实例；
 4. `VulnerableAction` 已映射为 AKE 的“脆弱”，Defender `NormalCalcZone` 保留为“易伤”，两者进入独立公式区；
@@ -528,10 +528,12 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 13. 全量 BuffData 中 46 处 `OnSpellAbnormalStartFinish` 声明（42 处启用、4 处原始数据明确禁用）只有一种稳定结构：`OnBuffStart/isStart=true` 与 `OnBuffFinish/isStart=false` 成对出现，覆盖 Fire、Pulse、Cryst、Natural 与 Burst。启用动作现已编译为 `SpellAbnormalStarted/Finished` 统一账本事件，保留 source/owner/target/Buff instance 归因；禁用动作继续不执行；实际 Buff 实例仍是唯一状态事实，没有再造一套平行元素状态机；
 14. 普通元素链的 21 处 `ReadSkillSettingData` 动作、47 个字段读取已收敛到 10 张公共表：反应初始伤害、法术爆发、燃烧 Tick、导电数值/持续时间、冻结持续时间、腐蚀初始/每跳/上限/持续时间。动态列优先读取整表，不再被第一列常量短路；异常伤害与异常状态分别使用独立的源石技艺强度公式；
 15. 真实 Buff 图的四元素矩阵已经验证：同元素爆发均以 1.6 倍率延迟结算；二层跨元素初始 Hit 均以 2.4 倍率结算；导电只进入四种法术伤害的敌方 `NormalCalcZone`，冻结按 7 秒到期，燃烧以 0.36 倍率周期结算，腐蚀从 -0.048 全抗开始、每秒追加 -0.0112、由 `RefreshBuffAttrModifierValue` 实时刷新并在 15 秒结束后完整回滚；
-16. 共享依赖审计因此再消除 40 条元素 `ReadSkillSettingData` 缺口：shared finding 从 241 降至 201，shared evidence-missing 从 85 降至 45；逐干员主报告仍有 349 条 combat-blocking，不能用元素链通过掩盖其他机制；
-17. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁。
+16. 共享依赖审计因此再消除 40 条元素 `ReadSkillSettingData` 缺口：shared finding 从 241 降至 201，shared evidence-missing 从 85 降至 45；完成元素链时逐干员主报告仍有 349 条 combat-blocking，不能用元素链通过掩盖其他机制；
+17. SkillData 中 16 处 `AddTagAction`（15 处启用、1 处原始数据禁用）均位于明确的 timeline group 内，覆盖 12 份技能文件和 22 个静态 tag。启用动作现按 group 起始帧建立 `SkillActionTag` effect source、按结束帧释放；source key 绑定 cast，正常结束、提前结束和 program cancel 都按 cast 回收，底层 tag 引用计数保证重叠释放与 Buff 自带同名 tag 不会互相误删。逐干员报告因此消除 14 条战斗阻塞，当前降为 335 条；剩余 4 条均来自 BuffData，而不是角色技能时间窗；
+18. 全库动作审计现在保留数据集作用域：SkillData 以 `skill` 生命周期编译，BuffData 以 `buff` 生命周期编译，不再用脱离上下文的 standalone 结果误判生命周期动作。31 处 BuffData `AddTagAction` 仍明确报告 `AKE_TAG_ACTION_LIFETIME_REQUIRED`，等待 Buff/Event listener owner lifetime 证据，未借技能组结束语义错误清理；
+19. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁。
 
-349 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。强制异常、异常生命周期、同元素爆发与普通四元素反应的公共数据链已经闭合；仍未证实的 `弭弗特殊猛击` 数值继续保持 evidence-missing，而不是借元素表猜值。下一阶段进入事件订阅和派生命中闭包。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
+335 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。强制异常、异常生命周期、同元素爆发、普通四元素反应与技能时间窗 tag 的公共数据链已经闭合；仍未证实的 `弭弗特殊猛击` 数值继续保持 evidence-missing，而不是借元素表猜值。下一阶段进入事件订阅和派生命中闭包。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
 
 ### 12.1 普通元素链的证据矩阵
 
@@ -549,3 +551,16 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 | 腐蚀持续时间 | 15 秒 | 不增强 | 到期移除同一 source，五抗精确回滚 |
 
 这里的“异常伤害”按角色等级系数与 `1 + strength / 100` 结算；“异常状态”按 `1 + 2 × strength / (strength + 300)` 结算。两者不能混用，也不能由 UI 重新计算。默认情况下，`ForceSpellStatusAction` 只进入异常状态，不补发跨元素初始 Hit；这与普通反应路径继续保持隔离。
+
+### 12.2 技能临时标签的生命周期证据
+
+| 证据面 | 观察 | 冻结的通用语义 |
+| --- | --- | --- |
+| SkillData 形状 | 16 处声明全部在 timeline group；15 处启用；均为静态 tag | 起始帧 apply、结束帧 release，不需要角色 ID |
+| 目标选择 | `tagOwner.targetSource` 只使用 Source/Owner | 继续走公共 entity ref，不把 tag 挂到 UI 当前选中角色 |
+| 同名 tag | 技能 tag 与 Buff `applyTags` 可使用同一 tag id | 使用 effect-source 引用计数，任一来源结束不得删除其他来源 |
+| 并发施放 | 同一技能可在前一次窗口结束前再次进入 | source key 必须绑定 cast，而不是只绑定 skill/path |
+| 中断/取消 | program cancel 会取消尚未到达的 group cleanup | cast 结束路径主动释放 `SkillActionTag` source，不能等待原计时器 |
+| BuffData 形状 | 31 处声明分布在 Buff lifecycle、Buff timeline 和 ability event | 在 owner lifetime 未统一前保持 unresolved，禁止套用 SkillData group end |
+
+这一步只关闭了“技能时间组拥有的临时标签”。它没有声称 BuffData 的 tag 都应随 Buff 结束，也没有把 `EventListenerAction` 当成简单 tag 开关。后者的 `abilityActionMap` 携带条件树、冷却修改、Buff 创建/结束、跳转等子动作，必须先建立订阅注册、事件匹配和注销边界，再接入现有 ability-event 总线。

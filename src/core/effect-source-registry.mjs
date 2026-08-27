@@ -199,6 +199,7 @@ export class EffectSourceRegistry {
             buffInstanceId: input.buffInstanceId ?? eventContext.buffInstanceId ?? null,
             buffId: input.buffId ?? eventContext.payload?.buffId ?? null,
             sourceSkillId: input.sourceSkillId ?? eventContext.skillId ?? null,
+            castId: input.castId ?? eventContext.castId ?? null,
             transactionId: input.transactionId ?? eventContext.transactionId ?? null,
             ruleId: input.ruleId ?? eventContext.ruleId ?? null,
             blackboard: cloneValue(eventContext.blackboard ?? {}),
@@ -258,6 +259,7 @@ export class EffectSourceRegistry {
             && (selector.targetId === undefined || source.targetId === selector.targetId)
             && (selector.buffInstanceId === undefined
                 || source.buffInstanceId === selector.buffInstanceId)
+            && (selector.castId === undefined || source.castId === selector.castId)
             && (selector.sourceType === undefined || source.sourceType === selector.sourceType)
         );
         const affected = new Map();
@@ -283,6 +285,7 @@ export class EffectSourceRegistry {
             ownerId: selector.ownerId ?? eventContext.ownerId ?? null,
             targetId: selector.targetId ?? eventContext.targetId ?? null,
             buffInstanceId: selector.buffInstanceId ?? eventContext.buffInstanceId ?? null,
+            castId: selector.castId ?? eventContext.castId ?? null,
             ruleId: selector.ruleId ?? eventContext.ruleId ?? null,
             appliedFrame: Number(selector.frame ?? eventContext.frame ?? 0)
         }, eventContext, {

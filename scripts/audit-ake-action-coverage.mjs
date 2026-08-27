@@ -151,7 +151,12 @@ function visit(value, location, buckets) {
             const entry = record(buckets.actions, type, sample);
             try {
                 recordCompilation(entry, actionCompiler.compileAction(value, {
-                    path: `${location.file}:${location.path || '$'}`
+                    path: `${location.file}:${location.path || '$'}`,
+                    // Lifecycle-sensitive actions cannot be judged from an
+                    // isolated node without retaining their source dataset.
+                    // SkillData actions own timeline-group start/end frames;
+                    // BuffData actions instead belong to Buff/event lifetime.
+                    scope: location.scope
                 }));
             } catch (error) {
                 recordCompilation(entry, {
@@ -206,7 +211,8 @@ for (const source of sources) {
         const document = JSON.parse(await readFile(absolute, 'utf8'));
         visit(document, {
             file: path.relative(projectRoot, absolute).replaceAll('\\', '/'),
-            path: '$'
+            path: '$',
+            scope: source.dataset === 'SkillData' ? 'skill' : 'buff'
         }, buckets);
     }
     const actions = sorted(buckets.actions).map(entry => {

@@ -1998,6 +1998,83 @@ export class AkeActionCompiler {
                 }
                 break;
             }
+            case 'AddTagAction': {
+                const target = this.#targetRef(
+                    node.tagOwner,
+                    state,
+                    'temporary tag owner'
+                );
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                const tags = tagIds(node.tags).map(tagId =>
+                    `ake-tag:${String(tagId)}`
+                );
+                result.metadata.push({
+                    type,
+                    path: state.path,
+                    category: 'form-state',
+                    target: clone(node.tagOwner ?? null),
+                    tagIds: tagIds(node.tags),
+                    useBlackboard: Boolean(node.useBlackboard)
+                });
+                if (state.scope !== 'skill') {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_TAG_ACTION_LIFETIME_REQUIRED',
+                        type,
+                        state.path,
+                        'Non-skill AddTagAction lifetime must be bound to its Buff or event subscription before execution.',
+                        { scope: state.scope }
+                    ));
+                    break;
+                }
+                if (node.useBlackboard === true) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_DYNAMIC_TAG_VALUE_REQUIRED',
+                        type,
+                        state.path,
+                        'Blackboard-selected AddTagAction values require a runtime tag-value resolver.',
+                        { tag: clone(node.tag ?? null) }
+                    ));
+                    break;
+                }
+                if (tags.length === 0) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_TAG_LIST_EMPTY',
+                        type,
+                        state.path,
+                        'AddTagAction has no static tag ids.'
+                    ));
+                    break;
+                }
+                if (!target.ref) break;
+                // Skill timeline groups define the exact tag window: apply on
+                // the group's start frame and release on its end frame.  A
+                // reversible effect source gives overlapping casts and
+                // pre-existing Buff tags reference-counted ownership instead
+                // of deleting one another during cleanup.
+                const sourceKey = `ake-skill:${state.path}:temporary-tags`;
+                result.actions.push({
+                    type: 'ApplyEffectSource',
+                    target: target.ref,
+                    sourceKey,
+                    sourceType: 'SkillActionTag',
+                    modifiers: [],
+                    damageModifiers: [],
+                    tags,
+                    reason: type,
+                    metadata: {
+                        akeSourceAction: type,
+                        akeSourcePath: state.path,
+                        lifetime: 'TimelineGroup'
+                    }
+                });
+                result.cleanupActions.push({
+                    type: 'RemoveEffectSource',
+                    sourceKey,
+                    sourceType: 'SkillActionTag',
+                    reason: `${type}:timeline-end`
+                });
+                break;
+            }
             case 'InheritBuffAction': {
                 const target = this.#targetRef(
                     node.buffOwner,

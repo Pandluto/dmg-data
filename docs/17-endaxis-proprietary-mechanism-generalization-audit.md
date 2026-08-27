@@ -1162,3 +1162,31 @@ transactionId / parentEventId / parentHitId / hitEventPhase
 6. 重跑 action、ability-event、operator 审计和前端严格类型检查。只有 producer、条件和真实消费入口同时可达，才把 `OnConsumeBuff` 标记 complete。
 
 本节只冻结状态机与事件载荷，不修改共享变速水位算法、列分组、技能按钮、光标、伤害点或任何画布布局。
+
+### 15.5 `PreventBuffConsumeAction` 是提交前守卫，不是免疫、驱散或 UI 开关
+
+全库只有一个 `PreventBuffConsumeAction`：`buff_eny_0114_jzmking_hdg024` 在
+`DuringBuffEnable` 开启一个 `checkType=Tag / HasAny` 守卫，标签为
+`1474064594` 与 `-430063731`。后者由公开数据明确挂在
+`buff_physical_do_fracture` 上。这个样本数量虽小，却冻结了消费事务不能遗漏的
+失败路径：状态仍然存在、消费实际值为零、消费者监听器不得响应。
+
+该动作不能编译成普通免疫标签，也不能在 `FinishBuff` 之后把状态补回来。后一种
+做法已经让 `OnBuffFinish`、子 Buff 清理和消费监听器发生，事务无法回滚。通用契约应为：
+
+```text
+resolve candidate Buff instances
+  -> evaluate target-owned consume guards against each candidate definition
+  -> protected: record ConsumptionPrevented(actual=0), keep instance unchanged, emit nothing
+  -> allowed: commit partial/full removal, then emit OnConsumeBuff
+```
+
+守卫采用与 Buff 生命周期绑定的 source lease：`DuringBuffEnable` 以当前
+`buffInstanceId` 注册，`OnBuffFinish` 只撤销同一实例的守卫。重叠来源不得互相删除。
+选择器保留 AKE 的 `Id` 或 `Tag + HasAny/HasAll/HasNone` 语义；匹配目标是准备被消费
+的 Buff 定义标签，不是消费者、技能标签或前端状态图标。
+
+实现验收至少覆盖：受保护时层数和 Blackboard 不变、没有 `OnConsumeBuff`、移除保护
+Buff 后同一个消费动作立刻恢复、非匹配 Buff 不受影响，以及真实
+`buff_eny_0114_jzmking_hdg024` 编译后不再出现动作缺口。消费守卫属于状态事务，
+不进入共享水位求解或画布布局。

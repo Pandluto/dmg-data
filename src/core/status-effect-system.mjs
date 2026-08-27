@@ -733,6 +733,18 @@ export class StatusEffectSystem {
                     parentEventId: transition.eventId
                 }
             );
+            // AKE's asChildBuff is an ownership edge, not a display hint.
+            // End only children created by this exact parent instance; using
+            // Buff id or source identity would also remove concurrent siblings.
+            this.finish({
+                frame,
+                metadata: { parentBuffInstanceId: instance.instanceId },
+                reason: `ParentBuffFinished:${String(instance.buffId)}`
+            }, {
+                ...plainClone(eventContext),
+                transactionId: transition.transactionId,
+                parentEventId: transition.eventId
+            });
         }
         return matches.map(instance => this.#publicInstance(instance));
     }

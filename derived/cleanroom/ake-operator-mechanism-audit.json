@@ -56618,20 +56618,20 @@
   ],
   "sharedDependencies": {
     "summary": {
-      "findingCount": 293,
-      "combatRiskCount": 190,
+      "findingCount": 291,
+      "combatRiskCount": 188,
       "isCombatClosed": false,
       "byImpact": {
         "combat-blocking": 46,
         "combat-partial": 17,
-        "evidence-missing": 127,
+        "evidence-missing": 125,
         "presentation-only": 13,
         "spatial-assumption": 90
       },
       "byPriority": {
         "P0": 20,
         "P1": 98,
-        "P2": 162,
+        "P2": 160,
         "P3": 13
       },
       "byCapability": {
@@ -56649,7 +56649,7 @@
         "status-lifecycle": 9,
         "targeting-scope": 11,
         "targeting-spatial": 90,
-        "unclassified": 72
+        "unclassified": 70
       },
       "bySourceType": {
         "AddDynamicCcsAction": 9,
@@ -56670,7 +56670,6 @@
         "CheckTwoDirectionAngle": 3,
         "ConvertToTargetContext": 5,
         "CreateAdditionalBattleShape": 1,
-        "CreateBuffAction": 2,
         "CreateDynamicBattleShape": 1,
         "CurveEvaluateFloat": 14,
         "CustomRootMotionAction": 14,
@@ -60805,42 +60804,6 @@
           "chr_0022_bounda",
           "chr_0023_antal",
           "chr_0030_zhuangfy"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "BuffData",
-        "entityId": "buff_common_dash_behit_listener",
-        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_common_dash_behit_listener.json",
-        "jsonPath": "abilityEventAction[0].actions[0][2..][0].success[1]",
-        "code": "AKE_DYNAMIC_BUFF_ID_REQUIRED",
-        "sourceType": "CreateBuffAction",
-        "compilerCategory": null,
-        "message": "One or more Buff ids are read dynamically from Blackboard.",
-        "impact": "evidence-missing",
-        "priority": "P2",
-        "capability": "unclassified",
-        "rationale": "The gameplay consequence has not yet been proven; it must not be silently treated as supported.",
-        "characters": [
-          "chr_0023_antal"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "BuffData",
-        "entityId": "buff_common_dash_behit_listener",
-        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_common_dash_behit_listener.json",
-        "jsonPath": "abilityEventAction[1].actions[0][2..][0].success[1]",
-        "code": "AKE_DYNAMIC_BUFF_ID_REQUIRED",
-        "sourceType": "CreateBuffAction",
-        "compilerCategory": null,
-        "message": "One or more Buff ids are read dynamically from Blackboard.",
-        "impact": "evidence-missing",
-        "priority": "P2",
-        "capability": "unclassified",
-        "rationale": "The gameplay consequence has not yet been proven; it must not be silently treated as supported.",
-        "characters": [
-          "chr_0023_antal"
         ]
       },
       {

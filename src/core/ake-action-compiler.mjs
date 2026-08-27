@@ -1602,21 +1602,47 @@ export class AkeActionCompiler {
                 const targetSettings = node.targetSettings ?? node.targetSource;
                 const target = this.#targetRef(targetSettings, state);
                 if (target.unresolved) result.unresolved.push(target.unresolved);
-                const buffs = (node.buffs ?? []).map(buff => ({
-                    buffId: buff.buffId,
-                    assignBlackboard: Boolean(buff.assignBlackboard),
-                    assignments: normalizeAssignments(buff)
-                }));
+                const buffs = (node.buffs ?? []).map(buff => {
+                    const buffIdBlackboardKey = buff.readIdFromBlackboard === true
+                        && typeof buff.buffIdKey === 'string'
+                        && buff.buffIdKey.length > 0
+                        ? buff.buffIdKey
+                        : null;
+                    const fallbackBuffId = buff.buffId
+                        || (buffIdBlackboardKey
+                            ? state.blackboard?.[buffIdBlackboardKey]
+                            : null);
+                    return {
+                        buffId: typeof fallbackBuffId === 'string'
+                            && fallbackBuffId.length > 0
+                            ? fallbackBuffId
+                            : null,
+                        buffIdBlackboardKey,
+                        assignBlackboard: Boolean(buff.assignBlackboard),
+                        assignments: normalizeAssignments(buff)
+                    };
+                });
                 const dynamic = (node.buffs ?? []).filter(buff => buff.readIdFromBlackboard);
-                if (dynamic.length > 0) {
+                if (dynamic.some(buff => typeof buff.buffIdKey !== 'string'
+                    || buff.buffIdKey.length === 0)) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_DYNAMIC_BUFF_ID_KEY_REQUIRED',
+                        type,
+                        state.path,
+                        'A dynamic Buff id has no Blackboard key.'
+                    ));
+                }
+                if (dynamic.length > 0 && !this.capabilities.dynamicBuffIdResolver) {
                     result.unresolved.push(this.#unresolved(
                         'AKE_DYNAMIC_BUFF_ID_REQUIRED',
                         type,
                         state.path,
-                        'One or more Buff ids are read dynamically from Blackboard.'
+                        'Dynamic Buff ids require the runtime Blackboard resolver.'
                     ));
                 }
-                const executableBuffs = buffs.filter(buff => buff.buffId);
+                const executableBuffs = buffs.filter(buff =>
+                    buff.buffId || buff.buffIdBlackboardKey
+                );
                 if (target.ref && executableBuffs.length > 0) {
                     const applyBuff = {
                         type: 'ApplyBuff',
@@ -1633,6 +1659,7 @@ export class AkeActionCompiler {
                         // successful reapplication (for example NoGuard's
                         // crystal-break notification).
                         triggerEnhancementEvent: true,
+                        asChildBuff: Boolean(node.asChildBuff),
                         attachToCurrentSkill: type === 'CreateBuffAttachingSkill',
                         reason: type
                     };
@@ -1686,6 +1713,8 @@ export class AkeActionCompiler {
                             target: 'Target',
                             sourceRef: 'Source',
                             buffId: buff.buffId,
+                            buffIdBlackboardKey: buff.buffIdBlackboardKey,
+                            childOfCurrentBuff: Boolean(node.asChildBuff),
                             finishAll: true,
                             reason: `${type}:auto-finish`
                         }));

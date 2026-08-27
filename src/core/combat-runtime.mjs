@@ -1127,11 +1127,13 @@ export class CombatRuntime {
         if (!Array.isArray(assignments)) return {};
         return Object.fromEntries(assignments.map(assignment => {
             const key = identifier(assignment.targetKey, 'buff assignment targetKey');
-            const value = assignment.direct
-                ? assignment.directValue
-                : eventContext.blackboard?.[assignment.sourceKey]
-                    ?? this.entityBlackboards.get(eventContext.sourceId)
-                        ?.[assignment.sourceKey];
+            const value = Object.prototype.hasOwnProperty.call(assignment, 'value')
+                ? this.#value(assignment.value, eventContext)
+                : assignment.direct
+                    ? assignment.directValue
+                    : eventContext.blackboard?.[assignment.sourceKey]
+                        ?? this.entityBlackboards.get(eventContext.sourceId)
+                            ?.[assignment.sourceKey];
             return [key, cloneValue(value)];
         }));
     }
@@ -2297,7 +2299,24 @@ export class CombatRuntime {
                 for (let index = 0; index < count; index += 1) {
                     for (const candidate of candidates) {
                         const attribution = this.#attribution(action, eventContext);
-                        const definition = this.statusEffects.getDefinition(candidate.buffId);
+                        const buffId = candidate.buffIdBlackboardKey
+                            ? eventContext.blackboard?.[candidate.buffIdBlackboardKey]
+                                ?? this.entityBlackboards.get(eventContext.sourceId)
+                                    ?.[candidate.buffIdBlackboardKey]
+                                ?? candidate.buffId
+                            : candidate.buffId;
+                        if ((typeof buffId !== 'string' && typeof buffId !== 'number')
+                            || buffId === '') {
+                            results.push({
+                                status: 'Unresolved',
+                                code: 'DYNAMIC_BUFF_ID_MISSING',
+                                buffId: null,
+                                blackboardKey: candidate.buffIdBlackboardKey ?? null,
+                                targetId: attribution.targetId
+                            });
+                            continue;
+                        }
+                        const definition = this.statusEffects.getDefinition(buffId);
                         const candidateBlackboard = {
                             ...(candidate.assignBlackboard
                                 ? this.#assignedBlackboard(candidate.assignments, eventContext)
@@ -2337,7 +2356,7 @@ export class CombatRuntime {
                                         attribution.targetId,
                                         attribution.clockDomainId
                                     )),
-                            buffId: candidate.buffId,
+                            buffId,
                             sourceSkillId: action.sourceSkillId ?? eventContext.skillId,
                             durationTicks: action.durationTicks,
                             durationSeconds: action.durationSeconds,
@@ -2355,6 +2374,9 @@ export class CombatRuntime {
                             metadata: {
                                 ...cloneValue(eventContext.payload?.statusMetadata ?? {}),
                                 ...cloneValue(action.metadata ?? {}),
+                                ...(action.asChildBuff && eventContext.buffInstanceId
+                                    ? { parentBuffInstanceId: eventContext.buffInstanceId }
+                                    : {}),
                                 ...(action.attachToCurrentSkill && eventContext.castId
                                     ? { attachedToCastId: eventContext.castId }
                                     : {})
@@ -2370,8 +2392,14 @@ export class CombatRuntime {
                 return Array.isArray(action.buffs) || count !== 1 ? results : results[0];
             },
             FinishBuff: (action, eventContext) => {
+                const dynamicBuffId = action.buffIdBlackboardKey
+                    ? eventContext.blackboard?.[action.buffIdBlackboardKey]
+                        ?? this.entityBlackboards.get(eventContext.sourceId)
+                            ?.[action.buffIdBlackboardKey]
+                        ?? action.buffId
+                    : action.buffId;
                 if (action.instanceId === undefined && action.buffInstanceId === undefined
-                    && action.buffId === undefined && action.stackingKey === undefined
+                    && dynamicBuffId === undefined && action.stackingKey === undefined
                     && (!Array.isArray(action.tagIds) || action.tagIds.length === 0)) {
                     throw new TypeError(
                         'FinishBuff requires instanceId, buffId, stackingKey or tagIds.'
@@ -2389,7 +2417,7 @@ export class CombatRuntime {
                     : this.statusEffects.list({ active: true })
                         .find(instance => instance.instanceId === selectedInstanceId) ?? null;
                 const requestedBuffIds = [
-                    action.buffId,
+                    dynamicBuffId,
                     ...(Array.isArray(action.buffIds) ? action.buffIds : []),
                     selectedInstance?.buffId
                 ].filter(Boolean);
@@ -2407,7 +2435,7 @@ export class CombatRuntime {
                 return this.statusEffects.finish({
                     frame: action.frame ?? eventContext.frame,
                     instanceId: action.instanceId ?? action.buffInstanceId,
-                    buffId: action.buffId,
+                    buffId: dynamicBuffId,
                     tagIds: cloneValue(action.tagIds),
                     tagQueryType: action.tagQueryType,
                     stackingKey: action.stackingKey,
@@ -2423,6 +2451,9 @@ export class CombatRuntime {
                     ownerId: action.ownerId === undefined
                         ? undefined
                         : this.#optionalEntityId(action.ownerId, eventContext),
+                    metadata: action.childOfCurrentBuff && eventContext.buffInstanceId
+                        ? { parentBuffInstanceId: eventContext.buffInstanceId }
+                        : cloneValue(action.metadata),
                     finishAll: action.finishAll !== false,
                     stackCount: action.stackCount === undefined
                         ? undefined

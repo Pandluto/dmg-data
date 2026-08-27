@@ -464,6 +464,7 @@ export class AkeScenarioAssembler {
                 damageResolver: true,
                 skillProgramResolver: true,
                 timeDilationResolver: true,
+                dynamicBuffIdResolver: true,
                 // The assembled scenario contains one explicit hostile target.
                 // Ranged AuraAction membership can therefore bind to the live
                 // event target without inventing an AoE radius or fan-out.

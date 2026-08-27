@@ -797,6 +797,15 @@ export class AkeDataRepository {
                         maxStacks
                     );
                 }
+                if (serializedAkeType(value) === 'WeakAction') {
+                    const rate = Number(akeDescriptorValue(value.rate, blackboard));
+                    appendEffect(
+                        { type: 'weakness', value: Math.abs(rate), unit: 'percent' },
+                        input.buffId,
+                        durationSeconds,
+                        maxStacks
+                    );
+                }
                 for (const nested of Object.values(value)) inspectActions(nested);
             };
             inspectActions({

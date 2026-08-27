@@ -11,18 +11,18 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3170,
-    "combatRiskCount": 1013,
+    "findingCount": 3168,
+    "combatRiskCount": 1011,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 431,
+      "combat-blocking": 429,
       "combat-partial": 160,
       "evidence-missing": 422,
       "presentation-only": 390,
       "spatial-assumption": 1767
     },
     "byPriority": {
-      "P0": 290,
+      "P0": 288,
       "P1": 649,
       "P2": 1841,
       "P3": 390
@@ -42,7 +42,7 @@
       "physical-status": 77,
       "presentation": 390,
       "resource-transaction": 1,
-      "status-lifecycle": 96,
+      "status-lifecycle": 94,
       "targeting-scope": 83,
       "targeting-spatial": 1767,
       "unclassified": 74
@@ -164,8 +164,7 @@
       "TriggerComboSkillAction": 3,
       "TriggerCustomAbilityEvent": 1,
       "TriggerLiinoUIEvent": 8,
-      "TryToTeleportSquadAction": 1,
-      "WeakAction": 2
+      "TryToTeleportSquadAction": 1
     }
   },
   "characters": [
@@ -34175,25 +34174,25 @@
         "initialSkillCount": 16,
         "discoveredSkillCount": 16,
         "programCount": 22,
-        "buffCount": 73,
+        "buffCount": 74,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 3,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 150,
-        "combatRiskCount": 43,
+        "findingCount": 149,
+        "combatRiskCount": 42,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 16,
+          "combat-blocking": 15,
           "combat-partial": 13,
           "evidence-missing": 14,
           "presentation-only": 41,
           "spatial-assumption": 66
         },
         "byPriority": {
-          "P0": 14,
+          "P0": 13,
           "P1": 27,
           "P2": 68,
           "P3": 41
@@ -34207,7 +34206,7 @@
           "form-state": 2,
           "physical-status": 5,
           "presentation": 41,
-          "status-lifecycle": 2,
+          "status-lifecycle": 1,
           "targeting-scope": 8,
           "targeting-spatial": 66,
           "unclassified": 2
@@ -34240,8 +34239,7 @@
           "SnapToTargetWithRangeAction": 8,
           "TeleportAction": 7,
           "TeleportPosSelectAction": 3,
-          "TemporaryUnlockAction": 2,
-          "WeakAction": 1
+          "TemporaryUnlockAction": 2
         }
       },
       "findings": [
@@ -34291,23 +34289,6 @@
           "sourceType": "SaveBuffLifeTime",
           "compilerCategory": "buff",
           "message": "No executable compiler route exists for SaveBuffLifeTime.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0033_camille",
-          "characterName": "卡缪",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0033_camille_normal_skill_weak",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0033_camille_normal_skill_weak.json",
-          "jsonPath": "buffEventAction[1].actions[0][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "WeakAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for WeakAction.",
           "impact": "combat-blocking",
           "priority": "P0",
           "capability": "status-lifecycle",
@@ -51669,25 +51650,25 @@
         "initialSkillCount": 9,
         "discoveredSkillCount": 7,
         "programCount": 10,
-        "buffCount": 70,
+        "buffCount": 71,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 0,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 74,
-        "combatRiskCount": 14,
+        "findingCount": 73,
+        "combatRiskCount": 13,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 7,
+          "combat-blocking": 6,
           "combat-partial": 4,
           "evidence-missing": 3,
           "presentation-only": 12,
           "spatial-assumption": 48
         },
         "byPriority": {
-          "P0": 7,
+          "P0": 6,
           "P1": 6,
           "P2": 49,
           "P3": 12
@@ -51699,7 +51680,6 @@
           "event-subscription": 3,
           "physical-status": 2,
           "presentation": 12,
-          "status-lifecycle": 1,
           "targeting-scope": 2,
           "targeting-spatial": 48,
           "unclassified": 1
@@ -51727,8 +51707,7 @@
           "TakeDownAction": 1,
           "TeleportAction": 4,
           "TeleportPosSelectAction": 1,
-          "TemporaryUnlockAction": 1,
-          "WeakAction": 1
+          "TemporaryUnlockAction": 1
         }
       },
       "findings": [
@@ -51765,23 +51744,6 @@
           "priority": "P0",
           "capability": "damage-factor",
           "rationale": "The action changes a target-side or source-side damage factor."
-        },
-        {
-          "characterId": "chr_0020_meurs",
-          "characterName": "卡契尔",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0020_meurs_ult_weak",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0020_meurs_ult_weak.json",
-          "jsonPath": "buffEventAction[0].actions[0][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "WeakAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for WeakAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
         },
         {
           "characterId": "chr_0020_meurs",

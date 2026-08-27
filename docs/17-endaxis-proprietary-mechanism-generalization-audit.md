@@ -508,3 +508,17 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 6. 每一步独立提交，并在提交说明中列出仍未验证的机制，不再用“全测试通过”等同“全干员正确”。
 
 最终目标不是做出一张看起来像 Calc 或 Endaxis 的轴，而是让任意新 AKE 干员在不新增核心特例的前提下，通过原始数据闭包自动获得：正确形态、正确状态、正确 Hit、正确伤害、正确合法性和可解释的前端展示。
+
+## 12. 2026-08-27 第一轮落地记录
+
+本轮严格按“原始数据证据 → 通用编译原语 → runtime 事务 → 账本/UI 投影 → 逐干员审计”推进，没有修改共享变速水位轴的布局或坐标模型：
+
+1. 已建立 31 名具体干员的逐路径机制审计；当前报告共 3168 条 finding，其中 429 条 combat-blocking、160 条 combat-partial、422 条 evidence-missing、1767 条 spatial-assumption、390 条 presentation-only；
+2. `PauseBuffTime` 已进入统一 Buff 生命周期，暂停时同时冻结到期、周期触发和 Buff 时间线，恢复后从剩余本地时间继续；
+3. Blackboard 动态子 Buff、fallback dependency 与 `asChildBuff` 父子所有权已统一，父实例结束只级联回滚自己的子实例；
+4. `VulnerableAction` 已映射为 AKE 的“脆弱”，Defender `NormalCalcZone` 保留为“易伤”，两者进入独立公式区；
+5. `WeakAction` 的五份公开数据已全部走公共 `buff_common_affixes_weak`：正数减伤幅度转换为有符号 `FinalMultiplier`，并从伤害来源实体读取，因此只降低携带者造成的伤害；父 Buff 结束后自动回滚；
+6. `VulnerableAction` 与 `WeakAction` 已不再出现在逐干员 unresolved source type 中；本轮新增能力没有角色 ID、技能 ID 或队伍模板分支；
+7. 核心 179 个测试通过，相关前端契约、TypeScript 严格检查和 AKE demo 构建通过。
+
+阶段 C 尚未完成的主要战斗项是 `ShelterAction` 及其保护/护盾快照关系；429 条 blocker 也明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。

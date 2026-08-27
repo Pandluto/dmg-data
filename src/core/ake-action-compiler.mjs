@@ -61,7 +61,8 @@ const VULNERABILITY_BUFF_IDS = Object.freeze({
     Cryst: 'buff_common_affixes_vulnerable_crystal',
     Natural: 'buff_common_affixes_vulnerable_natural'
 });
-const VULNERABILITY_ENHANCEMENT_OPERATIONS = Object.freeze({
+const WEAKNESS_BUFF_ID = 'buff_common_affixes_weak';
+const STATUS_ENHANCEMENT_OPERATIONS = Object.freeze({
     Add: 'Add',
     Subtract: 'Subtract',
     Multiply: 'Multiply',
@@ -709,6 +710,155 @@ export class AkeActionCompiler {
                 { selectorSource: source }
             )
         };
+    }
+
+    #compileParameterizedDebuffAction(node, state, {
+        sourceType,
+        buffId,
+        effectKind,
+        category,
+        metadata = {},
+        rateTransform = value => value,
+        diagnosticPrefix,
+        displayName
+    }) {
+        const result = emptyCompilation(sourceType);
+        const source = this.#targetRef(
+            node.source ?? 'Source',
+            state,
+            `${displayName} source`
+        );
+        const target = this.#targetRef(
+            node.target ?? 'Target',
+            state,
+            `${displayName} target`
+        );
+        if (source.unresolved) result.unresolved.push(source.unresolved);
+        if (target.unresolved) result.unresolved.push(target.unresolved);
+        if (!source.ref || !target.ref) return finalize(result);
+
+        const resolvedChildBuffId = node.overrideChildBuffId === true
+            ? resolveValue(node.childBuffId, state.blackboard, null)
+            : null;
+        if (node.overrideChildBuffId === true
+            && (typeof resolvedChildBuffId !== 'string'
+                || resolvedChildBuffId.length === 0)) {
+            result.unresolved.push(this.#unresolved(
+                `${diagnosticPrefix}_CHILD_BUFF_REQUIRED`,
+                sourceType,
+                state.path,
+                `${displayName} overrides its child Buff but no static dependency can be resolved.`
+            ));
+        }
+        const dependencyBuffIds = typeof resolvedChildBuffId === 'string'
+            && resolvedChildBuffId.length > 0
+            ? [resolvedChildBuffId]
+            : [];
+        const makeApplyAction = rate => ({
+            type: 'ApplyBuff',
+            sourceRef: source.ref,
+            target: target.ref,
+            count: 1,
+            buffs: [{
+                buffId,
+                buffIdBlackboardKey: null,
+                assignBlackboard: true,
+                assignments: [{
+                    targetKey: 'rate',
+                    value: rateTransform(clone(rate))
+                }, {
+                    targetKey: 'duration',
+                    value: descriptor(node.duration, -1)
+                }, ...(node.overrideChildBuffId === true ? [{
+                    targetKey: 'child_buff_id',
+                    value: descriptor(node.childBuffId, '')
+                }] : [])]
+            }],
+            dependencyBuffIds,
+            inheritEventBlackboard: false,
+            triggerEnhancementEvent: true,
+            asChildBuff: node.asChildBuff !== false,
+            metadata: {
+                akeEffectKind: effectKind,
+                akeSourceAction: sourceType,
+                akeSourcePath: state.path,
+                displayBuffId: resolvedChildBuffId || buffId,
+                ...clone(metadata)
+            },
+            reason: sourceType
+        });
+
+        const enhancements = [];
+        for (const [index, enhancement] of (node.enhancingList ?? []).entries()) {
+            const operation = STATUS_ENHANCEMENT_OPERATIONS[
+                enhancement.operationType
+            ];
+            const buffIds = (enhancement.buffIds ?? []).filter(candidate =>
+                typeof candidate === 'string' && candidate.length > 0
+            );
+            if (!operation || buffIds.length === 0) {
+                result.unresolved.push(this.#unresolved(
+                    `${diagnosticPrefix}_ENHANCEMENT_UNSUPPORTED`,
+                    sourceType,
+                    `${state.path}.enhancingList[${index}]`,
+                    `${displayName} enhancement requires a supported arithmetic operation and at least one Buff id.`,
+                    {
+                        operationType: enhancement.operationType ?? null,
+                        buffIds
+                    }
+                ));
+                continue;
+            }
+            enhancements.push({
+                operation,
+                buffIds,
+                value: descriptor(enhancement.value, 0)
+            });
+        }
+
+        const buildBranch = (index, rate) => {
+            if (index >= enhancements.length) return [makeApplyAction(rate)];
+            const enhancement = enhancements[index];
+            return [{
+                type: 'IfElseAction',
+                conditions: [{
+                    type: 'Any',
+                    conditions: enhancement.buffIds.map(candidate => ({
+                        type: 'HasBuff',
+                        target: source.ref,
+                        buffId: candidate
+                    }))
+                }],
+                success: buildBranch(index + 1, {
+                    type: enhancement.operation,
+                    values: [clone(rate), clone(enhancement.value)]
+                }),
+                failure: buildBranch(index + 1, rate),
+                reason: `${sourceType}:enhancement:${index}`
+            }];
+        };
+        result.actions.push(...buildBranch(0, descriptor(node.rate, 0)));
+        if (node.autoFinishByAction === true) {
+            result.cleanupActions.push({
+                type: 'FinishBuff',
+                sourceRef: source.ref,
+                target: target.ref,
+                buffId,
+                childOfCurrentBuff: node.asChildBuff !== false,
+                finishAll: true,
+                reason: `${sourceType}:auto-finish`
+            });
+        }
+        result.metadata.push({
+            type: sourceType,
+            path: state.path,
+            category,
+            buffId,
+            childBuffId: resolvedChildBuffId,
+            enhancementCount: enhancements.length,
+            ...clone(metadata)
+        });
+        return finalize(result);
     }
 
     #compileAction(node, state) {
@@ -1538,143 +1688,36 @@ export class AkeActionCompiler {
                     ));
                     break;
                 }
-                const source = this.#targetRef(
-                    node.source ?? 'Source',
-                    state,
-                    'vulnerability source'
-                );
-                const target = this.#targetRef(
-                    node.target ?? 'Target',
-                    state,
-                    'vulnerability target'
-                );
-                if (source.unresolved) result.unresolved.push(source.unresolved);
-                if (target.unresolved) result.unresolved.push(target.unresolved);
-                if (!source.ref || !target.ref) break;
-
-                const resolvedChildBuffId = node.overrideChildBuffId === true
-                    ? resolveValue(node.childBuffId, state.blackboard, null)
-                    : null;
-                if (node.overrideChildBuffId === true
-                    && (typeof resolvedChildBuffId !== 'string'
-                        || resolvedChildBuffId.length === 0)) {
-                    result.unresolved.push(this.#unresolved(
-                        'AKE_VULNERABILITY_CHILD_BUFF_REQUIRED',
-                        type,
-                        state.path,
-                        'VulnerableAction overrides its child Buff but no static dependency can be resolved.'
-                    ));
-                }
-                const dependencyBuffIds = typeof resolvedChildBuffId === 'string'
-                    && resolvedChildBuffId.length > 0
-                    ? [resolvedChildBuffId]
-                    : [];
-                const makeApplyAction = rate => ({
-                    type: 'ApplyBuff',
-                    sourceRef: source.ref,
-                    target: target.ref,
-                    count: 1,
-                    buffs: [{
-                        buffId: vulnerableBuffId,
-                        buffIdBlackboardKey: null,
-                        assignBlackboard: true,
-                        assignments: [{
-                            targetKey: 'rate',
-                            value: clone(rate)
-                        }, {
-                            targetKey: 'duration',
-                            value: descriptor(node.duration, -1)
-                        }, ...(node.overrideChildBuffId === true ? [{
-                            targetKey: 'child_buff_id',
-                            value: descriptor(node.childBuffId, '')
-                        }] : [])]
-                    }],
-                    dependencyBuffIds,
-                    inheritEventBlackboard: false,
-                    triggerEnhancementEvent: true,
-                    asChildBuff: node.asChildBuff !== false,
-                    metadata: {
-                        akeEffectKind: 'Vulnerability',
-                        akeVulnerabilityType: node.subType,
-                        akeSourceAction: type,
-                        akeSourcePath: state.path,
-                        displayBuffId: resolvedChildBuffId || vulnerableBuffId
-                    },
-                    reason: type
-                });
-
-                const enhancements = [];
-                for (const [index, enhancement] of (node.enhancingList ?? []).entries()) {
-                    const operation = VULNERABILITY_ENHANCEMENT_OPERATIONS[
-                        enhancement.operationType
-                    ];
-                    const buffIds = (enhancement.buffIds ?? []).filter(buffId =>
-                        typeof buffId === 'string' && buffId.length > 0
-                    );
-                    if (!operation || buffIds.length === 0) {
-                        result.unresolved.push(this.#unresolved(
-                            'AKE_VULNERABILITY_ENHANCEMENT_UNSUPPORTED',
-                            type,
-                            `${state.path}.enhancingList[${index}]`,
-                            'Vulnerability enhancement requires a supported arithmetic operation and at least one Buff id.',
-                            {
-                                operationType: enhancement.operationType ?? null,
-                                buffIds
-                            }
-                        ));
-                        continue;
-                    }
-                    enhancements.push({
-                        operation,
-                        buffIds,
-                        value: descriptor(enhancement.value, 0)
-                    });
-                }
-
-                const buildBranch = (index, rate) => {
-                    if (index >= enhancements.length) return [makeApplyAction(rate)];
-                    const enhancement = enhancements[index];
-                    return [{
-                        type: 'IfElseAction',
-                        conditions: [{
-                            type: 'Any',
-                            conditions: enhancement.buffIds.map(buffId => ({
-                                type: 'HasBuff',
-                                target: source.ref,
-                                buffId
-                            }))
-                        }],
-                        success: buildBranch(index + 1, {
-                            type: enhancement.operation,
-                            values: [clone(rate), clone(enhancement.value)]
-                        }),
-                        failure: buildBranch(index + 1, rate),
-                        reason: `${type}:enhancement:${index}`
-                    }];
-                };
-                result.actions.push(...buildBranch(0, descriptor(node.rate, 0)));
-                if (node.autoFinishByAction === true) {
-                    result.cleanupActions.push({
-                        type: 'FinishBuff',
-                        sourceRef: source.ref,
-                        target: target.ref,
-                        buffId: vulnerableBuffId,
-                        childOfCurrentBuff: node.asChildBuff !== false,
-                        finishAll: true,
-                        reason: `${type}:auto-finish`
-                    });
-                }
-                result.metadata.push({
-                    type,
-                    path: state.path,
-                    category: 'vulnerability',
-                    subType: node.subType,
+                return this.#compileParameterizedDebuffAction(node, state, {
+                    sourceType: type,
                     buffId: vulnerableBuffId,
-                    childBuffId: resolvedChildBuffId,
-                    enhancementCount: enhancements.length
+                    effectKind: 'Vulnerability',
+                    category: 'vulnerability',
+                    metadata: {
+                        akeVulnerabilityType: node.subType,
+                        subType: node.subType
+                    },
+                    diagnosticPrefix: 'AKE_VULNERABILITY',
+                    displayName: 'VulnerableAction'
                 });
-                break;
             }
+            case 'WeakAction':
+                return this.#compileParameterizedDebuffAction(node, state, {
+                    sourceType: type,
+                    buffId: WEAKNESS_BUFF_ID,
+                    effectKind: 'Weakness',
+                    category: 'weakness',
+                    metadata: { akeWeaknessType: 'OutgoingDamageReduction' },
+                    // AKE WeakAction stores a positive reduction magnitude, while
+                    // the common Buff's FinalMultiplier attribute expects a
+                    // negative delta (0.2 -> -0.2 -> multiplier 0.8).
+                    rateTransform: value => ({
+                        type: 'Multiply',
+                        values: [value, -1]
+                    }),
+                    diagnosticPrefix: 'AKE_WEAKNESS',
+                    displayName: 'WeakAction'
+                });
             case 'PauseBuffTime':
                 if (typeof node.isPaused !== 'boolean') {
                     result.unresolved.push(this.#unresolved(

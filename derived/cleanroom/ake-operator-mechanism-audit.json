@@ -11,18 +11,18 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3067,
-    "combatRiskCount": 906,
+    "findingCount": 3066,
+    "combatRiskCount": 905,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 323,
+      "combat-blocking": 322,
       "combat-partial": 161,
       "evidence-missing": 422,
       "presentation-only": 390,
       "spatial-assumption": 1771
     },
     "byPriority": {
-      "P0": 182,
+      "P0": 181,
       "P1": 650,
       "P2": 1845,
       "P3": 390
@@ -37,7 +37,7 @@
       "derived-state": 8,
       "deterministic-choice": 347,
       "event-scheduling": 28,
-      "event-subscription": 25,
+      "event-subscription": 24,
       "form-state": 30,
       "physical-status": 77,
       "presentation": 390,
@@ -100,7 +100,7 @@
       "DispelAction": 1,
       "DoOnceAction": 16,
       "EnhancedAction": 11,
-      "EventListenerAction": 2,
+      "EventListenerAction": 1,
       "FindTargetAction": 24,
       "ForceTargetInFightAction": 1,
       "IfElseAction": 4,
@@ -10196,18 +10196,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 105,
-        "combatRiskCount": 26,
+        "findingCount": 104,
+        "combatRiskCount": 25,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 16,
+          "combat-blocking": 15,
           "combat-partial": 3,
           "evidence-missing": 7,
           "presentation-only": 14,
           "spatial-assumption": 65
         },
         "byPriority": {
-          "P0": 4,
+          "P0": 3,
           "P1": 21,
           "P2": 66,
           "P3": 14
@@ -10216,7 +10216,6 @@
           "condition-algebra": 12,
           "cooldown-window": 1,
           "deterministic-choice": 6,
-          "event-subscription": 1,
           "form-state": 2,
           "physical-status": 2,
           "presentation": 14,
@@ -10236,7 +10235,6 @@
           "CurveEvaluateFloat": 6,
           "CustomRootMotionAction": 10,
           "DisableRootMotionAction": 5,
-          "EventListenerAction": 1,
           "ModifyWeaponMountPoint": 2,
           "MoveToAction": 1,
           "NotNextCheckAction": 3,
@@ -10289,23 +10287,6 @@
           "priority": "P0",
           "capability": "cooldown-window",
           "rationale": "The action changes cooldown or combo-window admission state."
-        },
-        {
-          "characterId": "chr_0017_yvonne",
-          "characterName": "伊冯",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0017_yvonne_ultimate_skill_potential4_valid",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0017_yvonne_ultimate_skill_potential4_valid.json",
-          "jsonPath": "buffEventAction[0].actions[0][0]",
-          "code": "AKE_EVENT_LISTENER_LIFETIME_REQUIRED",
-          "sourceType": "EventListenerAction",
-          "compilerCategory": null,
-          "message": "Non-skill EventListenerAction must be bound to its Buff or passive owner lifetime before execution.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
         },
         {
           "characterId": "chr_0017_yvonne",

@@ -90,7 +90,8 @@ const RUNTIME_ABILITY_EVENT_TYPES = new Set([
     'OnAfterKillEntity',
     'OnSkillEnd',
     'OnBeforeAddedBuff',
-    'OnTrulyExitFight'
+    'OnTrulyExitFight',
+    'OnFinishedBuff'
 ]);
 const TARGET_ALIASES = new Map([
     ['Source', 'Source'],
@@ -2104,22 +2105,24 @@ export class AkeActionCompiler {
                         .map(group => group?.abilityEvent)
                         .filter(Boolean)
                 });
-                if (state.scope !== 'skill') {
+                const skillOwned = state.scope === 'skill';
+                const buffOwned = state.scope === 'buff';
+                if (!skillOwned && !buffOwned) {
                     result.unresolved.push(this.#unresolved(
                         'AKE_EVENT_LISTENER_LIFETIME_REQUIRED',
                         type,
                         state.path,
-                        'Non-skill EventListenerAction must be bound to its Buff or passive owner lifetime before execution.',
+                        'EventListenerAction must be bound to a Skill timeline or Buff instance lifetime before execution.',
                         { scope: state.scope }
                     ));
                     break;
                 }
-                if (state.timelineStartFrame === null
+                if (skillOwned && (state.timelineStartFrame === null
                     || state.timelineStartFrame === undefined
                     || state.timelineEndFrame === null
                     || state.timelineEndFrame === undefined
                     || !Number.isFinite(Number(state.timelineStartFrame))
-                    || !Number.isFinite(Number(state.timelineEndFrame))) {
+                    || !Number.isFinite(Number(state.timelineEndFrame)))) {
                     result.unresolved.push(this.#unresolved(
                         'AKE_EVENT_LISTENER_TIMELINE_REQUIRED',
                         type,
@@ -2154,7 +2157,7 @@ export class AkeActionCompiler {
                         this.compileActions(actionData(wrapper), {
                             path: `${state.path}.abilityActionMap[${groupIndex}].actions[${wrapperIndex}]`,
                             blackboard: state.blackboard,
-                            scope: 'skill',
+                            scope: state.scope,
                             skillId: state.skillId,
                             eventTargetMode: true,
                             timelineStartFrame: state.timelineStartFrame,
@@ -2195,26 +2198,35 @@ export class AkeActionCompiler {
                     });
                 }
                 if (eventGroups.length === 0) break;
-                const sourceKey = `ake-skill:${state.path}:ability-listener`;
+                const ownerLifetime = skillOwned ? 'SkillTimeline' : 'BuffInstance';
+                const sourceKey = `${skillOwned ? 'ake-skill' : 'ake-buff'}:${state.path}:ability-listener`;
                 result.actions.push({
                     type: 'RegisterAbilityEventListener',
                     sourceKey,
                     listenerTarget: 'Owner',
-                    timelineStartFrame: Number(state.timelineStartFrame),
-                    timelineEndFrame: Number(state.timelineEndFrame),
+                    ownerLifetime,
+                    timelineStartFrame: skillOwned
+                        ? Number(state.timelineStartFrame)
+                        : 0,
+                    timelineEndFrame: skillOwned
+                        ? Number(state.timelineEndFrame)
+                        : null,
                     priority: Number(node.priorityOffset ?? 0),
                     eventGroups,
                     metadata: {
                         akeSourceAction: type,
                         akeSourcePath: state.path,
-                        lifetime: 'TimelineGroup'
+                        lifetime: ownerLifetime
                     },
                     reason: type
                 });
                 result.cleanupActions.push({
                     type: 'UnregisterAbilityEventListener',
                     sourceKey,
-                    reason: `${type}:timeline-end`
+                    ownerLifetime,
+                    reason: skillOwned
+                        ? `${type}:timeline-end`
+                        : `${type}:buff-end`
                 });
                 break;
             }

@@ -40,15 +40,23 @@ function publicListener(listener) {
  * listener can consume the same runtime ability-event stream.
  */
 export class AbilityEventListenerRegistry {
-    constructor({ executeActions, targetValidator = () => true } = {}) {
+    constructor({
+        executeActions,
+        targetValidator = () => true,
+        onBlackboardChange = null
+    } = {}) {
         if (typeof executeActions !== 'function') {
             throw new TypeError('AbilityEventListenerRegistry requires executeActions.');
         }
         if (typeof targetValidator !== 'function') {
             throw new TypeError('targetValidator must be a function.');
         }
+        if (onBlackboardChange !== null && typeof onBlackboardChange !== 'function') {
+            throw new TypeError('onBlackboardChange must be a function or null.');
+        }
         this.executeActions = executeActions;
         this.targetValidator = targetValidator;
+        this.onBlackboardChange = onBlackboardChange;
         this.listeners = new Map();
         this.trace = [];
         this.nextSequence = 1;
@@ -113,6 +121,8 @@ export class AbilityEventListenerRegistry {
             rootSkillId: input.rootSkillId ?? input.skillId ?? null,
             castId: input.castId ?? null,
             programExecutionId: input.programExecutionId ?? null,
+            buffInstanceId: input.buffInstanceId ?? null,
+            ownerLifetime: input.ownerLifetime ?? 'SkillTimeline',
             clockDomainId: input.clockDomainId ?? null,
             timelineStartFrame: startFrame,
             timelineEndFrame: endFrame,
@@ -158,7 +168,9 @@ export class AbilityEventListenerRegistry {
             .filter(listener => input.castId === undefined
                 || listener.castId === input.castId)
             .filter(listener => input.programExecutionId === undefined
-                || listener.programExecutionId === input.programExecutionId);
+                || listener.programExecutionId === input.programExecutionId)
+            .filter(listener => input.buffInstanceId === undefined
+                || listener.buffInstanceId === input.buffInstanceId);
         for (const listener of matches) {
             listener.active = false;
             listener.removedFrame = frame;
@@ -206,6 +218,7 @@ export class AbilityEventListenerRegistry {
                     rootSkillId: listener.rootSkillId,
                     castId: listener.castId,
                     programExecutionId: listener.programExecutionId,
+                    buffInstanceId: listener.buffInstanceId,
                     clockDomainId: listener.clockDomainId,
                     blackboard: {
                         ...cloneValue(eventContext.blackboard ?? {}),
@@ -216,12 +229,17 @@ export class AbilityEventListenerRegistry {
                         eventSourceId: eventContext.sourceId ?? null,
                         eventOwnerId: eventContext.ownerId ?? null,
                         eventTargetId: eventContext.targetId ?? null,
+                        eventBuffInstanceId: eventContext.buffInstanceId ?? null,
                         listenerTargetId,
                         listenerId: listener.listenerId
                     }
                 });
                 if (isRecord(transaction?.eventContext?.blackboard)) {
                     listener.blackboard = cloneValue(transaction.eventContext.blackboard);
+                    this.onBlackboardChange?.(
+                        publicListener(listener),
+                        cloneValue(eventContext)
+                    );
                 }
                 this.#record('AbilityEventListenerHandled', listener, eventContext, {
                     eventType,
@@ -262,12 +280,19 @@ export class AbilityEventListenerRegistry {
         return removed;
     }
 
-    list({ active = undefined, castId = undefined, programExecutionId = undefined } = {}) {
+    list({
+        active = undefined,
+        castId = undefined,
+        programExecutionId = undefined,
+        buffInstanceId = undefined
+    } = {}) {
         return [...this.listeners.values()]
             .filter(listener => active === undefined || listener.active === active)
             .filter(listener => castId === undefined || listener.castId === castId)
             .filter(listener => programExecutionId === undefined
                 || listener.programExecutionId === programExecutionId)
+            .filter(listener => buffInstanceId === undefined
+                || listener.buffInstanceId === buffInstanceId)
             .map(publicListener);
     }
 
@@ -291,6 +316,8 @@ export class AbilityEventListenerRegistry {
             skillId: listener.skillId,
             castId: listener.castId,
             programExecutionId: listener.programExecutionId,
+            buffInstanceId: listener.buffInstanceId,
+            ownerLifetime: listener.ownerLifetime,
             ...cloneValue(extra)
         };
         this.trace.push(record);

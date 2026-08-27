@@ -513,7 +513,7 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 
 本轮严格按“原始数据证据 → 通用编译原语 → runtime 事务 → 账本/UI 投影 → 逐干员审计”推进，没有修改共享变速水位轴的布局或坐标模型：
 
-1. 已建立 31 名具体干员的逐路径机制审计；当前报告共 3074 条 finding，其中 323 条 combat-blocking、161 条 combat-partial、422 条 evidence-missing、1771 条 spatial-assumption、390 条 presentation-only；
+1. 已建立 31 名具体干员的逐路径机制审计；当前报告共 3074 条 finding，其中 322 条 combat-blocking、161 条 combat-partial、422 条 evidence-missing、1771 条 spatial-assumption、390 条 presentation-only；
 2. `PauseBuffTime` 已进入统一 Buff 生命周期，暂停时同时冻结到期、周期触发和 Buff 时间线，恢复后从剩余本地时间继续；
 3. Blackboard 动态子 Buff、fallback dependency 与 `asChildBuff` 父子所有权已统一，父实例结束只级联回滚自己的子实例；
 4. `VulnerableAction` 已映射为 AKE 的“脆弱”，Defender `NormalCalcZone` 保留为“易伤”，两者进入独立公式区；
@@ -534,9 +534,10 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 19. SkillData 的 `EventListenerAction` 已进入独立的施放级订阅注册表：订阅以 timeline group 为窗口、以 cast/path 为身份，保留施法 source/owner/target 与自己的 Blackboard；事件中的实际 source/owner/target 另存为 event attribution，因而子动作的 `Target` 可以解析到真实事件目标。正常 group cleanup、时间轴跳出窗口、program cancel 与技能提前结束均主动注销；
 20. 现有 BuffData ability listener 与技能时间窗 listener 已共用同一个 runtime ability-event 入口，但仍保留不同 owner lifetime。17 处 SkillData 声明中已有 15 处能注册；陈千语的一处只包含尚未实现的 `SetSkillCdAtOnce`，狼卫的一处是空 `FinishBuffAdvanced` 选择器，均继续 fail closed；订阅基础设施提交时，缺少生产者的事件仍报告 `AKE_ABILITY_EVENT_EMITTER_REQUIRED`，没有拿“订阅已注册”冒充“事件可触发”；
 21. SkillData listener 使用的八类事件现在都有公共生产者：已有的受伤前、Buff 加入后、Buff 输出，加上物理状态事务提交前的 `OnBeforeOutputAirborne`、Buff apply 前的 `OnBeforeAddedBuff`、生命值由正数降为零时的 `OnAfterKillEntity`、每个 cast 恰好一次且发生在订阅清理前的 `OnSkillEnd`、场景空闲退出事务发出的 `OnTrulyExitFight`。直接 Damage 与 ResolveDamagePacket 的击杀都走同一生命值边界；Aura Buff 也补齐加入前事件；逐干员 blocker 因此由 330 降至 323；
-22. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁。
+22. BuffData 的三处 `EventListenerAction` 现以精确 `buffInstanceId` 拥有订阅：并发同名 Buff 不共享 listener id，回调 Blackboard 写回监听者 Buff 实例，`OnFinishedBuff` 从统一状态结束事务广播，owner Buff 结束后无论正常 cleanup 是否存在都会注销自己的订阅。伊冯击杀恢复标记因此不再是静态 metadata，逐干员 blocker 降至 322；两个训练监听的表现 signal 仍按 presentation-only 处理；
+23. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁。
 
-323 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。强制异常、异常生命周期、同元素爆发、普通四元素反应、技能时间窗 tag、技能事件订阅生命周期与对应事件生产者的公共数据链已经闭合；Buff-owned EventListener 生命周期和部分监听子动作仍未闭合。仍未证实的 `弭弗特殊猛击` 数值继续保持 evidence-missing，而不是借元素表猜值。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
+322 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。强制异常、异常生命周期、同元素爆发、普通四元素反应、技能时间窗 tag、技能/Buff 事件订阅生命周期与对应事件生产者的公共数据链已经闭合；陈千语监听内的冷却事务和狼卫空 selector 等子动作仍未闭合。仍未证实的 `弭弗特殊猛击` 数值继续保持 evidence-missing，而不是借元素表猜值。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
 
 ### 12.1 普通元素链的证据矩阵
 
@@ -582,7 +583,7 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 | SkillData | `OnSkillEnd` | 1 | 每个 cast 去重一次，在技能订阅、tag 和动作租约清理前发出 |
 | SkillData | `OnBeforeAddedBuff` | 1 | 普通 ApplyBuff 与 Aura apply 都在 `StatusEffectSystem.apply` 前发出 |
 | SkillData | `OnTrulyExitFight` | 2 | 单人/小队 runner 均从空闲退出事务发出，不依赖 UI 卸载 |
-| BuffData | `OnAfterKillEntity` / `OnAddedBuff` / `OnFinishedBuff` | 各 1 | 子动作可编译，但 EventListenerAction 自身必须由 Buff 实例拥有并随实例结束，当前保持显式 lifetime gap |
+| BuffData | `OnAfterKillEntity` / `OnAddedBuff` / `OnFinishedBuff` | 各 1 | 以 `buffInstanceId` 拥有订阅和 Blackboard；状态结束事务发出 finished event 并精确注销 owner listener |
 
 订阅事务冻结以下身份语义：
 

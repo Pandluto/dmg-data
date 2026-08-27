@@ -352,7 +352,7 @@ test('all public SkillData EventListenerAction nodes use the generic compiler ro
     ), true, 'empty serialized selectors must not masquerade as executable');
 });
 
-test('BuffData EventListenerAction stays closed until Buff-owned lifetime is implemented', () => {
+test('real BuffData EventListenerAction is owned by its exact Buff instance', () => {
     const raw = JSON.parse(readFileSync(new URL(
         '../reference/public-data/akedata/Json/BuffData/buff_chr_0017_yvonne_ultimate_skill_potential4_valid.json',
         import.meta.url
@@ -363,10 +363,143 @@ test('BuffData EventListenerAction stays closed until Buff-owned lifetime is imp
         path: 'buffEventAction[0]'
     });
 
-    assert.equal(compiled.actions.length, 0);
-    assert.equal(compiled.unresolved.some(gap =>
-        gap.code === 'AKE_EVENT_LISTENER_LIFETIME_REQUIRED'
-    ), true);
+    assert.deepEqual(compiled.actions.map(action => action.type), [
+        'RegisterAbilityEventListener'
+    ]);
+    assert.deepEqual(compiled.cleanupActions.map(action => action.type), [
+        'UnregisterAbilityEventListener'
+    ]);
+    assert.equal(compiled.actions[0].ownerLifetime, 'BuffInstance');
+    assert.deepEqual(compiled.unresolved, []);
+});
+
+test('real Yvonne Buff listener writes its owning Blackboard and unregisters on finish', () => {
+    const raw = JSON.parse(readFileSync(new URL(
+        '../reference/public-data/akedata/Json/BuffData/buff_chr_0017_yvonne_ultimate_skill_potential4_valid.json',
+        import.meta.url
+    ), 'utf8'));
+    const definition = new AkeActionCompiler().compileBuff(raw);
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [{
+                id: 'yvonne', kind: 'Character', team: 'ally'
+            }, {
+                id: 'enemy',
+                kind: 'Enemy',
+                team: 'enemy',
+                vital: { maxHp: 5, currentHp: 5 }
+            }],
+            resources: [{
+                id: 'yvonne:UltimateSp',
+                resourceType: 'UltimateSp',
+                scope: 'Entity',
+                ownerId: 'yvonne',
+                initial: 0,
+                max: 100
+            }],
+            buffs: { [raw.id]: definition }
+        }
+    });
+    const context = {
+        sourceId: 'yvonne', ownerId: 'yvonne', targetId: 'yvonne'
+    };
+    const applied = runtime.execute({
+        type: 'ApplyBuff',
+        target: 'Target',
+        buffId: raw.id
+    }, { ...context, frame: 0 });
+    assert.equal(runtime.abilityEventListeners.list({
+        active: true,
+        buffInstanceId: applied.instanceId
+    }).length, 1);
+
+    runtime.execute({
+        type: 'Damage',
+        target: 'enemy',
+        amount: 5,
+        damageDecorateMask: 33280
+    }, { ...context, frame: 1, targetId: 'enemy' });
+    assert.equal(
+        runtime.statusEffects.get(applied.instanceId).blackboard.is_recover,
+        1
+    );
+
+    runtime.execute({
+        type: 'FinishBuff',
+        instanceId: applied.instanceId
+    }, { ...context, frame: 2 });
+    assert.equal(runtime.abilityEventListeners.list({
+        active: true,
+        buffInstanceId: applied.instanceId
+    }).length, 0);
+});
+
+test('OnFinishedBuff broadcasts before removing only the finished Buff-owned listener', () => {
+    const sourceKey = 'ake-buff:fixture:finished-listener';
+    const observerDefinition = {
+        stackingPolicy: 'Independent',
+        duringEnableActions: [{
+            type: 'RegisterAbilityEventListener',
+            sourceKey,
+            ownerLifetime: 'BuffInstance',
+            listenerTarget: 'Owner',
+            timelineStartFrame: 0,
+            timelineEndFrame: null,
+            eventGroups: [{
+                eventType: 'OnFinishedBuff',
+                actions: [{
+                    type: 'ModifyBlackboard',
+                    key: 'finished_count',
+                    operation: 'Add',
+                    value: 1
+                }]
+            }]
+        }],
+        endActions: [{
+            type: 'UnregisterAbilityEventListener',
+            sourceKey,
+            ownerLifetime: 'BuffInstance'
+        }]
+    };
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [{ id: 'actor', kind: 'Character', team: 'ally' }],
+            buffs: {
+                'buff.observer': observerDefinition,
+                'buff.victim': { stackingPolicy: 'Independent' }
+            }
+        }
+    });
+    const context = {
+        sourceId: 'actor', ownerId: 'actor', targetId: 'actor'
+    };
+    const first = runtime.execute({
+        type: 'ApplyBuff', target: 'Target', buffId: 'buff.observer'
+    }, { ...context, frame: 0 });
+    const second = runtime.execute({
+        type: 'ApplyBuff', target: 'Target', buffId: 'buff.observer'
+    }, { ...context, frame: 0 });
+    const victim = runtime.execute({
+        type: 'ApplyBuff', target: 'Target', buffId: 'buff.victim'
+    }, { ...context, frame: 0 });
+    assert.equal(runtime.abilityEventListeners.list({ active: true }).length, 2);
+
+    runtime.execute({
+        type: 'FinishBuff', instanceId: first.instanceId
+    }, { ...context, frame: 1 });
+    assert.equal(runtime.abilityEventListeners.list({ active: true }).length, 1);
+    assert.equal(
+        runtime.statusEffects.get(second.instanceId).blackboard.finished_count,
+        1
+    );
+
+    runtime.execute({
+        type: 'FinishBuff', instanceId: victim.instanceId
+    }, { ...context, frame: 2 });
+    assert.equal(
+        runtime.statusEffects.get(second.instanceId).blackboard.finished_count,
+        2
+    );
 });
 
 test('skill EventListenerAction without a timeline window fails closed', () => {

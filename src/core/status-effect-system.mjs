@@ -1156,6 +1156,33 @@ export class StatusEffectSystem {
         return instance ? this.#publicInstance(instance) : null;
     }
 
+    replaceBlackboard(input, eventContext = {}) {
+        if (!input || typeof input !== 'object') {
+            throw new Error('replaceBlackboard requires an input object.');
+        }
+        const instanceId = requireId(input.instanceId, 'instanceId');
+        const instance = this.instances.get(instanceId);
+        if (!instance) return null;
+        if (!input.blackboard || typeof input.blackboard !== 'object'
+            || Array.isArray(input.blackboard)) {
+            throw new TypeError('replaceBlackboard requires an object blackboard.');
+        }
+        const before = plainClone(instance.blackboard);
+        instance.blackboard = plainClone(input.blackboard);
+        const transition = this.#record(
+            instance,
+            frameNumber(input.frame ?? eventContext.frame ?? 0),
+            'StatusEffectBlackboardReplaced',
+            {
+                reason: input.reason ?? 'AbilityEventListenerBlackboard',
+                before,
+                after: plainClone(instance.blackboard)
+            }
+        );
+        this.trace.push(transition);
+        return this.#publicInstance(instance);
+    }
+
     getDefinition(buffId) {
         return plainClone(definitionFrom(this.definitions, buffId));
     }

@@ -224,7 +224,10 @@ export class CombatRuntime {
             schedule: this.schedule,
             clockDomains: this.clockDomains,
             tickRate: this.tickRate,
-            onTransition: transition => onStatusTransition?.(transition),
+            onTransition: transition => {
+                this.#onStatusEffectTransition(transition);
+                onStatusTransition?.(transition);
+            },
             executeActions: (actions, eventContext) => this.effects.executeTransaction(
                 actions,
                 {
@@ -247,7 +250,17 @@ export class CombatRuntime {
                         eventContext.blackboard
                     )
                 }
-            )
+            ),
+            onBlackboardChange: (listener, incomingContext) => {
+                if (listener.buffInstanceId === null
+                    || listener.buffInstanceId === undefined) return;
+                this.statusEffects.replaceBlackboard({
+                    frame: incomingContext.frame ?? this.currentFrame,
+                    instanceId: listener.buffInstanceId,
+                    blackboard: listener.blackboard,
+                    reason: 'AbilityEventListenerBlackboard'
+                }, incomingContext);
+            }
         });
         this.enemyMechanics = new EnemyMechanicResolver({
             statusEffects: this.statusEffects,
@@ -2994,14 +3007,25 @@ export class CombatRuntime {
                 });
             },
             RegisterAbilityEventListener: (action, eventContext) => {
+                const buffOwned = action.ownerLifetime === 'BuffInstance';
+                if (buffOwned && (eventContext.buffInstanceId === null
+                    || eventContext.buffInstanceId === undefined)) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'AbilityEventListenerBuffInstanceMissing'
+                    };
+                }
+                const listenerId = buffOwned
+                    ? `${String(action.sourceKey)}:${String(eventContext.buffInstanceId)}`
+                    : action.listenerId ?? action.sourceKey;
                 const listenerTargetId = this.#entityId(
                     action.listenerTarget ?? action.listenerTargetRef ?? 'Owner',
                     eventContext,
                     'Owner'
                 );
                 return this.abilityEventListeners.register({
-                    listenerId: action.listenerId ?? action.sourceKey,
-                    sourceKey: action.sourceKey,
+                    listenerId,
+                    sourceKey: listenerId,
                     listenerTargetId,
                     sourceId: eventContext.sourceId,
                     ownerId: eventContext.ownerId,
@@ -3010,6 +3034,8 @@ export class CombatRuntime {
                     rootSkillId: eventContext.rootSkillId,
                     castId: eventContext.castId,
                     programExecutionId: eventContext.programExecutionId,
+                    buffInstanceId: buffOwned ? eventContext.buffInstanceId : null,
+                    ownerLifetime: action.ownerLifetime ?? 'SkillTimeline',
                     clockDomainId: eventContext.clockDomainId,
                     timelineStartFrame: action.timelineStartFrame,
                     timelineEndFrame: action.timelineEndFrame,
@@ -3020,14 +3046,27 @@ export class CombatRuntime {
                     frame: eventContext.frame
                 }, eventContext);
             },
-            UnregisterAbilityEventListener: (action, eventContext) =>
-                this.abilityEventListeners.remove({
+            UnregisterAbilityEventListener: (action, eventContext) => {
+                const buffOwned = action.ownerLifetime === 'BuffInstance';
+                if (buffOwned && (eventContext.buffInstanceId === null
+                    || eventContext.buffInstanceId === undefined)) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'AbilityEventListenerBuffInstanceMissing'
+                    };
+                }
+                const listenerId = buffOwned
+                    ? `${String(action.sourceKey)}:${String(eventContext.buffInstanceId)}`
+                    : action.listenerId ?? action.sourceKey;
+                return this.abilityEventListeners.remove({
                     frame: eventContext.frame,
-                    listenerId: action.listenerId ?? action.sourceKey,
+                    listenerId,
                     castId: eventContext.castId,
                     programExecutionId: eventContext.programExecutionId,
+                    buffInstanceId: buffOwned ? eventContext.buffInstanceId : undefined,
                     reason: action.reason ?? 'TimelineGroupEnded'
-                }, eventContext),
+                }, eventContext);
+            },
             LaunchSkillProgram: (action, eventContext) => {
                 if (!this.skillProgramResolver) {
                     return {
@@ -4012,6 +4051,42 @@ export class CombatRuntime {
         } finally {
             this.abilityNotifyDepth -= 1;
         }
+    }
+
+    #onStatusEffectTransition(transition) {
+        if (!isRecord(transition) || transition.stage !== 'StatusEffectFinished') return;
+        const definition = this.statusEffects.getDefinition(transition.buffId);
+        const context = this.context.createEventContext({
+            frame: transition.frame,
+            eventType: 'OnFinishedBuff',
+            sourceId: transition.sourceId,
+            ownerId: transition.ownerId,
+            targetId: transition.targetId,
+            skillId: transition.sourceSkillId,
+            rootSkillId: transition.rootSkillId,
+            castId: transition.castId,
+            buffInstanceId: transition.instanceId,
+            clockDomainId: transition.actionClockDomainId
+                ?? transition.clockDomainId,
+            payload: {
+                buffId: transition.buffId,
+                buffTagIds: cloneValue(definition?.tagIds ?? []),
+                finishedBuffInstanceId: transition.instanceId,
+                finishReason: transition.reason ?? 'Finished'
+            }
+        });
+        this.#notifyLifecycleAbilityEvent(
+            'OnFinishedBuff',
+            context,
+            transition.targetId
+        );
+        // Buff-owned EventListenerAction subscriptions must not survive their
+        // carrier even if a malformed definition omitted the normal cleanup.
+        this.abilityEventListeners.remove({
+            frame: transition.frame,
+            buffInstanceId: transition.instanceId,
+            reason: 'OwnerBuffFinished'
+        }, context);
     }
 
     #onAuraTargetEntered(eventContext, instance) {

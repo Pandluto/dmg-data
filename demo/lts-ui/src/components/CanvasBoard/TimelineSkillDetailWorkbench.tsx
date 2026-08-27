@@ -141,6 +141,8 @@ function isAbilityDetailLine(label: string): boolean {
 
 const ATTACK_BUFF_TYPES = new Set([
   'atkPercentBoost',
+  'flatAtk',
+  'atkFinalMultiplier',
   'mainStatBoost',
   'subStatBoost',
   'allStatBoost',
@@ -149,6 +151,31 @@ const ATTACK_BUFF_TYPES = new Set([
   'intelligenceBoost',
   'willBoost',
 ]);
+
+const BUFF_TYPE_LABELS: Record<string, string> = {
+  atkPercentBoost: '攻击力加成',
+  flatAtk: '固定攻击力',
+  atkFinalMultiplier: '攻击力最终乘区',
+  physicalFragile: '物理易伤',
+  magicFragile: '法术易伤',
+  physicalVulnerability: '物理易伤',
+  magicVulnerability: '法术易伤',
+  fireVulnerability: '灼热易伤',
+  electricVulnerability: '电磁易伤',
+  iceVulnerability: '寒冷易伤',
+  natureVulnerability: '自然易伤',
+  allDmgBonus: '全伤害加成',
+  physicalDmgBonus: '物理伤害加成',
+  fireDmgBonus: '灼热伤害加成',
+  electricDmgBonus: '电磁伤害加成',
+  iceDmgBonus: '寒冷伤害加成',
+  natureDmgBonus: '自然伤害加成',
+};
+
+function formatBuffTypeLabel(type: string | undefined): string {
+  if (!type) return '未分类';
+  return BUFF_TYPE_LABELS[type] ?? type;
+}
 
 const CRIT_BUFF_TYPES = new Set(['critRateBoost', 'critDmgBonusBoost']);
 const RESISTANCE_BUFF_TYPES = new Set([
@@ -589,7 +616,7 @@ export function TimelineSkillDetailWorkbench({
                                 <div key={buff.id} className="timeline-calculation-buff-row">
                                   <span>
                                     <strong>{buff.label}</strong>
-                                    <small>{buff.type || '未分类'}</small>
+                                    <small>{formatBuffTypeLabel(buff.type)}</small>
                                   </span>
                                   <em>{formatBuffEffect(buff)}</em>
                                 </div>

@@ -501,6 +501,25 @@ const ATTRIBUTE_BUFF_TYPES: Record<string, string> = {
   ShelterDmgScalar: 'damageReduction',
 };
 
+/**
+ * AKE's attribute registry has several zones for the same named attribute.
+ * They must not all be projected as `atkPercentBoost`: a BaseAddition is a
+ * flat value, while BaseFinalMultiplier is a factor.  The timeline detail
+ * view consumes this type to choose both its section and its unit.
+ */
+function runtimeContributionType(attribute: string, zone: string, fallback: string): string {
+  if (attribute === 'Atk') {
+    if (/^(?:Base)?(?:Final)?Addition$/.test(zone)) return 'flatAtk';
+    if (/^(?:Base)?FinalMultiplier$/.test(zone)) return 'atkFinalMultiplier';
+    if (/^(?:Base)?Multiplier$/.test(zone)) return 'atkPercentBoost';
+  }
+  return ATTRIBUTE_BUFF_TYPES[attribute] ?? fallback;
+}
+
+function isRuntimeFactorZone(zone: string): boolean {
+  return /^(?:Base)?FinalMultiplier$/.test(zone);
+}
+
 const DAMAGE_TYPE_BUFF_PREFIX: Record<string, string> = {
   Physical: 'physical',
   Fire: 'fire',
@@ -528,6 +547,8 @@ function readableSourceToken(value: unknown): string {
   const token = value.trim();
   if (!token || /^(?:buff|chr|wpn|equip)_/i.test(token)) return '';
   const prefix = token.split(':', 1)[0];
+  if (/^AKEDatabase:DerivedAbility(?::|$)/i.test(token)) return RUNTIME_SOURCE_LABELS.DerivedAbility;
+  if (/^AKEDatabase:AttributeTalent(?::|$)/i.test(token)) return RUNTIME_SOURCE_LABELS.AttributeTalent;
   return RUNTIME_SOURCE_LABELS[prefix] ?? '';
 }
 
@@ -628,6 +649,7 @@ function contributionBuffTags(
       || readableContributionName(contribution.metadata)
       || RUNTIME_SOURCE_LABELS[String(contribution.sourceType ?? '')]
       || RUNTIME_SOURCE_LABELS[String(contribution.sourceCategory ?? '')];
+    const zone = String(contribution.zone ?? contribution.semanticKey ?? '');
     const label = statusMetadata?.label
       || sourceMetadataName
       || ATTRIBUTE_LABELS[attribute]
@@ -653,6 +675,9 @@ function contributionBuffTags(
     const semanticType = isVulnerability
       ? `${damageTypePrefix}Vulnerability`
       : side === 'Defender' ? `${damageTypePrefix}Fragile` : 'allDmgBonus';
+    const type = statusMetadata?.effectType
+      ?? runtimeContributionType(attribute, zone, semanticType);
+    const isMultiplier = isRuntimeFactorZone(zone);
     return [{
       id: dedupeKey || `${sourceKey}:${index}`,
       contributionId: contribution.contributionId ?? undefined,
@@ -662,11 +687,11 @@ function contributionBuffTags(
       label,
       displayLabel: label,
       sourceName,
-      type: statusMetadata?.effectType
-        ?? ATTRIBUTE_BUFF_TYPES[attribute]
-        ?? semanticType,
+      type,
       value: addition,
       effectiveValue: addition,
+      multiplierCoefficient: isMultiplier ? addition : undefined,
+      isMultiplier,
       stackCount: statusStackCount,
       maxStacks: undefined,
       isCountable: finite(statusStackCount, 1) > 1,

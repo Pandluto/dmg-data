@@ -322,6 +322,65 @@ assert.ok(ledger.hits[0].formula.buffTags.some((buff) => (
   && buff.type === 'atkPercentBoost'
   && buff.stackCount === 1
 )));
+
+const attackZoneReport = structuredClone(report);
+attackZoneReport.hits = [runtimeHit(0, null, 1, false)];
+attackZoneReport.hits[0].modifierSnapshot.attackAttribute = {
+  targetId: 'actor-a',
+  attribute: 'Atk',
+  baseValue: 3323.737728,
+  evaluation: { value: 3323.737728 },
+  contributions: [
+    {
+      contributionId: 'weapon-flat',
+      sourceKey: 'ake-baseline:actor-a:weapon',
+      sourceType: 'Weapon',
+      sourceCategory: 'Weapon',
+      attribute: 'Atk',
+      zone: 'BaseAddition',
+      value: 505,
+      resolvedValue: 505,
+      metadata: { sourceLabel: 'Weapon' },
+    },
+    {
+      contributionId: 'weapon-passive',
+      sourceKey: 'ake-baseline:actor-a:weapon-passive',
+      sourceType: 'WeaponPassive',
+      sourceCategory: 'Weapon',
+      attribute: 'Atk',
+      zone: 'BaseMultiplier',
+      value: 0.256,
+      resolvedValue: 0.256,
+      metadata: { sourceLabel: 'WeaponPassive' },
+    },
+    {
+      contributionId: 'ability-derived',
+      sourceKey: 'ake-baseline:actor-a:ability',
+      sourceType: 'DerivedAbility',
+      sourceCategory: 'System',
+      attribute: 'Atk',
+      zone: 'BaseFinalMultiplier',
+      value: 3.196,
+      resolvedValue: 3.196,
+      metadata: { sourceLabel: 'AKEDatabase:DerivedAbility:Attack' },
+    },
+  ],
+};
+const attackZoneLedger = buildAkeRuntimeCommandLedger({
+  report: attackZoneReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+});
+const attackZoneTags = attackZoneLedger?.hits[0].formula.buffTags ?? [];
+assert.ok(attackZoneTags.some((buff) => buff.type === 'flatAtk' && buff.effectiveValue === 505 && !buff.isMultiplier),
+  'BaseAddition must remain a flat attack contribution');
+assert.ok(attackZoneTags.some((buff) => buff.type === 'atkPercentBoost' && buff.effectiveValue === 0.256 && !buff.isMultiplier),
+  'BaseMultiplier must remain an additive attack-rate contribution');
+assert.ok(attackZoneTags.some((buff) => buff.type === 'atkFinalMultiplier' && buff.multiplierCoefficient === 3.196 && buff.isMultiplier),
+  'BaseFinalMultiplier must remain a factor instead of a percent');
+assert.ok(attackZoneTags.some((buff) => buff.label === '能力换算' && buff.type === 'atkFinalMultiplier'),
+  'internal AKEDatabase derived-ability ids must resolve to a readable source label');
 assert.ok(ledger.hits[0].formula.attackLines?.some((line) => line.includes('840 → 1000')));
 assert.ok(ledger.statuses.some((status) => (
   status.title === '天赋·通用叠层 ×2'

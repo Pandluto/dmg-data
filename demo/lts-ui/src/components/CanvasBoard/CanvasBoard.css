@@ -2936,6 +2936,26 @@
     0 0 6px rgba(223, 118, 43, 0.64);
 }
 
+/* Long DoT tails stay in the runtime ledger, but the canvas uses a few tiny
+ * representatives so a 20-second bleed does not become a wall of diamonds. */
+.ake-preview-hit-marker.is-lingering.is-compact,
+.ake-hit-marker.is-settled.is-compact {
+  width: 4px;
+  height: 4px;
+  border-width: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.82),
+    0 0 5px rgba(223, 118, 43, 0.72);
+}
+
+.ake-preview-hit-marker.is-lingering.is-compact span,
+.ake-preview-hit-marker.is-lingering.is-compact em,
+.ake-hit-marker.is-settled.is-compact > span {
+  display: none;
+}
+
 .ake-preview-hit-marker.is-after-body,
 .ake-hit-marker.is-after-body {
   border-color: #8f451d;
@@ -2982,6 +3002,23 @@
   z-index: 7;
   background: #ffd24f;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.92), 0 0 0 3px rgba(41, 70, 80, 0.32);
+}
+
+/* Keep the settled projection compact as well; the base settled marker rules
+ * appear after the shared preview rule above. */
+.ake-hit-marker.is-settled.is-compact {
+  width: 4px;
+  height: 4px;
+  border-width: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.82),
+    0 0 5px rgba(223, 118, 43, 0.72);
+}
+
+.ake-hit-marker.is-settled.is-compact > span {
+  display: none;
 }
 
 .ake-hit-marker > span {

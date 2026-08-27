@@ -38,6 +38,7 @@ import {
   type SharedTimelineColumn,
 } from '../../../core/domain/sharedVariableRateTimeline';
 import { resolveInitialControllerLaneId } from '../../../core/domain/operatorControlTimeline';
+import { compactLingeringHitMarkers } from '../lingeringHitProjection';
 import type { CanvasDropTarget } from '../hooks/useCanvasDrag';
 
 interface CanvasAreaProps {
@@ -650,7 +651,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
       .map(sample => `${sample.x},${atbY(sample.value.total)}`)
       .join(' ');
 
-    const projectedPreviewHits = (akeTimeline ? [] : akeRealtimeTimeline.hits)
+    const projectedPreviewHits = compactLingeringHitMarkers((akeTimeline ? [] : akeRealtimeTimeline.hits)
       .map((hit) => {
         const action = variableActionById.get(hit.commandId);
         const command = akePreviewCommandById.get(hit.commandId);
@@ -662,8 +663,15 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           point: visualPointForFrame(hit.frame, 'after'),
         };
       })
-      .filter(entry => entry.point?.pageIndex === staffIndex);
-    const projectedSettledHits = (akeTimeline?.hitBursts ?? []).map((hit) => {
+      .filter(entry => entry.point !== null)
+      .map(entry => ({
+        ...entry,
+        groupKey: entry.hit.commandId,
+        frame: entry.hit.frame,
+        lingering: entry.hit.kind === 'lingering',
+      }))
+    ).filter(entry => entry.point?.pageIndex === staffIndex);
+    const projectedSettledHits = compactLingeringHitMarkers((akeTimeline?.hitBursts ?? []).map((hit) => {
       const command = (akeTimeline?.commands ?? [])
         .filter(candidate => {
           const start = candidate.actualFrame ?? candidate.requestedFrame;
@@ -688,7 +696,16 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
         afterBody: bodyEndFrame !== null && hit.frame > bodyEndFrame,
         point: visualPointForFrame(hit.frame, 'after'),
       };
-    }).filter(entry => entry.point?.pageIndex === staffIndex);
+    }).filter(entry => entry.point !== null).map(entry => ({
+      ...entry,
+      groupKey: entry.command?.commandId
+        ?? `${entry.hit.characterId}:${entry.hit.skillId ?? 'unknown'}`,
+      frame: entry.hit.frame,
+      // Settled bursts do not carry the preview `kind`; a long post-body
+      // sequence is the authoritative presentation signal for a lingering
+      // tail.  Short post-body projectiles remain untouched by the threshold.
+      lingering: entry.afterBody,
+    }))).filter(entry => entry.point?.pageIndex === staffIndex);
     const resourceEvents = visibleAtbPoints
       .filter(point => point.commandId)
       .map(point => ({ event: point, point: visualPointForFrame(point.frame, 'after') }))
@@ -843,19 +860,22 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
             <span>后置结算</span>
           </div>
         ))}
-        {projectedPreviewHits.map(({ hit, bodyEndFrame, afterBody, point }) => {
+        {projectedPreviewHits.map(({ hit, bodyEndFrame, afterBody, point, compactLingering, lingeringCount, lingeringStartFrame, lingeringEndFrame }) => {
           if (!point) return null;
           const lineIndex = selectedCharacters.findIndex(character => character.id === hit.characterId);
           if (lineIndex < 0) return null;
+          const lingeringDescription = compactLingering
+            ? `后置持续结算（已压缩显示：${lingeringCount ?? hit.hitCount} 个结算点，${seconds(lingeringStartFrame ?? hit.frame)}～${seconds(lingeringEndFrame ?? hit.frame)}）`
+            : '持续结算';
           return (
             <div
               key={hit.id}
-              className={`ake-preview-hit-marker is-${hit.kind}${afterBody ? ' is-after-body' : ''}`}
+              className={`ake-preview-hit-marker is-${hit.kind}${afterBody ? ' is-after-body' : ''}${compactLingering ? ' is-compact' : ''}`}
               data-command-id={hit.commandId}
               data-hit-frame={hit.frame}
               data-settlement-relation={afterBody ? 'after-body' : 'during-body'}
               style={{ left: point.x, top: getGridEnergyRowTopY(lineIndex) }}
-              title={`${seconds(hit.frame)} · F${hit.frame} · ${afterBody ? `后置结算（本体止于 ${seconds(bodyEndFrame ?? hit.frame)}，不占技能格）` : hit.kind === 'projectile' ? '飞行落点' : hit.kind === 'lingering' ? '持续结算' : '直接结算'} · ${hit.hitCount} hit`}
+              title={`${seconds(hit.frame)} · F${hit.frame} · ${afterBody ? `后置结算（本体止于 ${seconds(bodyEndFrame ?? hit.frame)}，不占技能格）` : hit.kind === 'projectile' ? '飞行落点' : hit.kind === 'lingering' ? lingeringDescription : '直接结算'} · ${hit.hitCount} hit`}
             >
               {hit.launchFrame !== null && hit.frame > hit.launchFrame
                 ? <em>+{((hit.frame - hit.launchFrame) / tickRate).toFixed(2)}秒</em>
@@ -864,19 +884,22 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
             </div>
           );
         })}
-        {projectedSettledHits.map(({ hit, command, bodyEndFrame, afterBody, point }) => {
+        {projectedSettledHits.map(({ hit, command, bodyEndFrame, afterBody, point, compactLingering, lingeringCount, lingeringStartFrame, lingeringEndFrame }) => {
           if (!point) return null;
           const lineIndex = selectedCharacters.findIndex(character => character.id === hit.characterId);
           if (lineIndex < 0) return null;
+          const lingeringDescription = compactLingering
+            ? `后置持续结算（已压缩显示：${lingeringCount ?? hit.hpHitCount} 个结算点，${seconds(lingeringStartFrame ?? hit.frame)}～${seconds(lingeringEndFrame ?? hit.frame)}）`
+            : null;
           return (
             <div
               key={hit.id}
-              className={`ake-hit-marker is-settled${afterBody ? ' is-after-body' : ''}`}
+              className={`ake-hit-marker is-settled${afterBody ? ' is-after-body' : ''}${compactLingering ? ' is-compact' : ''}`}
               data-command-id={command?.commandId ?? undefined}
               data-hit-frame={hit.frame}
               data-settlement-relation={afterBody ? 'after-body' : 'during-body'}
               style={{ left: point.x, top: getGridEnergyRowTopY(lineIndex) }}
-              title={`${seconds(hit.frame)} · ${afterBody ? `后置结算（本体止于 ${seconds(bodyEndFrame ?? hit.frame)}） · ` : ''}${Math.round(hit.damage).toLocaleString('zh-CN')} 伤害 · ${hit.hpHitCount} hit`}
+              title={`${seconds(hit.frame)} · ${lingeringDescription ?? (afterBody ? `后置结算（本体止于 ${seconds(bodyEndFrame ?? hit.frame)}）` : '伤害结算')} · ${Math.round(hit.damage).toLocaleString('zh-CN')} 伤害 · ${hit.hpHitCount} hit`}
             >
               <span>{Math.round(hit.damage).toLocaleString('zh-CN')}</span>
             </div>

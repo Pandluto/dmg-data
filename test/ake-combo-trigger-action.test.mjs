@@ -86,6 +86,68 @@ test('ShowComboRingQte compiles the AKE warning and precise intervals as a timed
     )), false);
 });
 
+test('Wulfa combo 3 uses the generic tag stack query to consume spell attachment layers', () => {
+    const assembled = new AkeSquadScenarioAssembler().assemble({
+        enemyId: ENEMY,
+        members: [
+            { memberId: 'pelica', characterId: 'chr_0004_pelica' },
+            { memberId: 'wulfa', characterId: WULFA }
+        ],
+        initialAtb: 300
+    });
+    const combo3 = assembled.programs.get(COMBO_3);
+    assert.ok(combo3, 'the real combo 3 program should be assembled');
+    assert.equal(combo3.compiler.unresolved.some(entry => (
+        entry.sourceType === 'CheckBuffStackNumByTag'
+    )), false, 'tag stack conditions must be executable');
+
+    const result = new AkeSquadScenarioRunner(assembled).run({
+        commands: [{
+            commandId: 'pelica-normal',
+            memberId: 'pelica',
+            commandType: 'NormalSkill',
+            frame: 0
+        }, {
+            commandId: 'wulfa-normal',
+            memberId: 'wulfa',
+            commandType: 'NormalSkill',
+            frame: 0
+        }, {
+            commandId: 'wulfa-combo-2',
+            memberId: 'wulfa',
+            commandType: 'ComboSkill',
+            frame: 100
+        }, {
+            commandId: 'wulfa-combo-3',
+            memberId: 'wulfa',
+            commandType: 'ComboSkill',
+            frame: 150
+        }],
+        endFrame: 240
+    });
+    const consumedAttachment = result.statusTrace.find(entry => (
+        entry.stage === 'StatusEffectFinished'
+        && entry.buffId === 'buff_common_energy_shard_attached_pulse'
+        && entry.targetId === ENEMY
+        && entry.consumption === true
+        && entry.consumerId === WULFA
+    ));
+    assert.ok(consumedAttachment, 'combo 3 must consume the target attachment through FinishBuff');
+    assert.equal(consumedAttachment.consumedStacks, 1);
+    assert.ok(result.statusTrace.some(entry => (
+        entry.stage === 'StatusEffectApplied'
+        && entry.buffId === 'buff_chr_0028_wulfa_combo_inflictnum'
+        && entry.targetId === ENEMY
+        && entry.stackCount === 1
+    )), 'the consumed layer must be recorded for the combo damage formula');
+    assert.ok(result.damageLog.some(entry => (
+        entry.skillId === COMBO_3
+        && entry.frame === consumedAttachment.frame
+        && entry.damageAttributeType === 'Hp'
+        && entry.damageDecorateMask !== 0
+    )), 'the layer-driven combo hit must be emitted by the runtime');
+});
+
 test('action-created combo pending owns its gate and can admit a chained stage', () => {
     const trace = [];
     const machine = new ComboTriggerMachine({

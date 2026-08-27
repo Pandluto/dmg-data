@@ -3722,6 +3722,7 @@ export class AkeActionCompiler {
                 } : null;
                 break;
             }
+            case 'CheckBuffStackNumByTag':
             case 'CheckBuffStackNumAdvanced': {
                 const target = this.#targetRef(
                     node.checkTarget,
@@ -3729,7 +3730,16 @@ export class AkeActionCompiler {
                     'advanced Buff stack target'
                 );
                 if (target.unresolved) result.unresolved.push(target.unresolved);
+                // AKE has two serialized spellings for the same semantic
+                // query.  The older `CheckBuffStackNumByTag` stores the tag
+                // query directly on the node; the newer Advanced form wraps
+                // it in buffSettings.  Both must use the runtime's generic
+                // tag-aware BuffStackCompare evaluator so status branches do
+                // not silently fall through to their failure path.
                 const settings = node.buffSettings ?? {};
+                const tagQuery = node.tagQuery ?? settings.tagQuery ?? {};
+                const checkType = node.checkType ?? settings.checkType
+                    ?? (type === 'CheckBuffStackNumByTag' ? 'Tag' : 'Id');
                 if (settings.checkType === 'Environment') {
                     result.unresolved.push(this.#unresolved(
                         'AKE_ENVIRONMENT_BUFF_PROVIDER_REQUIRED',
@@ -3742,13 +3752,13 @@ export class AkeActionCompiler {
                 result.condition = target.ref ? {
                     type: 'BuffStackCompare',
                     target: target.ref,
-                    buffIds: settings.checkType === 'Id'
+                    buffIds: checkType === 'Id'
                         ? (settings.buffIdList ?? []).filter(Boolean)
                         : [],
-                    tagIds: settings.checkType === 'Tag'
-                        ? tagIds(settings.tagQuery?.tags)
+                    tagIds: checkType === 'Tag'
+                        ? tagIds(tagQuery.tags)
                         : [],
-                    tagQueryType: settings.tagQuery?.queryType ?? 'HasAny',
+                    tagQueryType: tagQuery.queryType ?? 'HasAny',
                     countType: node.buffStackNumType ?? 'BuffCount',
                     operator: node.compareType,
                     value: descriptor(node.value)

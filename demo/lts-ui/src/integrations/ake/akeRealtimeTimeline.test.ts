@@ -953,6 +953,77 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
 }
 
 {
+  const actor = character('lingering-anchor-actor');
+  const source = button('long-dot-source', actor.id, 0, 'B');
+  source.runtimeSkillId = 'long-dot-source-skill';
+  const follower = button('long-dot-follower', actor.id, 1, 'B');
+  follower.runtimeSkillId = 'long-dot-follower-skill';
+  follower.releaseAnchor = {
+    schemaVersion: 1,
+    kind: 'damage-hit',
+    sourceButtonId: source.id,
+    sourceHitId: `${source.id}:preview-hit:1`,
+    sourceHitOffsetFrames: 810,
+    debounceFrames: 6,
+  };
+  const sourceProfile = profile({
+    commandType: 'NormalSkill',
+    skillId: source.runtimeSkillId,
+    bodyEndOffset: 90,
+    tailEndOffset: 810,
+    exclusiveFrames: 90,
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+    hits: [{
+      offsetFrames: 80,
+      launchOffsetFrames: null,
+      sourceSkillId: 'long-dot-source-skill',
+      rootSkillId: 'long-dot-source-skill',
+      kind: 'direct',
+      hitCount: 1,
+      damageTypes: ['Physical'],
+    }, {
+      offsetFrames: 810,
+      launchOffsetFrames: null,
+      sourceSkillId: 'long-dot-status-tick',
+      rootSkillId: 'long-dot-source-skill',
+      kind: 'lingering',
+      hitCount: 1,
+      damageTypes: ['Physical'],
+    }],
+  });
+  const followerProfile = profile({
+    commandType: 'NormalSkill',
+    skillId: follower.runtimeSkillId,
+    bodyEndOffset: 30,
+    tailEndOffset: 30,
+    exclusiveFrames: 30,
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+    hits: [],
+  });
+  const result = buildAkeRealtimeTimeline({
+    timelineData: timeline([{ characterId: actor.id, buttons: [source, follower] }]),
+    selectedCharacters: [actor],
+    catalog: catalog({ [actor.id]: [sourceProfile, followerProfile] }),
+    staffCount: 1,
+  });
+  const followerCommand = result.commands.find(command => command.commandId === follower.id)!;
+  assertEqual(
+    followerCommand.actualFrame,
+    90,
+    'a persisted lingering-hit anchor is repaired to the source action end',
+  );
+  assertEqual(
+    result.diagnostics.some(diagnostic => diagnostic.startsWith('RELEASE_ANCHOR_REPAIRED:')),
+    true,
+    'the transient legacy-anchor repair remains auditable',
+  );
+}
+
+{
   const actorA = character('actor-a');
   const actorB = character('actor-b');
   const normal = profile({

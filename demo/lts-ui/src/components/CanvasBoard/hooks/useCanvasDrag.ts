@@ -187,7 +187,15 @@ export function hitsEligibleForReleaseSnap(
   const commandTypeById = new Map(
     timeline.commands.map(command => [command.commandId, command.commandType]),
   );
-  return timeline.hits.filter(hit => commandTypeById.get(hit.commandId) !== 'UltimateSkill');
+  return timeline.hits.filter(hit => (
+    commandTypeById.get(hit.commandId) !== 'UltimateSkill'
+    // A lingering hit belongs to an already committed status/projectile tail.
+    // It remains visible and damage-bearing, but cannot hold the next combat
+    // action hostage or become a magnetic release anchor.  Rossi's long bleed
+    // is the minimal public-data case: treating its final DoT tick as a skill
+    // release point moved the following combo from ~3 s to ~27 s.
+    && hit.kind !== 'lingering'
+  ));
 }
 
 export function isComboReleaseFrameAvailable({

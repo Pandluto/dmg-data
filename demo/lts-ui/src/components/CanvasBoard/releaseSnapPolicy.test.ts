@@ -10,8 +10,10 @@ import {
 } from './hooks/useCanvasDrag';
 
 const hits = [
-  { id: 'normal-hit', commandId: 'normal', frame: 10 },
-  { id: 'ultimate-hit', commandId: 'ultimate', frame: 12 },
+  { id: 'normal-hit', commandId: 'normal', frame: 10, kind: 'direct' },
+  { id: 'projectile-hit', commandId: 'normal', frame: 11, kind: 'projectile' },
+  { id: 'lingering-hit', commandId: 'normal', frame: 300, kind: 'lingering' },
+  { id: 'ultimate-hit', commandId: 'ultimate', frame: 12, kind: 'direct' },
 ] as AkeRealtimeHit[];
 const commands = [
   { commandId: 'normal', commandType: 'NormalSkill' },
@@ -20,8 +22,8 @@ const commands = [
 
 assert.deepEqual(
   hitsEligibleForReleaseSnap({ commands, hits }).map(hit => hit.id),
-  ['normal-hit'],
-  'ultimate damage settlements never become combo/release snap points',
+  ['normal-hit', 'projectile-hit'],
+  'only committed non-ultimate impacts become combo/release snap points',
 );
 
 const comboTimeline = {

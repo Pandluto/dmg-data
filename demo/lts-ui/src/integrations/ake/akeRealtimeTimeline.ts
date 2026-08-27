@@ -325,6 +325,60 @@ function inputsFromTimeline(
   ));
 }
 
+type ReleaseAnchorRepair = {
+  buttonId: string;
+  sourceButtonId: string;
+  previousOffsetFrames: number;
+  reason: 'LINGERING_OR_MISSING_HIT' | 'ULTIMATE_HIT';
+};
+
+/**
+ * Old saves can retain a damage anchor that was offered before release snaps
+ * distinguished an action impact from a lingering status tick.  Keep the
+ * status damage on the timeline, but transiently repair that relationship to
+ * the source action end so loading the save cannot move the follower tens of
+ * seconds outside its legal window.
+ */
+function repairIneligibleDamageHitAnchors(
+  inputs: readonly TimelineInput[],
+  profiles: ReadonlyMap<string, AkeTimingSkillProfile>,
+): { inputs: TimelineInput[]; repairs: ReleaseAnchorRepair[] } {
+  const inputById = new Map(inputs.map(input => [input.commandId, input]));
+  const repairs: ReleaseAnchorRepair[] = [];
+  const repairedInputs: TimelineInput[] = inputs.map((input) => {
+    const anchor = input.releaseAnchor;
+    if (anchor?.kind !== 'damage-hit' || !anchor.sourceButtonId) return input;
+    const sourceInput = inputById.get(anchor.sourceButtonId);
+    const sourceProfile = profiles.get(anchor.sourceButtonId);
+    const persistedOffset = Number(anchor.sourceHitOffsetFrames);
+    if (!sourceInput || !sourceProfile || !Number.isFinite(persistedOffset) || persistedOffset < 0) {
+      return input;
+    }
+    const sourceIsUltimate = sourceInput.commandType === 'UltimateSkill';
+    const matchesEligibleHit = !sourceIsUltimate && sourceProfile.hits.some(hit => (
+      hit.kind !== 'lingering'
+      && Math.round(hit.offsetFrames) === Math.round(persistedOffset)
+    ));
+    if (matchesEligibleHit) return input;
+    repairs.push({
+      buttonId: input.commandId,
+      sourceButtonId: sourceInput.commandId,
+      previousOffsetFrames: Math.round(persistedOffset),
+      reason: sourceIsUltimate ? 'ULTIMATE_HIT' : 'LINGERING_OR_MISSING_HIT',
+    });
+    return {
+      ...input,
+      releaseAnchor: {
+        schemaVersion: 1 as const,
+        kind: 'action-end' as const,
+        sourceButtonId: sourceInput.commandId,
+        debounceFrames: 0,
+      },
+    };
+  });
+  return { inputs: repairedInputs, repairs };
+}
+
 function characterProfiles(timing: AkeTimingCatalog | undefined, characterId: string) {
   return timing?.characters[characterId]?.profiles ?? [];
 }
@@ -2602,7 +2656,7 @@ export function buildAkeRealtimeTimeline(
 ): AkeRealtimeTimeline {
   const timing = input.catalog?.timing;
   const tickRate = timing?.tickRate ?? DEFAULT_TICK_RATE;
-  const timelineInputs = inputsFromTimeline(
+  const persistedTimelineInputs = inputsFromTimeline(
     input.timelineData,
     input.selectedCharacters,
   );
@@ -2618,7 +2672,7 @@ export function buildAkeRealtimeTimeline(
     && module.timelineModuleKind !== 'lane-wait'
     && module.timelineModuleKind !== 'operator-switch'
   ));
-  if (timelineInputs.length === 0) {
+  if (persistedTimelineInputs.length === 0) {
     const emptySimulation = simulateAkeRealtimeTimeline(input);
     if (unresolvedTimelineModules.length === 0) return emptySimulation;
     return {
@@ -2632,7 +2686,9 @@ export function buildAkeRealtimeTimeline(
     };
   }
 
-  let profiles = initialTimelineActionProfiles(timing, timelineInputs);
+  let profiles = initialTimelineActionProfiles(timing, persistedTimelineInputs);
+  const anchorRepair = repairIneligibleDamageHitAnchors(persistedTimelineInputs, profiles);
+  const timelineInputs = anchorRepair.inputs;
   const releaseAnchorIssues = timelineReleaseAnchorIssues(timelineInputs, timelineModules, tickRate);
   let facts = timelineActionFacts(timelineInputs, profiles, tickRate, timelineModules);
   let spec = makeSharedVariableRateTimelineSpec({
@@ -2716,6 +2772,10 @@ export function buildAkeRealtimeTimeline(
     }
     : validatedPlan;
   const diagnostics = [...simulation.diagnostics];
+  diagnostics.push(...anchorRepair.repairs.map(repair => (
+    `RELEASE_ANCHOR_REPAIRED: ${repair.buttonId} 的伤害锚点 `
+      + `${repair.sourceButtonId}+${repair.previousOffsetFrames}f 不再是可释放命中，已回退到来源动作结束。`
+  )));
   diagnostics.push(...releaseAnchorIssues.map(issue => (
     `${issue.code}: ${issue.message}`
   )));

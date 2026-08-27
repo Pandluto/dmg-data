@@ -7,7 +7,7 @@ import { adaptRuntimeTemplateToLegacyCharacter, loadLocalOperatorCharacters } fr
 import { persistentLocalStorage } from '../platform/storage/persistentStorage';
 import { buildConfigSnapshot } from '../core/calculators/operatorPanelCalculator';
 import type { ConfigSnapshot, EquipmentPieceInput, EquipmentSetBuffInput, OperatorPanelInput } from '../core/calculators/operatorPanelCalculator';
-import type { Character, HitSkillType } from '../types';
+import type { Character, HitBuffEffect, HitSkillType } from '../types';
 import type {
   OperatorConfigPageCache,
   OperatorConfigPageCharacterConfig,
@@ -21,6 +21,7 @@ import { APP_ROUTE_PATHS, navigateToAppPath } from '../utils/appRoute';
 import { normalizeAssetUrl } from '../utils/assetResolver';
 import { setTimelineSessionWorkingPayload } from '../agentKernel/timelineRepository/timelineSession';
 import type { BuffEffectKind, BuffExtraHitConfig, BuffMultiplier } from '../core/domain/buff';
+import { getBuffTypeLabel } from '../core/domain/buffTypeMetadata';
 import { DEFAULT_WEAPON_SKILL_LEVELS } from '../core/services/operatorConfigSnapshotRefreshService';
 import {
   buildOperatorEquipmentSetBuffs,
@@ -90,6 +91,7 @@ type SkillHitDetail = {
   value: number | string;
   element: string;
   skillType: HitSkillType;
+  hitBuffs: HitBuffEffect[];
 };
 type SkillDetailGroup = {
   id: string;
@@ -888,6 +890,13 @@ function resolveHitValue(hit: { multiplier?: number; levels?: Record<string, num
   return '-';
 }
 
+function formatHitBuffEffectValue(value: number, unit?: string): string {
+  if (unit === 'percent') {
+    return `+${Number((value * 100).toFixed(2))}%`;
+  }
+  return `${value >= 0 ? '+' : ''}${Number(value.toFixed(4))}`;
+}
+
 function buildFallbackSkillDetails(
   skillKey: OperatorSkillKey,
   skill: Character['skills'][keyof Character['skills']] | undefined,
@@ -906,6 +915,7 @@ function buildFallbackSkillDetails(
       value: value ?? '-',
       element: 'unknown',
       skillType: skillKey,
+      hitBuffs: [],
     }));
 
   return [{
@@ -933,6 +943,7 @@ function buildSkillDetailGroups(character: Partial<Character>, skillKey: Operato
           value: resolveHitValue(hitWithLevels, levelKey),
           element: hit.element,
           skillType: hit.skillType,
+          hitBuffs: hit.hitBuffs ?? [],
         };
       }),
     }));
@@ -1168,6 +1179,33 @@ function SkillDetailModal({
                         <span className="operator-config-page-skill-hit-key">{hit.key}</span>
                         <strong>{hit.displayName}</strong>
                         <span>{`${hit.value} | ${hit.element} | ${hit.skillType}`}</span>
+                        {hit.hitBuffs.length > 0 ? (
+                          <div className="operator-config-page-skill-hit-buffs">
+                            {hit.hitBuffs.map((buff, buffIndex) => {
+                              const statusValue = buff.statusValueLevels?.[levelKey] ?? buff.statusValue;
+                              return (
+                                <div
+                                  key={`${group.id}-${hit.key}-${buff.id}-${buffIndex}`}
+                                  className="operator-config-page-skill-hit-buff"
+                                >
+                                  <div className="operator-config-page-skill-hit-buff-heading">
+                                    <strong>{buff.displayName || buff.id}</strong>
+                                    <span>{buff.targetLabel || buff.target}</span>
+                                  </div>
+                                  {typeof statusValue === 'number' ? (
+                                    <span>{`状态值 ${statusValue}`}</span>
+                                  ) : null}
+                                  {(buff.effects ?? []).map((effect) => (
+                                    <span key={`${buff.id}-${effect.id}`}>
+                                      {`${getBuffTypeLabel(effect.type)} ${formatHitBuffEffectValue(effect.value, effect.unit)}`}
+                                    </span>
+                                  ))}
+                                  {buff.description ? <small>{buff.description}</small> : null}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : null}
                       </div>
                     ))
                   )}

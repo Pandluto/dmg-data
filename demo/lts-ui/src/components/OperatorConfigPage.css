@@ -1341,6 +1341,39 @@
   font-weight: 700;
 }
 
+.operator-config-page-skill-hit-buffs {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(91, 128, 157, 0.2);
+}
+
+.operator-config-page-skill-hit-buff {
+  display: grid;
+  gap: 3px;
+  padding: 7px 8px;
+  border-radius: 6px;
+  background: rgba(231, 246, 255, 0.72);
+  color: #31546d;
+}
+
+.operator-config-page-skill-hit-buff-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.operator-config-page-skill-hit-buff-heading strong {
+  color: #173d56;
+}
+
+.operator-config-page-skill-hit-buff small {
+  color: #607787;
+  line-height: 1.4;
+}
+
 .operator-config-page-skill-empty-hit {
   margin: 0;
   color: #4B5563;

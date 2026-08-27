@@ -8,6 +8,7 @@ import type {
 import type {
   AkeCatalog,
   AkeTimingCatalog,
+  AkeTimingComboCondition,
   AkeTimingComboTrigger,
   AkeTimingHitProfile,
   AkeTimingSkillProfile,
@@ -55,6 +56,13 @@ const SKILL_SLOT_BY_COMMAND: Record<string, string> = {
   ComboSkill: 'ComboSkill',
   UltimateSkill: 'UltimateSkill',
 };
+const PREVIEW_NO_GUARD_BUFF_ID = 'buff_physical_no_guard';
+const PREVIEW_ATTACHMENT_BUFF_IDS = new Set([
+  'buff_common_energy_shard_attached_fire',
+  'buff_common_energy_shard_attached_pulse',
+  'buff_common_energy_shard_attached_cryst',
+  'buff_common_energy_shard_attached_natural',
+]);
 
 export type AkeRealtimeHit = {
   id: string;
@@ -813,10 +821,10 @@ function simulateAkeRealtimeTimeline(
   const comboWindows: AkeRealtimeComboWindow[] = [];
   const seenComboOccurrences = new Set<string>();
   let comboSequence = 0;
-  // Preview keeps only the minimum no-guard observation needed to draw a
-  // provisional combo marker. Damage, modifiers and derived hits belong to
-  // the settled runtime report and are never executed here.
-  let previewNoGuardStacks = 0;
+  // This is a compact projection of committed target status stacks for combo
+  // admission only. Damage, modifiers and derived hits remain owned by the
+  // settled runtime report; the canvas never replays their formulas.
+  const previewTargetBuffStacks = new Map<string, number>();
   let formSequence = 0;
   let ordinary = Math.max(0, Math.min(atbConfig.max, atbConfig.initial));
   let returned = 0;
@@ -1038,6 +1046,52 @@ function simulateAkeRealtimeTimeline(
       .map(entry => entry.rule)
   );
 
+  const compareComboCondition = (left: number, operator: string, right: number) => {
+    switch (operator.trim().toUpperCase()) {
+      case 'GT': case '>': return left > right;
+      case 'GE': case '>=': return left >= right;
+      case 'LT': case '<': return left < right;
+      case 'LE': case '<=': return left <= right;
+      case 'NE': case '!=': case '!==': return left !== right;
+      case 'EQ': case '=': case '==': case '===': case 'EQUALS': return left === right;
+      default: return false;
+    }
+  };
+
+  const comboConditionPasses = (condition: AkeTimingComboCondition): boolean => {
+    const type = String(condition.type ?? '').trim().toLowerCase();
+    if (type === 'all') {
+      const children = condition.conditions ?? condition.children ?? condition.items ?? [];
+      return children.every(comboConditionPasses);
+    }
+    if (type === 'any') {
+      const children = condition.conditions ?? condition.children ?? condition.items ?? [];
+      return children.some(comboConditionPasses);
+    }
+    if (type === 'not') {
+      const child = condition.condition ?? condition.child ?? condition.operand;
+      return child ? !comboConditionPasses(child) : false;
+    }
+    const target = String(condition.target ?? condition.entity ?? 'Target').toLowerCase();
+    if (!['target', 'fixed-dummy'].includes(target)) return false;
+    const buffIds = condition.buffIds
+      ?? (condition.buffId ? [condition.buffId] : []);
+    if (type === 'hasbuff') {
+      return buffIds.some(buffId => (previewTargetBuffStacks.get(buffId) ?? 0) > 0);
+    }
+    if (type !== 'buffstackcompare' || buffIds.length === 0) return false;
+    const count = condition.countType === 'BuffIdCount'
+      ? buffIds.filter(buffId => (previewTargetBuffStacks.get(buffId) ?? 0) > 0).length
+      : buffIds.reduce((sum, buffId) => (
+        sum + (previewTargetBuffStacks.get(buffId) ?? 0)
+      ), 0);
+    return compareComboCondition(
+      count,
+      String(condition.operator ?? 'EQ'),
+      finite(condition.value ?? condition.amount),
+    );
+  };
+
   const expireCombos = (frame: number) => {
     for (const pending of pendingCombos) {
       if (pending.state === 'ready' && pending.expireFrame <= frame) {
@@ -1125,7 +1179,8 @@ function simulateAkeRealtimeTimeline(
     rule: AkeTimingComboTrigger,
     observation: ComboTriggerObservation,
   ) => {
-    if (rule.eventType !== observation.eventType) return false;
+    const eventTypes = rule.eventTypes?.length ? rule.eventTypes : [rule.eventType];
+    if (!eventTypes.includes(observation.eventType)) return false;
     const selectsRoot = rule.rootSkillIds.length > 0 || Boolean(rule.rootSkillRole);
     if (selectsRoot) {
       const rootMatched = rule.rootSkillIds.includes(observation.rootSkillId)
@@ -1143,6 +1198,7 @@ function simulateAkeRealtimeTimeline(
       && ownerCharacterId === observation.characterId) return false;
     if (rule.damageAttributeType
       && rule.damageAttributeType !== observation.damageAttributeType) return false;
+    if ((rule.conditions ?? []).some(condition => !comboConditionPasses(condition))) return false;
     return true;
   };
 
@@ -1178,25 +1234,10 @@ function simulateAkeRealtimeTimeline(
       buffId: null,
     });
 
-    const beforeNoGuard = previewNoGuardStacks;
-    const statusKeys = new Set(hit.hitBuffs.map(effect => effect.statusKey).filter(Boolean));
-    // A physical attempt and its explicit result can coexist in one profile.
-    // The attempt is the transaction root, so the result must not be replayed
-    // as a second stack in preview.
-    const physicalStatus = ['fracture', 'crush', 'knockdown', 'airborne']
-      .find(statusKey => statusKeys.has(statusKey));
-    if (physicalStatus === 'knockdown' || physicalStatus === 'airborne') {
-      previewNoGuardStacks = Math.min(4, previewNoGuardStacks + 1);
-    } else if (physicalStatus === 'crush') {
-      previewNoGuardStacks = previewNoGuardStacks > 0 ? 0 : 1;
-    } else if (physicalStatus === 'fracture') {
-      if (previewNoGuardStacks > 0) previewNoGuardStacks = 0;
-    } else if (statusKeys.has('no-guard')) {
-      previewNoGuardStacks = Math.min(4, previewNoGuardStacks + 1);
-    }
-    if (beforeNoGuard === 0 && previewNoGuardStacks > 0) {
+    const observeTargetBuffApplication = (buffId: string, before: number, after: number) => {
+      if (after <= 0) return;
       observeForCombos({
-        eventType: 'StatusEffectApplied',
+        eventType: before > 0 ? 'StatusEffectRefreshed' : 'StatusEffectApplied',
         frame,
         characterId: hit.characterId,
         commandId: hit.commandId,
@@ -1206,8 +1247,66 @@ function simulateAkeRealtimeTimeline(
         sourceCommandType: sourceCommand?.commandType ?? '',
         targetId: 'fixed-dummy',
         damageAttributeType: null,
-        buffId: 'buff_physical_no_guard',
+        buffId,
       });
+    };
+    const processedTargetBuffs = new Set<string>();
+    for (const hitBuff of hit.hitBuffs ?? []) {
+      if (String(hitBuff.target).toLowerCase() !== 'target') continue;
+      const buffId = String(hitBuff.id ?? '');
+      if (!buffId || processedTargetBuffs.has(buffId)) continue;
+      processedTargetBuffs.add(buffId);
+      if (PREVIEW_ATTACHMENT_BUFF_IDS.has(buffId)) {
+        const before = previewTargetBuffStacks.get(buffId) ?? 0;
+        const conflicting = [...PREVIEW_ATTACHMENT_BUFF_IDS]
+          .filter(candidate => candidate !== buffId
+            && (previewTargetBuffStacks.get(candidate) ?? 0) > 0);
+        if (conflicting.length > 0) {
+          for (const candidate of conflicting) previewTargetBuffStacks.delete(candidate);
+          continue;
+        }
+        const after = Math.min(4, before + Math.max(1, finite(hitBuff.statusValue, 1)));
+        previewTargetBuffStacks.set(buffId, after);
+        observeTargetBuffApplication(buffId, before, after);
+        continue;
+      }
+      if (buffId === PREVIEW_NO_GUARD_BUFF_ID
+        || ['no-guard', 'fracture', 'crush', 'knockdown', 'airborne']
+          .includes(String(hitBuff.statusKey ?? ''))) continue;
+      const before = previewTargetBuffStacks.get(buffId) ?? 0;
+      const after = Math.max(before, Math.max(1, finite(hitBuff.statusValue, 1)));
+      previewTargetBuffStacks.set(buffId, after);
+      observeTargetBuffApplication(buffId, before, after);
+    }
+
+    const beforeNoGuard = previewTargetBuffStacks.get(PREVIEW_NO_GUARD_BUFF_ID) ?? 0;
+    let afterNoGuard = beforeNoGuard;
+    let appliedNoGuard = false;
+    const statusKeys = new Set(hit.hitBuffs.map(effect => effect.statusKey).filter(Boolean));
+    // A physical attempt and its explicit result can coexist in one profile.
+    // The attempt is the transaction root, so the result must not be replayed
+    // as a second stack in preview.
+    const physicalStatus = ['fracture', 'crush', 'knockdown', 'airborne']
+      .find(statusKey => statusKeys.has(statusKey));
+    if (physicalStatus === 'knockdown' || physicalStatus === 'airborne') {
+      afterNoGuard = Math.min(4, beforeNoGuard + 1);
+      appliedNoGuard = true;
+    } else if (physicalStatus === 'crush') {
+      afterNoGuard = beforeNoGuard > 0 ? 0 : 1;
+      appliedNoGuard = beforeNoGuard === 0;
+    } else if (physicalStatus === 'fracture') {
+      if (beforeNoGuard > 0) afterNoGuard = 0;
+    } else if (statusKeys.has('no-guard')) {
+      afterNoGuard = Math.min(4, beforeNoGuard + 1);
+      appliedNoGuard = true;
+    }
+    if (afterNoGuard > 0) {
+      previewTargetBuffStacks.set(PREVIEW_NO_GUARD_BUFF_ID, afterNoGuard);
+    } else {
+      previewTargetBuffStacks.delete(PREVIEW_NO_GUARD_BUFF_ID);
+    }
+    if (appliedNoGuard) {
+      observeTargetBuffApplication(PREVIEW_NO_GUARD_BUFF_ID, beforeNoGuard, afterNoGuard);
     }
   };
 

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "tickRate": 30,
   "nodeFrameScale": 15,
   "source": {
@@ -25,6 +25,9 @@
         {
           "id": "endminm.other-operator-combo-damage",
           "eventType": "BeforeHpDamage",
+          "eventTypes": [
+            "BeforeHpDamage"
+          ],
           "rootSkillIds": [],
           "sourceSkillIds": [],
           "rootSkillRole": null,
@@ -33,6 +36,7 @@
             "ComboSkill"
           ],
           "requireSourceOtherThanOwner": true,
+          "conditions": [],
           "damageAttributeType": "Hp",
           "occurrence": "first-per-cast-target",
           "comboSkillId": "chr_0002_endminm_combo_skill",
@@ -595,6 +599,9 @@
         {
           "id": "endminf.other-operator-combo-damage",
           "eventType": "BeforeHpDamage",
+          "eventTypes": [
+            "BeforeHpDamage"
+          ],
           "rootSkillIds": [],
           "sourceSkillIds": [],
           "rootSkillRole": null,
@@ -603,6 +610,7 @@
             "ComboSkill"
           ],
           "requireSourceOtherThanOwner": true,
+          "conditions": [],
           "damageAttributeType": "Hp",
           "occurrence": "first-per-cast-target",
           "comboSkillId": "chr_0003_endminf_combo_skill",
@@ -7403,7 +7411,90 @@
       "characterId": "chr_0028_wulfa",
       "maxUltimateSp": 110,
       "initialUltimateSp": 110,
-      "comboTriggers": [],
+      "comboTriggers": [
+        {
+          "id": "wulfa.no-guard-with-spell-infliction",
+          "eventType": "StatusEffectApplied",
+          "eventTypes": [
+            "StatusEffectApplied",
+            "StatusEffectRefreshed"
+          ],
+          "rootSkillIds": [],
+          "sourceSkillIds": [],
+          "rootSkillRole": null,
+          "statusBuffIds": [
+            "buff_physical_no_guard"
+          ],
+          "sourceCommandTypes": [],
+          "requireSourceOtherThanOwner": false,
+          "conditions": [
+            {
+              "type": "BuffStackCompare",
+              "target": "Target",
+              "buffIds": [
+                "buff_common_energy_shard_attached_fire",
+                "buff_common_energy_shard_attached_pulse",
+                "buff_common_energy_shard_attached_cryst",
+                "buff_common_energy_shard_attached_natural"
+              ],
+              "operator": "GE",
+              "value": 1
+            }
+          ],
+          "damageAttributeType": null,
+          "occurrence": "every-event",
+          "comboSkillId": "chr_0028_wulfa_combo_2_skill",
+          "pendingDurationFrames": 180,
+          "ownerBinding": "fixed",
+          "ownerId": "chr_0028_wulfa",
+          "requireComboOffCooldown": true,
+          "pendingPolicy": "replace-all",
+          "selectionPolicy": "newest",
+          "consumePolicy": "all-for-owner-and-skill",
+          "confidence": "public-data-derived"
+        },
+        {
+          "id": "wulfa.spell-infliction-with-no-guard",
+          "eventType": "StatusEffectApplied",
+          "eventTypes": [
+            "StatusEffectApplied",
+            "StatusEffectRefreshed"
+          ],
+          "rootSkillIds": [],
+          "sourceSkillIds": [],
+          "rootSkillRole": null,
+          "statusBuffIds": [
+            "buff_common_energy_shard_attached_fire",
+            "buff_common_energy_shard_attached_pulse",
+            "buff_common_energy_shard_attached_cryst",
+            "buff_common_energy_shard_attached_natural"
+          ],
+          "sourceCommandTypes": [],
+          "requireSourceOtherThanOwner": false,
+          "conditions": [
+            {
+              "type": "BuffStackCompare",
+              "target": "Target",
+              "buffIds": [
+                "buff_physical_no_guard"
+              ],
+              "operator": "GE",
+              "value": 1
+            }
+          ],
+          "damageAttributeType": null,
+          "occurrence": "every-event",
+          "comboSkillId": "chr_0028_wulfa_combo_2_skill",
+          "pendingDurationFrames": 180,
+          "ownerBinding": "fixed",
+          "ownerId": "chr_0028_wulfa",
+          "requireComboOffCooldown": true,
+          "pendingPolicy": "replace-all",
+          "selectionPolicy": "newest",
+          "consumePolicy": "all-for-owner-and-skill",
+          "confidence": "public-data-derived"
+        }
+      ],
       "profiles": [
         {
           "commandType": "Attack",
@@ -15072,6 +15163,9 @@
         {
           "id": "pelica.attack4.first-hp-damage",
           "eventType": "BeforeHpDamage",
+          "eventTypes": [
+            "BeforeHpDamage"
+          ],
           "rootSkillIds": [
             "chr_0004_pelica_attack4"
           ],
@@ -15080,6 +15174,7 @@
           "statusBuffIds": [],
           "sourceCommandTypes": [],
           "requireSourceOtherThanOwner": false,
+          "conditions": [],
           "damageAttributeType": "Hp",
           "occurrence": "first-per-cast",
           "comboSkillId": "chr_0004_pelica_combo_skill",
@@ -15582,6 +15677,9 @@
         {
           "id": "chen.enemy-enters-no-guard",
           "eventType": "StatusEffectApplied",
+          "eventTypes": [
+            "StatusEffectApplied"
+          ],
           "rootSkillIds": [],
           "sourceSkillIds": [],
           "rootSkillRole": null,
@@ -15590,6 +15688,7 @@
           ],
           "sourceCommandTypes": [],
           "requireSourceOtherThanOwner": false,
+          "conditions": [],
           "damageAttributeType": null,
           "occurrence": "first-per-cast-target",
           "comboSkillId": "chr_0005_chen_combo_skill",

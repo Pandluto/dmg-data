@@ -251,9 +251,12 @@ function comboTriggers(bundle, skillIds) {
     return bundle.semanticMappings.flatMap(mapping => {
         if (mapping.actionType !== 'ComboTriggerRule'
             || !skillIds.has(mapping.effect?.comboSkillId)) return [];
+        const eventTypes = structuredClone(mapping.eventTypes
+            ?? (mapping.eventType ? [mapping.eventType] : []));
         return [{
             id: mapping.id,
-            eventType: mapping.eventType,
+            eventType: eventTypes[0],
+            eventTypes,
             rootSkillIds: structuredClone(mapping.selector?.rootSkillIds ?? []),
             sourceSkillIds: structuredClone(mapping.selector?.sourceSkillIds ?? []),
             rootSkillRole: mapping.selector?.rootSkillRole ?? null,
@@ -261,6 +264,8 @@ function comboTriggers(bundle, skillIds) {
             sourceCommandTypes: structuredClone(mapping.selector?.sourceCommandTypes ?? []),
             requireSourceOtherThanOwner:
                 mapping.selector?.requireSourceOtherThanOwner === true,
+            conditions: structuredClone(mapping.conditions
+                ?? (mapping.condition ? [mapping.condition] : [])),
             damageAttributeType: mapping.selector?.damageAttributeType ?? null,
             occurrence: mapping.selector?.occurrence ?? 'every-event',
             comboSkillId: mapping.effect.comboSkillId,
@@ -479,7 +484,7 @@ const atbRule = JSON.parse(fs.readFileSync(
 ))?.effect;
 
 const output = {
-    schemaVersion: 4,
+    schemaVersion: 5,
     tickRate: 30,
     nodeFrameScale: 15,
     source: {

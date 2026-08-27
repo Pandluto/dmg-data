@@ -539,6 +539,7 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 24. 全库 40 处 `SetSkillCdAtOnce` 已收敛为一个角色无关的 `ModifySkillCooldown` 事务，覆盖 Set/Reduce、固定秒数/基础冷却比例、指定 skill id/skill type 四个维度。冷却事实从单人和小队 runner 的局部 Map 提升到共享 `SkillCooldownSystem`，按“角色 × 公共技能组”拥有状态；强化/替换 skill id 因此与原按钮共用冷却。连携触发、command admission、最终状态和 UI cooldown interval 读取同一 end frame；陈千语 `OnBeforeOutputAirborne` 的比例减冷却现可在事件帧修改正在运行的连携冷却。逐干员 blocker 由 322 降至 304，报告中不再存在 `SetSkillCdAtOnce` finding。
 25. 全库成对出现的 14 处 `CheckGlobalCDTimerAction` 与 14 处 `AddGlobalCDTimer` 已收敛到公共 timed-marker 事务：键为“目标实体 × 原始 buffId 桶”，结束帧使用全局战斗时间，Blackboard/固定秒数统一解析；逐干员 blocker 由 304 降至 298。动作覆盖审计现区分 runtime action 与 runtime condition，避免把可执行的条件节点继续误报为 `AKE_ACTION_UNSUPPORTED`。
 26. 唯一一处 `PauseComboSkillTime` 已按 AKE 原始生命周期收敛为连携待释放时间的暂停租约：租约以角色/全体范围、timeline path 与 cast 标识，不消耗暂停期间的剩余 Tick；正常组结束释放，技能中断或 program cancel 也按 cast 兜底释放。逐干员 blocker 由 298 降至 297，`cooldown-window` 类 finding 已清零。
+27. 连携规则目录 schema v5 现保留 `eventTypes` 与递归 `conditions`，核心和实时画布使用同一份 normalized rule。洛茜“破防与任一元素附着同时存在”的两种状态到达顺序均由公共 `BuffStackCompare` 条件开窗；条件缺失、类型未知或目标作用域无法解析时 fail closed。前端目录缓存升至 v23，避免旧浏览器把复合规则降格成无条件触发。
 
 297 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。强制异常、异常生命周期、同元素爆发、普通四元素反应、技能时间窗 tag、技能/Buff 事件订阅生命周期、对应事件生产者、技能组冷却、internal cooldown 与连携窗口暂停的公共数据链已经闭合；狼卫空 selector 等子动作仍未闭合。未见于当前 AKE 动作的 remaining-basis 冷却操作不得借已实现的 base-basis 百分比猜补。仍未证实的 `弭弗特殊猛击` 数值继续保持 evidence-missing，而不是借元素表猜值。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
 
@@ -736,3 +737,18 @@ AKE 文本中的触发条件可以归并为少量公共事件，而不是 31 种
 - Endaxis 在洛茜源码中明确留下“两段连携窗口尚未对应”的 TODO，进一步证明其手填窗口不能作为本项目的行为真值。
 
 由此，洛茜的实现必须拆成三份可复用事实：复合状态条件创建第一段 pending、`ChangeSkillAction` 驱动技能槽 overlay、原始 Buff/动作驱动第二段计时与精准窗口。任何只在画布中把一个按钮强行改绿的修复都会掩盖这三者中的至少一个缺口。
+
+### 12.10 复合连携规则的实时画布投影
+
+核心运行时已经可以在提交后的 `StatusEffectApplied/StatusEffectRefreshed` 快照上计算递归条件；实时画布此前却只导出单个 `eventType`，并只保存一个破防计数。这会产生两类互相相反的错误：洛茜永远没有合法释放空间，或者未来把条件字段丢失后错误地把她的连携视为无条件可用。
+
+本轮将投影边界收敛为：
+
+1. 生成器不解释角色机制，只原样导出声明式 `eventTypes` 与 `conditions`；目录 schema 升至 v5；
+2. UI 目录类型保留 `All/Any/Not` 递归形状和 `HasBuff/BuffStackCompare` 所需字段，未知条件或未知比较符一律返回 false；
+3. 画布的轻量状态账本只接受已经落到真实 Hit 的目标 Buff 效果，并在状态写入后发出 applied/refreshed observation；它不重算伤害、乘区或派生 Hit；
+4. 破防与四种元素附着用稳定 Buff ID 记录，洛茜两条规则分别覆盖“先附着后破防”和“先破防后附着”；同一 Hit 内按效果提交顺序求值，只由补全复合状态的那次 transition 创建窗口；
+5. 跨角色先后关系继续使用 `releaseAnchor` 的真实命中依赖。不同角色泳道的首按钮都可以位于 0 秒，不能用视觉列号冒充因果顺序；
+6. pending 的创建、过期、冷却抑制、选择与消费仍沿用通用连携生命周期；水位分组、每列斜率、命中点位置和按钮布局均未修改。
+
+回归包含一条正例和一条反例：同一命中依次提交火附着与破防时，洛茜窗口在该命中帧创建并由锚定按钮消费；只有破防而没有任何元素附着时，按钮保持 `COMBO_TRIGGER_MISSING`。这验证的是公共条件和目标状态投影，不是洛茜角色分支。真实状态持续时间和完整 Buff 生命周期仍以 settled runtime ledger 为最终事实；后续若把动态 runtime mutation 直接流式投影到画布，应删除对应的轻量预演状态，而不是保留两份长期真值。

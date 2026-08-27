@@ -1236,6 +1236,182 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
 }
 
 {
+  const sourceActor = character('compound-source');
+  const wulfa = character('chr_0028_wulfa');
+  const compoundHit = button('compound-hit', sourceActor.id, 0, 'B');
+  compoundHit.runtimeSkillId = 'compound-status-skill';
+  const comboButton = button('wulfa-compound-combo', wulfa.id, 1, 'E');
+  comboButton.runtimeSkillId = 'chr_0028_wulfa_combo_2_skill';
+  comboButton.releaseAnchor = {
+    schemaVersion: 1,
+    kind: 'damage-hit',
+    sourceButtonId: compoundHit.id,
+    sourceHitId: `${compoundHit.id}:preview-hit:0`,
+    sourceHitOffsetFrames: 5,
+    debounceFrames: 6,
+  };
+  const compoundSourceProfile = profile({
+    skillId: 'compound-status-skill',
+    bodyEndOffset: 6,
+    tailEndOffset: 6,
+    exclusiveFrames: 6,
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+    hits: [{
+      offsetFrames: 5,
+      sourceSkillId: 'compound-status-hit',
+      rootSkillId: 'compound-status-skill',
+      kind: 'direct',
+      hitCount: 1,
+      damageTypes: ['Physical'],
+      hitBuffs: [{
+        id: 'buff_common_energy_shard_attached_fire',
+        displayName: '灼热附着',
+        target: 'Target',
+        kind: 'attachment',
+        statusKey: 'fire-attachment',
+        statusValue: 1,
+      }, {
+        id: 'buff_physical_no_guard',
+        displayName: '破防',
+        target: 'Target',
+        kind: 'status',
+        statusKey: 'no-guard',
+        statusValue: 1,
+      }],
+    }],
+  });
+  const comboProfile = profile({
+    commandType: 'ComboSkill',
+    skillId: 'chr_0028_wulfa_combo_2_skill',
+    bodyEndOffset: 10,
+    tailEndOffset: 10,
+    exclusiveFrames: 10,
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+    hits: [],
+  });
+  const attachmentIds = [
+    'buff_common_energy_shard_attached_fire',
+    'buff_common_energy_shard_attached_pulse',
+    'buff_common_energy_shard_attached_cryst',
+    'buff_common_energy_shard_attached_natural',
+  ];
+  const triggers: AkeTimingComboTrigger[] = [{
+    id: 'wulfa.no-guard-with-spell-infliction',
+    eventType: 'StatusEffectApplied',
+    eventTypes: ['StatusEffectApplied', 'StatusEffectRefreshed'],
+    rootSkillIds: [],
+    sourceSkillIds: [],
+    statusBuffIds: ['buff_physical_no_guard'],
+    conditions: [{
+      type: 'BuffStackCompare',
+      target: 'Target',
+      buffIds: attachmentIds,
+      operator: 'GE',
+      value: 1,
+    }],
+    damageAttributeType: null,
+    occurrence: 'every-event',
+    comboSkillId: comboProfile.skillId,
+    pendingDurationFrames: 180,
+    ownerBinding: 'fixed',
+    ownerId: wulfa.id,
+    requireComboOffCooldown: true,
+    pendingPolicy: 'replace-all',
+    selectionPolicy: 'newest',
+    consumePolicy: 'all-for-owner-and-skill',
+    confidence: 'confirmed-for-test',
+  }, {
+    id: 'wulfa.spell-infliction-with-no-guard',
+    eventType: 'StatusEffectApplied',
+    eventTypes: ['StatusEffectApplied', 'StatusEffectRefreshed'],
+    rootSkillIds: [],
+    sourceSkillIds: [],
+    statusBuffIds: attachmentIds,
+    conditions: [{
+      type: 'BuffStackCompare',
+      target: 'Target',
+      buffIds: ['buff_physical_no_guard'],
+      operator: 'GE',
+      value: 1,
+    }],
+    damageAttributeType: null,
+    occurrence: 'every-event',
+    comboSkillId: comboProfile.skillId,
+    pendingDurationFrames: 180,
+    ownerBinding: 'fixed',
+    ownerId: wulfa.id,
+    requireComboOffCooldown: true,
+    pendingPolicy: 'replace-all',
+    selectionPolicy: 'newest',
+    consumePolicy: 'all-for-owner-and-skill',
+    confidence: 'confirmed-for-test',
+  }];
+  const readyResult = buildAkeRealtimeTimeline({
+    timelineData: timeline([
+      { characterId: sourceActor.id, buttons: [compoundHit] },
+      { characterId: wulfa.id, buttons: [comboButton] },
+    ]),
+    selectedCharacters: [sourceActor, wulfa],
+    catalog: catalog({
+      [sourceActor.id]: [compoundSourceProfile],
+      [wulfa.id]: [comboProfile],
+    }, {
+      [wulfa.id]: { comboTriggers: triggers },
+    }),
+    staffCount: 1,
+  });
+  const comboCommand = readyResult.commands.find(command => command.commandId === comboButton.id)!;
+  assertEqual(comboCommand.success, true, 'compound target state opens Wulfa combo in UI admission');
+  assertEqual(readyResult.comboWindows.length, 1, 'only the transition that completes the compound state opens a window');
+  assertEqual(readyResult.comboWindows[0].ruleId, 'wulfa.no-guard-with-spell-infliction', 'same-hit status order is deterministic');
+  assertEqual(readyResult.comboWindows[0].createdFrame, 5, 'compound window is projected at the committed hit frame');
+  assertEqual(readyResult.comboWindows[0].consumedCommandId, comboButton.id, 'combo consumes the projected window');
+
+  const noGuardOnly = profile({
+    ...compoundSourceProfile,
+    skillId: 'no-guard-only-skill',
+    hits: compoundSourceProfile.hits.map(hit => ({
+      ...hit,
+      rootSkillId: 'no-guard-only-skill',
+      hitBuffs: hit.hitBuffs?.filter(buff => buff.id === 'buff_physical_no_guard'),
+    })),
+  });
+  const noGuardButton = button('no-guard-only', sourceActor.id, 0, 'B');
+  noGuardButton.runtimeSkillId = noGuardOnly.skillId;
+  const rejectedCombo = button('wulfa-rejected-combo', wulfa.id, 1, 'E');
+  rejectedCombo.runtimeSkillId = comboProfile.skillId;
+  rejectedCombo.releaseAnchor = {
+    schemaVersion: 1,
+    kind: 'damage-hit',
+    sourceButtonId: noGuardButton.id,
+    sourceHitId: `${noGuardButton.id}:preview-hit:0`,
+    sourceHitOffsetFrames: 5,
+    debounceFrames: 6,
+  };
+  const rejectedResult = buildAkeRealtimeTimeline({
+    timelineData: timeline([
+      { characterId: sourceActor.id, buttons: [noGuardButton] },
+      { characterId: wulfa.id, buttons: [rejectedCombo] },
+    ]),
+    selectedCharacters: [sourceActor, wulfa],
+    catalog: catalog({
+      [sourceActor.id]: [noGuardOnly],
+      [wulfa.id]: [comboProfile],
+    }, {
+      [wulfa.id]: { comboTriggers: triggers },
+    }),
+    staffCount: 1,
+  });
+  const rejectedCommand = rejectedResult.commands.find(command => command.commandId === rejectedCombo.id)!;
+  assertEqual(rejectedCommand.success, false, 'a partial target state cannot open the compound combo');
+  assertEqual(rejectedCommand.releaseReason, 'COMBO_TRIGGER_MISSING', 'compound condition failure is fail-closed');
+}
+
+{
   const zhuang = character('zhuang');
   const pelica = character('pelica');
   const source = button('zhuang-full-attack', zhuang.id, 0, 'A');

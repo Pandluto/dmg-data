@@ -6,6 +6,9 @@ const OPERATOR_LIBRARY_KEY = 'def.operator-editor.library.v1';
 const WEAPON_LIBRARY_KEY = 'def.weapon-sheet.library.v1';
 const EQUIPMENT_LIBRARY_KEY = 'def.equipment-sheet.library.v1';
 const CATALOG_REVISION_KEY = 'def.ake-catalog.revision.v1';
+// v23 adds multi-event combo triggers plus their normalized runtime conditions.
+// Existing browsers must discard v22 catalogs because omitting those fields
+// makes compound AKE combo windows either impossible or falsely unconditional.
 // v22 adds the authoritative AKE cooldown-group identity to every timing
 // profile. Existing browsers must discard v21 catalogs because their live
 // preview keyed cooldowns by concrete SkillData id, allowing an enhanced or
@@ -16,7 +19,7 @@ const CATALOG_REVISION_KEY = 'def.ake-catalog.revision.v1';
 // and Originium were present in SkillData but absent from the visible hit.
 // Keep this revision in sync with adapter output changes so an existing browser
 // cannot retain a pre-state-machine catalog.
-const CATALOG_ADAPTER_VERSION = 22;
+const CATALOG_ADAPTER_VERSION = 23;
 
 const LEVEL_KEYS = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'M1', 'M2', 'M3'] as const;
 
@@ -122,15 +125,35 @@ export type AkeTimingSkillProfile = {
   comboStageSkillIds?: string[];
 };
 
+export type AkeTimingComboCondition = {
+  type: string;
+  conditions?: AkeTimingComboCondition[];
+  children?: AkeTimingComboCondition[];
+  items?: AkeTimingComboCondition[];
+  condition?: AkeTimingComboCondition;
+  child?: AkeTimingComboCondition;
+  operand?: AkeTimingComboCondition;
+  target?: string;
+  entity?: string;
+  buffIds?: string[];
+  buffId?: string;
+  countType?: string;
+  operator?: string;
+  value?: number;
+  amount?: number;
+};
+
 export type AkeTimingComboTrigger = {
   id: string;
   eventType: string;
+  eventTypes?: string[];
   rootSkillIds: string[];
   sourceSkillIds: string[];
   rootSkillRole?: string | null;
   statusBuffIds?: string[];
   sourceCommandTypes?: string[];
   requireSourceOtherThanOwner?: boolean;
+  conditions?: AkeTimingComboCondition[];
   damageAttributeType: string | null;
   occurrence: string;
   comboSkillId: string;

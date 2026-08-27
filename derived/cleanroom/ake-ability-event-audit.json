@@ -8,10 +8,10 @@
   "summary": {
     "eventKeys": 84,
     "consumerGroups": 1072,
-    "completeEventTypes": 29,
-    "completeConsumerGroups": 910,
-    "missingEmitterEventTypes": 53,
-    "missingEmitterConsumerGroups": 155,
+    "completeEventTypes": 30,
+    "completeConsumerGroups": 911,
+    "missingEmitterEventTypes": 52,
+    "missingEmitterConsumerGroups": 154,
     "invalidEventValues": 2,
     "invalidConsumerGroups": 7,
     "byDataset": {
@@ -2337,6 +2337,37 @@
       "sourceEntityCount": 2
     },
     {
+      "key": "OnBeforeCalculateDamage",
+      "eventType": "OnBeforeCalculateDamage",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnBeforeCalculateDamage",
+        "producer": "combat-runtime-damage-calculation"
+      },
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_common_affixes_skillimbue_atk"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_affixes_skillimbue_atk",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_affixes_skillimbue_atk.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
       "key": "OnRemoveAllPendingComboSkill",
       "eventType": "OnRemoveAllPendingComboSkill",
       "serializedValue": null,
@@ -4087,34 +4118,6 @@
           "channel": "BuffAbilityEventAction",
           "entityId": "buff_common_addweakness_physical",
           "file": "reference/public-data/akedata/Json/BuffData/buff_common_addweakness_physical.json",
-          "path": "$.abilityEventAction[0]"
-        }
-      ],
-      "sourceEntityCount": 1
-    },
-    {
-      "key": "OnBeforeCalculateDamage",
-      "eventType": "OnBeforeCalculateDamage",
-      "serializedValue": null,
-      "status": "emitter-required",
-      "producer": null,
-      "consumerGroups": 1,
-      "byDataset": {
-        "BuffData": 1
-      },
-      "byChannel": {
-        "BuffAbilityEventAction": 1
-      },
-      "sourceEntities": [
-        "buff_common_affixes_skillimbue_atk"
-      ],
-      "characterIds": [],
-      "samples": [
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_common_affixes_skillimbue_atk",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_common_affixes_skillimbue_atk.json",
           "path": "$.abilityEventAction[0]"
         }
       ],

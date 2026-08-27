@@ -91,6 +91,7 @@ test('owner HP-zero is a target-scoped edge across direct and resolved damage', 
         entry.stage === 'AbilityEventNotified' && entry.frame === 5
     ).map(entry => entry.eventType);
     assert.deepEqual(eventsAtFive, [
+        'OnBeforeCalculateDamage',
         'OnBeforeOutputDamage',
         'OnBeforeTakeDamage',
         'OnOutputDamage',

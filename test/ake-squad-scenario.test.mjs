@@ -51,6 +51,7 @@ test('settlement exposes weapon and derived-ability attack provenance without do
     });
     const snapshot = result.attributeSnapshots['chr_0005_chen'].Atk;
 
+    assert.equal(snapshot.baseValue, 30);
     assert.equal(snapshot.evaluation.value, 83.07);
     assert.deepEqual(snapshot.contributions.map(contribution => [
         contribution.sourceType,
@@ -86,6 +87,8 @@ test('Wulfa runtime attack keeps Wolf Scarlet weapon layers traceable', () => {
     });
     const snapshot = result.attributeSnapshots['chr_0028_wulfa'].Atk;
 
+    assert.equal(snapshot.baseValue, 323);
+    assert.equal(snapshot.baseEvaluation.value, 3323.7377280000005);
     assert.equal(snapshot.evaluation.value, 3323.7377280000005);
     assert.deepEqual(snapshot.contributions.map(contribution => [
         contribution.sourceType,

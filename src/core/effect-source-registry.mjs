@@ -542,12 +542,21 @@ export class EffectSourceRegistry {
                 });
             }
         }
+        const baseEvaluation = evaluateAttributeComponent(baseComponent);
+        const evaluation = evaluateAttributeComponent(component);
         return {
             targetId,
             attribute,
-            baseValue: base?.value ?? evaluateAttributeComponent(baseComponent).value,
+            // `baseValue` is the raw attribute input.  The previous fallback
+            // returned the already-evaluated baseline value when static AKE
+            // layers were present, which made a UI chain render `final →
+            // final` and hid the actual zone progression.  Keep the old
+            // pre-active-source value available under an explicit name.
+            baseValue: baseEvaluation.rawValue,
+            baseValueBeforeActiveSources: base?.value ?? baseEvaluation.value,
             baseComponent,
-            evaluation: evaluateAttributeComponent(component),
+            baseEvaluation,
+            evaluation,
             contributions
         };
     }

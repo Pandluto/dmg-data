@@ -119,7 +119,20 @@ export type AkeRuntimeAttributeSnapshot = {
   targetId: string | null;
   attribute: string;
   baseValue?: number;
+  baseValueBeforeActiveSources?: number;
+  baseEvaluation?: {
+    rawValue?: number;
+    afterBase?: number;
+    afterBaseFinal?: number;
+    afterRuntime?: number;
+    value?: number;
+    [key: string]: unknown;
+  };
   evaluation?: {
+    rawValue?: number;
+    afterBase?: number;
+    afterBaseFinal?: number;
+    afterRuntime?: number;
     value?: number;
     [key: string]: unknown;
   };

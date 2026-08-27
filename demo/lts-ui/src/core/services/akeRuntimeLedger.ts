@@ -730,7 +730,12 @@ function buildRuntimeFormula(
   const criticalRate = finite(operands.criticalRate);
   const criticalDamageIncrease = finite(operands.criticalDamageIncrease);
   const attackAttribute = hit.modifierSnapshot.attackAttribute;
-  const attackBase = finite(attackAttribute?.baseValue, attack);
+  const attackEvaluation = attackAttribute?.evaluation;
+  const attackBase = finite(attackEvaluation?.rawValue, finite(attackAttribute?.baseValue, attack));
+  const attackAfterBase = finite(attackEvaluation?.afterBase, attackBase);
+  const attackAfterBaseFinal = finite(attackEvaluation?.afterBaseFinal, attackAfterBase);
+  const attackAfterRuntime = finite(attackEvaluation?.afterRuntime, attackAfterBaseFinal);
+  const attackFinal = finite(attackEvaluation?.value, attack);
   const attackSourceCount = attackAttribute?.contributions?.length ?? 0;
   const attackerCombinedScale = attackerScale * configuredScale;
   const buffTags = contributionBuffTags(hit, statusEvents, labels);
@@ -757,9 +762,12 @@ function buildRuntimeFormula(
     ],
     attackLines: [
       ...(attackSourceCount > 0
-        ? [`攻击力属性链: ${trimNumber(attackBase)} → ${trimNumber(attack)}（${attackSourceCount} 个运行时来源）`]
+        ? [`攻击力属性链: ${[attackBase, attackAfterBase, attackAfterBaseFinal, attackAfterRuntime, attackFinal]
+          .filter((value, index, values) => index === 0 || Math.abs(value - values[index - 1]) > 1e-9)
+          .map(value => trimNumber(value))
+          .join(' → ')}（${attackSourceCount} 个运行时来源）`]
         : []),
-      `运行时最终攻击力: ${trimNumber(attack)}`,
+      `运行时最终攻击力: ${trimNumber(attackFinal)}`,
       `原始伤害: ${trimNumber(attack)} × ${trimNumber(atkScale, 4)} = ${trimNumber(hit.rawDamage)}`,
     ],
     buffTags,

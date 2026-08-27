@@ -1568,6 +1568,7 @@ export class AkeActionCompiler {
                             ? tagIds(settings.tagQuery?.tags)
                             : [],
                         tagQueryType: settings.tagQuery?.queryType ?? 'HasAny',
+                        eventBuffContext: settings.checkType === 'Context',
                         desiredKey: node.desiredKey,
                         blackboardKey: node.blackboardKey,
                         defaultValue: node.defaultValue ?? 0,
@@ -3489,6 +3490,24 @@ export class AkeActionCompiler {
                     skillType: node.skillTypeList ?? []
                 };
                 break;
+            case 'CheckOriginSkillType': {
+                const attackTypeMask = node.attackTypeMask ?? 'All';
+                if (attackTypeMask !== 'All') {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_ORIGIN_ATTACK_TYPE_PROVIDER_REQUIRED',
+                        type,
+                        state.path,
+                        `Origin skill attack mask ${String(attackTypeMask)} requires an attack-type provider.`,
+                        { attackTypeMask }
+                    ));
+                } else {
+                    result.condition = {
+                        type: 'SkillTypeIs',
+                        skillType: node.skillTypeList ?? []
+                    };
+                }
+                break;
+            }
             case 'CheckSkillId': {
                 const ids = (node.skillIdList ?? []).map(entry => descriptor(entry));
                 result.condition = {
@@ -3554,6 +3573,19 @@ export class AkeActionCompiler {
                 }
                 break;
             }
+            case 'CheckConsumeBuffLayer':
+                result.condition = {
+                    type: 'PayloadCompare',
+                    payloadKey: 'consumedStacks',
+                    operator: node.compareType ?? 'GE',
+                    value: descriptor(node.num, 1),
+                    storeKey: typeof node.storeKey === 'string'
+                        && node.storeKey.length > 0
+                        ? node.storeKey
+                        : null,
+                    defaultValue: 0
+                };
+                break;
             case 'CheckBuffStackNum': {
                 const target = this.#targetRef(node.checkTarget, state, 'Buff stack target');
                 if (target.unresolved) result.unresolved.push(target.unresolved);

@@ -78,7 +78,7 @@ test('top-level Buff listeners fail closed on missing or malformed event produce
     assert.equal(definition.compiler.status, 'unresolved');
 });
 
-test('Skill passive listener groups recognize the consume producer independently of conditions', () => {
+test('Skill passive consume listeners compile their layer conditions after producer registration', () => {
     const raw = readJson(new URL('sk_wpn_claym_0014.json', SKILL_DATA_URL));
     const passive = new AkeActionCompiler().compilePassiveEventActions(raw);
     const consume = passive.groups.find(group => group.eventType === 'OnConsumeBuff');
@@ -86,9 +86,6 @@ test('Skill passive listener groups recognize the consume producer independently
     assert.equal(consume.unresolved.some(gap =>
         gap.code === 'AKE_ABILITY_EVENT_EMITTER_REQUIRED'
     ), false);
-    assert.equal(consume.unresolved.some(gap =>
-        gap.code === 'AKE_CONDITION_UNSUPPORTED'
-        && gap.sourceType === 'CheckConsumeBuffLayer'
-    ), true);
-    assert.equal(passive.compiler.status, 'unresolved');
+    assert.deepEqual(consume.unresolved, []);
+    assert.equal(passive.compiler.status, 'executable');
 });

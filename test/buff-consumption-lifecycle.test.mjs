@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 
 import { AkeActionCompiler } from '../src/core/ake-action-compiler.mjs';
@@ -11,6 +11,22 @@ function readBuff(buffId) {
         import.meta.url
     ), 'utf8'));
 }
+
+function readSkill(skillId) {
+    return JSON.parse(readFileSync(new URL(
+        `../reference/public-data/akedata/Json/SkillData/${skillId}.json`,
+        import.meta.url
+    ), 'utf8'));
+}
+
+const BUFF_DATA_URL = new URL(
+    '../reference/public-data/akedata/Json/BuffData/',
+    import.meta.url
+);
+const SKILL_DATA_URL = new URL(
+    '../reference/public-data/akedata/Json/SkillData/',
+    import.meta.url
+);
 
 function findNode(value, predicate) {
     if (predicate(value)) return value;
@@ -233,4 +249,199 @@ test('OnConsumeBuff routes to the consumer while preserving the consumed target'
     });
     assert.equal(observer().blackboard.handled, 1,
         'a different consumer must not trigger actor-owned listeners');
+});
+
+test('real AKE consume listeners compile layer and origin-skill context without gaps', () => {
+    const compiler = new AkeActionCompiler();
+    const dapan = compiler.compileBuff(readBuff('buff_chr_0018_dapan_talent_0'));
+    const funnel = compiler.compilePassiveEventActions(readSkill('sk_wpn_funnel_0015'));
+    const dapanConsume = dapan.abilityEventActions.find(group =>
+        group.eventType === 'OnConsumeBuff'
+    );
+    const funnelConsume = funnel.groups.find(group =>
+        group.eventType === 'OnConsumeBuff'
+    );
+    const layerCondition = findNode(dapanConsume.actions, node =>
+        node?.type === 'PayloadCompare'
+        && node.payloadKey === 'consumedStacks'
+    );
+    const originSkillCondition = findNode(funnelConsume.actions, node =>
+        node?.type === 'SkillTypeIs'
+    );
+
+    assert.deepEqual(dapanConsume.unresolved, []);
+    assert.equal(layerCondition.operator, 'GE');
+    assert.equal(layerCondition.storeKey, 'consumedLayer');
+    assert.deepEqual(funnelConsume.unresolved, []);
+    assert.deepEqual(originSkillCondition.skillType, ['NormalSkill']);
+    assert.equal(funnel.compiler.status, 'executable');
+});
+
+test('all 21 public AKE consume-listener groups have complete runtime context', () => {
+    const compiler = new AkeActionCompiler();
+    const groups = [];
+    for (const fileName of readdirSync(BUFF_DATA_URL).filter(name =>
+        name.endsWith('.json')
+    )) {
+        const raw = JSON.parse(readFileSync(new URL(fileName, BUFF_DATA_URL), 'utf8'));
+        if (!(raw.abilityEventAction ?? []).some(group =>
+            group.abilityEvent === 'OnConsumeBuff'
+        )) continue;
+        const definition = compiler.compileBuff(raw);
+        groups.push(...definition.abilityEventActions.filter(group =>
+            group.eventType === 'OnConsumeBuff'
+        ));
+    }
+    for (const fileName of readdirSync(SKILL_DATA_URL).filter(name =>
+        name.endsWith('.json')
+    )) {
+        const raw = JSON.parse(readFileSync(new URL(fileName, SKILL_DATA_URL), 'utf8'));
+        const definition = compiler.compilePassiveEventActions(raw);
+        groups.push(...definition.groups.filter(group =>
+            group.eventType === 'OnConsumeBuff'
+        ));
+    }
+
+    const unresolved = groups.flatMap(group => group.unresolved);
+    assert.equal(groups.length, 21);
+    assert.equal(groups.filter(group => group.unresolved.length === 0).length, 17);
+    assert.equal(unresolved.length, 4);
+    assert.ok(unresolved.every(gap =>
+        gap.code === 'AKE_ACTION_UNSUPPORTED'
+        && gap.sourceType === 'RaiseTrainLevelEvent'
+    ), 'only the four external training-progress callbacks may remain unresolved');
+});
+
+test('Dapan real listener receives the actual consumed No Guard layer count', () => {
+    const compiler = new AkeActionCompiler();
+    const talentId = 'buff_chr_0018_dapan_talent_0';
+    const outputId = 'buff_chr_0018_dapan_talent_0_dmg_up';
+    const noGuardId = 'buff_physical_no_guard';
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [
+                { id: 'dapan', kind: 'Character', team: 'ally' },
+                { id: 'enemy', kind: 'Enemy', team: 'enemy' }
+            ],
+            buffs: {
+                [talentId]: compiler.compileBuff(readBuff(talentId)),
+                [outputId]: compiler.compileBuff(readBuff(outputId)),
+                [noGuardId]: compiler.compileBuff(readBuff(noGuardId))
+            }
+        }
+    });
+    const context = (frame, targetId = 'dapan') => ({
+        frame,
+        sourceId: 'dapan',
+        ownerId: 'dapan',
+        targetId
+    });
+    runtime.execute({
+        type: 'ApplyBuff',
+        target: 'dapan',
+        buffId: talentId,
+        blackboard: { dmg_up: 0.12, duration: 10, stack: 4 }
+    }, context(0));
+    for (let frame = 1; frame <= 3; frame += 1) {
+        runtime.execute({
+            type: 'ApplyBuff', target: 'enemy', buffId: noGuardId
+        }, context(frame, 'enemy'));
+    }
+
+    runtime.execute({
+        type: 'FinishBuff',
+        target: 'enemy',
+        buffId: noGuardId,
+        finishAll: false,
+        stackCount: 2,
+        consumption: true,
+        consumerRef: 'Source'
+    }, {
+        ...context(4, 'enemy'),
+        skillId: 'skill.consume.no-guard',
+        skillType: 'NormalSkill'
+    });
+
+    const talent = runtime.statusEffects.list({
+        active: true, targetId: 'dapan', buffId: talentId
+    })[0];
+    const output = runtime.statusEffects.list({
+        active: true, targetId: 'dapan', buffId: outputId
+    })[0];
+    const remainingNoGuard = runtime.statusEffects.list({
+        active: true, targetId: 'enemy', buffId: noGuardId
+    })[0];
+    assert.equal(talent.blackboard.consumedLayer, 2);
+    assert.equal(output.stackCount, 2);
+    assert.equal(output.blackboard.dmg_up, 0.12);
+    assert.equal(remainingNoGuard.stackCount, 1);
+});
+
+test('equipment listener reads Blackboard from the consumed Buff snapshot', () => {
+    const compiler = new AkeActionCompiler();
+    const listenerId = 'buff_equipsuit_expend_spell01';
+    const outputId = 'buff_equipsuit_expend_spelldamage';
+    const consumedId = 'buff_common_pulse_pulse_conduct_triggered_do';
+    const listener = compiler.compileBuff(readBuff(listenerId));
+    const consumeGroup = listener.abilityEventActions.find(group =>
+        group.eventType === 'OnConsumeBuff'
+    );
+    const contextRead = findNode(consumeGroup.actions, node =>
+        node?.type === 'ReadBuffBlackboardCondition'
+    );
+    assert.equal(contextRead.eventBuffContext, true);
+    assert.equal(contextRead.desiredKey, 'count');
+    assert.deepEqual(consumeGroup.unresolved, []);
+
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [
+                { id: 'actor', kind: 'Character', team: 'ally' },
+                { id: 'enemy', kind: 'Enemy', team: 'enemy' }
+            ],
+            buffs: {
+                [listenerId]: listener,
+                [outputId]: compiler.compileBuff(readBuff(outputId)),
+                [consumedId]: compiler.compileBuff(readBuff(consumedId))
+            }
+        }
+    });
+    const context = (frame, targetId = 'actor') => ({
+        frame,
+        sourceId: 'actor',
+        ownerId: 'actor',
+        targetId
+    });
+    runtime.execute({
+        type: 'ApplyBuff', target: 'actor', buffId: listenerId
+    }, context(0));
+    runtime.execute({
+        type: 'ApplyBuff',
+        target: 'enemy',
+        buffId: consumedId,
+        blackboard: { count: 3 }
+    }, context(1, 'enemy'));
+    runtime.execute({
+        type: 'FinishBuff',
+        target: 'enemy',
+        buffId: consumedId,
+        consumption: true,
+        consumerRef: 'Source'
+    }, {
+        ...context(2, 'enemy'),
+        skillId: 'skill.consume.spell-status',
+        skillType: 'NormalSkill'
+    });
+
+    const output = runtime.statusEffects.list({
+        active: true, targetId: 'actor', buffId: outputId
+    })[0];
+    const listenerInstance = runtime.statusEffects.list({
+        active: true, targetId: 'actor', buffId: listenerId
+    })[0];
+    assert.equal(output.stackCount, 3);
+    assert.equal(listenerInstance.blackboard.addstack, 3);
+    assert.equal(runtime.statusEffects.has({
+        targetId: 'enemy', buffId: consumedId
+    }), false, 'the consumed instance must already be inactive when its snapshot is read');
 });

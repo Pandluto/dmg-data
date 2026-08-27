@@ -1760,6 +1760,33 @@ export class CombatRuntime {
                 );
                 return compare(stackCount, condition.operator, expected);
             },
+            PayloadCompare: (condition, eventContext) => {
+                const payloadKey = identifier(
+                    condition.payloadKey ?? condition.key,
+                    'payload comparison key'
+                );
+                const actual = this.#number(
+                    eventContext.payload?.[payloadKey]
+                        ?? condition.defaultValue
+                        ?? 0,
+                    eventContext,
+                    `payload ${String(payloadKey)}`
+                );
+                const expected = this.#number(
+                    condition.value ?? condition.right ?? 0,
+                    eventContext,
+                    'payload comparison value'
+                );
+                const passed = compare(actual, condition.operator, expected);
+                return {
+                    passed,
+                    actual,
+                    expected,
+                    ...(passed && condition.storeKey
+                        ? { blackboardWrites: { [condition.storeKey]: actual } }
+                        : {})
+                };
+            },
             ResourceCompare: (condition, eventContext) => {
                 const pool = this.resources.describePool(this.#poolRef(condition, eventContext));
                 const value = condition.ratio
@@ -1940,6 +1967,28 @@ export class CombatRuntime {
                 };
             },
             ReadBuffBlackboardCondition: (condition, eventContext) => {
+                if (condition.eventBuffContext === true) {
+                    const snapshot = eventContext.payload?.consumedBuffBlackboard;
+                    const hasContext = snapshot !== null
+                        && snapshot !== undefined
+                        && typeof snapshot === 'object';
+                    if (!hasContext) return { passed: false };
+                    return {
+                        passed: true,
+                        targetId: eventContext.payload?.eventTargetId
+                            ?? eventContext.targetId,
+                        instanceId: eventContext.payload?.consumedBuffInstanceId
+                            ?? null,
+                        buffId: eventContext.payload?.buffId ?? null,
+                        blackboardWrites: {
+                            [condition.blackboardKey]: cloneValue(
+                                snapshot[condition.desiredKey]
+                                    ?? condition.defaultValue
+                                    ?? 0
+                            )
+                        }
+                    };
+                }
                 const targetId = this.#entityId(
                     condition.targetRef ?? condition.target ?? condition.targetId,
                     eventContext,
@@ -2371,6 +2420,37 @@ export class CombatRuntime {
                 };
             },
             ReadBuffBlackboard: (action, eventContext) => {
+                if (action.eventBuffContext === true) {
+                    const snapshot = eventContext.payload?.consumedBuffBlackboard;
+                    const hasContext = snapshot !== null
+                        && snapshot !== undefined
+                        && typeof snapshot === 'object';
+                    const key = identifier(
+                        action.blackboardKey,
+                        'Buff Blackboard destination key'
+                    );
+                    const before = cloneValue(eventContext.blackboard[key]);
+                    const after = cloneValue(
+                        (hasContext ? snapshot[action.desiredKey] : undefined)
+                            ?? action.defaultValue
+                            ?? 0
+                    );
+                    eventContext.blackboard[key] = after;
+                    return {
+                        targetId: eventContext.payload?.eventTargetId
+                            ?? eventContext.targetId,
+                        instanceId: eventContext.payload?.consumedBuffInstanceId
+                            ?? null,
+                        buffId: eventContext.payload?.buffId ?? null,
+                        desiredKey: action.desiredKey,
+                        key,
+                        before,
+                        requested: action.desiredKey,
+                        actual: after,
+                        discarded: hasContext ? 0 : 1,
+                        after
+                    };
+                }
                 const targetId = this.#entityId(
                     action.targetRef ?? action.target ?? action.targetId,
                     eventContext,

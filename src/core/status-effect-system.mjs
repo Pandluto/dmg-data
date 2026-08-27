@@ -50,6 +50,38 @@ function resolveDescriptor(descriptor, blackboard, fallback = 0) {
     return descriptor.value ?? fallback;
 }
 
+function actionAppliesBuff(actions, buffId) {
+    for (const action of actions ?? []) {
+        if (!action || typeof action !== 'object') continue;
+        if (action.type === 'ApplyBuff') {
+            if (action.buffId === buffId) return true;
+            if ((action.buffs ?? []).some(candidate => candidate?.buffId === buffId)) return true;
+        }
+        for (const nested of [
+            action.actions,
+            action.success,
+            action.failure,
+            action.then,
+            action.else
+        ]) {
+            if (Array.isArray(nested) && actionAppliesBuff(nested, buffId)) return true;
+        }
+    }
+    return false;
+}
+
+function enhancementIsManagedByAbilityEvent(definition, buffId) {
+    const enhancement = (definition.eventActions ?? []).find(group =>
+        group.eventType === 'OnBuffAfterTryEnhanced');
+    const eventTypes = new Set((enhancement?.actions ?? [])
+        .filter(action => action?.type === 'TriggerStatusEvent')
+        .map(action => action.eventType)
+        .filter(Boolean));
+    if (eventTypes.size === 0) return false;
+    return (definition.igniteEventActions ?? []).some(group =>
+        eventTypes.has(group.eventType) && actionAppliesBuff(group.actions, buffId));
+}
+
 function normalizedStacking(definition, input, blackboard = {}) {
     const raw = input.stacking ?? definition.stacking ?? {};
     const policy = input.stackingPolicy
@@ -245,7 +277,22 @@ export class StatusEffectSystem {
         };
         const stacking = normalizedStacking(definition, input, nextBlackboard);
         const durationTicks = this.#durationTicks(input, definition, nextBlackboard);
-        const existing = this.#matchingInstance(targetId, buffId, stacking, attribution);
+        let existing = this.#matchingInstance(targetId, buffId, stacking, attribution);
+
+        // A stacking key is a mutually-exclusive runtime slot, not permission
+        // to mutate one Buff definition into another. Physical control Buffs
+        // such as airborne and crushed intentionally share `physical`; the new
+        // identity must replace the old instance so its own lifecycle and
+        // damage actions execute.
+        if (existing && stacking.identifierType === 'StackingKey'
+            && existing.buffId !== buffId) {
+            this.finish({
+                frame,
+                instanceId: existing.instanceId,
+                reason: `StackingKeyReplaced:${String(stacking.key)}`
+            }, eventContext);
+            existing = null;
+        }
 
         if (existing && stacking.policy === 'Unique') {
             this.trace.push(this.#record(existing, frame, 'StatusEffectIgnored', {
@@ -259,7 +306,11 @@ export class StatusEffectSystem {
         if (existing && ['Refresh', 'AddStack'].includes(stacking.policy)) {
             const before = existing.stackCount;
             this.#cancelTimer(existing, frame, 'Refreshed');
-            if (stacking.policy === 'AddStack') {
+            const eventManagedEnhancement = stacking.policy === 'AddStack'
+                && input.triggerEnhancementEvent === true
+                && !existing.processingEnhancement
+                && enhancementIsManagedByAbilityEvent(definition, buffId);
+            if (stacking.policy === 'AddStack' && !eventManagedEnhancement) {
                 existing.stackCount = Math.min(existing.maxStacks, existing.stackCount + 1);
             }
             existing.blackboard = { ...existing.blackboard, ...nextBlackboard };
@@ -273,9 +324,11 @@ export class StatusEffectSystem {
             this.#schedulePeriodicTrigger(existing, frame);
             const transition = this.#record(existing, frame, 'StatusEffectRefreshed', {
                 before,
-                requested: before + (stacking.policy === 'AddStack' ? 1 : 0),
+                requested: before + (stacking.policy === 'AddStack'
+                    && !eventManagedEnhancement ? 1 : 0),
                 actual: existing.stackCount - before,
                 discarded: stacking.policy === 'AddStack'
+                    && !eventManagedEnhancement
                     ? Math.max(0, before + 1 - existing.stackCount)
                     : 0,
                 after: existing.stackCount
@@ -938,10 +991,13 @@ export class StatusEffectSystem {
 
     #executeLifecycle(actions, instance, frame, eventType, incomingContext = {}) {
         if (!Array.isArray(actions) || actions.length === 0) return [];
+        const actionSourceId = incomingContext.useEventSourceAsActionSource === true
+            ? incomingContext.sourceId ?? instance.sourceId
+            : instance.sourceId;
         const execution = this.executeActions(actions, {
             frame,
             eventType,
-            sourceId: instance.sourceId,
+            sourceId: actionSourceId,
             // In serialized Buff actions, ActionOwner is the entity carrying
             // the Buff. The attribution owner remains stored on the instance
             // and is exposed separately in payload for cleanup/audit.
@@ -980,6 +1036,7 @@ export class StatusEffectSystem {
                 statusMetadata: plainClone(instance.metadata),
                 statusOwnerId: instance.ownerId,
                 eventSourceId: incomingContext.sourceId ?? null,
+                statusSourceId: instance.sourceId,
                 eventOwnerId: incomingContext.ownerId ?? null,
                 eventTargetId: incomingContext.targetId ?? null,
                 ...plainClone(incomingContext.payload ?? {})

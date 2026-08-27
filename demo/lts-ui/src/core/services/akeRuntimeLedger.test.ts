@@ -120,6 +120,17 @@ const statusEvents: AkeRuntimeStatusEvent[] = [{
   after: 1,
   castId: 'cast:current',
   displayName: '电磁',
+}, {
+  ...statusBase,
+  traceIndex: 7,
+  frame: 17,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:cross-conduct',
+  buffId: 'buff_common_pulse_cryst_triggered',
+  before: 0,
+  after: 1,
+  castId: 'cast:current',
+  displayName: 'pulse cryst triggered',
 }];
 
 function runtimeHit(
@@ -350,6 +361,13 @@ assert.equal(
   ledger.compactStatuses.find((status) => status.buffId === 'buff_test_energy_shard_attached_pulse')?.displayName,
   '电磁附着',
   'elemental attachments stay distinct from conductive status',
+);
+assert.deepEqual(
+  ledger.compactStatuses
+    .filter((status) => status.buffId === 'buff_common_pulse_cryst_triggered')
+    .map((status) => [status.displayName, status.mainDisplay]),
+  [['导电', true]],
+  'real cross-element reaction ids must project as the shared conductive enemy state',
 );
 assert.match(ledger.summary?.title ?? '', /^测试战技 · 运行时 3 个独立 Hit$/);
 assert.equal(ledger.summary?.parts.length, 3);

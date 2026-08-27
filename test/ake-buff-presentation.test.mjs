@@ -61,6 +61,27 @@ test('semantic status table supplies the actual game icon when the root Buff has
     assert.match(presentation.iconUrl, /bufficon\/icon_battle_conduct\.png$/);
 });
 
+test('structural reaction ids map to mechanics while internal event Buffs stay hidden', () => {
+    const conduct = resolveAkeBuffPresentation({
+        buffId: 'buff_common_pulse_cryst_triggered',
+        index,
+        dataOrigin: 'https://data.akedata.wiki'
+    });
+    assert.equal(conduct.displayName, '导电');
+    assert.equal(conduct.applicationScope, 'enemy');
+    assert.equal(conduct.effectType, 'elementalAbnormal');
+    assert.equal(conduct.iconId, 'icon_battle_conduct');
+    assert.equal(conduct.hidden, false);
+
+    const internal = resolveAkeBuffPresentation({
+        buffId: 'buff_common_try_pulse_cryst_triggered',
+        index,
+        dataOrigin: 'https://data.akedata.wiki'
+    });
+    assert.equal(internal.hidden, true);
+    assert.equal(internal.applicationScope, 'system');
+});
+
 test('unmapped internal Buffs use their source skill name instead of leaking code ids', () => {
     const presentation = resolveAkeBuffPresentation({
         buffId: 'buff_chr_0005_chen_unknown_listener',
@@ -71,4 +92,3 @@ test('unmapped internal Buffs use their source skill name instead of leaking cod
     assert.equal(presentation.displayName, '冽风霜·技能状态');
     assert.doesNotMatch(presentation.displayName, /buff_|chr_/);
 });
-

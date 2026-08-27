@@ -107,8 +107,8 @@ function displayNameForHitBuff(buffId) {
 }
 
 function actionHitBuffs(action, blackboard, data) {
-    if (action.type === 'ApplyInfliction') {
-        const buffId = AKE_ELEMENT_ATTACHMENT_BUFF_IDS[action.element];
+    if (['ApplyInfliction', 'ApplyEnemyInfliction'].includes(action.type)) {
+        const buffId = action.buffId ?? AKE_ELEMENT_ATTACHMENT_BUFF_IDS[action.element];
         if (!buffId) return [];
         const target = normalizeHitBuffTarget(action.target);
         return [{

@@ -1544,4 +1544,101 @@ Endaxis 不进入第三份 oracle，只用于检查“是否缺少来源、消�
 - 未修改 Canvas CSS、单元格几何、共享变速列、水位线、真实帧到视觉列的投影算法；
 - 本次只改变状态、Hit、连携和公式读取的数据权威与失败表现。
 
-新增契约覆盖 missing definition、物理状态原子事务、真实易伤/Weakness fixture、同名不同来源、同帧多 Hit、状态过期和 runtime rejected/partial。根引擎全量测试、前端相关全量契约、严格类型检查与 Demo 生产构建均通过。
+新增契约覆盖 missing definition、物理状态原子事务、真实易伤/Weakness fixture、同名不同来源、同帧多 Hit、状态过期和 runtime rejected/partial。根引擎全量测试、前端状态/引擎相关契约、严格类型检查与 Demo 生产构建均通过。
+
+## 17. Endaxis 源码对照与第二轮通用机制修复（2026-08-27）
+
+### 17.1 本轮采用的源码证据
+
+Endaxis 已拉取到同级目录 `../Endaxis`，研究与验证使用其当前 `main@66bb80b`。本轮没有根据网页表现猜规则，直接读取并运行以下实现：
+
+- `src/simulation/events/EnemyEffectHandler.ts`：元素附着、元素异常、物理破防、猛击、碎甲、击飞、倒地的唯一敌方机制处理器；
+- `src/simulation/state/EnemyState.ts`：一个敌人共享一份 `infliction / vulnerability / breach / electrification / corrosion / combustion / solidification` 状态；
+- `src/simulation/compiler/compileTimeline.ts` 与 `src/simulation/compiler/effectDispatch.ts`：不同角色技能先编译成同一种敌方事件，不在角色分支里执行机制；
+- `src/simulation/events/HitHandler.ts`：命中前状态、同帧级联事件、伤害 Hit 和命中后触发的结算顺序；
+- `src/simulation/events/TriggerRegistry.ts`：状态应用与消费通知；
+- `src/simulation/mechanics/reactions.test.ts`、`src/simulation/events/EnemyEffectHandler.stackStrategy.test.ts`、`src/simulation/state/EnemyState.test.ts`：机制契约。
+
+Endaxis 的关键规则不是“每种队伍一套引擎”，而是所有角色向同一敌人提交统一事件：
+
+1. 四种元素共用一个附着槽，最多四层；
+2. 同元素再次附着会加层、刷新并触发同元素爆发；
+3. 不同元素命中会消费已有附着，以后手元素决定异常，后手元素不留在附着槽；
+4. 破防最多四层；击飞、倒地增加破防并可产生物理控制伤害，但不消费已有破防；
+5. 猛击与碎甲消费已有破防并按消费层数生成独立机制 Hit；目标没有破防时只先进入一层破防；
+6. 反应/异常 Hit 归属触发反应的后手干员，被消费层数仍保留旧附着来源队列用于审计。
+
+上述 Endaxis 契约测试本地执行 `42/42` 通过，作为本项目通用层修复的对照基线，而不是直接复制它的 UI 或时间轴。
+
+### 17.2 本项目本轮确认的三个根因
+
+#### 根因 A：多次 ChannelingAction 被编译器丢弃
+
+汤汤战技的真实投射技能包含 `ChannelingAction`，间隔 `0.26s`、持续 90 tick、子动作中才有寒冷 `SpellInfliction`。旧编译器只接受一次执行，其余情况记为 `AKE_CHANNEL_SCHEDULER_REQUIRED`，因此伤害可能存在，但寒冷附着从未进入运行时。
+
+修复位于 `src/core/ake-action-compiler.mjs` 和 `src/core/combat-runtime.mjs`：通道动作统一编译成可取消的 `ScheduleIntervalActions`，保留间隔、持续 tick、首帧执行和最大执行次数，不写汤汤 ID。
+
+#### 根因 B：SpellInfliction 被当成相互独立的普通 Buff
+
+旧实现把每个元素直接编译成 `ApplyBuff`。这样四种附着可以同时存在，也没有“同元素爆发/异元素消费”的敌方事务，更无法保证反应 Hit 的来源归属。
+
+修复位于：
+
+- `src/core/ake-action-compiler.mjs`：`SpellInfliction` 编译成通用 `ApplyEnemyInfliction`，携带由语义映射表产生的四元素 Buff 映射；
+- `src/core/combat-status-resolver.mjs`：升级为 `EnemyMechanicResolver`，统一拥有元素与物理敌方机制；旧名称仅保留兼容导出；
+- `src/core/combat-runtime.mjs` 与 `src/core/effect-runtime.mjs`：注册并执行统一敌方附着事务；
+- `src/core/status-effect-system.mjs`：能力事件可显式把后手事件来源作为衍生动作来源，同时保留旧状态来源，不对其他 Buff 生命周期全局改语义。
+
+同元素附着原始 Buff 的 `OnBuffAfterTryEnhanced` 会再触发一次重新应用。旧状态系统会先自动加层、再执行原始重应用，导致一次命中增加两层。本轮通过识别“增强事件自己负责重新应用”的定义结构，只让原始事件增加一次，不按 Buff ID 写白名单。
+
+#### 根因 C：物理控制 Buff 共用 stacking key 时身份被错误复用
+
+AKE 的 `buff_physical_airborne`、`buff_physical_crushed` 等状态共用 `physical` stacking key。旧状态系统找到同 key 实例后直接刷新旧实例，结果“猛击”可能仍以“击飞”身份存在，新的生命周期、破防消费和独立伤害全部不执行。
+
+本轮将 stacking key 明确为“互斥槽”而不是“Buff 身份”：同 key、不同 Buff ID 时，先结束旧实例，再创建并执行新定义。该规则适用于所有状态，不包含角色条件。
+
+同一个击飞/倒地状态再次命中也不能退化为只刷新图标时长。统一事务会让对应控制 Buff 重新进入其 `OnBuffStart`，因此每次真实物理事件都会重新执行“独立物理 Hit + 破防加一”，并在四层处封顶；这仍由 `statusKey / statusBuffId` 驱动，不读取角色 ID。
+
+AKE 的击飞/倒地内部实现还会暂时结束 `buff_physical_no_guard` 并创建隐藏 `buff_physical_no_guard_fake`。直接把该内部标记当成最终敌方状态，会让陈千语战技后的破防在连携时被错误抵消。统一敌方事务现在根据 `statusKey` 对击飞/倒地保留真实破防层；猛击/碎甲仍按原始生命周期真实消费。UI 因而只读取最终规范状态，不展示内部 fake 标记。
+
+### 17.3 前端投影适配
+
+根引擎改为 `ApplyEnemyInfliction` 后，`src/core/ake-hit-profile-builder.mjs` 的静态命中画像仍只识别旧 `ApplyInfliction / ApplyBuff`，导致佩丽卡的电磁附着与诀的自然附着在按钮详情中消失。该构建器现已通用识别 `ApplyEnemyInfliction`，继续输出统一的 `hitBuffs / statusKey / target`；没有增加角色判断。
+
+真实异常 Buff 也不是旧 UI 映射中的单一 `buff_common_enemy_spell_status_*` 别名。跨元素导电实际使用 `buff_common_pulse_<被消费元素>_triggered`，其他异常同样由第一个元素 token 表示后手元素。本轮在 `src/core/ake-buff-presentation.mjs` 与运行时 ledger 的兼容投影中按该结构映射燃烧、导电、腐蚀、冻结，并隐藏 `try / start / fx / wrapper` 内部事件；主界面的导电状态因此读取真实 reaction Buff，不再依赖虚构别名。
+
+运行时 UI 继续由 `demo/lts-ui/src/core/services/akeRuntimeLedger.ts` 投影真实 `statusEvents`：
+
+- 主界面只保留破防/碎甲、导电和元素附着等关键状态；
+- 双击详情按状态实例和 trace 顺序显示应用、叠层、刷新、消费、结束；
+- 每个 Hit 读取自己的 runtime snapshot，不把启停演示 Buff 当成真实命中权威；
+- 隐藏内部 `buff_physical_no_guard_fake`，但不隐藏真实破防消费；
+- 元素附着与导电使用不同语义映射，不再都显示成“电磁”。
+
+本轮没有修改 Canvas CSS、按钮几何、共享变速列或水位算法。
+
+### 17.4 新增回归矩阵与结果
+
+新增 `test/ake-enemy-mechanics.test.mjs`，直接装配真实 AKE Buff 定义并验证：
+
+1. 四元素全部 `4 × 4` 组合；
+2. 同元素一次命中只增加一层；
+3. 异元素消费唯一附着槽并生成正确的原始 AKE reaction Buff；
+4. 反应 Buff 归属后手干员；
+5. 汤汤真实战技通道最终产生寒冷附着；
+6. 陈千语真实战技加连携后破防为两层，未被 fake 标记抵消。
+7. 陈千语单次战技只增加一层；已有破防后的击飞保留独立物理 Hit；元素附着与破防都在四层封顶。
+
+最终验证：
+
+- Endaxis 对照机制测试：`42/42`；
+- cleanroom 根引擎全量测试：`164/164`；
+- 前端本轮状态账本契约：通过；
+- TypeScript `tsc --noEmit`：通过；
+- Demo 生产构建：通过；
+- `demo/lts-ui/src/core/domain/sharedVariableRateTimeline.ts`：本轮零差异。
+
+前端仓库级 `npm test` 仍会在与本轮无关的
+`src/platform/runtime/sitesMobileShareApi.test.ts` 返回失败码：该测试在当前基线引用
+`../../../worker/mobileShareApi`，但 `HEAD` 中不存在 `demo/lts-ui/worker/mobileShareApi.ts`。
+状态、引擎与 UI ledger 测试在到达该文件前均通过；本轮遵守移动分享不在修复范围的边界，没有伪造或补写该服务实现。

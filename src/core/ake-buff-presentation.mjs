@@ -35,11 +35,11 @@ const PRESENTATION_OVERRIDES = Object.freeze({
         iconId: 'icon_battle_conduct'
     },
     buff_common_enemy_spell_status_frozen: {
-        displayName: '寒冷附着', shortName: '寒', applicationScope: 'enemy',
+        displayName: '冻结', shortName: '冻', applicationScope: 'enemy',
         iconId: 'icon_battle_frozen'
     },
     buff_common_enemy_spell_status_burning: {
-        displayName: '灼热附着', shortName: '灼', applicationScope: 'enemy',
+        displayName: '燃烧', shortName: '燃', applicationScope: 'enemy',
         iconId: 'icon_battle_burning'
     },
     buff_common_enemy_spell_status_corrupt: {
@@ -59,6 +59,46 @@ const PRESENTATION_OVERRIDES = Object.freeze({
         displayName: '终结技期间伤害免疫', shortName: '免', applicationScope: 'self', hidden: true
     }
 });
+
+const REACTION_PRESENTATION = Object.freeze({
+    fire: {
+        displayName: '燃烧', shortName: '燃', applicationScope: 'enemy',
+        effectType: 'elementalAbnormal', iconId: 'icon_battle_burning'
+    },
+    pulse: {
+        displayName: '导电', shortName: '导', applicationScope: 'enemy',
+        effectType: 'elementalAbnormal', iconId: 'icon_battle_conduct'
+    },
+    natural: {
+        displayName: '腐蚀', shortName: '蚀', applicationScope: 'enemy',
+        effectType: 'elementalAbnormal', iconId: 'icon_battle_corrupt'
+    },
+    cryst: {
+        displayName: '冻结', shortName: '冻', applicationScope: 'enemy',
+        effectType: 'elementalAbnormal', iconId: 'icon_battle_frozen'
+    }
+});
+
+function structuralPresentationOverride(buffId) {
+    const normalized = String(buffId ?? '').toLowerCase();
+    if (/^buff_common_try_(?:fire|pulse|natural|cryst)_(?:fire|pulse|natural|cryst)_triggered$/.test(normalized)
+        || /_(?:triggered_start|triggered_fx|triggered_wrapper)$/.test(normalized)) {
+        return {
+            displayName: '元素异常内部事件', shortName: '异',
+            applicationScope: 'system', hidden: true
+        };
+    }
+
+    const explicit = /^buff_common_(fire|pulse|natural|cryst)_\1_(burning|conduct|corrupt|frozen)_triggered$/.exec(normalized);
+    if (explicit) return REACTION_PRESENTATION[explicit[1]] ?? null;
+
+    const crossed = /^buff_common_(fire|pulse|natural|cryst)_(fire|pulse|natural|cryst)_triggered$/.exec(normalized);
+    if (crossed && crossed[1] !== crossed[2]) {
+        return REACTION_PRESENTATION[crossed[1]] ?? null;
+    }
+    if (normalized === 'buff_common_burning_status') return REACTION_PRESENTATION.fire;
+    return null;
+}
 
 const TOKEN_LABELS = Object.freeze({
     talent: '天赋', potential: '潜能', weapon: '武器', equip: '装备', equipsuit: '套装',
@@ -174,7 +214,9 @@ export function resolveAkeBuffPresentation({
     dataOrigin = ''
 }) {
     const catalog = index?.entries?.get(buffId) ?? null;
-    const override = PRESENTATION_OVERRIDES[buffId] ?? null;
+    const override = PRESENTATION_OVERRIDES[buffId]
+        ?? structuralPresentationOverride(buffId)
+        ?? null;
     const sourceSkillName = sourceSkillId ? index?.skillNames?.get(sourceSkillId) ?? '' : '';
     const displayName = override?.displayName
         || catalog?.displayName
@@ -190,7 +232,7 @@ export function resolveAkeBuffPresentation({
         buffId,
         displayName,
         shortName: override?.shortName || catalog?.shortName || displayName.slice(0, 1),
-        effectType: catalog?.effectType ?? null,
+        effectType: override?.effectType ?? catalog?.effectType ?? null,
         applicationScope: override?.applicationScope ?? catalog?.applicationScope ?? null,
         description: catalog?.description ?? '',
         iconId,
@@ -204,4 +246,3 @@ export function resolveAkeBuffPresentation({
 }
 
 export { PRESENTATION_OVERRIDES as AKE_BUFF_PRESENTATION_OVERRIDES };
-

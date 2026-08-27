@@ -43,10 +43,10 @@ const RUNTIME_STATUS_METADATA: Record<string, RuntimeStatusMetadata> = {
     label: '导电', shortLabel: '导', mainDisplay: true, priority: 70,
   },
   buff_common_enemy_spell_status_frozen: {
-    label: '寒冷附着', shortLabel: '寒', mainDisplay: true, priority: 80,
+    label: '冻结', shortLabel: '冻', mainDisplay: true, priority: 80,
   },
   buff_common_enemy_spell_status_burning: {
-    label: '灼热附着', shortLabel: '灼', mainDisplay: true, priority: 81,
+    label: '燃烧', shortLabel: '燃', mainDisplay: true, priority: 81,
   },
   buff_common_enemy_spell_status_corrupt: {
     label: '腐蚀', shortLabel: '蚀', mainDisplay: true, priority: 82,
@@ -193,12 +193,31 @@ function fallbackStatusLabel(buffId: string): string {
 }
 
 function dynamicRuntimeStatusMetadata(buffId: string): Partial<RuntimeStatusMetadata> | null {
-  if (!buffId.includes('energy_shard_attached_')) return null;
-  if (buffId.includes('_fire')) return { label: '灼热附着', shortLabel: '灼', mainDisplay: true, priority: 81 };
-  if (buffId.includes('_pulse')) return { label: '电磁附着', shortLabel: '电', mainDisplay: true, priority: 82 };
-  if (buffId.includes('_cryst')) return { label: '寒冷附着', shortLabel: '寒', mainDisplay: true, priority: 83 };
-  if (buffId.includes('_natural')) return { label: '自然附着', shortLabel: '自', mainDisplay: true, priority: 84 };
-  return { label: '元素附着', shortLabel: '附', mainDisplay: true, priority: 85 };
+  if (buffId.includes('energy_shard_attached_')) {
+    if (buffId.includes('_fire')) return { label: '灼热附着', shortLabel: '灼', mainDisplay: true, priority: 81 };
+    if (buffId.includes('_pulse')) return { label: '电磁附着', shortLabel: '电', mainDisplay: true, priority: 82 };
+    if (buffId.includes('_cryst')) return { label: '寒冷附着', shortLabel: '寒', mainDisplay: true, priority: 83 };
+    if (buffId.includes('_natural')) return { label: '自然附着', shortLabel: '自', mainDisplay: true, priority: 84 };
+    return { label: '元素附着', shortLabel: '附', mainDisplay: true, priority: 85 };
+  }
+  const normalized = buffId.toLowerCase();
+  if (/^buff_common_try_(?:fire|pulse|natural|cryst)_(?:fire|pulse|natural|cryst)_triggered$/.test(normalized)
+    || /_(?:triggered_start|triggered_fx|triggered_wrapper)$/.test(normalized)) {
+    return { label: '元素异常内部事件', shortLabel: '异', hidden: true };
+  }
+  const explicit = /^buff_common_(fire|pulse|natural|cryst)_\1_(?:burning|conduct|corrupt|frozen)_triggered$/.exec(normalized);
+  const crossed = /^buff_common_(fire|pulse|natural|cryst)_(fire|pulse|natural|cryst)_triggered$/.exec(normalized);
+  const reactionElement = explicit?.[1]
+    ?? (crossed && crossed[1] !== crossed[2] ? crossed[1] : null);
+  if (reactionElement === 'pulse') {
+    return { label: '导电', shortLabel: '导', mainDisplay: true, priority: 70 };
+  }
+  if (reactionElement === 'fire' || normalized === 'buff_common_burning_status') {
+    return { label: '燃烧', shortLabel: '燃', priority: 80 };
+  }
+  if (reactionElement === 'natural') return { label: '腐蚀', shortLabel: '蚀', priority: 80 };
+  if (reactionElement === 'cryst') return { label: '冻结', shortLabel: '冻', priority: 80 };
+  return null;
 }
 
 function runtimeStatusMetadata(

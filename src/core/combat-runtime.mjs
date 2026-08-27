@@ -9,7 +9,7 @@ import { ResilienceMachine } from './resilience-machine.mjs';
 import { StatusEffectSystem } from './status-effect-system.mjs';
 import { EffectSourceRegistry } from './effect-source-registry.mjs';
 import { SkillFormStateRegistry } from './skill-form-state-registry.mjs';
-import { CombatStatusResolver } from './combat-status-resolver.mjs';
+import { EnemyMechanicResolver } from './combat-status-resolver.mjs';
 
 function isRecord(value) {
     return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -234,12 +234,15 @@ export class CombatRuntime {
                 }
             )
         });
-        this.combatStatuses = new CombatStatusResolver({
+        this.enemyMechanics = new EnemyMechanicResolver({
             statusEffects: this.statusEffects,
             executeTransaction: (actions, eventContext) =>
                 this.effects.executeTransaction(actions, eventContext),
             getEffectTrace: () => this.effects?.trace ?? []
         });
+        // Backward-compatible alias for callers that still inspect the older
+        // physical-only service name.
+        this.combatStatuses = this.enemyMechanics;
         this.auras = new AuraMachine({
             definitions: definitions.auras ?? {},
             schedule: this.schedule,
@@ -694,10 +697,15 @@ export class CombatRuntime {
         }
         const includeStart = action.includeStart !== false;
         const firstOffset = includeStart ? 0 : resolvedIntervalTicks;
+        const maxExecutions = action.maxExecutions === null
+            || action.maxExecutions === undefined
+            ? Number.POSITIVE_INFINITY
+            : nonNegativeInteger(action.maxExecutions, 'interval maxExecutions');
         const offsets = [];
         for (let offset = firstOffset;
             durationTicks === 0 ? offset === 0 : offset < durationTicks;
             offset += resolvedIntervalTicks) {
+            if (offsets.length >= maxExecutions) break;
             offsets.push(offset);
             if (durationTicks === 0) break;
         }
@@ -786,6 +794,7 @@ export class CombatRuntime {
             intervalTicks: resolvedIntervalTicks,
             durationTicks,
             includeStart,
+            maxExecutions: Number.isFinite(maxExecutions) ? maxExecutions : null,
             tickCount: offsets.length,
             tickOffsets: offsets
         };
@@ -2295,6 +2304,11 @@ export class CombatRuntime {
                                 : {}),
                             ...cloneValue(candidate.blackboard ?? {})
                         };
+                        const reenterStatusBuffIds = new Set(
+                            Array.isArray(eventContext.payload?.reenterStatusBuffIds)
+                                ? eventContext.payload.reenterStatusBuffIds
+                                : []
+                        );
                         if (definition !== null) {
                             this.#notifyBeforeOutputBuff(
                                 candidate,
@@ -2328,7 +2342,10 @@ export class CombatRuntime {
                             durationTicks: action.durationTicks,
                             durationSeconds: action.durationSeconds,
                             stackingKey: action.stackingKey,
-                            stackingPolicy: action.stackingPolicy,
+                            stackingPolicy: action.stackingPolicy
+                                ?? (reenterStatusBuffIds.has(candidate.buffId)
+                                    ? 'Replace'
+                                    : undefined),
                             stackingScope: action.stackingScope,
                             maxStacks: action.maxStacks,
                             stackCount: action.stackCount,
@@ -2361,6 +2378,32 @@ export class CombatRuntime {
                     );
                 }
                 const targetRef = action.targetRef ?? action.target ?? action.targetId;
+                const preserveBuffIds = new Set(
+                    Array.isArray(eventContext.payload?.preserveBuffIds)
+                        ? eventContext.payload.preserveBuffIds
+                        : []
+                );
+                const selectedInstanceId = action.instanceId ?? action.buffInstanceId;
+                const selectedInstance = selectedInstanceId === undefined
+                    ? null
+                    : this.statusEffects.list({ active: true })
+                        .find(instance => instance.instanceId === selectedInstanceId) ?? null;
+                const requestedBuffIds = [
+                    action.buffId,
+                    ...(Array.isArray(action.buffIds) ? action.buffIds : []),
+                    selectedInstance?.buffId
+                ].filter(Boolean);
+                if (requestedBuffIds.length > 0
+                    && requestedBuffIds.every(buffId => preserveBuffIds.has(buffId))) {
+                    return {
+                        status: 'Preserved',
+                        reason: 'EnemyMechanicPreservesVulnerability',
+                        buffIds: requestedBuffIds,
+                        targetId: targetRef === undefined
+                            ? eventContext.targetId
+                            : this.#entityId(targetRef, eventContext)
+                    };
+                }
                 return this.statusEffects.finish({
                     frame: action.frame ?? eventContext.frame,
                     instanceId: action.instanceId ?? action.buffInstanceId,
@@ -2393,7 +2436,15 @@ export class CombatRuntime {
                     eventContext,
                     'Target'
                 );
-                return this.combatStatuses.resolve(action, eventContext, targetId);
+                return this.enemyMechanics.resolve(action, eventContext, targetId);
+            },
+            ApplyEnemyInfliction: (action, eventContext) => {
+                const targetId = this.#entityId(
+                    action.targetRef ?? action.target ?? action.targetId,
+                    eventContext,
+                    'Target'
+                );
+                return this.enemyMechanics.resolveInfliction(action, eventContext, targetId);
             },
             ApplyInfliction: (action, eventContext) => this.reactions.applyInfliction({
                 ...this.#attribution(action, eventContext),
@@ -2474,7 +2525,8 @@ export class CombatRuntime {
                     ...cloneValue(eventContext),
                     sourceId,
                     eventType: action.eventType,
-                    listenerTargetId
+                    listenerTargetId,
+                    useEventSourceAsActionSource: action.eventSourceAsActionSource === true
                 });
             },
             LaunchSkillProgram: (action, eventContext) => {

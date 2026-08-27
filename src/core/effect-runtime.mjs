@@ -98,6 +98,7 @@ function canonicalType(type) {
         finishbuff: 'FinishBuff',
         finishbuffaction: 'FinishBuff',
         applycombatstatus: 'ApplyCombatStatus',
+        applyenemyinfliction: 'ApplyEnemyInfliction',
         applyinfliction: 'ApplyInfliction',
         applyinflictionaction: 'ApplyInfliction',
         spellinfliction: 'ApplyInfliction',
@@ -146,6 +147,7 @@ export const DEFAULT_EFFECT_ACTION_TYPES = Object.freeze([
     'ResourceChange', 'SuppressResourceGain', 'ResumeResourceGain', 'ClearResource',
     'SuspendResourceRecovery', 'ResumeResourceRecovery',
     'Heal', 'AddShield', 'Damage', 'ApplyBuff', 'FinishBuff', 'ApplyCombatStatus',
+    'ApplyEnemyInfliction',
     'ApplyInfliction', 'ApplyImpact', 'ApplyControl', 'RecoverResilience',
     'LaunchSkillProgram', 'ScheduleIntervalActions', 'ResolveTimeDilation',
     'SetResilienceModifier', 'RemoveResilienceModifier', 'ResolveDamagePacket',
@@ -840,6 +842,7 @@ export class EffectRuntime {
             case 'ApplyBuff':
             case 'FinishBuff':
             case 'ApplyCombatStatus':
+            case 'ApplyEnemyInfliction':
             case 'ApplyInfliction':
             case 'ApplyImpact':
             case 'SetResilienceModifier':

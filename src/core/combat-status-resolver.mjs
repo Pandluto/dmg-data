@@ -8,6 +8,23 @@ function countLayers(statusEffects, targetId, buffId) {
         .reduce((sum, instance) => sum + Number(instance.stackCount ?? 0), 0);
 }
 
+function normalizedAttachmentMap(action) {
+    const entries = Object.entries(action.attachmentBuffIds ?? {})
+        .filter(([element, buffId]) => typeof element === 'string' && element.length > 0
+            && typeof buffId === 'string' && buffId.length > 0);
+    if (typeof action.element === 'string' && action.element.length > 0
+        && typeof action.buffId === 'string' && action.buffId.length > 0
+        && !entries.some(([element]) => element === action.element)) {
+        entries.push([action.element, action.buffId]);
+    }
+    return new Map(entries);
+}
+
+function statusEventsForTransaction(statusEffects, startIndex, transactionId) {
+    return statusEffects.trace.slice(startIndex)
+        .filter(event => event.transactionId === transactionId);
+}
+
 /**
  * Executes an AKE physical status attempt as one auditable transaction.
  *
@@ -16,13 +33,13 @@ function countLayers(statusEffects, targetId, buffId) {
  * and spawns derived damage.  This resolver deliberately owns no character or
  * status-specific shortcut.
  */
-export class CombatStatusResolver {
+export class EnemyMechanicResolver {
     constructor({ statusEffects, executeTransaction, getEffectTrace = () => [] } = {}) {
         if (!statusEffects || typeof statusEffects.list !== 'function') {
-            throw new TypeError('CombatStatusResolver requires statusEffects.');
+            throw new TypeError('EnemyMechanicResolver requires statusEffects.');
         }
         if (typeof executeTransaction !== 'function') {
-            throw new TypeError('CombatStatusResolver requires executeTransaction.');
+            throw new TypeError('EnemyMechanicResolver requires executeTransaction.');
         }
         if (typeof getEffectTrace !== 'function') {
             throw new TypeError('getEffectTrace must be a function.');
@@ -31,6 +48,140 @@ export class CombatStatusResolver {
         this.executeTransaction = executeTransaction;
         this.getEffectTrace = getEffectTrace;
         this.nextTransactionSequence = 1;
+    }
+
+    /**
+     * Resolves the four player-to-enemy elemental attachments as one enemy
+     * transaction. A target owns one attachment slot: same-element attempts
+     * enhance it, while a different element ignites and consumes the existing
+     * attachment without leaving the incoming element behind.
+     */
+    resolveInfliction(action, eventContext, targetId) {
+        const transactionId = eventContext.transactionId
+            ?? `enemy-infliction:${this.nextTransactionSequence++}`;
+        const element = action.element ?? null;
+        const buffId = action.buffId ?? null;
+        const attachmentBuffIds = normalizedAttachmentMap(action);
+        const knownBuffIds = new Set(attachmentBuffIds.values());
+        const beforeInstances = this.statusEffects.list({ active: true, targetId })
+            .filter(instance => knownBuffIds.has(instance.buffId))
+            .sort((left, right) => Number(left.startFrame ?? 0) - Number(right.startFrame ?? 0)
+                || String(left.instanceId).localeCompare(String(right.instanceId)));
+        const before = beforeInstances.reduce(
+            (sum, instance) => sum + Number(instance.stackCount ?? 0),
+            0
+        );
+        const statusTraceStart = this.statusEffects.trace.length;
+        const effectTraceStart = this.getEffectTrace().length;
+        const context = {
+            ...clone(eventContext),
+            targetId,
+            carrierId: targetId,
+            damageSourceId: eventContext.damageSourceId ?? eventContext.sourceId ?? null,
+            transactionId,
+            eventType: 'EnemyInflictionTransaction',
+            payload: {
+                ...clone(eventContext.payload ?? {}),
+                element,
+                inflictionBuffId: buffId,
+                attachmentBuffIds: Object.fromEntries(attachmentBuffIds)
+            }
+        };
+
+        if (typeof element !== 'string' || element.length === 0
+            || typeof buffId !== 'string' || buffId.length === 0
+            || attachmentBuffIds.size === 0) {
+            return {
+                status: 'Unresolved',
+                code: 'ENEMY_INFLICTION_MAPPING_MISSING',
+                reason: 'MissingElementalAttachmentMapping',
+                transactionId,
+                element,
+                targetId,
+                buffId,
+                before,
+                after: before,
+                branch: 'Unresolved',
+                diagnostics: [{
+                    code: 'ENEMY_INFLICTION_MAPPING_MISSING',
+                    severity: 'error',
+                    transactionId
+                }]
+            };
+        }
+
+        const conflicting = beforeInstances.filter(instance => instance.buffId !== buffId);
+        const sameElement = beforeInstances.length > 0 && conflicting.length === 0;
+        const branch = beforeInstances.length === 0
+            ? 'AttachmentApplied'
+            : sameElement
+                ? 'AttachmentEnhanced'
+                : 'ElementalReaction';
+        const actions = conflicting.length === 0
+            ? [{
+                type: 'ApplyBuff',
+                buffId,
+                target: targetId,
+                inheritEventBlackboard: false,
+                triggerEnhancementEvent: true,
+                reason: action.reason ?? 'SpellInfliction'
+            }]
+            : [
+                {
+                    type: 'TriggerStatusEvent',
+                    eventType: `EnergyShardBy${element}`,
+                    element,
+                    target: targetId,
+                    // The incoming inflictor triggers and owns the reaction.
+                    // The consumed attachment retains its own stack-source
+                    // ledger separately; it must not steal damage attribution.
+                    eventSourceAsActionSource: true,
+                    reason: action.reason ?? 'SpellInfliction'
+                },
+                ...beforeInstances.map(instance => ({
+                    type: 'FinishBuff',
+                    instanceId: instance.instanceId,
+                    target: targetId,
+                    finishAll: true,
+                    reason: `ElementalReaction:${element}`
+                }))
+            ];
+        const execution = this.executeTransaction(actions, context);
+        const statusEvents = statusEventsForTransaction(
+            this.statusEffects,
+            statusTraceStart,
+            transactionId
+        );
+        const effectEvents = this.getEffectTrace().slice(effectTraceStart)
+            .filter(event => event.transactionId === transactionId);
+        const afterInstances = this.statusEffects.list({ active: true, targetId })
+            .filter(instance => knownBuffIds.has(instance.buffId));
+        const after = afterInstances.reduce(
+            (sum, instance) => sum + Number(instance.stackCount ?? 0),
+            0
+        );
+        return {
+            status: 'Applied',
+            reason: action.reason ?? 'SpellInfliction',
+            transactionId,
+            element,
+            targetId,
+            buffId,
+            branch,
+            before,
+            after,
+            consumedStacks: branch === 'ElementalReaction' ? before : 0,
+            activeAttachmentBuffIds: afterInstances.map(instance => instance.buffId),
+            statusEvents: clone(statusEvents),
+            effectEvents: clone(effectEvents),
+            execution: clone(execution),
+            diagnostics: beforeInstances.length > 1 ? [{
+                code: 'ENEMY_ATTACHMENT_SLOT_CONFLICT',
+                severity: 'error',
+                transactionId,
+                activeBuffIds: beforeInstances.map(instance => instance.buffId)
+            }] : []
+        };
     }
 
     resolve(action, eventContext, targetId) {
@@ -54,7 +205,23 @@ export class CombatStatusResolver {
                 statusKey: action.statusKey ?? null,
                 triggerBuffId,
                 initialBuffId,
-                statusBuffId
+                statusBuffId,
+                // Lift/knockdown add vulnerability in the canonical enemy
+                // state. Raw AKE control Buffs temporarily finish no_guard and
+                // create an internal fake marker; retaining the real stack here
+                // prevents that implementation detail from becoming a false
+                // state transition in damage and UI ledgers.
+                preserveBuffIds: ['airborne', 'knockdown'].includes(action.statusKey)
+                    ? [initialBuffId]
+                    : [],
+                // Every lift/knockdown attempt is an enemy event. Re-entering
+                // the same control state must execute its OnBuffStart damage
+                // and vulnerability action again instead of becoming a visual
+                // duration-only refresh at the shared `physical` slot.
+                reenterStatusBuffIds: ['airborne', 'knockdown'].includes(action.statusKey)
+                    && statusBuffId
+                    ? [statusBuffId]
+                    : []
             }
         };
 
@@ -191,4 +358,8 @@ export class CombatStatusResolver {
     }
 }
 
-export default CombatStatusResolver;
+// Compatibility export for integrations that still use the earlier name.
+// The implementation owns both physical and elemental enemy mechanics.
+export const CombatStatusResolver = EnemyMechanicResolver;
+
+export default EnemyMechanicResolver;

@@ -1047,6 +1047,46 @@ export class AkeActionCompiler {
                         mode: 'ImmediateOncePerExplicitTarget'
                     });
                 } else {
+                    const startFrame = Number(state.timelineStartFrame ?? 0);
+                    const endFrame = Number(state.timelineEndFrame ?? startFrame);
+                    const durationTicks = Math.max(0, Math.round(endFrame - startFrame));
+                    const intervalSeconds = Number(resolveValue(
+                        node.triggerInterval,
+                        state.blackboard,
+                        Number.NaN
+                    ));
+                    const hasExecutableInterval = Boolean(node.executeEachFrame)
+                        || (Number.isFinite(intervalSeconds) && intervalSeconds > 0);
+                    if (hasExecutableInterval && children.actions.length > 0) {
+                        result.actions.push({
+                            type: 'ScheduleIntervalActions',
+                            intervalTicks: node.executeEachFrame ? 1 : null,
+                            intervalSeconds: node.executeEachFrame ? null : intervalSeconds,
+                            durationTicks,
+                            timelineStartFrame: startFrame,
+                            timelineEndFrame: endFrame,
+                            includeStart: true,
+                            maxExecutions: maxCountPerTarget > 0 ? maxCountPerTarget : null,
+                            targetIntervalSeconds: Number(resolveValue(
+                                node.targetTriggerInterval,
+                                state.blackboard,
+                                -1
+                            )),
+                            actions: children.actions,
+                            reason: type
+                        });
+                        result.cleanupActions.push(...children.cleanupActions);
+                        result.metadata.push({
+                            type: 'ResolvedChannelingMode',
+                            sourceType: type,
+                            path: state.path,
+                            mode: 'IntervalPerExplicitTarget',
+                            durationTicks,
+                            intervalSeconds: node.executeEachFrame ? null : intervalSeconds,
+                            maxExecutions: maxCountPerTarget > 0 ? maxCountPerTarget : null
+                        });
+                        break;
+                    }
                     result.unresolved.push(this.#unresolved(
                         'AKE_CHANNEL_SCHEDULER_REQUIRED',
                         type,
@@ -2079,14 +2119,22 @@ export class AkeActionCompiler {
                     candidate.selector?.inflictionType === node.inflictionType
                 );
                 if (mapping?.effect?.operation === 'ApplyBuff') {
+                    const attachmentBuffIds = Object.fromEntries(this.semanticMappings
+                        .filter(candidate => candidate.actionType === 'SpellInfliction'
+                            && candidate.effect?.operation === 'ApplyBuff'
+                            && typeof candidate.selector?.inflictionType === 'string'
+                            && typeof candidate.effect?.buffId === 'string')
+                        .map(candidate => [
+                            candidate.selector.inflictionType,
+                            candidate.effect.buffId
+                        ]));
                     result.actions.push({
-                        type: 'ApplyBuff',
+                        type: 'ApplyEnemyInfliction',
+                        element: node.inflictionType,
                         buffId: mapping.effect.buffId,
+                        attachmentBuffIds,
                         target: 'Target',
                         inheritEventBlackboard: false,
-                        // OnBuffAfterTryEnhanced is a SpellInfliction lifecycle,
-                        // not a side effect of every direct ApplyBuff call.
-                        triggerEnhancementEvent: true,
                         reason: type
                     });
                 } else {

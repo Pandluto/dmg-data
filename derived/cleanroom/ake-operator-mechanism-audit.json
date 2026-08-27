@@ -11,18 +11,18 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3041,
-    "combatRiskCount": 880,
+    "findingCount": 3038,
+    "combatRiskCount": 877,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 297,
+      "combat-blocking": 294,
       "combat-partial": 161,
       "evidence-missing": 422,
       "presentation-only": 390,
       "spatial-assumption": 1771
     },
     "byPriority": {
-      "P0": 156,
+      "P0": 153,
       "P1": 650,
       "P2": 1845,
       "P3": 390
@@ -36,7 +36,7 @@
       "derived-state": 8,
       "deterministic-choice": 347,
       "event-scheduling": 28,
-      "event-subscription": 24,
+      "event-subscription": 21,
       "form-state": 30,
       "physical-status": 77,
       "presentation": 390,
@@ -151,7 +151,6 @@
       "TeleportPosSelectAction": 109,
       "TemporaryUnlockAction": 44,
       "TogglableAction": 15,
-      "TriggerComboSkillAction": 3,
       "TriggerCustomAbilityEvent": 1,
       "TriggerLiinoUIEvent": 8,
       "TryToTeleportSquadAction": 1
@@ -16649,18 +16648,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 338,
-        "combatRiskCount": 195,
+        "findingCount": 336,
+        "combatRiskCount": 193,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 24,
+          "combat-blocking": 22,
           "combat-partial": 8,
           "evidence-missing": 163,
           "presentation-only": 45,
           "spatial-assumption": 98
         },
         "byPriority": {
-          "P0": 6,
+          "P0": 4,
           "P1": 186,
           "P2": 101,
           "P3": 45
@@ -16670,7 +16669,7 @@
           "condition-algebra": 18,
           "deterministic-choice": 160,
           "event-scheduling": 1,
-          "event-subscription": 3,
+          "event-subscription": 1,
           "physical-status": 8,
           "presentation": 45,
           "resource-transaction": 1,
@@ -16711,45 +16710,10 @@
           "TeleportAction": 8,
           "TeleportPosSelectAction": 7,
           "TemporaryUnlockAction": 3,
-          "TriggerComboSkillAction": 2,
           "TryToTeleportSquadAction": 1
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0028_wulfa",
-          "characterName": "洛茜",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0028_wulfa_combo_2_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0028_wulfa_combo_2_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[21][1].success[0].failure[2]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "TriggerComboSkillAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for TriggerComboSkillAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0028_wulfa",
-          "characterName": "洛茜",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0028_wulfa_combo_2_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0028_wulfa_combo_2_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[21][1].success[0].success[0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "TriggerComboSkillAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for TriggerComboSkillAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
         {
           "characterId": "chr_0028_wulfa",
           "characterName": "洛茜",
@@ -42692,18 +42656,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 50,
-        "combatRiskCount": 17,
+        "findingCount": 49,
+        "combatRiskCount": 16,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 7,
+          "combat-blocking": 6,
           "combat-partial": 5,
           "evidence-missing": 5,
           "presentation-only": 4,
           "spatial-assumption": 29
         },
         "byPriority": {
-          "P0": 6,
+          "P0": 5,
           "P1": 10,
           "P2": 30,
           "P3": 4
@@ -42713,7 +42677,6 @@
           "damage-factor": 3,
           "deterministic-choice": 4,
           "event-scheduling": 1,
-          "event-subscription": 1,
           "presentation": 4,
           "status-lifecycle": 1,
           "targeting-scope": 5,
@@ -42739,8 +42702,7 @@
           "SelfRotateAction": 10,
           "TeleportAction": 3,
           "TeleportPosSelectAction": 2,
-          "TemporaryUnlockAction": 1,
-          "TriggerComboSkillAction": 1
+          "TemporaryUnlockAction": 1
         }
       },
       "findings": [
@@ -42777,23 +42739,6 @@
           "priority": "P0",
           "capability": "damage-factor",
           "rationale": "The action changes a target-side or source-side damage factor."
-        },
-        {
-          "characterId": "chr_0011_seraph",
-          "characterName": "赛希",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0011_seraph_combo_count",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0011_seraph_combo_count.json",
-          "jsonPath": "buffEventAction[0].actions[0][1..][2]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "TriggerComboSkillAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for TriggerComboSkillAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
         },
         {
           "characterId": "chr_0011_seraph",

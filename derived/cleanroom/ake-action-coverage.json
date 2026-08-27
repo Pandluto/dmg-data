@@ -1491,8 +1491,8 @@
           "canonicalEffectType": "SwitchModeAction",
           "effectRouteAvailable": false,
           "classification": {
-            "category": "other",
-            "disposition": "unresolved"
+            "category": "logic",
+            "disposition": "compiler"
           }
         },
         {
@@ -2495,8 +2495,8 @@
           "canonicalEffectType": "ChangeSkillAction",
           "effectRouteAvailable": false,
           "classification": {
-            "category": "other",
-            "disposition": "unresolved"
+            "category": "logic",
+            "disposition": "compiler"
           }
         },
         {
@@ -3053,8 +3053,8 @@
           "canonicalEffectType": "AddGlobalCDTimer",
           "effectRouteAvailable": false,
           "classification": {
-            "category": "other",
-            "disposition": "unresolved"
+            "category": "logic",
+            "disposition": "compiler"
           }
         },
         {
@@ -4122,29 +4122,27 @@
           ],
           "compiler": {
             "statusCounts": {
-              "executable": 0,
+              "executable": 3,
               "metadata-only": 0,
-              "unresolved": 3
+              "unresolved": 0
             },
             "executionRouteCounts": {
-              "complete": 0,
+              "complete": 3,
               "adapter-required": 0,
-              "blocked": 3,
+              "blocked": 0,
               "metadata-only": 0
             },
-            "runtimeActions": 0,
+            "runtimeActions": 3,
             "cleanupActions": 0,
             "metadataNodes": 0,
-            "unresolvedCodes": {
-              "AKE_ACTION_UNSUPPORTED": 3
-            }
+            "unresolvedCodes": {}
           },
           "parserSupported": false,
           "canonicalEffectType": "TriggerComboSkillAction",
           "effectRouteAvailable": false,
           "classification": {
-            "category": "other",
-            "disposition": "unresolved"
+            "category": "logic",
+            "disposition": "compiler"
           }
         },
         {
@@ -10987,13 +10985,13 @@
           ],
           "compiler": {
             "statusCounts": {
-              "executable": 1173,
+              "executable": 1176,
               "metadata-only": 0,
-              "unresolved": 1302
+              "unresolved": 1299
             },
             "executionRouteCounts": {
-              "complete": 1173,
-              "adapter-required": 1302,
+              "complete": 1176,
+              "adapter-required": 1299,
               "blocked": 0,
               "metadata-only": 0
             },
@@ -11003,7 +11001,7 @@
             "unresolvedCodes": {
               "AKE_TIME_DILATION_RESOLVER_REQUIRED": 318,
               "AKE_SPATIAL_PROVIDER_REQUIRED": 888,
-              "AKE_ACTION_UNSUPPORTED": 894,
+              "AKE_ACTION_UNSUPPORTED": 889,
               "AKE_DAMAGE_RESOLVER_REQUIRED": 630,
               "AKE_CONDITION_UNSUPPORTED": 350,
               "AKE_TARGET_PROVIDER_REQUIRED": 75,
@@ -14386,8 +14384,8 @@
           "canonicalEffectType": "AddGlobalCDTimer",
           "effectRouteAvailable": false,
           "classification": {
-            "category": "other",
-            "disposition": "unresolved"
+            "category": "logic",
+            "disposition": "compiler"
           }
         },
         {
@@ -14643,8 +14641,8 @@
           "canonicalEffectType": "ChangeSkillAction",
           "effectRouteAvailable": false,
           "classification": {
-            "category": "other",
-            "disposition": "unresolved"
+            "category": "logic",
+            "disposition": "compiler"
           }
         },
         {
@@ -15013,29 +15011,27 @@
           ],
           "compiler": {
             "statusCounts": {
-              "executable": 0,
+              "executable": 3,
               "metadata-only": 0,
-              "unresolved": 3
+              "unresolved": 0
             },
             "executionRouteCounts": {
-              "complete": 0,
+              "complete": 3,
               "adapter-required": 0,
-              "blocked": 3,
+              "blocked": 0,
               "metadata-only": 0
             },
-            "runtimeActions": 0,
+            "runtimeActions": 3,
             "cleanupActions": 0,
             "metadataNodes": 0,
-            "unresolvedCodes": {
-              "AKE_ACTION_UNSUPPORTED": 3
-            }
+            "unresolvedCodes": {}
           },
           "parserSupported": false,
           "canonicalEffectType": "TriggerComboSkillAction",
           "effectRouteAvailable": false,
           "classification": {
-            "category": "other",
-            "disposition": "unresolved"
+            "category": "logic",
+            "disposition": "compiler"
           }
         },
         {
@@ -19748,23 +19744,23 @@
     "parserCoverage": 0.27556891055003846,
     "effectRouteCoverage": 0.2912895305800872,
     "compilerStatuses": {
-      "executable": 9061,
+      "executable": 9070,
       "metadata-only": 11074,
-      "unresolved": 7154
+      "unresolved": 7145
     },
-    "compilerRoutingCoverage": 0.737843086958115,
+    "compilerRoutingCoverage": 0.7381728901755286,
     "compilerExecutionRoutes": {
-      "complete": 9061,
-      "adapter-required": 4056,
-      "blocked": 3098,
+      "complete": 9070,
+      "adapter-required": 4053,
+      "blocked": 3092,
       "metadata-only": 11074
     },
-    "executableRouteCoverage": 0.480669866979369,
+    "executableRouteCoverage": 0.48088973579097805,
     "categoryOccurrences": {
       "presentation": 10082,
-      "logic": 4050,
+      "logic": 4114,
       "buff": 3024,
-      "other": 3727,
+      "other": 3663,
       "damage": 1121,
       "spatial": 1795,
       "timeline": 2248,
@@ -19774,12 +19770,12 @@
       "condition": 113
     },
     "gameplayOccurrences": 14959,
-    "gameplayExecutableOccurrences": 8948,
+    "gameplayExecutableOccurrences": 8957,
     "gameplayMetadataOnlyOccurrences": 230,
-    "gameplayUnresolvedOccurrences": 5781,
-    "gameplayCompilerCoverage": 0.5981683267598101,
-    "gameplayExecutableRouteOccurrences": 11684,
-    "gameplayExecutableRouteCoverage": 0.781068253225483,
+    "gameplayUnresolvedOccurrences": 5772,
+    "gameplayCompilerCoverage": 0.5987699712547631,
+    "gameplayExecutableRouteOccurrences": 11690,
+    "gameplayExecutableRouteCoverage": 0.7814693495554516,
     "calculatorCore": {
       "categories": [
         "logic",
@@ -19790,13 +19786,13 @@
         "recovery",
         "condition"
       ],
-      "occurrences": 9437,
-      "complete": 6485,
-      "adapterRequired": 2631,
+      "occurrences": 9501,
+      "complete": 6552,
+      "adapterRequired": 2628,
       "blocked": 202,
       "metadataOnly": 119,
-      "completeCoverage": 0.6871887252304758,
-      "executableRouteCoverage": 0.9659849528451838
+      "completeCoverage": 0.6896116198294916,
+      "executableRouteCoverage": 0.9662140827281339
     }
   },
   "actions": [
@@ -19876,13 +19872,13 @@
       },
       "compiler": {
         "statusCounts": {
-          "executable": 1404,
+          "executable": 1407,
           "metadata-only": 17,
-          "unresolved": 1459
+          "unresolved": 1456
         },
         "executionRouteCounts": {
-          "complete": 1404,
-          "adapter-required": 1459,
+          "complete": 1407,
+          "adapter-required": 1456,
           "blocked": 0,
           "metadata-only": 17
         },
@@ -19892,7 +19888,7 @@
         "unresolvedCodes": {
           "AKE_TARGET_PROVIDER_REQUIRED": 89,
           "AKE_CONDITION_UNSUPPORTED": 419,
-          "AKE_ACTION_UNSUPPORTED": 990,
+          "AKE_ACTION_UNSUPPORTED": 985,
           "AKE_DAMAGE_RESOLVER_REQUIRED": 682,
           "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 387,
           "AKE_ABILITY_ENTITY_SKILL_MISSING": 9,
@@ -23089,8 +23085,8 @@
       "canonicalEffectType": "SwitchModeAction",
       "effectRouteAvailable": false,
       "classification": {
-        "category": "other",
-        "disposition": "unresolved"
+        "category": "logic",
+        "disposition": "compiler"
       },
       "compiler": {
         "statusCounts": {
@@ -23752,8 +23748,8 @@
       "canonicalEffectType": "ChangeSkillAction",
       "effectRouteAvailable": false,
       "classification": {
-        "category": "other",
-        "disposition": "unresolved"
+        "category": "logic",
+        "disposition": "compiler"
       },
       "compiler": {
         "statusCounts": {
@@ -23893,8 +23889,8 @@
       "canonicalEffectType": "AddGlobalCDTimer",
       "effectRouteAvailable": false,
       "classification": {
-        "category": "other",
-        "disposition": "unresolved"
+        "category": "logic",
+        "disposition": "compiler"
       },
       "compiler": {
         "statusCounts": {
@@ -25202,27 +25198,25 @@
       "canonicalEffectType": "TriggerComboSkillAction",
       "effectRouteAvailable": false,
       "classification": {
-        "category": "other",
-        "disposition": "unresolved"
+        "category": "logic",
+        "disposition": "compiler"
       },
       "compiler": {
         "statusCounts": {
-          "executable": 0,
+          "executable": 6,
           "metadata-only": 0,
-          "unresolved": 6
+          "unresolved": 0
         },
         "executionRouteCounts": {
-          "complete": 0,
+          "complete": 6,
           "adapter-required": 0,
-          "blocked": 6,
+          "blocked": 0,
           "metadata-only": 0
         },
-        "runtimeActions": 0,
+        "runtimeActions": 6,
         "cleanupActions": 0,
         "metadataNodes": 0,
-        "unresolvedCodes": {
-          "AKE_ACTION_UNSUPPORTED": 6
-        }
+        "unresolvedCodes": {}
       }
     },
     {

@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { AkeActionCompiler } from '../src/core/ake-action-compiler.mjs';
+import {
+    AkeActionCompiler,
+    classifyAkeActionType
+} from '../src/core/ake-action-compiler.mjs';
 import { AkeSquadScenarioAssembler } from '../src/core/ake-squad-scenario-assembler.mjs';
 import { AkeSquadScenarioRunner } from '../src/core/ake-squad-scenario-runner.mjs';
 import { ComboTriggerMachine } from '../src/core/combo-trigger-machine.mjs';
@@ -24,6 +27,10 @@ function collectActions(value, type, result = []) {
 }
 
 test('TriggerComboSkillAction compiles to one generic pending operation', () => {
+    assert.deepEqual(classifyAkeActionType('TriggerComboSkillAction'), {
+        category: 'logic',
+        disposition: 'compiler'
+    });
     const compiler = new AkeActionCompiler({
         semanticMappings: readJson('spec/engine-semantic-mappings.json')
     });

@@ -285,6 +285,14 @@ export function classifyAkeActionType(type) {
     const name = String(type ?? '');
     const normalized = name.toLowerCase();
     if (isAkeConditionType(name)) return { category: 'condition', disposition: 'compiler' };
+    if ([
+        'AddGlobalCDTimer',
+        'ChangeSkillAction',
+        'SwitchModeAction',
+        'TriggerComboSkillAction'
+    ].includes(name)) {
+        return { category: 'logic', disposition: 'compiler' };
+    }
     if (PRESENTATION_TOKENS.some(token => normalized.includes(token))) {
         return { category: 'presentation', disposition: 'metadata-only' };
     }

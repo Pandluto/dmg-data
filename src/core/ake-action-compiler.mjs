@@ -2141,12 +2141,15 @@ export class AkeActionCompiler {
                     if (source.unresolved) result.unresolved.push(source.unresolved);
                     sourceRef = source.ref;
                 }
-                if (!['Id', 'Tag'].includes(checkType)) {
+                if (!['Id', 'Tag', 'Environment'].includes(checkType)
+                    || (checkType === 'Environment' && state.scope !== 'buff')) {
                     result.unresolved.push(this.#unresolved(
                         'AKE_BUFF_SELECTOR_PROVIDER_REQUIRED',
                         type,
                         state.path,
-                        `Buff selector type ${checkType} requires an external provider.`,
+                        checkType === 'Environment'
+                            ? 'Environment Buff selection requires the current Buff instance context.'
+                            : `Buff selector type ${checkType} requires an external provider.`,
                         { checkType }
                     ));
                 }
@@ -2168,6 +2171,15 @@ export class AkeActionCompiler {
                             ...common,
                             tagIds: queryTagIds,
                             tagQueryType: query.queryType ?? 'HasAny'
+                        });
+                    } else if (checkType === 'Environment' && state.scope === 'buff') {
+                        // AKE's Environment selector is the Buff instance whose
+                        // lifecycle/ability callback is currently executing.
+                        // Serialized ids in this mode are editor residue and
+                        // must not widen the finish to sibling instances.
+                        result.actions.push({
+                            ...common,
+                            currentBuffInstance: true
                         });
                     } else if (checkType === 'Tag') {
                         result.unresolved.push(this.#unresolved(

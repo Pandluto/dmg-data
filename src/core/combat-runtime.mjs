@@ -2530,6 +2530,14 @@ export class CombatRuntime {
                 }, eventContext);
             },
             FinishBuff: (action, eventContext) => {
+                if (action.currentBuffInstance === true
+                    && (eventContext.buffInstanceId === undefined
+                        || eventContext.buffInstanceId === null)) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'CurrentBuffInstanceMissing'
+                    };
+                }
                 const dynamicBuffId = action.buffIdBlackboardKey
                     ? eventContext.blackboard?.[action.buffIdBlackboardKey]
                         ?? this.entityBlackboards.get(eventContext.sourceId)
@@ -2537,6 +2545,7 @@ export class CombatRuntime {
                         ?? action.buffId
                     : action.buffId;
                 if (action.instanceId === undefined && action.buffInstanceId === undefined
+                    && action.currentBuffInstance !== true
                     && dynamicBuffId === undefined && action.stackingKey === undefined
                     && (!Array.isArray(action.tagIds) || action.tagIds.length === 0)) {
                     throw new TypeError(
@@ -2549,7 +2558,11 @@ export class CombatRuntime {
                         ? eventContext.payload.preserveBuffIds
                         : []
                 );
-                const selectedInstanceId = action.instanceId ?? action.buffInstanceId;
+                const selectedInstanceId = action.instanceId
+                    ?? action.buffInstanceId
+                    ?? (action.currentBuffInstance === true
+                        ? eventContext.buffInstanceId
+                        : undefined);
                 const selectedInstance = selectedInstanceId === undefined
                     ? null
                     : this.statusEffects.list({ active: true })
@@ -2572,7 +2585,7 @@ export class CombatRuntime {
                 }
                 return this.statusEffects.finish({
                     frame: action.frame ?? eventContext.frame,
-                    instanceId: action.instanceId ?? action.buffInstanceId,
+                    instanceId: selectedInstanceId,
                     buffId: dynamicBuffId,
                     tagIds: cloneValue(action.tagIds),
                     tagQueryType: action.tagQueryType,

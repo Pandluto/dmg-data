@@ -513,7 +513,7 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 
 本轮严格按“原始数据证据 → 通用编译原语 → runtime 事务 → 账本/UI 投影 → 逐干员审计”推进，没有修改共享变速水位轴的布局或坐标模型：
 
-1. 已建立 31 名具体干员的逐路径机制审计；当前报告共 3104 条 finding，其中 365 条 combat-blocking、160 条 combat-partial、422 条 evidence-missing、1767 条 spatial-assumption、390 条 presentation-only；
+1. 已建立 31 名具体干员的逐路径机制审计；当前报告共 3095 条 finding，其中 356 条 combat-blocking、160 条 combat-partial、422 条 evidence-missing、1767 条 spatial-assumption、390 条 presentation-only；
 2. `PauseBuffTime` 已进入统一 Buff 生命周期，暂停时同时冻结到期、周期触发和 Buff 时间线，恢复后从剩余本地时间继续；
 3. Blackboard 动态子 Buff、fallback dependency 与 `asChildBuff` 父子所有权已统一，父实例结束只级联回滚自己的子实例；
 4. `VulnerableAction` 已映射为 AKE 的“脆弱”，Defender `NormalCalcZone` 保留为“易伤”，两者进入独立公式区；
@@ -521,7 +521,8 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 6. `ShelterAction` 的七份公开数据已全部走公共 `buff_common_affixes_shelter`，从受击者实时读取 `ShelterDmgScalar`，只降低携带者承受的伤害，并随父 Buff 精确回滚；
 7. `ExtendBuffAction` 的六处公开机制已实现为引用计数的“到期计时租约”：只延后 Buff 到期，不冻结周期动作或内部时间线；重叠技能分别持有/释放租约，并在首次触发时激活 `tagsAfterTriggerExtendBuffAction`；
 8. `InheritBuffAction` 的 52 处公开动作已进入统一的技能动作所有权租约：`CreateBuffAction` 创建租约，后续白名单技能接管同一个 Buff 实例并重写下一跳，旧动作的迟到 cleanup 因租约不匹配而无权误删；未接管或进入非白名单技能时 fail closed；BuffData 内原有父子 cleanup 不受影响；
-9. `VulnerableAction`、`WeakAction`、`ShelterAction`、`ExtendBuffAction` 与 `InheritBuffAction` 已不再出现在逐干员 unresolved source type 中；本轮新增能力没有角色 ID、技能 ID 或队伍模板分支；
-10. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁。
+9. `FinishBuffAdvanced` 的 `Environment` 选择器已从 354 处全库 BuffData 反证为“当前回调 Buff 实例”，不再误判为外部 provider；运行时按 `buffInstanceId` 精确结束，忽略该模式下残留的编辑器 ID，避免误删同 ID 并发实例或错误目标 Buff；逐干员报告中的九处相关 blocker 已消除；
+10. `VulnerableAction`、`WeakAction`、`ShelterAction`、`ExtendBuffAction`、`InheritBuffAction` 与逐干员可达的 `FinishBuffAdvanced` 已不再出现在 unresolved source type 中；本轮新增能力没有角色 ID、技能 ID 或队伍模板分支；
+11. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁。
 
-365 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。下一阶段先研究 `FinishBuffAdvanced` 的九处 `Environment` selector，只有补齐选择器证据和 provider 才会执行；随后进入 `ForceSpellStatusAction`、事件订阅和派生命中闭包。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
+356 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。下一阶段进入 `ForceSpellStatusAction`、事件订阅和派生命中闭包。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。

@@ -11,18 +11,18 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3104,
-    "combatRiskCount": 947,
+    "findingCount": 3095,
+    "combatRiskCount": 938,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 365,
+      "combat-blocking": 356,
       "combat-partial": 160,
       "evidence-missing": 422,
       "presentation-only": 390,
       "spatial-assumption": 1767
     },
     "byPriority": {
-      "P0": 224,
+      "P0": 215,
       "P1": 649,
       "P2": 1841,
       "P3": 390
@@ -42,7 +42,7 @@
       "physical-status": 77,
       "presentation": 390,
       "resource-transaction": 1,
-      "status-lifecycle": 36,
+      "status-lifecycle": 27,
       "targeting-scope": 83,
       "targeting-spatial": 1767,
       "unclassified": 74
@@ -102,7 +102,6 @@
       "EnhancedAction": 11,
       "EventListenerAction": 17,
       "FindTargetAction": 24,
-      "FinishBuffAdvanced": 9,
       "ForceSpellStatusAction": 7,
       "ForceTargetInFightAction": 1,
       "IfElseAction": 4,
@@ -4465,18 +4464,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 71,
-        "combatRiskCount": 20,
+        "findingCount": 70,
+        "combatRiskCount": 19,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 5,
+          "combat-blocking": 4,
           "combat-partial": 8,
           "evidence-missing": 7,
           "presentation-only": 7,
           "spatial-assumption": 44
         },
         "byPriority": {
-          "P0": 3,
+          "P0": 2,
           "P1": 16,
           "P2": 45,
           "P3": 7
@@ -4486,7 +4485,6 @@
           "deterministic-choice": 6,
           "event-subscription": 2,
           "presentation": 7,
-          "status-lifecycle": 1,
           "targeting-scope": 8,
           "targeting-spatial": 44,
           "unclassified": 1
@@ -4500,7 +4498,6 @@
           "CustomRootMotionAction": 4,
           "DoOnceAction": 1,
           "EventListenerAction": 1,
-          "FinishBuffAdvanced": 1,
           "ModifyWeaponMountPoint": 1,
           "MoveToAction": 1,
           "NotNextCheckAction": 1,
@@ -4515,23 +4512,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0009_azrila",
-          "characterName": "余烬",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0009_azrila_normal_skill_gpsuccess",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0009_azrila_normal_skill_gpsuccess.json",
-          "jsonPath": "abilityEventAction[0].actions[0][1..][0]",
-          "code": "AKE_BUFF_SELECTOR_PROVIDER_REQUIRED",
-          "sourceType": "FinishBuffAdvanced",
-          "compilerCategory": null,
-          "message": "Buff selector type Environment requires an external provider.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
         {
           "characterId": "chr_0009_azrila",
           "characterName": "余烬",
@@ -16969,18 +16949,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 347,
-        "combatRiskCount": 204,
+        "findingCount": 345,
+        "combatRiskCount": 202,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 33,
+          "combat-blocking": 31,
           "combat-partial": 8,
           "evidence-missing": 163,
           "presentation-only": 45,
           "spatial-assumption": 98
         },
         "byPriority": {
-          "P0": 15,
+          "P0": 13,
           "P1": 186,
           "P2": 101,
           "P3": 45
@@ -16996,7 +16976,6 @@
           "physical-status": 8,
           "presentation": 45,
           "resource-transaction": 1,
-          "status-lifecycle": 2,
           "targeting-spatial": 98,
           "unclassified": 3
         },
@@ -17020,7 +16999,6 @@
           "CurveEvaluateFloat": 10,
           "CustomRootMotionAction": 14,
           "EventListenerAction": 1,
-          "FinishBuffAdvanced": 2,
           "LaunchUpwardAction": 6,
           "MoveToAction": 20,
           "NotNextCheckAction": 1,
@@ -17043,40 +17021,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0028_wulfa",
-          "characterName": "洛茜",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0028_wulfa_combo_usetimer",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_combo_usetimer.json",
-          "jsonPath": "abilityEventAction[2].actions[0][1]",
-          "code": "AKE_BUFF_SELECTOR_PROVIDER_REQUIRED",
-          "sourceType": "FinishBuffAdvanced",
-          "compilerCategory": null,
-          "message": "Buff selector type Environment requires an external provider.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0028_wulfa",
-          "characterName": "洛茜",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0028_wulfa_combo_usetimer",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_combo_usetimer.json",
-          "jsonPath": "abilityEventAction[3].actions[0][0]",
-          "code": "AKE_BUFF_SELECTOR_PROVIDER_REQUIRED",
-          "sourceType": "FinishBuffAdvanced",
-          "compilerCategory": null,
-          "message": "Buff selector type Environment requires an external provider.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
         {
           "characterId": "chr_0028_wulfa",
           "characterName": "洛茜",
@@ -30728,18 +30672,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 175,
-        "combatRiskCount": 73,
+        "findingCount": 172,
+        "combatRiskCount": 70,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 46,
+          "combat-blocking": 43,
           "combat-partial": 10,
           "evidence-missing": 17,
           "presentation-only": 18,
           "spatial-assumption": 84
         },
         "byPriority": {
-          "P0": 38,
+          "P0": 35,
           "P1": 31,
           "P2": 88,
           "P3": 18
@@ -30755,7 +30699,7 @@
           "form-state": 1,
           "physical-status": 3,
           "presentation": 18,
-          "status-lifecycle": 6,
+          "status-lifecycle": 3,
           "targeting-scope": 7,
           "targeting-spatial": 84,
           "unclassified": 4
@@ -30771,7 +30715,6 @@
           "CurveEvaluateFloat": 4,
           "CustomRootMotionAction": 9,
           "EnhancedAction": 1,
-          "FinishBuffAdvanced": 3,
           "IgnoreModelIntervalCheck": 3,
           "MarkCanDash": 1,
           "MergeTargetAction": 26,
@@ -30925,23 +30868,6 @@
           "characterName": "诀",
           "scope": "operator",
           "entityKind": "BuffData",
-          "entityId": "buff_chr_0032_lizhiyan_combo_skill_seal_effect_again",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_combo_skill_seal_effect_again.json",
-          "jsonPath": "abilityEventAction[0].actions[0][0]",
-          "code": "AKE_BUFF_SELECTOR_PROVIDER_REQUIRED",
-          "sourceType": "FinishBuffAdvanced",
-          "compilerCategory": null,
-          "message": "Buff selector type Environment requires an external provider.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0032_lizhiyan",
-          "characterName": "诀",
-          "scope": "operator",
-          "entityKind": "BuffData",
           "entityId": "buff_chr_0032_lizhiyan_combo_skill_seal_listener",
           "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_combo_skill_seal_listener.json",
           "jsonPath": "abilityEventAction[0].actions[0][1..][1].action[0]",
@@ -30953,40 +30879,6 @@
           "priority": "P0",
           "capability": "child-action",
           "rationale": "The action schedules, mutates, or removes a child skill/entity that can own independent hits."
-        },
-        {
-          "characterId": "chr_0032_lizhiyan",
-          "characterName": "诀",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0032_lizhiyan_combo_skill_seal_listener",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_combo_skill_seal_listener.json",
-          "jsonPath": "abilityEventAction[0].actions[0][1..][7]",
-          "code": "AKE_BUFF_SELECTOR_PROVIDER_REQUIRED",
-          "sourceType": "FinishBuffAdvanced",
-          "compilerCategory": null,
-          "message": "Buff selector type Environment requires an external provider.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0032_lizhiyan",
-          "characterName": "诀",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0032_lizhiyan_combo_skill_seal2",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_combo_skill_seal2.json",
-          "jsonPath": "abilityEventAction[0].actions[0][3..][5]",
-          "code": "AKE_BUFF_SELECTOR_PROVIDER_REQUIRED",
-          "sourceType": "FinishBuffAdvanced",
-          "compilerCategory": null,
-          "message": "Buff selector type Environment requires an external provider.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
         },
         {
           "characterId": "chr_0032_lizhiyan",
@@ -36407,18 +36299,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 154,
-        "combatRiskCount": 56,
+        "findingCount": 151,
+        "combatRiskCount": 53,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 40,
+          "combat-blocking": 37,
           "combat-partial": 4,
           "evidence-missing": 12,
           "presentation-only": 24,
           "spatial-assumption": 74
         },
         "byPriority": {
-          "P0": 33,
+          "P0": 30,
           "P1": 15,
           "P2": 82,
           "P3": 24
@@ -36433,7 +36325,7 @@
           "event-subscription": 10,
           "form-state": 8,
           "presentation": 24,
-          "status-lifecycle": 5,
+          "status-lifecycle": 2,
           "targeting-scope": 4,
           "targeting-spatial": 74,
           "unclassified": 8
@@ -36457,7 +36349,6 @@
           "DoOnceAction": 1,
           "EnhancedAction": 4,
           "EventListenerAction": 7,
-          "FinishBuffAdvanced": 3,
           "ForceSpellStatusAction": 1,
           "ReceiveMoveInputAction": 3,
           "SaveBuffLifeTime": 1,
@@ -36521,23 +36412,6 @@
           "sourceType": "SaveBuffLifeTime",
           "compilerCategory": "buff",
           "message": "No executable compiler route exists for SaveBuffLifeTime.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0035_liino",
-          "characterName": "梨诺",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0035_liino_normalskill_music_animation_musicloop",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0035_liino_normalskill_music_animation_musicloop.json",
-          "jsonPath": "abilityEventAction[0].actions[0][0]",
-          "code": "AKE_BUFF_SELECTOR_PROVIDER_REQUIRED",
-          "sourceType": "FinishBuffAdvanced",
-          "compilerCategory": null,
-          "message": "Buff selector type Environment requires an external provider.",
           "impact": "combat-blocking",
           "priority": "P0",
           "capability": "status-lifecycle",
@@ -36644,40 +36518,6 @@
           "priority": "P0",
           "capability": "damage-factor",
           "rationale": "The action changes a target-side or source-side damage factor."
-        },
-        {
-          "characterId": "chr_0035_liino",
-          "characterName": "梨诺",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0035_liino_ultskill_weaponvisible",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0035_liino_ultskill_weaponvisible.json",
-          "jsonPath": "abilityEventAction[0].actions[0][0]",
-          "code": "AKE_BUFF_SELECTOR_PROVIDER_REQUIRED",
-          "sourceType": "FinishBuffAdvanced",
-          "compilerCategory": null,
-          "message": "Buff selector type Environment requires an external provider.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0035_liino",
-          "characterName": "梨诺",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0035_liino_ultskill_weaponvisible_show",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0035_liino_ultskill_weaponvisible_show.json",
-          "jsonPath": "abilityEventAction[0].actions[0][0]",
-          "code": "AKE_BUFF_SELECTOR_PROVIDER_REQUIRED",
-          "sourceType": "FinishBuffAdvanced",
-          "compilerCategory": null,
-          "message": "Buff selector type Environment requires an external provider.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
         },
         {
           "characterId": "chr_0035_liino",
@@ -55179,18 +55019,18 @@
   ],
   "sharedDependencies": {
     "summary": {
-      "findingCount": 289,
-      "combatRiskCount": 186,
+      "findingCount": 285,
+      "combatRiskCount": 182,
       "isCombatClosed": false,
       "byImpact": {
-        "combat-blocking": 44,
+        "combat-blocking": 40,
         "combat-partial": 17,
         "evidence-missing": 125,
         "presentation-only": 13,
         "spatial-assumption": 90
       },
       "byPriority": {
-        "P0": 18,
+        "P0": 14,
         "P1": 98,
         "P2": 160,
         "P3": 13
@@ -55206,7 +55046,7 @@
         "form-state": 3,
         "physical-status": 6,
         "presentation": 13,
-        "status-lifecycle": 9,
+        "status-lifecycle": 5,
         "targeting-scope": 11,
         "targeting-spatial": 90,
         "unclassified": 70
@@ -55235,7 +55075,6 @@
         "CustomRootMotionAction": 14,
         "DoOnceAction": 1,
         "FindTargetAction": 1,
-        "FinishBuffAdvanced": 4,
         "FlowTextAction": 3,
         "ForceSpellStatusAction": 4,
         "ForceTriggerWeakness": 1,
@@ -55392,78 +55231,6 @@
           "chr_0002_endminm",
           "chr_0003_endminf",
           "chr_0024_deepfin"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "BuffData",
-        "entityId": "buff_train_output_succbuff_or_failbuff_by_id",
-        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_train_output_succbuff_or_failbuff_by_id.json",
-        "jsonPath": "abilityEventAction[1].actions[0][2..][1]",
-        "code": "AKE_BUFF_SELECTOR_PROVIDER_REQUIRED",
-        "sourceType": "FinishBuffAdvanced",
-        "compilerCategory": null,
-        "message": "Buff selector type Environment requires an external provider.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "status-lifecycle",
-        "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal.",
-        "characters": [
-          "chr_0028_wulfa"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "BuffData",
-        "entityId": "buff_train_output_succbuff_or_failbuff_by_id",
-        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_train_output_succbuff_or_failbuff_by_id.json",
-        "jsonPath": "abilityEventAction[1].actions[1][2..][1]",
-        "code": "AKE_BUFF_SELECTOR_PROVIDER_REQUIRED",
-        "sourceType": "FinishBuffAdvanced",
-        "compilerCategory": null,
-        "message": "Buff selector type Environment requires an external provider.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "status-lifecycle",
-        "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal.",
-        "characters": [
-          "chr_0028_wulfa"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "BuffData",
-        "entityId": "buff_train_output_succbuff_or_failbuff_by_id",
-        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_train_output_succbuff_or_failbuff_by_id.json",
-        "jsonPath": "abilityEventAction[2].actions[0][1..][1]",
-        "code": "AKE_BUFF_SELECTOR_PROVIDER_REQUIRED",
-        "sourceType": "FinishBuffAdvanced",
-        "compilerCategory": null,
-        "message": "Buff selector type Environment requires an external provider.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "status-lifecycle",
-        "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal.",
-        "characters": [
-          "chr_0028_wulfa"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "BuffData",
-        "entityId": "buff_train_output_succbuff_or_failbuff_by_id",
-        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_train_output_succbuff_or_failbuff_by_id.json",
-        "jsonPath": "buffEventAction[0].actions[0][1]",
-        "code": "AKE_BUFF_SELECTOR_PROVIDER_REQUIRED",
-        "sourceType": "FinishBuffAdvanced",
-        "compilerCategory": null,
-        "message": "Buff selector type Environment requires an external provider.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "status-lifecycle",
-        "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal.",
-        "characters": [
-          "chr_0028_wulfa"
         ]
       },
       {

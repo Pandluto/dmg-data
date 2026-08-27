@@ -388,6 +388,7 @@ function projectTimedInputWindows(windows, durationFrames, tickRate) {
             resolvedCommandId: window.resolvedCommandId ?? null,
             state,
             boundary: window.boundary ?? 'start-inclusive-end-exclusive',
+            sourceCommandId: window.sourceCommandId ?? null,
             sourceBuffId: window.sourceBuffId ?? null,
             sourceSkillId: window.sourceSkillId ?? null,
             reason: window.reason ?? null

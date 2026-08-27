@@ -1104,11 +1104,27 @@ export function SkillButtonComponent({
     const firstSettlementFrame = command.hits.length > 0
       ? Math.min(...command.hits.map((hit) => hit.frame))
       : command.actualFrame;
+    const hasPhysicalComboStatus = [
+      ...(command.profile.statusEffects ?? []),
+      ...command.profile.hits.flatMap((hit) => hit.hitBuffs ?? []),
+    ].some((effect) => {
+      const key = `${effect.statusKey ?? ''} ${effect.id ?? ''}`.toLowerCase();
+      return key.includes('airborne')
+        || key.includes('knockdown')
+        || key.includes('倒地')
+        || key.includes('击飞');
+    });
+    const precisionBonusNoGuardLayers = command.precisionVerdict === 'resolved'
+      && (command.profile.comboStage?.index ?? 0) > 1
+      && hasPhysicalComboStatus
+      ? 1
+      : undefined;
     return {
       buttonId: command.commandId,
       executionFrame: firstSettlementFrame,
       isExecutable: command.success
         && (command.profile.hits.length === 0 || settledProfileHits.length > 0),
+      precisionBonusNoGuardLayers,
       hits: settledProfileHits.map(({ profileHit, settledHit }) => ({
         frame: settledHit.frame,
         offsetFrames: profileHit.offsetFrames,

@@ -302,6 +302,7 @@ export type AkeProjectedTimeline = {
     ruleId: string | null;
     characterId: string | null;
     skillId: string | null;
+    sourceCommandId: string | null;
     createdFrame: number;
     expireFrame: number;
     consumedFrame: number | null;
@@ -320,6 +321,7 @@ export type AkeProjectedTimeline = {
     resolvedCommandId: string | null;
     state: 'upcoming' | 'active' | 'resolved' | 'missed';
     boundary: string;
+    sourceCommandId: string | null;
     sourceBuffId: string | null;
     sourceSkillId: string | null;
     reason: string | null;

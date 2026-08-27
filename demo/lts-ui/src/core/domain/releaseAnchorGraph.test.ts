@@ -139,6 +139,49 @@ const groupStart = {
 }
 
 {
+  const points = buildReleaseSnapPoints({
+    actions: [{
+      id: 'stage-1',
+      groupId: 'g1',
+      groupIndex: 0,
+      startFrame: 30,
+      endFrame: 90,
+      startX: 0,
+      endX: 80,
+      label: '连携·1段',
+    }],
+    hits: [],
+    timedInputWindows: [{
+      id: 'combo-window:1:broad',
+      sourceTimedInputId: 'combo-window:1',
+      sourceCommandId: 'stage-1',
+      startFrame: 30,
+      endFrameExclusive: 90,
+      preferredFrame: 30,
+      label: '非精准连携',
+    }, {
+      id: 'combo-window:1:precision',
+      sourceTimedInputId: 'combo-window:1',
+      sourceCommandId: 'stage-1',
+      startFrame: 75,
+      endFrameExclusive: 87,
+      label: '精准连携',
+    }],
+    debounceFrames: 0,
+    projectFrame: frame => frame,
+  });
+  const timedPoints = points.filter(point => point.kind === 'timed-input');
+  assert.equal(timedPoints.length, 2, 'one combo must expose broad and precision anchors');
+  assert.deepEqual(timedPoints.map(point => point.label), [
+    '连携·1段 · 非精准连携',
+    '连携·1段 · 精准连携',
+  ]);
+  assert.ok(timedPoints.every(point => point.anchor.sourceTimedInputId === 'combo-window:1'));
+  assert.equal(timedPoints[0].frame, 30, 'broad anchor defaults to the trigger frame');
+  assert.equal(timedPoints[1].frame, 80, 'precision anchor remains centered in its active interval');
+}
+
+{
   const solution = solveReleaseStartOffsets([
     { id: 'stage-1', durationFrames: 84, releaseAnchor: groupStart },
     {

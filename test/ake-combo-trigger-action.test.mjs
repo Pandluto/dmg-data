@@ -200,6 +200,43 @@ test('Wulfa combo 3 uses the generic tag stack query to consume spell attachment
         'the combo AirborneAction must add one physical layer after consuming attachments');
     assert.equal(result.finalState.targetVital.alive, true,
         'finishing spawned entities must not deactivate the hostile target');
+
+    const preciseResult = new AkeSquadScenarioRunner(assembled).run({
+        commands: [{
+            commandId: 'pelica-normal-precise',
+            memberId: 'pelica',
+            commandType: 'NormalSkill',
+            frame: 0
+        }, {
+            commandId: 'pelica-normal-2-precise',
+            memberId: 'pelica',
+            commandType: 'NormalSkill',
+            frame: 45
+        }, {
+            commandId: 'wulfa-normal-precise',
+            memberId: 'wulfa',
+            commandType: 'NormalSkill',
+            frame: 0
+        }, {
+            commandId: 'wulfa-combo-2-precise',
+            memberId: 'wulfa',
+            commandType: 'ComboSkill',
+            frame: 100
+        }, {
+            commandId: 'wulfa-combo-3-precise',
+            memberId: 'wulfa',
+            commandType: 'ComboSkill',
+            // Combo 2's AKE precise interval is [152, 164).
+            frame: 153
+        }],
+        endFrame: 240
+    });
+    const preciseNoGuard = preciseResult.finalState.statuses.find(entry => (
+        entry.targetId === ENEMY
+        && entry.buffId === 'buff_physical_no_guard'
+    ));
+    assert.equal(preciseNoGuard?.stackCount, 3,
+        'the precise chained physical branch must add the extra status transaction');
 });
 
 test('action-created combo pending owns its gate and can admit a chained stage', () => {

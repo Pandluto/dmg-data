@@ -91,6 +91,7 @@ test('AKE timeline projector fuses input, cast, hits, shared ATB segments and co
             resolvedFrame: 50,
             resolvedCommandId: 'cmd:combo',
             boundary: 'start-inclusive-end-exclusive',
+            sourceCommandId: 'cmd:source',
             sourceSkillId: 'skill:combo-1',
             reason: 'ShowComboRingQte'
         }, {
@@ -158,6 +159,7 @@ test('AKE timeline projector fuses input, cast, hits, shared ATB segments and co
         ['chr:test', 95, 107, 'active']
     ]);
     assert.equal(projection.timedInputWindows[1].resolvedFrame, null);
+    assert.equal(projection.timedInputWindows[0].sourceCommandId, 'cmd:source');
     assert.deepEqual(
         projection.lanes.map(lane => lane.kind),
         [

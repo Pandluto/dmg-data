@@ -24,6 +24,8 @@ export interface FixedDummyResolvedEvent {
   buttonId: string;
   executionFrame?: number | null;
   isExecutable?: boolean;
+  /** A precise chained physical stage emits one additional NoGuard attempt. */
+  precisionBonusNoGuardLayers?: number;
   hits: Array<{
     frame?: number | null;
     offsetFrames?: number | null;
@@ -38,6 +40,8 @@ export interface FixedDummyEvent {
   buttonId: string;
   characterId?: string;
   nodeIndex: number;
+  /** Extra physical status transaction granted by a precise combo stage. */
+  precisionBonusNoGuardLayers?: number;
   hitElements: ElementType[];
   hitBuffs: HitBuffEffect[];
   anomalyCards: PersistedAnomalyCard[];
@@ -785,6 +789,18 @@ function applyFixedDummyEventToState(
         : snapshot.effectValue,
     );
   });
+
+  // The runtime's precise combo branch is a second physical-status
+  // transaction, not a UI-only annotation. Keep it separate from the normal
+  // hit-buff loop so a skill-wide status copied to several hits cannot multiply
+  // the bonus. The caller attaches this field to the final resolved hit only.
+  const precisionBonus = Math.max(
+    0,
+    Math.floor(Number(event.precisionBonusNoGuardLayers ?? 0)),
+  );
+  for (let index = 0; index < precisionBonus; index += 1) {
+    applyStateStatus(state, 'no-guard', 1);
+  }
 }
 
 export function resolveFixedDummyEvent(
@@ -1147,6 +1163,7 @@ export function buildFixedDummyContextForButton(input: {
           nodeIndex: runtimeEvent.executionFrame ?? timelineButton.nodeIndex,
           hitElements: runtimeHitElements,
           hitBuffs: runtimeHitBuffs ?? [],
+          precisionBonusNoGuardLayers: runtimeEvent.precisionBonusNoGuardLayers,
         }];
       }
       const projectedStatusKeys = new Set(runtimeEvent.hits.flatMap((hit) => (
@@ -1172,6 +1189,9 @@ export function buildFixedDummyContextForButton(input: {
             ...(hit.hitBuffs ?? []),
             ...(isFinalHit ? unprojectedStatuses : []),
           ]),
+          precisionBonusNoGuardLayers: isFinalHit
+            ? runtimeEvent.precisionBonusNoGuardLayers
+            : undefined,
           anomalyCards: isFinalHit ? baseEvent.anomalyCards : [],
           stateSnapshots: isFinalHit ? baseEvent.stateSnapshots : [],
         };

@@ -36,6 +36,7 @@ import {
 import { calculateNodeNumber } from '../../../utils/nodeNumbering';
 import { SKILL_BUTTON_BASELINE_OFFSET_Y } from '../../../constants/canvas-layout';
 import type { AkeRealtimeTimeline } from '../../../integrations/ake/akeRealtimeTimeline';
+import type { AkeProjectedTimeline } from '../../../integrations/ake/akeProvider';
 import { projectSharedTimelineFrame } from '../../../core/domain/sharedVariableRateTimeline';
 import { debounceFramesForTickRate } from '../../../core/domain/combatActionTailPlanner';
 import {
@@ -49,6 +50,7 @@ import {
   getReleaseDeletionBlockers,
   wouldCreateReleaseCycle,
   type ReleaseSnapPoint,
+  type TimedReleaseInputWindow,
 } from '../../../core/domain/releaseAnchorGraph';
 
 interface DraggingState {
@@ -92,6 +94,8 @@ interface UseCanvasDragProps {
   initialControllerCharacterId?: string | null;
   skillButtons: SkillButton[];
   akeRealtimeTimeline?: AkeRealtimeTimeline | null;
+  /** Settled runtime projection; used when the preview has already advanced. */
+  akeTimeline?: AkeProjectedTimeline | null;
   canvasRef: React.RefObject<HTMLDivElement | null>;
   dispatch: React.Dispatch<any>;
   addTimelineButton?: (buttonData: {
@@ -181,6 +185,101 @@ function snapKindRank(kind: SkillReleaseAnchor['kind']): number {
   return 4;
 }
 
+type AkeSettledTimedInputWindow = NonNullable<
+  AkeProjectedTimeline['timedInputWindows']
+>[number];
+
+/**
+ * AKE exposes one pending combo interval and, for some skills, a narrower
+ * precision interval inside it. They are two legal release choices, not two
+ * labels for the same point. Keep both candidates in the anchor graph while
+ * retaining the runtime window id for admission checks.
+ */
+export function comboTimedInputCandidates(
+  realtime: AkeRealtimeTimeline | null,
+  settled: AkeProjectedTimeline | null,
+): TimedReleaseInputWindow[] {
+  const realtimeCandidates = (realtime?.comboWindows ?? []).flatMap((window) => {
+    if (!window.precisionWindow) return [];
+    const broadEndFrameExclusive = Math.max(
+      window.createdFrame + 1,
+      window.expireFrame + 1,
+    );
+    return [
+      {
+        id: `${window.id}:broad`,
+        sourceCommandId: window.sourceCommandId,
+        sourceTimedInputId: window.id,
+        startFrame: window.createdFrame,
+        endFrameExclusive: broadEndFrameExclusive,
+        preferredFrame: window.createdFrame,
+        label: '非精准连携',
+      },
+      {
+        id: `${window.id}:precision`,
+        sourceCommandId: window.sourceCommandId,
+        sourceTimedInputId: window.id,
+        startFrame: window.precisionWindow.startFrame,
+        endFrameExclusive: window.precisionWindow.endFrameExclusive,
+        label: '精准连携',
+      },
+    ];
+  });
+  if (realtimeCandidates.length > 0) return realtimeCandidates;
+
+  // A settled report may be the first source available after a calculation;
+  // older reports did not carry sourceCommandId, so retain a deterministic
+  // command lookup fallback for those payloads.
+  const settledComboWindows = settled?.comboWindows ?? [];
+  const settledCommands = settled?.commands ?? [];
+  return (settled?.timedInputWindows ?? []).flatMap((window: AkeSettledTimedInputWindow) => {
+    if (!window.inputTypes.includes('ComboSkill')) return [];
+    const matchingCombo = settledComboWindows.find(candidate => (
+      candidate.characterId === window.ownerId
+      && candidate.createdFrame === window.createdFrame
+      && Boolean(candidate.sourceCommandId)
+    ));
+    const fallbackCommand = [...settledCommands]
+      .filter(command => (
+        command.characterId === window.ownerId
+        && (!window.sourceSkillId || command.skillId === window.sourceSkillId)
+        && command.actualFrame !== null
+        && command.actualFrame <= window.createdFrame
+      ))
+      .sort((left, right) => (
+        (right.actualFrame ?? -1) - (left.actualFrame ?? -1)
+      ))[0];
+    const sourceCommandId = window.sourceCommandId
+      ?? matchingCombo?.sourceCommandId
+      ?? fallbackCommand?.commandId
+      ?? null;
+    if (!sourceCommandId) return [];
+    const broadEndFrameExclusive = Math.max(
+      window.createdFrame + 1,
+      matchingCombo ? matchingCombo.expireFrame + 1 : window.endFrameExclusive,
+    );
+    return [
+      {
+        id: `${window.id}:broad`,
+        sourceCommandId,
+        sourceTimedInputId: window.id,
+        startFrame: window.createdFrame,
+        endFrameExclusive: broadEndFrameExclusive,
+        preferredFrame: window.createdFrame,
+        label: '非精准连携',
+      },
+      {
+        id: `${window.id}:precision`,
+        sourceCommandId,
+        sourceTimedInputId: window.id,
+        startFrame: window.startFrame,
+        endFrameExclusive: window.endFrameExclusive,
+        label: '精准连携',
+      },
+    ];
+  });
+}
+
 export function hitsEligibleForReleaseSnap(
   timeline: Pick<AkeRealtimeTimeline, 'commands' | 'hits'>,
 ): AkeRealtimeTimeline['hits'] {
@@ -236,6 +335,7 @@ export function useCanvasDrag({
   initialControllerCharacterId = null,
   skillButtons,
   akeRealtimeTimeline = null,
+  akeTimeline = null,
   canvasRef,
   dispatch,
   addTimelineButton,
@@ -290,15 +390,7 @@ export function useCanvasDrag({
           frame: hit.frame,
           offsetFrames: hit.offsetFrames,
           })),
-        timedInputWindows: akeRealtimeTimeline.comboWindows.flatMap(window => (
-          window.precisionWindow ? [{
-            id: window.id,
-            sourceCommandId: window.sourceCommandId,
-            startFrame: window.precisionWindow.startFrame,
-            endFrameExclusive: window.precisionWindow.endFrameExclusive,
-            label: '精准输入',
-          }] : []
-        )),
+        timedInputWindows: comboTimedInputCandidates(akeRealtimeTimeline, akeTimeline),
         debounceFrames: debounceFramesForTickRate(akeRealtimeTimeline.tickRate),
         projectFrame: frame => projectSharedTimelineFrame(model, frame, 'after')
           ?? (frame >= model.endFrame ? model.width : null),
@@ -445,7 +537,7 @@ export function useCanvasDrag({
       },
     });
     return points;
-  }, [akeRealtimeTimeline, skillButtons]);
+  }, [akeRealtimeTimeline, akeTimeline, skillButtons]);
 
   const snapTargets = useMemo<CanvasDropTarget[]>(() => {
     if (!draggingState) return [];
@@ -519,10 +611,18 @@ export function useCanvasDrag({
             window.id === point.anchor.sourceTimedInputId
           ))
           : null;
+        const settledSourceWindow = point.anchor.sourceTimedInputId
+          ? (akeTimeline?.timedInputWindows ?? []).find(window => (
+            window.id === point.anchor.sourceTimedInputId
+          ))
+          : null;
+        const sourceCharacterId = sourceWindow?.characterId
+          ?? settledSourceWindow?.ownerId
+          ?? null;
         if (draggingState.timelineModuleKind
           || draggingState.skillType !== 'E'
-          || !sourceWindow
-          || sourceWindow.characterId !== draggingState.characterId) {
+          || !sourceCharacterId
+          || sourceCharacterId !== draggingState.characterId) {
           continue;
         }
       }
@@ -668,12 +768,16 @@ export function useCanvasDrag({
         || left.anchorId.localeCompare(right.anchorId)
       ))
       .forEach((target) => {
-        const key = `${target.staffIndex}:${target.lineIndex}:${Math.round(target.markerX)}`;
+        // Broad and precision combo intervals can project to the same pixel
+        // after variable-rate compression. Their anchor identity must survive
+        // deduplication so the drop preview can expose both legal choices.
+        const key = `${target.staffIndex}:${target.lineIndex}:${Math.round(target.markerX)}:${target.anchorId}`;
         if (!deduplicated.has(key)) deduplicated.set(key, target);
       });
     return [...deduplicated.values()];
   }, [
     akeRealtimeTimeline,
+    akeTimeline,
     draggingState,
     initialControllerCharacterId,
     releaseSnapPoints,

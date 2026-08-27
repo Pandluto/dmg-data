@@ -288,6 +288,30 @@ const noGuardState = reduceFixedDummyState([{
 assert.equal(noGuardState.noGuardStacks, 1, 'AKE no_guard should accumulate the separate break-defense state');
 assert.equal(noGuardState.armorBreakLevel, 0, 'break defense must not grant fracture damage before it is consumed');
 
+const comboAirborneEvent = {
+  buttonId: 'rossi-combo-stage-2',
+  characterId: 'chr_0028_wulfa',
+  nodeIndex: 1,
+  hitElements: ['physical'] as const,
+  hitBuffs: [{
+    id: 'ake_status_physical_airborne',
+    displayName: '击飞',
+    target: 'target' as const,
+    kind: 'status' as const,
+    statusKey: 'airborne',
+  }],
+  anomalyCards: [],
+  stateSnapshots: [],
+};
+const broadComboResolution = resolveFixedDummyEvent(noGuardState, comboAirborneEvent);
+assert.equal(broadComboResolution.state.noGuardStacks, 2, '非精准连携只追加一次破防尝试');
+const preciseComboResolution = resolveFixedDummyEvent(noGuardState, {
+  ...comboAirborneEvent,
+  buttonId: 'rossi-combo-stage-2-precise',
+  precisionBonusNoGuardLayers: 1,
+});
+assert.equal(preciseComboResolution.state.noGuardStacks, 3, '精准连携应在既有一层上追加两次破防尝试');
+
 const crushState = reduceFixedDummyState([{
   buttonId: 'first-crush',
   nodeIndex: 0,

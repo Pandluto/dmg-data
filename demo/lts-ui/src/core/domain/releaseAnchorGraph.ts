@@ -86,6 +86,10 @@ export type TimedReleaseInputWindow = {
   sourceCommandId: string;
   startFrame: number;
   endFrameExclusive: number;
+  /** Optional visual/default placement inside the executable interval. */
+  preferredFrame?: number;
+  /** Runtime window id used by the resolver; may differ from the display id. */
+  sourceTimedInputId?: string;
   label?: string;
 };
 
@@ -396,9 +400,13 @@ export function buildReleaseSnapPoints(input: {
     const startFrame = safeFrame(window.startFrame);
     const endFrameExclusive = safeFrame(window.endFrameExclusive);
     if (endFrameExclusive <= startFrame) return;
-    // Use the middle executable frame. The right boundary is exclusive, so
-    // `end - 1` is the final legal input frame.
-    const frame = Math.floor((startFrame + endFrameExclusive - 1) / 2);
+    // Use an explicit visual/default frame when supplied. The right boundary
+    // is exclusive, so all candidates are clamped to [start, end - 1].
+    const defaultFrame = Math.floor((startFrame + endFrameExclusive - 1) / 2);
+    const frame = Math.min(
+      endFrameExclusive - 1,
+      Math.max(startFrame, safeFrame(window.preferredFrame ?? defaultFrame)),
+    );
     const sourceOffsetFrames = frame - action.startFrame;
     if (sourceOffsetFrames < 0) return;
     const globalX = input.projectFrame(frame);
@@ -415,7 +423,7 @@ export function buildReleaseSnapPoints(input: {
         schemaVersion: 1,
         kind: 'timed-input',
         sourceButtonId: action.id,
-        sourceTimedInputId: window.id,
+        sourceTimedInputId: window.sourceTimedInputId ?? window.id,
         sourceTimedInputOffsetFrames: sourceOffsetFrames,
         debounceFrames: 0,
       },

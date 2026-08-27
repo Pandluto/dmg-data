@@ -5,6 +5,7 @@ import type {
   AkeRealtimeTimeline,
 } from '../../integrations/ake/akeRealtimeTimeline';
 import {
+  comboTimedInputCandidates,
   hitsEligibleForReleaseSnap,
   isComboReleaseFrameAvailable,
 } from './hooks/useCanvasDrag';
@@ -127,3 +128,35 @@ assert.equal(isComboReleaseFrameAvailable({
   movingCommandId: null,
   frame: 80,
 }), false, 'an explicitly stage-bound query still cannot reuse the consumed first-stage window');
+
+const preciseComboWindow = {
+  id: 'rossi-combo-window',
+  ruleId: 'rossi-stage-2',
+  characterId: 'wulfa',
+  skillId: 'wulfa-combo-stage-2',
+  sourceCommandId: 'rossi-stage-1',
+  createdFrame: 100,
+  expireFrame: 220,
+  consumedFrame: null,
+  consumedCommandId: null,
+  state: 'ready',
+  reason: 'TRIGGER_MATCHED',
+  precisionWindow: {
+    startFrame: 115,
+    endFrameExclusive: 127,
+    resolvedFrame: null,
+    resolvedCommandId: null,
+    state: 'upcoming',
+    boundary: 'start-inclusive-end-exclusive',
+    sourceActionType: 'ShowComboRingQte',
+    sourceBuffId: 'buff_qte',
+  },
+} as AkeRealtimeTimeline['comboWindows'][number];
+const comboCandidates = comboTimedInputCandidates({
+  comboWindows: [preciseComboWindow],
+} as AkeRealtimeTimeline, null);
+assert.deepEqual(
+  comboCandidates.map(candidate => [candidate.label, candidate.startFrame, candidate.endFrameExclusive]),
+  [['非精准连携', 100, 221], ['精准连携', 115, 127]],
+  'a precise AKE combo must expose both the broad and precision release choices',
+);

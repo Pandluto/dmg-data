@@ -3304,6 +3304,7 @@ export function CanvasBoard({
     initialControllerCharacterId,
     skillButtons,
     akeRealtimeTimeline,
+    akeTimeline: activeAkeTeamReport?.timeline ?? null,
     canvasRef,
     dispatch,
     addTimelineButton,

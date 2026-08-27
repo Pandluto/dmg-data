@@ -2165,6 +2165,11 @@ export class CombatRuntime {
                     expiredFrame: null,
                     buffInstanceId: eventContext.buffInstanceId ?? null,
                     sourceId: eventContext.sourceId ?? null,
+                    // Keep the command that created this window alongside the
+                    // source skill.  The projected timeline and drag layer
+                    // need this stable identity to offer both broad and
+                    // precision release anchors after a settled run.
+                    sourceCommandId: eventContext.commandId ?? null,
                     sourceSkillId: eventContext.skillId ?? null,
                     rootSkillId: eventContext.rootSkillId ?? null,
                     castId: eventContext.castId ?? null,

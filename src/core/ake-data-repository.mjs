@@ -347,11 +347,8 @@ const AKE_RESISTANCE_IGNORE_BUFF_TYPES = Object.freeze({
     NaturalResistance: 'natureResistanceIgnore'
 });
 
-// AKE's VulnerableAction / defender-side NormalCalcZone is an enemy damage-
-// taken modifier.  In the DEF calculator vocabulary this belongs to the
-// “易伤” (Fragile) zone.  Keeping it in the legacy Vulnerability/“脆弱” zone
-// both mislabeled the source data and made the formula disagree with the
-// user's established damage-zone semantics.
+// A defender-side NormalCalcZone contribution is the DEF calculator's
+// “易伤” (Fragile) zone. Do not merge it with AKE VulnerableAction below.
 const AKE_FRAGILE_BUFF_TYPES = Object.freeze({
     Physical: 'physicalFragile',
     Spell: 'magicFragile',
@@ -360,6 +357,20 @@ const AKE_FRAGILE_BUFF_TYPES = Object.freeze({
     Cryst: 'iceFragile',
     Crystal: 'iceFragile',
     Natural: 'natureFragile'
+});
+
+// AKE VulnerableAction is the game's explicit “脆弱” status family. It is
+// distinct from a defender-side NormalCalcZone contribution, which the DEF
+// calculator calls “易伤”. Keeping both maps prevents UI vocabulary from
+// silently merging two independent formula zones.
+const AKE_VULNERABILITY_BUFF_TYPES = Object.freeze({
+    Physical: 'physicalVulnerability',
+    Spell: 'magicVulnerability',
+    Fire: 'fireVulnerability',
+    Pulse: 'electricVulnerability',
+    Cryst: 'iceVulnerability',
+    Crystal: 'iceVulnerability',
+    Natural: 'natureVulnerability'
 });
 
 const AKE_DAMAGE_BONUS_BUFF_TYPES = Object.freeze({
@@ -777,7 +788,7 @@ export class AkeDataRepository {
             const inspectActions = value => {
                 if (!value || typeof value !== 'object') return;
                 if (serializedAkeType(value) === 'VulnerableAction') {
-                    const type = AKE_FRAGILE_BUFF_TYPES[value.subType];
+                    const type = AKE_VULNERABILITY_BUFF_TYPES[value.subType];
                     const rate = Number(akeDescriptorValue(value.rate, blackboard));
                     if (type) appendEffect(
                         { type, value: Math.abs(rate), unit: 'percent' },

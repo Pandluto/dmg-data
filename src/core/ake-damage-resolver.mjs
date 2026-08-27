@@ -69,6 +69,15 @@ const AKE_VULNERABLE_ATTRIBUTE = Object.freeze({
     Ether: 'EtherVulnerableDmgIncrease'
 });
 
+const AKE_DAMAGE_TYPE_DISPLAY = Object.freeze({
+    Physical: '物理',
+    Fire: '灼热',
+    Pulse: '电磁',
+    Cryst: '寒冷',
+    Natural: '自然',
+    Ether: '法术'
+});
+
 function attributeContribution(entityId, snapshot, value) {
     if (snapshot?.contributions?.length > 0) return snapshot.contributions;
     return [{
@@ -348,7 +357,10 @@ export function createAkeDamageResolver({
             const damageTakenEntry = firstFiniteAttributeEntry(runtime.context, targetId, [
                 'DamageTakenScalar', 'damageTakenScalar'
             ], 1);
-            const weaknessEntry = firstFiniteAttributeEntry(runtime.context, targetId, [
+            // WeakAction is “虚弱”: it lowers damage dealt by the carrier.
+            // Therefore WeaknessDmgScalar belongs to the damage source, while
+            // VulnerableDmgIncrease remains a defender-side “脆弱” operand.
+            const weaknessEntry = firstFiniteAttributeEntry(runtime.context, sourceId, [
                 'WeaknessDmgScalar', 'weaknessDmgScalar'
             ], 1);
             const shelterEntry = firstFiniteAttributeEntry(runtime.context, targetId, [
@@ -397,7 +409,7 @@ export function createAkeDamageResolver({
             const resistanceSnapshot = snapshotFor(targetId, resistanceEntry);
             const damageTakenSnapshot = snapshotFor(targetId, damageTakenEntry);
             const vulnerableSnapshot = snapshotFor(targetId, vulnerableEntry);
-            const weaknessSnapshot = snapshotFor(targetId, weaknessEntry);
+            const weaknessSnapshot = snapshotFor(sourceId, weaknessEntry);
             const shelterSnapshot = snapshotFor(targetId, shelterEntry);
             const criticalRateSnapshot = snapshotFor(sourceId, criticalRateEntry);
             const criticalDamageSnapshot = snapshotFor(sourceId, criticalDamageEntry);
@@ -482,10 +494,9 @@ export function createAkeDamageResolver({
                     )
                 }),
                 damageFactor({
-                    semanticKey: `${String(unit.damageType).toLowerCase()}-vulnerable`,
-                    displayName: unit.damageType === 'Physical'
-                        ? '物理易伤'
-                        : `${unit.damageType}易伤`,
+                    semanticKey: `${String(unit.damageType).toLowerCase()}-vulnerability`,
+                    displayName: `${AKE_DAMAGE_TYPE_DISPLAY[unit.damageType]
+                        ?? unit.damageType}脆弱`,
                     rawValue: vulnerableEntry.value,
                     multiplier: result.operands.vulnerableDmgScale,
                     contributions: vulnerableSnapshot
@@ -494,16 +505,16 @@ export function createAkeDamageResolver({
                     operation: 'AddRate'
                 }),
                 damageFactor({
-                    semanticKey: 'defender-zone', displayName: '敌方伤害区',
+                    semanticKey: 'defender-zone', displayName: '敌方易伤区',
                     rawValue: defenderZone.zones, multiplier: defenderZone.scale,
                     contributions: defenderZone.contributions
                 }),
                 damageFactor({
-                    semanticKey: 'weakness', displayName: '弱点倍率',
+                    semanticKey: 'weakness', displayName: '虚弱·造成伤害',
                     rawValue: weaknessEntry.value,
                     multiplier: result.operands.weaknessDmgScalar,
                     contributions: attributeContribution(
-                        targetId,
+                        sourceId,
                         weaknessSnapshot,
                         weaknessEntry.value
                     )

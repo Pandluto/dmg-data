@@ -42,6 +42,7 @@ export const BUFF_TYPE_LABELS: Readonly<Record<string, string>> = Object.freeze(
   iceVulnerability: '寒冷脆弱',
   natureVulnerability: '自然脆弱',
   magicVulnerability: '法术脆弱',
+  weakness: '虚弱',
   physicalAmplify: '物理增幅',
   magicAmplify: '法术增幅',
   fireAmplify: '灼热增幅',

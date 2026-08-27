@@ -86,7 +86,7 @@ test('AKEDatabase reader preserves Int64 text ids and hydrates the complete cata
         value: effect.value,
         durationSeconds: effect.durationSeconds
     })), [{
-        type: 'physicalFragile',
+        type: 'physicalVulnerability',
         value: 0.12,
         durationSeconds: 12
     }]);
@@ -98,7 +98,7 @@ test('AKEDatabase reader preserves Int64 text ids and hydrates the complete cata
         value: effect.value,
         durationSeconds: effect.durationSeconds
     })), [{
-        type: 'physicalFragile',
+        type: 'physicalVulnerability',
         value: 0.05,
         durationSeconds: 20
     }], 'potential group should contain only its +5% delta, not duplicate the skill base effect');

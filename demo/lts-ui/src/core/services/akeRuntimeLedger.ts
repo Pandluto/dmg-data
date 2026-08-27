@@ -491,6 +491,13 @@ const ATTRIBUTE_BUFF_TYPES: Record<string, string> = {
   NormalSkillDamageIncrease: 'skillDmgBonus',
   ComboSkillDamageIncrease: 'chainSkillDmgBonus',
   UltimateSkillDamageIncrease: 'ultimateDmgBonus',
+  PhysicalVulnerableDmgIncrease: 'physicalVulnerability',
+  FireVulnerableDmgIncrease: 'fireVulnerability',
+  PulseVulnerableDmgIncrease: 'electricVulnerability',
+  CrystVulnerableDmgIncrease: 'iceVulnerability',
+  NaturalVulnerableDmgIncrease: 'natureVulnerability',
+  EtherVulnerableDmgIncrease: 'magicVulnerability',
+  WeaknessDmgScalar: 'weakness',
 };
 
 const DAMAGE_TYPE_BUFF_PREFIX: Record<string, string> = {
@@ -606,8 +613,10 @@ function contributionBuffTags(
       Loadout: '角色配置', Attribute: '运行时属性状态机',
     } as Record<string, string>)[category]
       ?? (side === 'Defender' ? '敌方状态机' : '运行时状态机');
-    const semanticType = factor.semanticKey.endsWith('-vulnerable')
-      ? `${damageTypePrefix}Fragile`
+    const isVulnerability = factor.semanticKey.endsWith('-vulnerability')
+      || factor.semanticKey.endsWith('-vulnerable');
+    const semanticType = isVulnerability
+      ? `${damageTypePrefix}Vulnerability`
       : side === 'Defender' ? `${damageTypePrefix}Fragile` : 'allDmgBonus';
     return [{
       id: dedupeKey || `${sourceKey}:${index}`,
@@ -653,7 +662,8 @@ function buildRuntimeFormula(
   const defenderScale = finite(factor('defender-zone')?.multiplier, finite(operands.defenderZoneScale, 1));
   const configuredScale = finite(factor('configured-damage-bonus')?.multiplier, finite(operands.configuredDamageBonusScale, 1));
   const specialScale = finite(factor('special')?.multiplier, finite(operands.specialScale, 1));
-  const vulnerableFactor = factors.find((item) => item.semanticKey.endsWith('-vulnerable'));
+  const vulnerableFactor = factors.find((item) =>
+    item.semanticKey.endsWith('-vulnerability') || item.semanticKey.endsWith('-vulnerable'));
   const vulnerableScale = finite(vulnerableFactor?.multiplier, finite(operands.vulnerableDmgScale, 1));
   const expectedCriticalScale = finite(operands.expectedCriticalScale, 1);
   const allCriticalScale = finite(operands.allCriticalScale, 1);
@@ -672,9 +682,8 @@ function buildRuntimeFormula(
   const rateFormula = (selected: typeof factors[number] | undefined) => selected
     ? `${trimNumber(finite(selected.rawValue), 4)} → ×${trimNumber(selected.multiplier, 4)}`
     : unavailable;
-  const fragileScale = vulnerableScale * defenderScale;
-  const fragileFormula = vulnerableFactor || factor('defender-zone')
-    ? `${trimNumber(vulnerableScale, 4)} × ${trimNumber(defenderScale, 4)} = ${trimNumber(fragileScale, 4)}`
+  const fragileFormula = factor('defender-zone')
+    ? trimNumber(defenderScale, 4)
     : operands.defenderZoneScale !== undefined
       ? `1 + ${percent(defenderScale - 1)} = ${trimNumber(defenderScale)}`
       : unavailable;
@@ -711,7 +720,7 @@ function buildRuntimeFormula(
     resistanceFormulaText: `1 - ${trimNumber(resistance, 1)}% = ${trimNumber(resistanceScale)}`,
     amplifyFormulaText: rateFormula(factor('damage-taken')),
     fragileFormulaText: fragileFormula,
-    vulnerabilityFormulaText: unavailable,
+    vulnerabilityFormulaText: rateFormula(vulnerableFactor),
     comboFormulaText: rateFormula(factor('combo-damage')),
     imbalanceFormulaText: rateFormula(factor('imbalance-damage')),
     defenseZoneText: `1 / (1 + ${trimNumber(defense)} × ${trimNumber(defEfficiency, 3)}) = ${trimNumber(defScale)}`,

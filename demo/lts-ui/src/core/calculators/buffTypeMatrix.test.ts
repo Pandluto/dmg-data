@@ -55,6 +55,7 @@ function buff(
 /**
  * Every public Buff type must belong to exactly one executable contract:
  * - runtime: consumed by the hit/panel runtime calculator;
+ * - AKE source runtime: consumed from the attacker's live AKE attribute snapshot;
  * - panel: resolved while constructing the operator panel;
  * - migration: accepted only as a historical storage alias.
  */
@@ -139,10 +140,16 @@ const PANEL_ONLY_TYPES = [
   'iceElectricDmgBonus',
 ] as const;
 
+// `WeaknessDmgScalar` belongs to the carrier of the Buff and reduces that
+// carrier's outgoing damage.  It must therefore stay out of the static panel
+// totals and be resolved from the source entity for every AKE hit.
+const AKE_SOURCE_RUNTIME_ONLY_TYPES = ['weakness'] as const;
+
 const MIGRATION_ONLY_TYPES = ['multiplierMultiplier'] as const;
 
 const classifiedTypes = [
   ...Object.keys(RUNTIME_TOTAL_FIELD_BY_TYPE),
+  ...AKE_SOURCE_RUNTIME_ONLY_TYPES,
   ...PANEL_ONLY_TYPES,
   ...MIGRATION_ONLY_TYPES,
 ].sort();

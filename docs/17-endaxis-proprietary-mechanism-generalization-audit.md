@@ -112,25 +112,25 @@ AKE SkillData / BuffData / TableCfg
 | Ember / `chr_0009_azrila` | 动作期间保护、治疗、倒地 | `duringAction` 生命周期、护盾/治疗、物理状态 | 验证动作结束清理与倒地失败原因，不由 UI 猜测 |
 | Xaihi / `chr_0011_seraph` | 辅助晶体、双元素增幅、队伍消费 | owner/controlled 目标、队伍状态、元素筛选、消费 | `DispelAction`、`EnhancedAction`；验证队友伤害读取敌方而非施法者私有状态 |
 | Avywenna / `chr_0012_avywen` | 雷枪/强化雷枪、返回、按消费层缩放 | 来源实体、独立状态层、消费读数、倍率/失衡缩放 | ability entity 与 source attribution；验证返回不是重复施加 |
-| Gilberta / `chr_0013_aglina` | 队伍光环、终结技易伤、附着层 | recipient scope、敌方 debuff、堆叠/刷新 | 易伤必须进入目标乘区，并被所有队友后续 Hit 读取 |
+| Gilberta / `chr_0013_aglina` | 队伍光环、终结技法术脆弱、附着层 | recipient scope、敌方 debuff、堆叠/刷新 | 脆弱必须进入目标乘区，并被所有队友后续 Hit 读取 |
 | Snowshine / `chr_0014_aurora` | 元素附着与保护 | 附着、`Shelter`/伤害减免状态 | `ShelterAction`；验证状态启停和伤害因子来源 |
 | Lifeng / `chr_0015_lifeng` | 消耗接续、派生增益、击倒 | `actionLinkConsumed`、source link、派生值、物理状态 | action link 事务；验证消费发生在同一 admission/commit 边界 |
 | Laevatain / `chr_0016_laevat` | 终结技增强窗口、强化普攻/战技、熔火消费 | 形态状态机、状态时间暂停/延长、技能替换、消费 | `PauseBuffTime`、概率分支；不得保留角色 ID 的时间延长特例 |
 | Yvonne / `chr_0017_yvonne` | 强化形态、末段强化、冻结消费 | 形态 overlay、继承状态、强制元素状态、patch Tick | `InheritBuffAction`、`ForceSpellStatusAction`；验证末段才消费/触发 |
 | Da Pan / `chr_0018_dapan` | 猛击、击倒、击飞、物理易伤 | 统一物理状态事务和敌方 debuff | 验证破防消费、异常伤害、碎甲状态分别有独立事件，不按角色特判 |
 | Akekuri / `chr_0019_karin` | 连携窗口、持续时间延长 | admission window、状态持续时间变更 | `ExtendBuff` 类语义；验证刷新与延长不是重新施加两次 |
-| Catcher / `chr_0020_meurs` | 按护盾缩放的追加 Hit、倒地/易伤 | 动态派生值、命中快照、子 Hit、物理状态 | `ShelterAction`；验证读取命中瞬间护盾而非轴末状态 |
-| Estella / `chr_0021_whiten` | 寒冷免疫标记、连携物理易伤 | 免疫/过滤器、敌方 debuff | 验证免疫是拒绝原因，易伤是敌方状态而非队伍光环 |
+| Catcher / `chr_0020_meurs` | 按护盾缩放的追加 Hit、倒地/虚弱 | 动态派生值、命中快照、子 Hit、物理状态 | `WeakAction`、`ShelterAction`；验证虚弱降低携带者造成的伤害，护盾读取命中瞬间快照 |
+| Estella / `chr_0021_whiten` | 寒冷免疫标记、连携物理脆弱 | 免疫/过滤器、敌方 debuff | 验证免疫是拒绝原因，脆弱是敌方状态而非队伍光环 |
 | Fluorite / `chr_0022_bounda` | 炸弹状态，过期爆炸与消费爆炸不同 | 状态退出原因、一次性派生 Hit、冷却减少 | `DoOnce`/`SlowAction`；验证 expire、consume 互斥且只爆一次 |
-| Antal / `chr_0023_antal` | 专注、替换堆叠、元素增幅 | replace stacking、派生属性、敌方易伤 | `VulnerableAction`、`EnhancedAction`；验证作用域和乘区 |
+| Antal / `chr_0023_antal` | 专注、替换堆叠、元素增幅 | replace stacking、派生属性、敌方脆弱 | `VulnerableAction`、`EnhancedAction`；验证作用域和乘区 |
 | Alesh / `chr_0024_deepfin` | 子技能、强化连携、SP 获取 | 子动作、资源事务、形态选择、连携窗口 | `ForceSpellStatusAction`；验证资源先后顺序及窗口 cohort |
-| Ardelia / `chr_0025_ardelia` | 物理/法术易伤、腐蚀、Tick 修改 | 类型过滤易伤、反应状态、patch Tick | `VulnerableAction`；验证同一 debuff 对全队匹配伤害类型生效 |
+| Ardelia / `chr_0025_ardelia` | 物理/法术脆弱、腐蚀、Tick 修改 | 类型过滤脆弱、反应状态、patch Tick | `VulnerableAction`；验证同一 debuff 对全队匹配伤害类型生效 |
 | Last Rite / `chr_0026_lastrite` | 施法状态、低温灌注、幻影追加 Hit | cast lifecycle、状态消费、team target、子 Hit | 验证施法取消/结束清理与幻影 source attribution |
 | Tangtang / `chr_0027_tangtang` | 水涡、水龙卷、凝视、DoT、下落事件 | 独立状态源、DoT 调度、消费层、`onDive` | `DoOnceAction`、`SlowAction`；重点校准两次战技分别施加几层寒冷，不能用图标数猜 |
 | Rossi / `chr_0028_wulfa` | DoT、物理易伤、完美接续窗口、两段连携 | 确定性随机、窗口标签、快照 DoT、冷却/状态暂停 | `RandomAction`、`SetSkillCdAtOnce`、`PauseBuffTime`；完美时机不得由 UI 固定 ID 推断 |
 | Pogranichnik / `chr_0029_pograni` | SP 阈值追踪、士气、破防 | 资源阈值订阅、replace stacking、team scope、物理状态 | 验证阈值跨越只触发一次，破防与资源事件共用时间顺序 |
 | Zhuang Fangyi / `chr_0030_zhuangfy` | 强化普攻/战技/连携、独立剑层、剩余冷却缩减 | 形态 overlay、independent stacking、action snapshot、按剩余值冷却事务 | `TogglableAction`、`ExtendBuffAction`、ability entity；验证切形态不重置错误状态 |
-| Mifu / `chr_0031_mifu` | 三段战技、失衡目标分支、猛击视作反应 | 条件形态选择、目标状态、反应别名、护盾/易伤 | `PauseBuffTime`、`TakeDownAction`、目标 provider；验证第三段由状态自动选择 |
+| Mifu / `chr_0031_mifu` | 三段战技、失衡目标分支、猛击视作反应 | 条件形态选择、目标状态、反应别名、护盾/脆弱 | `PauseBuffTime`、`TakeDownAction`、目标 provider；验证第三段由状态自动选择 |
 | Arcane / `chr_0032_lizhiyan` | 双形态、属性比较、终结技冷却、收尾触发簇击 | selector/form、冷却条件、owner 消费、消费层读取、子动作簇 | `CastSkill`、ability entity、`VulnerableAction`；“诀”不是独立引擎，只是原语组合压力测试 |
 | Camille / `chr_0033_camille` | 追击状态、末段触发伤害、自身/队伍分离 Buff | final-hit 事件、triggered damage、recipient scope | 验证 team/self 两份来源不合并且末段只触发一次 |
 | Liino / `chr_0035_liino` | 战斗开始状态、技能冷却、受控目标、倒计时伤害/治疗、姿态 | `onBattleStart`、冷却就绪、controlled target、事件监听、继承 Buff、非技能动作 | `InheritBuffAction`、`AddTagAction`、`EventListenerAction`、`ChannelingCasting`；需要完整生命周期场景测试 |
@@ -212,7 +212,7 @@ AKE SkillData / BuffData / TableCfg
 | `ExtendBuffAction` | 庄方宜 | 刷新、延长和重施加如果混用会重复 proc |
 | `InheritBuffAction` | 伊冯、黎诺等 | 子实体/形态无法继承来源状态，命中语义断裂 |
 | `SetSkillCdAtOnce` | 管理员、狼卫、洛茜 | 冷却合法性与 UI 等待会偏离真实状态 |
-| `VulnerableAction` | 安塔尔、艾尔黛拉、诀 | 敌方易伤不进入统一伤害乘区 |
+| `VulnerableAction` | 安塔尔、艾尔黛拉、诀 | 敌方脆弱不进入统一伤害乘区 |
 | `ForceSpellStatusAction` | 伊冯、阿列什 | 元素状态分支可能完全不触发 |
 | `EventListenerAction` | 黎诺等 | 依赖事件的倒计时/姿态不会推进 |
 | `RandomAction` | 洛茜、庄方宜 | 不做确定性抽样就不可复现；直接跳过则 Hit 数错误 |
@@ -393,7 +393,7 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 这是阻止角色特例回归的核心：
 
 - 把状态 ID 从“结晶”替换为任意 ID，消费/击碎结果不变；
-- 把施法者换成另一名干员，敌方易伤仍被全队后续匹配 Hit 读取；
+- 把施法者换成另一名干员，敌方脆弱仍被全队后续匹配 Hit 读取；
 - 同一物理状态由陈千语、管理员或大潘触发，状态事务结构一致；
 - 同一寒冷附着由汤汤或其他来源施加，层数规则取决于 AKE 数据而非角色名；
 - 形态 selector 换一组属性阈值，运行时不需要新增分支。
@@ -448,9 +448,9 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 
 优先覆盖莱万汀、伊冯、洛茜、庄方宜，但实现与测试不得判断这些角色 ID。
 
-### 阶段 C：易伤、保护与伤害因子统一
+### 阶段 C：易伤、脆弱、保护与伤害因子统一
 
-- `VulnerableAction`、`ShelterAction` 进入目标状态与统一 damage factor；
+- `VulnerableAction`（脆弱）、Defender `NormalCalcZone`（易伤）、`WeakAction`（虚弱）和 `ShelterAction` 分别进入独立状态与 damage factor；
 - 全队后续 Hit 从敌人实时状态读取；
 - 账本输出乘区名称、数学值、来源和适用过滤器；
 - 删除 UI 中文名推断乘区。

@@ -86,7 +86,7 @@ test('compiled AKE hit profiles preserve target routing and numeric hit-applied 
         value: effect.value,
         durationSeconds: effect.durationSeconds
     })), [{
-        type: 'physicalFragile',
+        type: 'physicalVulnerability',
         value: 0.05,
         durationSeconds: 16
     }]);

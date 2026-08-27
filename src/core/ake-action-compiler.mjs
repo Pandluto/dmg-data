@@ -1508,6 +1508,26 @@ export class AkeActionCompiler {
                     reason: type
                 });
                 break;
+            case 'PauseBuffTime':
+                if (typeof node.isPaused !== 'boolean') {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_BUFF_PAUSE_STATE_REQUIRED',
+                        type,
+                        state.path,
+                        'PauseBuffTime requires an explicit boolean isPaused value.'
+                    ));
+                    break;
+                }
+                result.actions.push({
+                    type: 'SetCurrentBuffTimePaused',
+                    isPaused: node.isPaused,
+                    reason: type,
+                    metadata: {
+                        akeSourceAction: type,
+                        akeSourcePath: state.path
+                    }
+                });
+                break;
             case 'OnPhysicalNoGuardStart':
                 result.metadata.push({
                     type,

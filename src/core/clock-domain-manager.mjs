@@ -446,6 +446,53 @@ export class ClockDomainManager {
         };
     }
 
+    pauseTimer(domainId, timerId, frame = 0, reason = 'Paused') {
+        const domain = this.#domain(domainId);
+        const atFrame = nonNegativeInteger(frame, 'timer pause frame');
+        const localTimerId = domain.timerIds.get(timerId) ?? timerId;
+        if (typeof domain.clock.pauseTimer !== 'function') return null;
+        const result = domain.clock.pauseTimer(localTimerId, atFrame, reason);
+        if (!result) return null;
+        return this.#record({
+            frame: atFrame,
+            stage: 'TimerPaused',
+            domainId: domain.id,
+            timerId,
+            localTimerId,
+            previousDeadlineFrame: result.previousDeadlineFrame,
+            remainingTicks: result.remainingTicks,
+            sourceId: null,
+            ownerId: domain.ownerId,
+            targetId: null,
+            reason,
+            ruleId: null
+        });
+    }
+
+    resumeTimer(domainId, timerId, frame = 0, reason = 'Resumed') {
+        const domain = this.#domain(domainId);
+        const atFrame = nonNegativeInteger(frame, 'timer resume frame');
+        const localTimerId = domain.timerIds.get(timerId) ?? timerId;
+        if (typeof domain.clock.resumeTimer !== 'function') return null;
+        const result = domain.clock.resumeTimer(localTimerId, atFrame, reason);
+        if (!result) return null;
+        return this.#record({
+            frame: atFrame,
+            stage: 'TimerResumed',
+            domainId: domain.id,
+            timerId,
+            localTimerId,
+            previousDeadlineFrame: result.previousDeadlineFrame,
+            deadlineFrame: result.deadlineFrame,
+            remainingTicks: result.remainingTicks,
+            sourceId: null,
+            ownerId: domain.ownerId,
+            targetId: null,
+            reason,
+            ruleId: null
+        });
+    }
+
     cancelTimer(domainId, timerId, frame = 0, reason = 'Cancelled') {
         const domain = this.#domain(domainId);
         const atFrame = nonNegativeInteger(frame, 'timer cancel frame');

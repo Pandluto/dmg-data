@@ -2430,6 +2430,24 @@ export class CombatRuntime {
                     reason: action.reason ?? 'FinishBuff'
                 }, eventContext);
             },
+            SetCurrentBuffTimePaused: (action, eventContext) => {
+                const instanceId = action.instanceId
+                    ?? action.buffInstanceId
+                    ?? eventContext.buffInstanceId;
+                if (instanceId === undefined || instanceId === null) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'CurrentBuffInstanceMissing',
+                        requestedPaused: action.isPaused
+                    };
+                }
+                return this.statusEffects.setTimePaused({
+                    frame: action.frame ?? eventContext.frame,
+                    instanceId,
+                    isPaused: action.isPaused,
+                    reason: action.reason ?? 'PauseBuffTime'
+                }, eventContext);
+            },
             ApplyCombatStatus: (action, eventContext) => {
                 const targetId = this.#entityId(
                     action.targetRef ?? action.target ?? action.targetId,

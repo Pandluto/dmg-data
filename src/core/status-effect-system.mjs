@@ -415,7 +415,10 @@ export class StatusEffectSystem {
             triggerTimerDomainId: null,
             timelineTimerIds: [],
             triggerCount: 0,
-            processingEnhancement: false
+            processingEnhancement: false,
+            timePaused: false,
+            timePausedAtFrame: null,
+            remainingDurationTicks: null
         };
         instance.stackSources = [{
             sourceId: attribution.sourceId,
@@ -546,6 +549,91 @@ export class StatusEffectSystem {
             }
         }
         return results;
+    }
+
+    setTimePaused(input, eventContext = {}) {
+        if (!input || typeof input !== 'object') {
+            throw new Error('StatusEffectSystem.setTimePaused requires an input object.');
+        }
+        if (typeof input.isPaused !== 'boolean') {
+            throw new TypeError('StatusEffectSystem.setTimePaused requires boolean isPaused.');
+        }
+        const frame = frameNumber(input.frame ?? eventContext.frame ?? 0);
+        const matches = this.#select(input).filter(instance => instance.active);
+        const transitions = [];
+        for (const instance of matches) {
+            const beforePaused = instance.timePaused === true;
+            if (beforePaused === input.isPaused) {
+                const ignored = this.#record(
+                    instance,
+                    frame,
+                    'StatusEffectTimePauseIgnored',
+                    {
+                        reason: input.reason ?? 'PauseStateUnchanged',
+                        beforePaused,
+                        requestedPaused: input.isPaused,
+                        afterPaused: beforePaused,
+                        remainingDurationTicks: instance.remainingDurationTicks ?? null
+                    }
+                );
+                this.trace.push(ignored);
+                transitions.push(plainClone(ignored));
+                continue;
+            }
+            const previousExpireFrame = instance.expireFrame;
+            const timerTransitions = [];
+            for (const reference of this.#timerReferences(instance)) {
+                if (!this.clockDomains) {
+                    throw new Error(
+                        `Cannot ${input.isPaused ? 'pause' : 'resume'} status-effect time without clock domains.`
+                    );
+                }
+                const changed = input.isPaused
+                    ? this.clockDomains.pauseTimer(
+                        reference.domainId,
+                        reference.timerId,
+                        frame,
+                        input.reason ?? 'StatusEffectTimePaused'
+                    )
+                    : this.clockDomains.resumeTimer(
+                        reference.domainId,
+                        reference.timerId,
+                        frame,
+                        input.reason ?? 'StatusEffectTimeResumed'
+                    );
+                if (changed) timerTransitions.push(changed);
+            }
+            instance.timePaused = input.isPaused;
+            instance.timePausedAtFrame = input.isPaused ? frame : null;
+            const expiryTimer = instance.timerId === null || !this.clockDomains
+                ? null
+                : this.clockDomains.timer(instance.clockDomainId, instance.timerId);
+            instance.remainingDurationTicks = input.isPaused
+                ? expiryTimer?.remainingTicks ?? null
+                : null;
+            instance.expireFrame = input.isPaused
+                ? null
+                : expiryTimer?.deadlineFrame ?? previousExpireFrame;
+            const transition = this.#record(
+                instance,
+                frame,
+                input.isPaused ? 'StatusEffectTimePaused' : 'StatusEffectTimeResumed',
+                {
+                    reason: input.reason
+                        ?? (input.isPaused ? 'PauseBuffTime' : 'ResumeBuffTime'),
+                    beforePaused,
+                    requestedPaused: input.isPaused,
+                    afterPaused: input.isPaused,
+                    previousExpireFrame,
+                    remainingDurationTicks: instance.remainingDurationTicks,
+                    timerTransitions
+                }
+            );
+            this.trace.push(transition);
+            this.onTransition(plainClone(transition));
+            transitions.push(plainClone(transition));
+        }
+        return transitions;
     }
 
     finish(input, eventContext = {}) {
@@ -776,6 +864,28 @@ export class StatusEffectSystem {
                     instance.metadata?.[key] === value))
             .filter(instance => selector.stackingKey === undefined
                 || instance.stackingKey === selector.stackingKey);
+    }
+
+    #timerReferences(instance) {
+        const references = [];
+        const add = (domainId, timerId, kind) => {
+            if (timerId === null || timerId === undefined) return;
+            const key = `${String(domainId)}\u0000${String(timerId)}`;
+            if (references.some(reference => reference.key === key)) return;
+            references.push({ key, domainId, timerId, kind });
+        };
+        add(instance.clockDomainId, instance.timerId, 'expiry');
+        for (const timerId of instance.timelineTimerIds ?? []) {
+            add(instance.clockDomainId, timerId, 'timeline');
+        }
+        add(
+            instance.triggerTimerDomainId
+                ?? instance.actionClockDomainId
+                ?? instance.clockDomainId,
+            instance.triggerTimerId,
+            'trigger'
+        );
+        return references.map(({ key: _key, ...reference }) => reference);
     }
 
     #scheduleExpiry(instance) {

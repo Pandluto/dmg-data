@@ -47,7 +47,10 @@ export class LocalClock {
             priority,
             onComplete,
             generation: 1,
-            active: true
+            active: true,
+            paused: false,
+            pausedAtFrame: null,
+            remainingTicks: null
         };
         this.timers.set(timer.id, timer);
         this.trace.push({
@@ -81,7 +84,8 @@ export class LocalClock {
         this.totalPausedTicks += duration;
         const delayedTimers = [];
         for (const timer of this.timers.values()) {
-            if (!timer.active || timer.startFrame > pauseFrame || timer.deadlineFrame < pauseFrame) {
+            if (!timer.active || timer.paused
+                || timer.startFrame > pauseFrame || timer.deadlineFrame < pauseFrame) {
                 continue;
             }
             const previousDeadlineFrame = timer.deadlineFrame;
@@ -112,6 +116,58 @@ export class LocalClock {
         return record;
     }
 
+    pauseTimer(timerId, frame, reason = 'Paused') {
+        const pauseFrame = nonNegativeInteger(frame, 'timer pause frame');
+        const timer = this.timers.get(timerId);
+        if (!timer?.active || timer.paused) return null;
+        timer.paused = true;
+        timer.pausedAtFrame = pauseFrame;
+        timer.remainingTicks = Math.max(0, timer.deadlineFrame - pauseFrame);
+        timer.generation += 1;
+        const record = {
+            frame: pauseFrame,
+            stage: 'TimerPaused',
+            clock: this.name,
+            timerId,
+            label: timer.label,
+            previousDeadlineFrame: timer.deadlineFrame,
+            remainingTicks: timer.remainingTicks,
+            reason
+        };
+        this.trace.push(record);
+        return { ...record };
+    }
+
+    resumeTimer(timerId, frame, reason = 'Resumed') {
+        const resumeFrame = nonNegativeInteger(frame, 'timer resume frame');
+        const timer = this.timers.get(timerId);
+        if (!timer?.active || !timer.paused) return null;
+        const remainingTicks = nonNegativeInteger(
+            timer.remainingTicks ?? 0,
+            'timer remaining ticks'
+        );
+        const previousDeadlineFrame = timer.deadlineFrame;
+        timer.paused = false;
+        timer.pausedAtFrame = null;
+        timer.remainingTicks = null;
+        timer.deadlineFrame = resumeFrame + remainingTicks;
+        timer.generation += 1;
+        const record = {
+            frame: resumeFrame,
+            stage: 'TimerResumed',
+            clock: this.name,
+            timerId,
+            label: timer.label,
+            previousDeadlineFrame,
+            deadlineFrame: timer.deadlineFrame,
+            remainingTicks,
+            reason
+        };
+        this.trace.push(record);
+        this.#scheduleTimer(timer);
+        return { ...record };
+    }
+
     cancelTimer(timerId, frame = null, reason = 'Cancelled') {
         const timer = this.timers.get(timerId);
         if (!timer?.active) return false;
@@ -138,7 +194,10 @@ export class LocalClock {
             startLocalFrame: timer.startLocalFrame,
             durationTicks: timer.durationTicks,
             deadlineFrame: timer.deadlineFrame,
-            active: timer.active
+            active: timer.active,
+            paused: timer.paused,
+            pausedAtFrame: timer.pausedAtFrame,
+            remainingTicks: timer.remainingTicks
         };
     }
 
@@ -157,6 +216,7 @@ export class LocalClock {
         const deadlineFrame = timer.deadlineFrame;
         this.schedule(deadlineFrame, timer.priority, () => {
             if (!timer.active
+                || timer.paused
                 || timer.generation !== generation
                 || timer.deadlineFrame !== deadlineFrame) return;
             timer.active = false;

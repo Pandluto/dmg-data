@@ -11,18 +11,18 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3198,
-    "combatRiskCount": 1041,
+    "findingCount": 3186,
+    "combatRiskCount": 1029,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 459,
+      "combat-blocking": 447,
       "combat-partial": 160,
       "evidence-missing": 422,
       "presentation-only": 390,
       "spatial-assumption": 1767
     },
     "byPriority": {
-      "P0": 318,
+      "P0": 306,
       "P1": 649,
       "P2": 1841,
       "P3": 390
@@ -42,7 +42,7 @@
       "physical-status": 77,
       "presentation": 390,
       "resource-transaction": 1,
-      "status-lifecycle": 108,
+      "status-lifecycle": 96,
       "targeting-scope": 83,
       "targeting-spatial": 1767,
       "unclassified": 74
@@ -122,7 +122,6 @@
       "ObtainUspInNormalSkill": 1,
       "OrConditionAction": 1,
       "OverrideMultiDashLimit": 1,
-      "PauseBuffTime": 12,
       "PauseComboSkillTime": 1,
       "Probablity": 27,
       "PullAction": 16,
@@ -8303,18 +8302,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 118,
-        "combatRiskCount": 43,
+        "findingCount": 114,
+        "combatRiskCount": 39,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 20,
+          "combat-blocking": 16,
           "combat-partial": 4,
           "evidence-missing": 19,
           "presentation-only": 4,
           "spatial-assumption": 71
         },
         "byPriority": {
-          "P0": 9,
+          "P0": 5,
           "P1": 26,
           "P2": 79,
           "P3": 4
@@ -8326,7 +8325,7 @@
           "deterministic-choice": 11,
           "physical-status": 3,
           "presentation": 4,
-          "status-lifecycle": 5,
+          "status-lifecycle": 1,
           "targeting-scope": 1,
           "targeting-spatial": 71,
           "unclassified": 8
@@ -8346,7 +8345,6 @@
           "MoveToAction": 1,
           "NotifyCharPassiveUIAction": 3,
           "NotNextCheckAction": 1,
-          "PauseBuffTime": 4,
           "Probablity": 7,
           "SaveBuffStackNum": 1,
           "SaveTargetDistanceAction": 2,
@@ -8374,40 +8372,6 @@
           "sourceType": "SaveBuffStackNum",
           "compilerCategory": "buff",
           "message": "No executable compiler route exists for SaveBuffStackNum.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0016_laevat",
-          "characterName": "莱万汀",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0016_laevat_show_weapon",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_show_weapon.json",
-          "jsonPath": "abilityEventAction[0].actions[0][1..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "PauseBuffTime",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for PauseBuffTime.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0016_laevat",
-          "characterName": "莱万汀",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0016_laevat_show_weapon",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_show_weapon.json",
-          "jsonPath": "abilityEventAction[1].actions[0][1..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "PauseBuffTime",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for PauseBuffTime.",
           "impact": "combat-blocking",
           "priority": "P0",
           "capability": "status-lifecycle",
@@ -8480,40 +8444,6 @@
           "priority": "P0",
           "capability": "damage-factor",
           "rationale": "The action changes a target-side or source-side damage factor."
-        },
-        {
-          "characterId": "chr_0016_laevat",
-          "characterName": "莱万汀",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0016_laevat_ult_end",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_ult_end.json",
-          "jsonPath": "abilityEventAction[0].actions[0][1..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "PauseBuffTime",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for PauseBuffTime.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0016_laevat",
-          "characterName": "莱万汀",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0016_laevat_ult_end",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_ult_end.json",
-          "jsonPath": "abilityEventAction[1].actions[0][1..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "PauseBuffTime",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for PauseBuffTime.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
         },
         {
           "characterId": "chr_0016_laevat",
@@ -17418,18 +17348,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 351,
-        "combatRiskCount": 208,
+        "findingCount": 347,
+        "combatRiskCount": 204,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 37,
+          "combat-blocking": 33,
           "combat-partial": 8,
           "evidence-missing": 163,
           "presentation-only": 45,
           "spatial-assumption": 98
         },
         "byPriority": {
-          "P0": 19,
+          "P0": 15,
           "P1": 186,
           "P2": 101,
           "P3": 45
@@ -17445,7 +17375,7 @@
           "physical-status": 8,
           "presentation": 45,
           "resource-transaction": 1,
-          "status-lifecycle": 6,
+          "status-lifecycle": 2,
           "targeting-spatial": 98,
           "unclassified": 3
         },
@@ -17474,7 +17404,6 @@
           "MoveToAction": 20,
           "NotNextCheckAction": 1,
           "ObtainUspInNormalSkill": 1,
-          "PauseBuffTime": 4,
           "PauseComboSkillTime": 1,
           "RandomAction": 150,
           "ReceiveMoveInputAction": 1,
@@ -17493,40 +17422,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0028_wulfa",
-          "characterName": "洛茜",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0028_wulfa_combo_2_qte_timerlistening",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_combo_2_qte_timerlistening.json",
-          "jsonPath": "abilityEventAction[1].actions[0][1..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "PauseBuffTime",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for PauseBuffTime.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0028_wulfa",
-          "characterName": "洛茜",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0028_wulfa_combo_2_qte_timerlistening",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_combo_2_qte_timerlistening.json",
-          "jsonPath": "abilityEventAction[2].actions[0][1..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "PauseBuffTime",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for PauseBuffTime.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
         {
           "characterId": "chr_0028_wulfa",
           "characterName": "洛茜",
@@ -17556,40 +17451,6 @@
           "sourceType": "FinishBuffAdvanced",
           "compilerCategory": null,
           "message": "Buff selector type Environment requires an external provider.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0028_wulfa",
-          "characterName": "洛茜",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0028_wulfa_combo_usetimer",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_combo_usetimer.json",
-          "jsonPath": "abilityEventAction[0].actions[0][1..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "PauseBuffTime",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for PauseBuffTime.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0028_wulfa",
-          "characterName": "洛茜",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0028_wulfa_combo_usetimer",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_combo_usetimer.json",
-          "jsonPath": "abilityEventAction[1].actions[0][1..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "PauseBuffTime",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for PauseBuffTime.",
           "impact": "combat-blocking",
           "priority": "P0",
           "capability": "status-lifecycle",
@@ -28618,18 +28479,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 162,
-        "combatRiskCount": 54,
+        "findingCount": 158,
+        "combatRiskCount": 50,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 19,
+          "combat-blocking": 15,
           "combat-partial": 27,
           "evidence-missing": 8,
           "presentation-only": 28,
           "spatial-assumption": 80
         },
         "byPriority": {
-          "P0": 8,
+          "P0": 4,
           "P1": 45,
           "P2": 81,
           "P3": 28
@@ -28643,7 +28504,6 @@
           "event-scheduling": 1,
           "physical-status": 17,
           "presentation": 28,
-          "status-lifecycle": 4,
           "targeting-scope": 10,
           "targeting-spatial": 80,
           "unclassified": 1
@@ -28668,7 +28528,6 @@
           "MoveToAction": 14,
           "NotNextCheckAction": 3,
           "OrConditionAction": 1,
-          "PauseBuffTime": 4,
           "PullAction": 5,
           "RandomAction": 1,
           "ReadSkillSettingData": 1,
@@ -28685,74 +28544,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0031_mifu",
-          "characterName": "弭弗",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0031_mifu_normalskill_2",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0031_mifu_normalskill_2.json",
-          "jsonPath": "abilityEventAction[0].actions[0][1..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "PauseBuffTime",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for PauseBuffTime.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0031_mifu",
-          "characterName": "弭弗",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0031_mifu_normalskill_2",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0031_mifu_normalskill_2.json",
-          "jsonPath": "abilityEventAction[1].actions[0][1..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "PauseBuffTime",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for PauseBuffTime.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0031_mifu",
-          "characterName": "弭弗",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0031_mifu_normalskill_3",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0031_mifu_normalskill_3.json",
-          "jsonPath": "abilityEventAction[0].actions[0][1..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "PauseBuffTime",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for PauseBuffTime.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0031_mifu",
-          "characterName": "弭弗",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0031_mifu_normalskill_3",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0031_mifu_normalskill_3.json",
-          "jsonPath": "abilityEventAction[1].actions[0][1..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "PauseBuffTime",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for PauseBuffTime.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
         {
           "characterId": "chr_0031_mifu",
           "characterName": "弭弗",
@@ -56827,18 +56618,18 @@
   ],
   "sharedDependencies": {
     "summary": {
-      "findingCount": 297,
-      "combatRiskCount": 194,
+      "findingCount": 293,
+      "combatRiskCount": 190,
       "isCombatClosed": false,
       "byImpact": {
-        "combat-blocking": 50,
+        "combat-blocking": 46,
         "combat-partial": 17,
         "evidence-missing": 127,
         "presentation-only": 13,
         "spatial-assumption": 90
       },
       "byPriority": {
-        "P0": 24,
+        "P0": 20,
         "P1": 98,
         "P2": 162,
         "P3": 13
@@ -56855,7 +56646,7 @@
         "form-state": 3,
         "physical-status": 6,
         "presentation": 13,
-        "status-lifecycle": 13,
+        "status-lifecycle": 9,
         "targeting-scope": 11,
         "targeting-spatial": 90,
         "unclassified": 72
@@ -56895,7 +56686,6 @@
         "MoveToAction": 1,
         "NotNextCheckAction": 2,
         "OnSpellAbnormalStartFinish": 40,
-        "PauseBuffTime": 4,
         "PullAction": 6,
         "RaiseTrainLevelEvent": 5,
         "ReadSkillSettingData": 40,
@@ -56996,42 +56786,6 @@
         "entityKind": "BuffData",
         "entityId": "buff_chr_0016_laevat_show_weapon",
         "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_show_weapon.json",
-        "jsonPath": "abilityEventAction[0].actions[0][1..][0]",
-        "code": "AKE_ACTION_UNSUPPORTED",
-        "sourceType": "PauseBuffTime",
-        "compilerCategory": "buff",
-        "message": "No executable compiler route exists for PauseBuffTime.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "status-lifecycle",
-        "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal.",
-        "characters": [
-          "chr_0030_zhuangfy"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "BuffData",
-        "entityId": "buff_chr_0016_laevat_show_weapon",
-        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_show_weapon.json",
-        "jsonPath": "abilityEventAction[1].actions[0][1..][0]",
-        "code": "AKE_ACTION_UNSUPPORTED",
-        "sourceType": "PauseBuffTime",
-        "compilerCategory": "buff",
-        "message": "No executable compiler route exists for PauseBuffTime.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "status-lifecycle",
-        "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal.",
-        "characters": [
-          "chr_0030_zhuangfy"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "BuffData",
-        "entityId": "buff_chr_0016_laevat_show_weapon",
-        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_show_weapon.json",
         "jsonPath": "buffEventAction[1].actions[0][0]",
         "code": "AKE_ACTION_UNSUPPORTED",
         "sourceType": "SetSkillCdAtOnce",
@@ -57041,42 +56795,6 @@
         "priority": "P0",
         "capability": "cooldown-window",
         "rationale": "The action changes cooldown or combo-window admission state.",
-        "characters": [
-          "chr_0030_zhuangfy"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "BuffData",
-        "entityId": "buff_chr_0016_laevat_ult_end",
-        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_ult_end.json",
-        "jsonPath": "abilityEventAction[0].actions[0][1..][0]",
-        "code": "AKE_ACTION_UNSUPPORTED",
-        "sourceType": "PauseBuffTime",
-        "compilerCategory": "buff",
-        "message": "No executable compiler route exists for PauseBuffTime.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "status-lifecycle",
-        "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal.",
-        "characters": [
-          "chr_0030_zhuangfy"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "BuffData",
-        "entityId": "buff_chr_0016_laevat_ult_end",
-        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_ult_end.json",
-        "jsonPath": "abilityEventAction[1].actions[0][1..][0]",
-        "code": "AKE_ACTION_UNSUPPORTED",
-        "sourceType": "PauseBuffTime",
-        "compilerCategory": "buff",
-        "message": "No executable compiler route exists for PauseBuffTime.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "status-lifecycle",
-        "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal.",
         "characters": [
           "chr_0030_zhuangfy"
         ]

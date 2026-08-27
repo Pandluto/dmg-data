@@ -83,6 +83,40 @@ test('poise caps state on overflow but preserves the full reported hit', () => {
     );
 });
 
+test('poise lifecycle callbacks observe settled break and recovery edges once per cycle', () => {
+    const clock = scheduler();
+    const broken = [];
+    const recovered = [];
+    const machine = new PoiseMachine({
+        definition: definition(),
+        schedule: clock.schedule,
+        onBroken: transition => broken.push(transition),
+        onRecovered: transition => recovered.push(transition)
+    });
+
+    machine.applyDamage({ frame: 10, basePoise: 55, sourceSkillId: 'first-hit' });
+    machine.applyDamage({ frame: 20, basePoise: 10, sourceSkillId: 'break-hit' });
+    assert.equal(broken.length, 1);
+    assert.equal(broken[0].stage, 'Broken');
+    assert.equal(broken[0].sourceSkillId, 'break-hit');
+    assert.equal(broken[0].state.broken, true);
+    assert.equal(broken[0].state.accumulated, 60);
+    assert.equal(broken[0].state.scheduledRecoveryFrame, 200);
+
+    machine.applyDamage({ frame: 30, basePoise: 60, sourceSkillId: 'ignored-hit' });
+    assert.equal(broken.length, 1, 'damage during the break cannot repeat the edge');
+    clock.runThrough(199);
+    assert.equal(recovered.length, 0);
+    clock.runThrough(200);
+    assert.equal(recovered.length, 1);
+    assert.equal(recovered[0].stage, 'Recovered');
+    assert.equal(recovered[0].state.broken, false);
+    assert.equal(recovered[0].state.accumulated, 0);
+    assert.equal(recovered[0].nextCycle, 2);
+    assert.equal(machine.recover(201), false);
+    assert.equal(recovered.length, 1, 'recovery outside a broken cycle is not an edge');
+});
+
 test('execution gate is consumed once while the broken damage zone remains active', () => {
     const clock = scheduler();
     const machine = new PoiseMachine({ definition: definition(), schedule: clock.schedule });

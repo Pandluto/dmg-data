@@ -62,9 +62,14 @@ function normalizeRapidBreakPolicy(policy = null) {
 
 export class PoiseMachine {
     constructor({ definition, schedule = () => {}, localClock = null,
-        onKnot = () => {}, tickRate = 30 }) {
+        onKnot = () => {}, onBroken = () => {}, onRecovered = () => {}, tickRate = 30 }) {
         if (!definition || typeof definition !== 'object') {
             throw new Error('Poise definition is required.');
+        }
+        if (typeof onKnot !== 'function'
+            || typeof onBroken !== 'function'
+            || typeof onRecovered !== 'function') {
+            throw new TypeError('Poise lifecycle callbacks must be functions.');
         }
         this.enabled = Boolean(definition.enabled);
         this.maxPoise = finiteNumber(definition.maxPoise ?? 0, 'maxPoise');
@@ -104,6 +109,8 @@ export class PoiseMachine {
         this.schedule = schedule;
         this.localClock = localClock;
         this.onKnot = onKnot;
+        this.onBroken = onBroken;
+        this.onRecovered = onRecovered;
         this.accumulated = 0;
         this.broken = false;
         this.executionAvailable = false;
@@ -273,7 +280,7 @@ export class PoiseMachine {
             ? null
             : Math.max(0, breakLocalFrame - this.firstPoiseDamageLocalFrame);
         this.pendingGuard = this.#qualifyRapidBreak(frame, breakElapsedLocalTicks, source);
-        this.trace.push({
+        const brokenRecord = {
             frame,
             stage: 'Broken',
             accumulated: this.accumulated,
@@ -292,7 +299,8 @@ export class PoiseMachine {
             breakElapsedLocalTicks,
             rapidBreakQualified: this.pendingGuard !== null,
             ...source
-        });
+        };
+        this.trace.push(brokenRecord);
         if (this.localClock) {
             this.recoveryTimerId = this.localClock.startTimer({
                 frame,
@@ -310,6 +318,11 @@ export class PoiseMachine {
                 this.recover(this.nominalRecoveryFrame, 'NominalTimer');
             }, 'poise-recovery');
         }
+        this.onBroken({
+            ...brokenRecord,
+            recoveryTimerId: this.recoveryTimerId,
+            state: this.snapshot()
+        });
     }
 
     recover(frame, reason = 'Manual') {
@@ -325,7 +338,7 @@ export class PoiseMachine {
         this.nominalRecoveryFrame = null;
         this.triggeredKnotIndexes.clear();
         this.recoveryGeneration += 1;
-        this.trace.push({
+        const recoveredRecord = {
             frame,
             stage: 'Recovered',
             reason,
@@ -333,10 +346,16 @@ export class PoiseMachine {
             after: 0,
             remaining: this.maxPoise,
             cycle: this.cycle
-        });
+        };
+        this.trace.push(recoveredRecord);
         this.#startPendingGuard(frame);
         this.firstPoiseDamageLocalFrame = null;
         this.cycle += 1;
+        this.onRecovered({
+            ...recoveredRecord,
+            nextCycle: this.cycle,
+            state: this.snapshot()
+        });
         return true;
     }
 

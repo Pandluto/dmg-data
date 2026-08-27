@@ -358,6 +358,7 @@ const AKE_FRAGILE_BUFF_TYPES = Object.freeze({
     Fire: 'fireFragile',
     Pulse: 'electricFragile',
     Cryst: 'iceFragile',
+    Crystal: 'iceFragile',
     Natural: 'natureFragile'
 });
 

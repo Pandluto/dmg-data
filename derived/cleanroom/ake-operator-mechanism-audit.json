@@ -11,18 +11,18 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3186,
-    "combatRiskCount": 1029,
+    "findingCount": 3170,
+    "combatRiskCount": 1013,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 447,
+      "combat-blocking": 431,
       "combat-partial": 160,
       "evidence-missing": 422,
       "presentation-only": 390,
       "spatial-assumption": 1767
     },
     "byPriority": {
-      "P0": 306,
+      "P0": 290,
       "P1": 649,
       "P2": 1841,
       "P3": 390
@@ -31,7 +31,7 @@
       "child-action": 41,
       "condition-algebra": 133,
       "cooldown-window": 22,
-      "damage-factor": 33,
+      "damage-factor": 17,
       "data-provider": 1,
       "dependency-closure": 1,
       "derived-state": 8,
@@ -165,7 +165,6 @@
       "TriggerCustomAbilityEvent": 1,
       "TriggerLiinoUIEvent": 8,
       "TryToTeleportSquadAction": 1,
-      "VulnerableAction": 16,
       "WeakAction": 2
     }
   },
@@ -5757,32 +5756,31 @@
         "initialSkillCount": 12,
         "discoveredSkillCount": 14,
         "programCount": 19,
-        "buffCount": 70,
+        "buffCount": 71,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 3,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 60,
-        "combatRiskCount": 17,
+        "findingCount": 59,
+        "combatRiskCount": 16,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 5,
+          "combat-blocking": 4,
           "combat-partial": 7,
           "evidence-missing": 5,
           "presentation-only": 4,
           "spatial-assumption": 39
         },
         "byPriority": {
-          "P0": 4,
+          "P0": 3,
           "P1": 12,
           "P2": 40,
           "P3": 4
         },
         "byCapability": {
           "condition-algebra": 1,
-          "damage-factor": 1,
           "deterministic-choice": 4,
           "event-scheduling": 2,
           "physical-status": 2,
@@ -5814,8 +5812,7 @@
           "SnapToTargetWithRangeAction": 4,
           "TeleportAction": 3,
           "TeleportPosSelectAction": 3,
-          "TemporaryUnlockAction": 1,
-          "VulnerableAction": 1
+          "TemporaryUnlockAction": 1
         }
       },
       "findings": [
@@ -5835,23 +5832,6 @@
           "priority": "P0",
           "capability": "status-lifecycle",
           "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0013_aglina",
-          "characterName": "洁尔佩塔",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0013_aglina_ultimate_spell_vulnerable",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0013_aglina_ultimate_spell_vulnerable.json",
-          "jsonPath": "buffEventAction[0].actions[0][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
         },
         {
           "characterId": "chr_0013_aglina",
@@ -6850,32 +6830,31 @@
         "initialSkillCount": 12,
         "discoveredSkillCount": 8,
         "programCount": 13,
-        "buffCount": 67,
+        "buffCount": 69,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 3,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 81,
-        "combatRiskCount": 12,
+        "findingCount": 80,
+        "combatRiskCount": 11,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 5,
+          "combat-blocking": 4,
           "combat-partial": 2,
           "evidence-missing": 5,
           "presentation-only": 22,
           "spatial-assumption": 47
         },
         "byPriority": {
-          "P0": 3,
+          "P0": 2,
           "P1": 8,
           "P2": 48,
           "P3": 22
         },
         "byCapability": {
           "condition-algebra": 2,
-          "damage-factor": 1,
           "deterministic-choice": 4,
           "event-scheduling": 1,
           "event-subscription": 1,
@@ -6902,28 +6881,10 @@
           "SnapToTargetWithRangeAction": 8,
           "TeleportAction": 5,
           "TeleportPosSelectAction": 4,
-          "TemporaryUnlockAction": 1,
-          "VulnerableAction": 1
+          "TemporaryUnlockAction": 1
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0015_lifeng",
-          "characterName": "黎风",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0015_lifeng_purify",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0015_lifeng_purify.json",
-          "jsonPath": "buffEventAction[0].actions[0][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
-        },
         {
           "characterId": "chr_0015_lifeng",
           "characterName": "黎风",
@@ -12447,32 +12408,31 @@
         "initialSkillCount": 10,
         "discoveredSkillCount": 18,
         "programCount": 22,
-        "buffCount": 67,
+        "buffCount": 72,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 1,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 89,
-        "combatRiskCount": 25,
+        "findingCount": 87,
+        "combatRiskCount": 23,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 17,
+          "combat-blocking": 15,
           "combat-partial": 3,
           "evidence-missing": 5,
           "presentation-only": 8,
           "spatial-assumption": 56
         },
         "byPriority": {
-          "P0": 7,
+          "P0": 5,
           "P1": 17,
           "P2": 57,
           "P3": 8
         },
         "byCapability": {
           "condition-algebra": 9,
-          "damage-factor": 2,
           "derived-state": 1,
           "deterministic-choice": 4,
           "event-scheduling": 4,
@@ -12511,45 +12471,10 @@
           "TargetPostProcessorAction": 1,
           "TeleportAction": 4,
           "TeleportPosSelectAction": 4,
-          "TemporaryUnlockAction": 1,
-          "VulnerableAction": 2
+          "TemporaryUnlockAction": 1
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0025_ardelia",
-          "characterName": "艾尔黛拉",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0025_ardelia_normal_skill_vulnerable",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0025_ardelia_normal_skill_vulnerable.json",
-          "jsonPath": "buffEventAction[0].actions[0][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
-        },
-        {
-          "characterId": "chr_0025_ardelia",
-          "characterName": "艾尔黛拉",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0025_ardelia_normal_skill_vulnerable",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0025_ardelia_normal_skill_vulnerable.json",
-          "jsonPath": "buffEventAction[0].actions[0][1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
-        },
         {
           "characterId": "chr_0025_ardelia",
           "characterName": "艾尔黛拉",
@@ -14040,32 +13965,31 @@
         "initialSkillCount": 10,
         "discoveredSkillCount": 7,
         "programCount": 11,
-        "buffCount": 66,
+        "buffCount": 67,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 1,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 81,
-        "combatRiskCount": 18,
+        "findingCount": 80,
+        "combatRiskCount": 17,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 9,
+          "combat-blocking": 8,
           "combat-partial": 3,
           "evidence-missing": 6,
           "presentation-only": 13,
           "spatial-assumption": 50
         },
         "byPriority": {
-          "P0": 6,
+          "P0": 5,
           "P1": 10,
           "P2": 52,
           "P3": 13
         },
         "byCapability": {
           "condition-algebra": 3,
-          "damage-factor": 1,
           "deterministic-choice": 4,
           "event-scheduling": 1,
           "form-state": 1,
@@ -14096,8 +14020,7 @@
           "SnapToTargetWithRangeAction": 7,
           "TeleportAction": 5,
           "TeleportPosSelectAction": 3,
-          "TemporaryUnlockAction": 2,
-          "VulnerableAction": 1
+          "TemporaryUnlockAction": 2
         }
       },
       "findings": [
@@ -14117,23 +14040,6 @@
           "priority": "P0",
           "capability": "status-lifecycle",
           "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0026_lastrite",
-          "characterName": "别礼",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0026_lastrite_talent_1_vul",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0026_lastrite_talent_1_vul.json",
-          "jsonPath": "buffEventAction[0].actions[0][1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
         },
         {
           "characterId": "chr_0026_lastrite",
@@ -15489,32 +15395,31 @@
         "initialSkillCount": 11,
         "discoveredSkillCount": 22,
         "programCount": 25,
-        "buffCount": 78,
+        "buffCount": 79,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 1,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 104,
-        "combatRiskCount": 37,
+        "findingCount": 103,
+        "combatRiskCount": 36,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 22,
+          "combat-blocking": 21,
           "combat-partial": 8,
           "evidence-missing": 7,
           "presentation-only": 12,
           "spatial-assumption": 55
         },
         "byPriority": {
-          "P0": 14,
+          "P0": 13,
           "P1": 22,
           "P2": 56,
           "P3": 12
         },
         "byCapability": {
           "condition-algebra": 8,
-          "damage-factor": 1,
           "deterministic-choice": 6,
           "event-scheduling": 1,
           "event-subscription": 6,
@@ -15557,8 +15462,7 @@
           "TargetPostProcessorAction": 1,
           "TeleportAction": 4,
           "TeleportPosSelectAction": 2,
-          "TemporaryUnlockAction": 1,
-          "VulnerableAction": 1
+          "TemporaryUnlockAction": 1
         }
       },
       "findings": [
@@ -15646,23 +15550,6 @@
           "priority": "P0",
           "capability": "status-lifecycle",
           "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0027_tangtang",
-          "characterName": "汤汤",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0027_tangtang_normalskill_spellvulnerable",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0027_tangtang_normalskill_spellvulnerable.json",
-          "jsonPath": "buffEventAction[0].actions[0][1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
         },
         {
           "characterId": "chr_0027_tangtang",
@@ -28472,25 +28359,25 @@
         "initialSkillCount": 11,
         "discoveredSkillCount": 12,
         "programCount": 15,
-        "buffCount": 70,
+        "buffCount": 71,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 0,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 158,
-        "combatRiskCount": 50,
+        "findingCount": 157,
+        "combatRiskCount": 49,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 15,
+          "combat-blocking": 14,
           "combat-partial": 27,
           "evidence-missing": 8,
           "presentation-only": 28,
           "spatial-assumption": 80
         },
         "byPriority": {
-          "P0": 4,
+          "P0": 3,
           "P1": 45,
           "P2": 81,
           "P3": 28
@@ -28498,7 +28385,6 @@
         "byCapability": {
           "condition-algebra": 11,
           "cooldown-window": 2,
-          "damage-factor": 1,
           "data-provider": 1,
           "deterministic-choice": 6,
           "event-scheduling": 1,
@@ -28539,28 +28425,10 @@
           "TakeDownAction": 3,
           "TeleportAction": 11,
           "TeleportPosSelectAction": 4,
-          "TemporaryUnlockAction": 1,
-          "VulnerableAction": 1
+          "TemporaryUnlockAction": 1
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0031_mifu",
-          "characterName": "弭弗",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0031_mifu_vulnerablephysic_comboskill",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0031_mifu_vulnerablephysic_comboskill.json",
-          "jsonPath": "buffEventAction[0].actions[0][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
-        },
         {
           "characterId": "chr_0031_mifu",
           "characterName": "弭弗",
@@ -31241,25 +31109,25 @@
         "initialSkillCount": 14,
         "discoveredSkillCount": 23,
         "programCount": 27,
-        "buffCount": 101,
+        "buffCount": 107,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 3,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 179,
-        "combatRiskCount": 77,
+        "findingCount": 175,
+        "combatRiskCount": 73,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 50,
+          "combat-blocking": 46,
           "combat-partial": 10,
           "evidence-missing": 17,
           "presentation-only": 18,
           "spatial-assumption": 84
         },
         "byPriority": {
-          "P0": 42,
+          "P0": 38,
           "P1": 31,
           "P2": 88,
           "P3": 18
@@ -31268,7 +31136,7 @@
           "child-action": 27,
           "condition-algebra": 4,
           "cooldown-window": 1,
-          "damage-factor": 5,
+          "damage-factor": 1,
           "derived-state": 4,
           "deterministic-choice": 13,
           "event-scheduling": 2,
@@ -31317,8 +31185,7 @@
           "TagQueryListenerAction": 1,
           "TeleportAction": 7,
           "TeleportPosSelectAction": 4,
-          "TemporaryUnlockAction": 2,
-          "VulnerableAction": 4
+          "TemporaryUnlockAction": 2
         }
       },
       "findings": [
@@ -31514,40 +31381,6 @@
           "characterName": "诀",
           "scope": "operator",
           "entityKind": "BuffData",
-          "entityId": "buff_chr_0032_lizhiyan_combo_skill_spell_vulnerable_pre",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_combo_skill_spell_vulnerable_pre.json",
-          "jsonPath": "buffEventAction[0].actions[0][1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
-        },
-        {
-          "characterId": "chr_0032_lizhiyan",
-          "characterName": "诀",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0032_lizhiyan_combo_skill_spell_vulnerable_pre",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_combo_skill_spell_vulnerable_pre.json",
-          "jsonPath": "buffEventAction[0].actions[0][2]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
-        },
-        {
-          "characterId": "chr_0032_lizhiyan",
-          "characterName": "诀",
-          "scope": "operator",
-          "entityKind": "BuffData",
           "entityId": "buff_chr_0032_lizhiyan_passive",
           "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_passive.json",
           "jsonPath": "buffEventAction[1].actions[0][0]",
@@ -31572,40 +31405,6 @@
           "sourceType": "EnhancedAction",
           "compilerCategory": "other",
           "message": "No executable compiler route exists for EnhancedAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
-        },
-        {
-          "characterId": "chr_0032_lizhiyan",
-          "characterName": "诀",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0032_lizhiyan_talent1_vulnerable",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_talent1_vulnerable.json",
-          "jsonPath": "buffEventAction[0].actions[0][1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
-        },
-        {
-          "characterId": "chr_0032_lizhiyan",
-          "characterName": "诀",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0032_lizhiyan_talent1_vulnerable",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_talent1_vulnerable.json",
-          "jsonPath": "buffEventAction[0].actions[0][2]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
           "impact": "combat-blocking",
           "priority": "P0",
           "capability": "damage-factor",
@@ -34376,25 +34175,25 @@
         "initialSkillCount": 16,
         "discoveredSkillCount": 16,
         "programCount": 22,
-        "buffCount": 71,
+        "buffCount": 73,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 3,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 151,
-        "combatRiskCount": 44,
+        "findingCount": 150,
+        "combatRiskCount": 43,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 17,
+          "combat-blocking": 16,
           "combat-partial": 13,
           "evidence-missing": 14,
           "presentation-only": 41,
           "spatial-assumption": 66
         },
         "byPriority": {
-          "P0": 15,
+          "P0": 14,
           "P1": 27,
           "P2": 68,
           "P3": 41
@@ -34402,7 +34201,6 @@
         "byCapability": {
           "child-action": 3,
           "condition-algebra": 2,
-          "damage-factor": 1,
           "deterministic-choice": 12,
           "event-scheduling": 1,
           "event-subscription": 6,
@@ -34443,7 +34241,6 @@
           "TeleportAction": 7,
           "TeleportPosSelectAction": 3,
           "TemporaryUnlockAction": 2,
-          "VulnerableAction": 1,
           "WeakAction": 1
         }
       },
@@ -34498,23 +34295,6 @@
           "priority": "P0",
           "capability": "status-lifecycle",
           "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0033_camille",
-          "characterName": "卡缪",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0033_camille_normal_skill_weak",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0033_camille_normal_skill_weak.json",
-          "jsonPath": "buffEventAction[1].actions[0][1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
         },
         {
           "characterId": "chr_0033_camille",
@@ -45904,31 +45684,28 @@
         "initialSkillCount": 11,
         "discoveredSkillCount": 14,
         "programCount": 18,
-        "buffCount": 59,
+        "buffCount": 60,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 1,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 68,
-        "combatRiskCount": 19,
+        "findingCount": 67,
+        "combatRiskCount": 18,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 1,
           "combat-partial": 12,
           "evidence-missing": 6,
           "presentation-only": 4,
           "spatial-assumption": 45
         },
         "byPriority": {
-          "P0": 1,
           "P1": 16,
           "P2": 47,
           "P3": 4
         },
         "byCapability": {
-          "damage-factor": 1,
           "deterministic-choice": 4,
           "physical-status": 5,
           "presentation": 4,
@@ -45955,28 +45732,10 @@
           "SelfRotateAction": 21,
           "SnapToTargetWithRangeAction": 2,
           "TeleportAction": 5,
-          "TemporaryUnlockAction": 1,
-          "VulnerableAction": 1
+          "TemporaryUnlockAction": 1
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0012_avywen",
-          "characterName": "艾维文娜",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0012_avywen_ultimate_skill_debuff",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0012_avywen_ultimate_skill_debuff.json",
-          "jsonPath": "buffEventAction[0].actions[0][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
-        },
         {
           "characterId": "chr_0012_avywen",
           "characterName": "艾维文娜",
@@ -53242,32 +53001,31 @@
         "initialSkillCount": 9,
         "discoveredSkillCount": 7,
         "programCount": 10,
-        "buffCount": 66,
+        "buffCount": 67,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 0,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 64,
-        "combatRiskCount": 14,
+        "findingCount": 63,
+        "combatRiskCount": 13,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 3,
+          "combat-blocking": 2,
           "combat-partial": 3,
           "evidence-missing": 8,
           "presentation-only": 9,
           "spatial-assumption": 41
         },
         "byPriority": {
-          "P0": 2,
+          "P0": 1,
           "P1": 10,
           "P2": 43,
           "P3": 9
         },
         "byCapability": {
           "condition-algebra": 1,
-          "damage-factor": 1,
           "deterministic-choice": 6,
           "event-scheduling": 1,
           "presentation": 9,
@@ -53293,28 +53051,10 @@
           "SnapToTargetWithRangeAction": 2,
           "TeleportAction": 5,
           "TeleportPosSelectAction": 4,
-          "TemporaryUnlockAction": 1,
-          "VulnerableAction": 1
+          "TemporaryUnlockAction": 1
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0021_whiten",
-          "characterName": "埃特拉",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0021_whiten_combo_skill_physical_vulnerable",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0021_whiten_combo_skill_physical_vulnerable.json",
-          "jsonPath": "buffEventAction[0].actions[0][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
-        },
         {
           "characterId": "chr_0021_whiten",
           "characterName": "埃特拉",
@@ -55657,24 +55397,24 @@
         "initialSkillCount": 11,
         "discoveredSkillCount": 12,
         "programCount": 17,
-        "buffCount": 80,
+        "buffCount": 84,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 2,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 53,
-        "combatRiskCount": 14,
+        "findingCount": 51,
+        "combatRiskCount": 12,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 9,
+          "combat-blocking": 7,
           "evidence-missing": 5,
           "presentation-only": 8,
           "spatial-assumption": 31
         },
         "byPriority": {
-          "P0": 7,
+          "P0": 5,
           "P1": 6,
           "P2": 32,
           "P3": 8
@@ -55682,7 +55422,7 @@
         "byCapability": {
           "condition-algebra": 2,
           "cooldown-window": 2,
-          "damage-factor": 4,
+          "damage-factor": 2,
           "deterministic-choice": 4,
           "event-scheduling": 1,
           "presentation": 8,
@@ -55707,45 +55447,10 @@
           "SelfRotateAction": 10,
           "TeleportAction": 3,
           "TeleportPosSelectAction": 3,
-          "TemporaryUnlockAction": 1,
-          "VulnerableAction": 2
+          "TemporaryUnlockAction": 1
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0023_antal",
-          "characterName": "安塔尔",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0023_antal_tageffect",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0023_antal_tageffect.json",
-          "jsonPath": "buffEventAction[0].actions[0][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
-        },
-        {
-          "characterId": "chr_0023_antal",
-          "characterName": "安塔尔",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0023_antal_tageffect",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0023_antal_tageffect.json",
-          "jsonPath": "buffEventAction[0].actions[0][1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "VulnerableAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for VulnerableAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
-        },
         {
           "characterId": "chr_0023_antal",
           "characterName": "安塔尔",
@@ -56618,18 +56323,18 @@
   ],
   "sharedDependencies": {
     "summary": {
-      "findingCount": 291,
-      "combatRiskCount": 188,
+      "findingCount": 290,
+      "combatRiskCount": 187,
       "isCombatClosed": false,
       "byImpact": {
-        "combat-blocking": 46,
+        "combat-blocking": 45,
         "combat-partial": 17,
         "evidence-missing": 125,
         "presentation-only": 13,
         "spatial-assumption": 90
       },
       "byPriority": {
-        "P0": 20,
+        "P0": 19,
         "P1": 98,
         "P2": 160,
         "P3": 13
@@ -56638,7 +56343,7 @@
         "child-action": 2,
         "condition-algebra": 26,
         "cooldown-window": 1,
-        "damage-factor": 2,
+        "damage-factor": 1,
         "data-provider": 41,
         "deterministic-choice": 14,
         "event-scheduling": 2,
@@ -56703,8 +56408,7 @@
         "SnapToTargetWithRangeAction": 5,
         "TeleportAction": 10,
         "TeleportPosSelectAction": 5,
-        "TemporaryUnlockAction": 3,
-        "VulnerableAction": 1
+        "TemporaryUnlockAction": 3
       }
     },
     "findings": [
@@ -56722,24 +56426,6 @@
         "priority": "P0",
         "capability": "status-lifecycle",
         "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal.",
-        "characters": [
-          "chr_0032_lizhiyan"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "BuffData",
-        "entityId": "buff_chr_0013_aglina_ultimate_spell_vulnerable",
-        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0013_aglina_ultimate_spell_vulnerable.json",
-        "jsonPath": "buffEventAction[0].actions[0][0]",
-        "code": "AKE_ACTION_UNSUPPORTED",
-        "sourceType": "VulnerableAction",
-        "compilerCategory": "other",
-        "message": "No executable compiler route exists for VulnerableAction.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "damage-factor",
-        "rationale": "The action changes a target-side or source-side damage factor.",
         "characters": [
           "chr_0032_lizhiyan"
         ]

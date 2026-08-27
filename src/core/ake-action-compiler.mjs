@@ -51,6 +51,24 @@ const COMBAT_STATUS_METADATA = new Map([
         statusBuffId: 'buff_physical_airborne'
     }]
 ]);
+const VULNERABILITY_BUFF_IDS = Object.freeze({
+    Physical: 'buff_common_affixes_vulnerable_physical',
+    Spell: 'buff_common_affixes_vulnerable_spell',
+    Fire: 'buff_common_affixes_vulnerable_fire',
+    Pulse: 'buff_common_affixes_vulnerable_pulse',
+    Crystal: 'buff_common_affixes_vulnerable_crystal',
+    // Retain the compact enum spelling used by damage packets and older data.
+    Cryst: 'buff_common_affixes_vulnerable_crystal',
+    Natural: 'buff_common_affixes_vulnerable_natural'
+});
+const VULNERABILITY_ENHANCEMENT_OPERATIONS = Object.freeze({
+    Add: 'Add',
+    Subtract: 'Subtract',
+    Multiply: 'Multiply',
+    Divide: 'Divide',
+    Min: 'Min',
+    Max: 'Max'
+});
 const CONDITION_PREFIX = /^(Check|Compare|Probablity$|OrCondition|NotNextCheck)/;
 const TARGET_ALIASES = new Map([
     ['Source', 'Source'],
@@ -1508,6 +1526,155 @@ export class AkeActionCompiler {
                     reason: type
                 });
                 break;
+            case 'VulnerableAction': {
+                const vulnerableBuffId = VULNERABILITY_BUFF_IDS[node.subType];
+                if (!vulnerableBuffId) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_VULNERABILITY_SUBTYPE_UNSUPPORTED',
+                        type,
+                        state.path,
+                        `VulnerableAction subtype ${String(node.subType)} has no common AKE Buff mapping.`,
+                        { subType: node.subType ?? null }
+                    ));
+                    break;
+                }
+                const source = this.#targetRef(
+                    node.source ?? 'Source',
+                    state,
+                    'vulnerability source'
+                );
+                const target = this.#targetRef(
+                    node.target ?? 'Target',
+                    state,
+                    'vulnerability target'
+                );
+                if (source.unresolved) result.unresolved.push(source.unresolved);
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                if (!source.ref || !target.ref) break;
+
+                const resolvedChildBuffId = node.overrideChildBuffId === true
+                    ? resolveValue(node.childBuffId, state.blackboard, null)
+                    : null;
+                if (node.overrideChildBuffId === true
+                    && (typeof resolvedChildBuffId !== 'string'
+                        || resolvedChildBuffId.length === 0)) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_VULNERABILITY_CHILD_BUFF_REQUIRED',
+                        type,
+                        state.path,
+                        'VulnerableAction overrides its child Buff but no static dependency can be resolved.'
+                    ));
+                }
+                const dependencyBuffIds = typeof resolvedChildBuffId === 'string'
+                    && resolvedChildBuffId.length > 0
+                    ? [resolvedChildBuffId]
+                    : [];
+                const makeApplyAction = rate => ({
+                    type: 'ApplyBuff',
+                    sourceRef: source.ref,
+                    target: target.ref,
+                    count: 1,
+                    buffs: [{
+                        buffId: vulnerableBuffId,
+                        buffIdBlackboardKey: null,
+                        assignBlackboard: true,
+                        assignments: [{
+                            targetKey: 'rate',
+                            value: clone(rate)
+                        }, {
+                            targetKey: 'duration',
+                            value: descriptor(node.duration, -1)
+                        }, ...(node.overrideChildBuffId === true ? [{
+                            targetKey: 'child_buff_id',
+                            value: descriptor(node.childBuffId, '')
+                        }] : [])]
+                    }],
+                    dependencyBuffIds,
+                    inheritEventBlackboard: false,
+                    triggerEnhancementEvent: true,
+                    asChildBuff: node.asChildBuff !== false,
+                    metadata: {
+                        akeEffectKind: 'Vulnerability',
+                        akeVulnerabilityType: node.subType,
+                        akeSourceAction: type,
+                        akeSourcePath: state.path,
+                        displayBuffId: resolvedChildBuffId || vulnerableBuffId
+                    },
+                    reason: type
+                });
+
+                const enhancements = [];
+                for (const [index, enhancement] of (node.enhancingList ?? []).entries()) {
+                    const operation = VULNERABILITY_ENHANCEMENT_OPERATIONS[
+                        enhancement.operationType
+                    ];
+                    const buffIds = (enhancement.buffIds ?? []).filter(buffId =>
+                        typeof buffId === 'string' && buffId.length > 0
+                    );
+                    if (!operation || buffIds.length === 0) {
+                        result.unresolved.push(this.#unresolved(
+                            'AKE_VULNERABILITY_ENHANCEMENT_UNSUPPORTED',
+                            type,
+                            `${state.path}.enhancingList[${index}]`,
+                            'Vulnerability enhancement requires a supported arithmetic operation and at least one Buff id.',
+                            {
+                                operationType: enhancement.operationType ?? null,
+                                buffIds
+                            }
+                        ));
+                        continue;
+                    }
+                    enhancements.push({
+                        operation,
+                        buffIds,
+                        value: descriptor(enhancement.value, 0)
+                    });
+                }
+
+                const buildBranch = (index, rate) => {
+                    if (index >= enhancements.length) return [makeApplyAction(rate)];
+                    const enhancement = enhancements[index];
+                    return [{
+                        type: 'IfElseAction',
+                        conditions: [{
+                            type: 'Any',
+                            conditions: enhancement.buffIds.map(buffId => ({
+                                type: 'HasBuff',
+                                target: source.ref,
+                                buffId
+                            }))
+                        }],
+                        success: buildBranch(index + 1, {
+                            type: enhancement.operation,
+                            values: [clone(rate), clone(enhancement.value)]
+                        }),
+                        failure: buildBranch(index + 1, rate),
+                        reason: `${type}:enhancement:${index}`
+                    }];
+                };
+                result.actions.push(...buildBranch(0, descriptor(node.rate, 0)));
+                if (node.autoFinishByAction === true) {
+                    result.cleanupActions.push({
+                        type: 'FinishBuff',
+                        sourceRef: source.ref,
+                        target: target.ref,
+                        buffId: vulnerableBuffId,
+                        childOfCurrentBuff: node.asChildBuff !== false,
+                        finishAll: true,
+                        reason: `${type}:auto-finish`
+                    });
+                }
+                result.metadata.push({
+                    type,
+                    path: state.path,
+                    category: 'vulnerability',
+                    subType: node.subType,
+                    buffId: vulnerableBuffId,
+                    childBuffId: resolvedChildBuffId,
+                    enhancementCount: enhancements.length
+                });
+                break;
+            }
             case 'PauseBuffTime':
                 if (typeof node.isPaused !== 'boolean') {
                     result.unresolved.push(this.#unresolved(

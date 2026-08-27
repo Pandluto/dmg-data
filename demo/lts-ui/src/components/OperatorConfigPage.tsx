@@ -1838,6 +1838,17 @@ export function OperatorConfigPage() {
                         </div>
                       ))}
                     </div>
+                    {configSnapshot?.panel.display.runtimeAtk !== undefined ? (
+                      <div className="operator-config-page-runtime-atk" aria-label="AKE 运行时攻击力">
+                        <div className="operator-config-page-runtime-atk-heading">
+                          <span>AKE 运行时攻击力</span>
+                          <strong>{String(configSnapshot.panel.display.runtimeAtk)}</strong>
+                        </div>
+                        <span className="operator-config-page-runtime-atk-note">
+                          运行时使用未取整能力值与武器来源；上方攻击力为 LTS 面板显示值
+                        </span>
+                      </div>
+                    ) : null}
                   </section>
                   <section className="operator-config-page-section operator-config-page-skills-section operator-config-page-scrollable">
                     <div className="operator-config-page-section-heading">

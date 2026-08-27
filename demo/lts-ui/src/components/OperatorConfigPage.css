@@ -775,6 +775,36 @@
   gap: var(--spacing-sm);
 }
 
+.operator-config-page-runtime-atk {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-left: 3px solid var(--operator-config-blue, #2f72ad);
+  background: rgba(47, 114, 173, 0.08);
+}
+
+.operator-config-page-runtime-atk-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--operator-config-ink, #1f2937);
+  font-size: var(--font-size-xs);
+}
+
+.operator-config-page-runtime-atk-heading strong {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.operator-config-page-runtime-atk-note {
+  color: var(--operator-config-muted, #64748b);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
 .operator-config-page-stat-item {
   border: 2px solid #000000;
   padding: var(--spacing-xs);

@@ -2033,13 +2033,17 @@ export function SkillButtonComponent({
   const akePreviewEnergyText = akePreviewCommand && akePreviewCommand.ultimateSpMax > 0
     ? `U ${Number(akePreviewCommand.ultimateSpAfter ?? akePreviewCommand.ultimateSpBefore ?? 0).toFixed(0)}/${akePreviewCommand.ultimateSpMax.toFixed(0)}`
     : 'U —';
+  const akeComboStage = akePreviewCommand?.profile.comboStage;
   const akeResolvedEnhancedForm = Boolean(
     akePreviewCommand?.profile.resolutionSource
-      && akePreviewCommand.profile.resolutionSource !== 'base-intent',
+      && akePreviewCommand.profile.resolutionSource !== 'base-intent'
+      && !akeComboStage,
   );
-  const akeTemporalKindLabel = `${akeResolvedEnhancedForm ? '强化' : ''}${
-    AKE_TEMPORAL_SHORT_LABELS[skillType] ?? skillType
-  }`;
+  const akeTemporalKindLabel = akeComboStage
+    ? `连携·${akeComboStage.index}段`
+    : `${akeResolvedEnhancedForm ? '强化' : ''}${
+      AKE_TEMPORAL_SHORT_LABELS[skillType] ?? skillType
+    }`;
   const akePreviewReleaseLabel = (() => {
     if (!akePreviewCommand) return '';
     if (akePreviewCommand.releaseVerdict === 'unverified') return '连携规则待核';

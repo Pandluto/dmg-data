@@ -1253,7 +1253,10 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
   ));
 
   assertEqual(first.cooldownEndFrame, 60, 'first combo stage starts the shared cooldown');
+  assertEqual(first.profile.comboStage?.index, 1, 'first chained combo resolves as stage 1 of one E intent');
+  assertEqual(first.profile.comboStage?.count, 2, 'linear combo chain exposes its complete stage count');
   assertEqual(second.skillId, 'combo-3', 'same-frame form change resolves the chained stage');
+  assertEqual(second.profile.comboStage?.index, 2, 'changed ComboSkill form resolves as stage 2');
   assertEqual(second.actualFrame, 1, 'chained stage starts at the requested action boundary');
   assertEqual(second.success, true, 'action-created pending admits the chained stage');
   assertEqual(second.releaseVerdict, 'valid', 'settled action pending is verified');

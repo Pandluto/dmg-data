@@ -340,6 +340,75 @@ function withResolution(
   return { ...profile, resolutionSource };
 }
 
+function linearComboStage(
+  profiles: AkeTimingSkillProfile[],
+  skillId: string,
+): AkeTimingSkillProfile['comboStage'] | undefined {
+  const comboProfiles = profiles.filter(profile => profile.commandType === 'ComboSkill');
+  const profileById = new Map(comboProfiles.map(profile => [profile.skillId, profile]));
+  const successors = new Map<string, string[]>();
+  const predecessors = new Map<string, string[]>();
+
+  for (const profile of comboProfiles) {
+    const targets = [...new Set([
+      ...(profile.commandMappings ?? [])
+        .filter(mapping => mapping.commandType === 'ComboSkill')
+        .map(mapping => mapping.skillId),
+      ...(profile.comboPendingEvents ?? []).map(event => event.targetSkillId),
+    ].filter(targetSkillId => (
+      targetSkillId !== profile.skillId && profileById.has(targetSkillId)
+    )))];
+    successors.set(profile.skillId, targets);
+    for (const targetSkillId of targets) {
+      predecessors.set(targetSkillId, [
+        ...(predecessors.get(targetSkillId) ?? []),
+        profile.skillId,
+      ]);
+    }
+  }
+
+  // Stage labels are only asserted for an evidence-backed linear chain.
+  // Branching/cyclic form graphs remain unlabelled instead of inventing an
+  // ordering that the AKE data does not prove.
+  const roots = comboProfiles
+    .filter(profile => (predecessors.get(profile.skillId) ?? []).length === 0)
+    .sort((left, right) => left.variantIndex - right.variantIndex
+      || left.skillId.localeCompare(right.skillId));
+  for (const root of roots) {
+    const chain: string[] = [];
+    const visited = new Set<string>();
+    let current: string | null = root.skillId;
+    let linear = true;
+    while (current && !visited.has(current)) {
+      visited.add(current);
+      chain.push(current);
+      const next: string[] = successors.get(current) ?? [];
+      if (next.length > 1) {
+        linear = false;
+        break;
+      }
+      const nextSkillId: string | null = next[0] ?? null;
+      if (nextSkillId && (predecessors.get(nextSkillId) ?? []).length !== 1) {
+        linear = false;
+        break;
+      }
+      current = nextSkillId;
+    }
+    if (!linear || current !== null || chain.length < 2) continue;
+    const index = chain.indexOf(skillId);
+    if (index < 0) continue;
+    return {
+      chainId: `ComboSkill:${root.skillId}`,
+      index: index + 1,
+      count: chain.length,
+      rootSkillId: root.skillId,
+      previousSkillId: chain[index - 1] ?? null,
+      nextSkillId: chain[index + 1] ?? null,
+    };
+  }
+  return undefined;
+}
+
 function attackTransitionOffset(
   profile: AkeTimingSkillProfile,
   nextSkillId: string | null,
@@ -551,6 +620,13 @@ function resolveIntentProfile(
   actor: ActorState,
 ): AkeTimingSkillProfile {
   const resolved = resolveProfile(timing, input, actor);
+  if (input.commandType === 'ComboSkill') {
+    const comboStage = linearComboStage(
+      characterProfiles(timing, input.characterId),
+      resolved.skillId,
+    );
+    return comboStage ? { ...resolved, comboStage } : resolved;
+  }
   return input.commandType === 'Attack'
     ? composeFullAttackProfile(
       characterProfiles(timing, input.characterId),

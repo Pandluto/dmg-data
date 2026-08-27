@@ -79,3 +79,49 @@ assert.equal(isComboReleaseFrameAvailable({
   movingCommandId: null,
   frame: 100,
 }), false, 'a second combo command cannot reuse a consumed window');
+
+const stagedComboTimeline = {
+  verifiedComboSkills: [
+    { characterId: 'wulfa', skillId: 'wulfa-combo-stage-1' },
+    { characterId: 'wulfa', skillId: 'wulfa-combo-stage-2' },
+  ],
+  comboWindows: [{
+    id: 'stage-1-window',
+    ruleId: 'external-trigger',
+    characterId: 'wulfa',
+    skillId: 'wulfa-combo-stage-1',
+    sourceCommandId: 'source',
+    createdFrame: 10,
+    expireFrame: 190,
+    consumedFrame: 20,
+    consumedCommandId: 'stage-1-command',
+    state: 'consumed',
+    reason: 'CAST_SUCCESS',
+  }, {
+    id: 'stage-2-window',
+    ruleId: 'stage-transition',
+    characterId: 'wulfa',
+    skillId: 'wulfa-combo-stage-2',
+    sourceCommandId: 'stage-1-command',
+    createdFrame: 57,
+    expireFrame: 237,
+    consumedFrame: null,
+    consumedCommandId: null,
+    state: 'ready',
+    reason: 'TRIGGER_MATCHED',
+  }],
+} as Pick<AkeRealtimeTimeline, 'verifiedComboSkills' | 'comboWindows'>;
+
+assert.equal(isComboReleaseFrameAvailable({
+  timeline: stagedComboTimeline,
+  characterId: 'wulfa',
+  movingCommandId: null,
+  frame: 80,
+}), true, 'one E intent can use the active stage-2 window after its base stage window was consumed');
+assert.equal(isComboReleaseFrameAvailable({
+  timeline: stagedComboTimeline,
+  characterId: 'wulfa',
+  skillId: 'wulfa-combo-stage-1',
+  movingCommandId: null,
+  frame: 80,
+}), false, 'an explicitly stage-bound query still cannot reuse the consumed first-stage window');

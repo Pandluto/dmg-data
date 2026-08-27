@@ -503,7 +503,10 @@ export function useCanvasDrag({
         && !isComboReleaseFrameAvailable({
           timeline: akeRealtimeTimeline,
           characterId: draggingState.characterId,
-          skillId: draggingState.runtimeSkillId,
+          // E is one player intent.  Its runtime SkillData may already have
+          // changed from stage 1 to stage 2, while the palette button keeps the
+          // stable base id.  Gate against the character's active ComboSkill
+          // window, then let the state machine resolve the concrete stage.
           movingCommandId: movingButtonId,
           frame: point.frame,
         })) {

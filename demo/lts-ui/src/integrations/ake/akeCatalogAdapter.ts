@@ -111,6 +111,21 @@ export type AkeTimingSkillProfile = {
     modeId?: string;
   }>;
   comboPendingEvents?: AkeTimingComboPendingEvent[];
+  /**
+   * Runtime-derived position inside one linear ComboSkill intent chain.
+   *
+   * AKE stores every stage as a separate SkillData program.  The editor still
+   * exposes one E intent, so this metadata describes the active form without
+   * turning the later stage into a second palette skill.
+   */
+  comboStage?: {
+    chainId: string;
+    index: number;
+    count: number;
+    rootSkillId: string;
+    previousSkillId: string | null;
+    nextSkillId: string | null;
+  };
   interruptibleAt: number[];
   statusEffects?: AkeHitBuffProfile[];
   hits: AkeTimingHitProfile[];

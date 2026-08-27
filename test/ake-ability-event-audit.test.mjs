@@ -33,6 +33,12 @@ test('ability-event audit aggregates every listener channel by producer status',
     assert.equal(audit.events.find(entry =>
         entry.eventType === 'OnPoiseRecover'
     ).status, 'complete');
+    const consumeBuff = audit.events.find(entry =>
+        entry.eventType === 'OnConsumeBuff'
+    );
+    assert.equal(consumeBuff.status, 'complete');
+    assert.equal(consumeBuff.consumerGroups, 21);
+    assert.deepEqual(consumeBuff.byDataset, { BuffData: 10, SkillData: 11 });
     assert.equal(audit.events.find(entry =>
         entry.eventType === 'OnOwnerDead'
     ).status, 'emitter-required');

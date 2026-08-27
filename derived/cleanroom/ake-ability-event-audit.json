@@ -8,10 +8,10 @@
   "summary": {
     "eventKeys": 84,
     "consumerGroups": 1072,
-    "completeEventTypes": 25,
-    "completeConsumerGroups": 866,
-    "missingEmitterEventTypes": 57,
-    "missingEmitterConsumerGroups": 199,
+    "completeEventTypes": 26,
+    "completeConsumerGroups": 887,
+    "missingEmitterEventTypes": 56,
+    "missingEmitterConsumerGroups": 178,
     "invalidEventValues": 2,
     "invalidConsumerGroups": 7,
     "byDataset": {
@@ -1382,6 +1382,83 @@
       "sourceEntityCount": 18
     },
     {
+      "key": "OnConsumeBuff",
+      "eventType": "OnConsumeBuff",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnConsumeBuff",
+        "producer": "combat-runtime-status-consumption"
+      },
+      "consumerGroups": 21,
+      "byDataset": {
+        "BuffData": 10,
+        "SkillData": 11
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 10,
+        "SkillPassiveEventAction": 11
+      },
+      "sourceEntities": [
+        "buff_cc_chr_consume_inflict_special_cc0",
+        "buff_cc_chr_dmg_down_after_consume",
+        "buff_chr_0018_dapan_talent_0",
+        "buff_chr_0026_lastrite_talent_1",
+        "buff_equipsuit_expend_spell01",
+        "buff_train_consume_burning",
+        "buff_train_consume_conduct",
+        "buff_train_consume_cryst_inflict_nums",
+        "buff_train_consume_frozen",
+        "buff_twopeoplemode_new2",
+        "sk_wpn_claym_0014",
+        "sk_wpn_funnel_0013",
+        "sk_wpn_funnel_0015",
+        "sk_wpn_lance_0013",
+        "sk_wpn_pistol_0009",
+        "sk_wpn_pistol_0012",
+        "sk_wpn_sword_0013",
+        "sk_wpn_sword_0018"
+      ],
+      "characterIds": [
+        "chr_0005_chen",
+        "chr_0007_ikut",
+        "chr_0017_yvonne",
+        "chr_0018_dapan",
+        "chr_0026_lastrite"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_consume_inflict_special_cc0",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_consume_inflict_special_cc0.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_dmg_down_after_consume",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_dmg_down_after_consume.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0018_dapan_talent_0",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0018_dapan_talent_0.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0026_lastrite_talent_1",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0026_lastrite_talent_1.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 18
+    },
+    {
       "key": "OnFinishedBuff",
       "eventType": "OnFinishedBuff",
       "serializedValue": null,
@@ -2206,80 +2283,6 @@
         }
       ],
       "sourceEntityCount": 1
-    },
-    {
-      "key": "OnConsumeBuff",
-      "eventType": "OnConsumeBuff",
-      "serializedValue": null,
-      "status": "emitter-required",
-      "producer": null,
-      "consumerGroups": 21,
-      "byDataset": {
-        "BuffData": 10,
-        "SkillData": 11
-      },
-      "byChannel": {
-        "BuffAbilityEventAction": 10,
-        "SkillPassiveEventAction": 11
-      },
-      "sourceEntities": [
-        "buff_cc_chr_consume_inflict_special_cc0",
-        "buff_cc_chr_dmg_down_after_consume",
-        "buff_chr_0018_dapan_talent_0",
-        "buff_chr_0026_lastrite_talent_1",
-        "buff_equipsuit_expend_spell01",
-        "buff_train_consume_burning",
-        "buff_train_consume_conduct",
-        "buff_train_consume_cryst_inflict_nums",
-        "buff_train_consume_frozen",
-        "buff_twopeoplemode_new2",
-        "sk_wpn_claym_0014",
-        "sk_wpn_funnel_0013",
-        "sk_wpn_funnel_0015",
-        "sk_wpn_lance_0013",
-        "sk_wpn_pistol_0009",
-        "sk_wpn_pistol_0012",
-        "sk_wpn_sword_0013",
-        "sk_wpn_sword_0018"
-      ],
-      "characterIds": [
-        "chr_0005_chen",
-        "chr_0007_ikut",
-        "chr_0017_yvonne",
-        "chr_0018_dapan",
-        "chr_0026_lastrite"
-      ],
-      "samples": [
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_cc_chr_consume_inflict_special_cc0",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_consume_inflict_special_cc0.json",
-          "path": "$.abilityEventAction[0]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_cc_chr_dmg_down_after_consume",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_dmg_down_after_consume.json",
-          "path": "$.abilityEventAction[0]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0018_dapan_talent_0",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0018_dapan_talent_0.json",
-          "path": "$.abilityEventAction[0]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0026_lastrite_talent_1",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0026_lastrite_talent_1.json",
-          "path": "$.abilityEventAction[0]"
-        }
-      ],
-      "sourceEntityCount": 18
     },
     {
       "key": "OnOwnerDead",

@@ -11,32 +11,32 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3067,
-    "combatRiskCount": 906,
+    "findingCount": 3062,
+    "combatRiskCount": 901,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 323,
+      "combat-blocking": 318,
       "combat-partial": 161,
       "evidence-missing": 422,
       "presentation-only": 390,
       "spatial-assumption": 1771
     },
     "byPriority": {
-      "P0": 182,
-      "P1": 650,
+      "P0": 180,
+      "P1": 647,
       "P2": 1845,
       "P3": 390
     },
     "byCapability": {
       "child-action": 41,
-      "condition-algebra": 133,
+      "condition-algebra": 130,
       "damage-factor": 11,
       "data-provider": 1,
       "dependency-closure": 1,
       "derived-state": 8,
       "deterministic-choice": 347,
       "event-scheduling": 28,
-      "event-subscription": 50,
+      "event-subscription": 48,
       "form-state": 30,
       "physical-status": 77,
       "presentation": 390,
@@ -47,7 +47,7 @@
       "unclassified": 74
     },
     "bySourceType": {
-      "AbilityEventAction": 29,
+      "AbilityEventAction": 27,
       "AddAIMarkerAction": 3,
       "AddDynamicCcsAction": 286,
       "AddTagAction": 4,
@@ -69,12 +69,11 @@
       "CheckAbilityEntityCurDuration": 2,
       "CheckBuffStackNumByTag": 14,
       "CheckComboSkillCameraAlphaSetting": 42,
-      "CheckConsumeBuffLayer": 2,
       "CheckCustomAbilityEvent": 1,
       "CheckEnemyRank": 11,
       "CheckHasMoveInput": 2,
       "CheckObjectTypeMatch": 9,
-      "CheckOriginSkillType": 2,
+      "CheckOriginSkillType": 1,
       "CheckPoiseValue": 1,
       "CheckProfession": 1,
       "CheckSkillCameraMotionFree": 7,
@@ -10099,11 +10098,11 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 103,
-        "combatRiskCount": 24,
+        "findingCount": 102,
+        "combatRiskCount": 23,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 14,
+          "combat-blocking": 13,
           "combat-partial": 3,
           "evidence-missing": 7,
           "presentation-only": 14,
@@ -10111,12 +10110,12 @@
         },
         "byPriority": {
           "P0": 2,
-          "P1": 21,
+          "P1": 20,
           "P2": 66,
           "P3": 14
         },
         "byCapability": {
-          "condition-algebra": 12,
+          "condition-algebra": 11,
           "deterministic-choice": 6,
           "form-state": 2,
           "physical-status": 2,
@@ -10130,7 +10129,6 @@
           "BlowOffEnemyAction": 1,
           "CheckBuffStackNumByTag": 4,
           "CheckComboSkillCameraAlphaSetting": 1,
-          "CheckOriginSkillType": 1,
           "CheckSkillCastId": 1,
           "CheckTwoDirectionAngle": 2,
           "ConvertToTargetContext": 4,
@@ -10218,23 +10216,6 @@
           "sourceType": "CheckSkillCastId",
           "compilerCategory": null,
           "message": "Condition CheckSkillCastId has no safe local evaluator.",
-          "impact": "combat-blocking",
-          "priority": "P1",
-          "capability": "condition-algebra",
-          "rationale": "An unevaluated condition can select the wrong gameplay branch."
-        },
-        {
-          "characterId": "chr_0017_yvonne",
-          "characterName": "伊冯",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0017_yvonne_passive_0",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0017_yvonne_passive_0.json",
-          "jsonPath": "abilityEventAction[0].actions[0][2]",
-          "code": "AKE_CONDITION_UNSUPPORTED",
-          "sourceType": "CheckOriginSkillType",
-          "compilerCategory": null,
-          "message": "Condition CheckOriginSkillType has no safe local evaluator.",
           "impact": "combat-blocking",
           "priority": "P1",
           "capability": "condition-algebra",
@@ -13462,27 +13443,26 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 80,
-        "combatRiskCount": 17,
+        "findingCount": 78,
+        "combatRiskCount": 15,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 8,
+          "combat-blocking": 6,
           "combat-partial": 3,
           "evidence-missing": 6,
           "presentation-only": 13,
           "spatial-assumption": 50
         },
         "byPriority": {
-          "P0": 5,
-          "P1": 10,
+          "P0": 4,
+          "P1": 9,
           "P2": 52,
           "P3": 13
         },
         "byCapability": {
-          "condition-algebra": 3,
+          "condition-algebra": 2,
           "deterministic-choice": 4,
           "event-scheduling": 1,
-          "event-subscription": 1,
           "physical-status": 2,
           "presentation": 13,
           "status-lifecycle": 3,
@@ -13491,12 +13471,10 @@
           "unclassified": 2
         },
         "bySourceType": {
-          "AbilityEventAction": 1,
           "AddDynamicCcsAction": 11,
           "BlowOffAction": 2,
           "ChannelingCastingAction": 1,
           "CheckComboSkillCameraAlphaSetting": 2,
-          "CheckConsumeBuffLayer": 1,
           "CheckEnemyRank": 2,
           "CheckTwoDirectionAngle": 2,
           "CurveEvaluateFloat": 4,
@@ -13514,23 +13492,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0026_lastrite",
-          "characterName": "别礼",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0026_lastrite_talent_1",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0026_lastrite_talent_1.json",
-          "jsonPath": "abilityEventAction[0]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "AbilityEventAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnConsumeBuff.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
         {
           "characterId": "chr_0026_lastrite",
           "characterName": "别礼",
@@ -13598,23 +13559,6 @@
           "priority": "P0",
           "capability": "event-scheduling",
           "rationale": "Channel timing determines tick count, hit time, and interruption behavior."
-        },
-        {
-          "characterId": "chr_0026_lastrite",
-          "characterName": "别礼",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0026_lastrite_talent_1",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0026_lastrite_talent_1.json",
-          "jsonPath": "abilityEventAction[0].actions[0][1]",
-          "code": "AKE_CONDITION_UNSUPPORTED",
-          "sourceType": "CheckConsumeBuffLayer",
-          "compilerCategory": null,
-          "message": "Condition CheckConsumeBuffLayer has no safe local evaluator.",
-          "impact": "combat-blocking",
-          "priority": "P1",
-          "capability": "condition-algebra",
-          "rationale": "An unevaluated condition can select the wrong gameplay branch."
         },
         {
           "characterId": "chr_0026_lastrite",
@@ -15200,10 +15144,10 @@
           "entityId": "buff_chr_0027_tangtang_ultskill_buff",
           "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0027_tangtang_ultskill_buff.json",
           "jsonPath": "abilityEventAction[1].actions[0][0]",
-          "code": "AKE_CONDITION_UNSUPPORTED",
+          "code": "AKE_ORIGIN_ATTACK_TYPE_PROVIDER_REQUIRED",
           "sourceType": "CheckOriginSkillType",
           "compilerCategory": null,
-          "message": "Condition CheckOriginSkillType has no safe local evaluator.",
+          "message": "Origin skill attack mask -4 requires an attack-type provider.",
           "impact": "combat-blocking",
           "priority": "P1",
           "capability": "condition-algebra",
@@ -46242,26 +46186,25 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 60,
-        "combatRiskCount": 12,
+        "findingCount": 58,
+        "combatRiskCount": 10,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 4,
+          "combat-blocking": 2,
           "combat-partial": 2,
           "evidence-missing": 6,
           "presentation-only": 6,
           "spatial-assumption": 42
         },
         "byPriority": {
-          "P0": 2,
-          "P1": 8,
+          "P0": 1,
+          "P1": 7,
           "P2": 44,
           "P3": 6
         },
         "byCapability": {
-          "condition-algebra": 2,
+          "condition-algebra": 1,
           "deterministic-choice": 4,
-          "event-subscription": 1,
           "form-state": 1,
           "presentation": 6,
           "targeting-scope": 2,
@@ -46269,11 +46212,9 @@
           "unclassified": 2
         },
         "bySourceType": {
-          "AbilityEventAction": 1,
           "AddDynamicCcsAction": 5,
           "BreakInteractiveAction": 1,
           "CheckComboSkillCameraAlphaSetting": 1,
-          "CheckConsumeBuffLayer": 1,
           "CheckTwoDirectionAngle": 1,
           "CurveEvaluateFloat": 4,
           "CustomRootMotionAction": 12,
@@ -46296,23 +46237,6 @@
           "characterName": "大潘",
           "scope": "operator",
           "entityKind": "BuffData",
-          "entityId": "buff_chr_0018_dapan_talent_0",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0018_dapan_talent_0.json",
-          "jsonPath": "abilityEventAction[0]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "AbilityEventAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnConsumeBuff.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0018_dapan",
-          "characterName": "大潘",
-          "scope": "operator",
-          "entityKind": "BuffData",
           "entityId": "buff_chr_0018_dapan_talent_1_cd_reduce",
           "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0018_dapan_talent_1_cd_reduce.json",
           "jsonPath": "buffEventAction[0].actions[0][0]",
@@ -46324,23 +46248,6 @@
           "priority": "P0",
           "capability": "form-state",
           "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection."
-        },
-        {
-          "characterId": "chr_0018_dapan",
-          "characterName": "大潘",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0018_dapan_talent_0",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0018_dapan_talent_0.json",
-          "jsonPath": "abilityEventAction[0].actions[0][1]",
-          "code": "AKE_CONDITION_UNSUPPORTED",
-          "sourceType": "CheckConsumeBuffLayer",
-          "compilerCategory": null,
-          "message": "Condition CheckConsumeBuffLayer has no safe local evaluator.",
-          "impact": "combat-blocking",
-          "priority": "P1",
-          "capability": "condition-algebra",
-          "rationale": "An unevaluated condition can select the wrong gameplay branch."
         },
         {
           "characterId": "chr_0018_dapan",

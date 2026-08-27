@@ -1073,3 +1073,92 @@ enemy local-clock recovery timer complete
 - `OnOwnerDead`、假死、不死与真死提交仍属于生命状态机，不因 Poise 生命周期完成而被顺带标记 complete。
 
 上述实现没有修改共享变速求解、强边界分组、水位列、技能按钮、光标或伤害点坐标。UI 只新增已有 runtime ledger 的字段与状态投影，水位轴仍是同一套前端特色。
+
+## 15. `OnConsumeBuff` 与 Buff 离场语义
+
+### 15.1 缺口不是少发一个事件，而是把四种离场混成了 `FinishBuff`
+
+能力事件审计把 `OnConsumeBuff` 列为当前覆盖面最高的缺生产者事件：公开数据共有 21 组消费者，其中 BuffData 10 组、SkillData 武器被动 11 组，涉及 18 个来源实体。消费者并不只检查“某个 Buff 已经不存在”，而是直接读取三类事件上下文：
+
+1. `CheckBuffIdInContext` / `CheckBuffIdInContextAdvanced` 读取被消费 Buff 的 ID 或标签；
+2. 12 处 `CheckConsumeBuffLayer` 读取本次实际消费层数，全部以 `>= 1` 为门槛，其中多处把层数写入 `consume_stack`、`consumedLayer`、`consume_layer`、`count` 等 Blackboard 键供后续倍率或叠层使用；
+3. `buff_equipsuit_expend_spell01` 使用 `GetTargetBuffBBAdvanced(checkType=Context)` 读取被消费 Buff 自身 Blackboard 的 `count`，证明事件必须保留离场实例的快照，不能在删除后再从 active Buff 列表猜测。
+
+当前 `StatusEffectSystem.finish()` 虽然在 trace 中统一写了 `consumedStacks`，但这个字段只表示“从存储中移除了多少层”，并不证明语义是消费。自然到期、替换、父 Buff 级联、技能生命周期释放、显式清理都会经过同一函数。若直接在每个 `StatusEffectFinished` 上广播 `OnConsumeBuff`，武器和套装会被普通到期、换形态和清理动作误触发；若只在 UI 根据 Buff 消失推断，又会丢失消费技能、实际层数、来源账本和同帧顺序。
+
+AKE 原始动作进一步证明必须保留显式离场类型：
+
+- 数据中有 911 个 `FinishBuffAction` / `FinishBuffAdvanced` / `FinishBuffByTag`，另有独立的 `DispelAction`，说明主动结束与驱散不是同一个原语；
+- `FinishBuff*` 都携带 `finishSource`，消费事件应由该来源归属，而不是由被结束 Buff 的旧施加者归属；
+- `isFinishedEarly` 在物理碎甲与其他清理动作中同时出现真假值，它控制动作时序，不能拿来判断是否消费；
+- `FinishBuffAdvanced.isAbsorbed=true` 只有 11 处，是主动消费的一个子类型而不是全部消费入口；该标记应进入事件载荷，但不能成为唯一生产条件；
+- `PreventBuffConsumeAction` 会按异常/碎甲标签保护目标，反证消费是可被统一拦截的状态事务，而不是某个干员伤害公式里的附带删除。
+
+### 15.2 AKE、Calc/现有 resolver 与 Endaxis 的交叉结论
+
+当前可证明的消费入口至少有四类：
+
+| 入口 | AKE 证据 | 通用化要求 |
+|---|---|---|
+| 物理异常 | `buff_physical_try_crushed` 与 `buff_physical_do_fracture` 主动结束 `buff_physical_no_guard` | 猛击/碎甲都发布被消费破防层数，不把击飞、倒地为保持 canonical 层数而做的内部临时结束误报为消费 |
+| 异元素反应 | 单一元素附着槽在异元素进入时结束旧附着 | 旧附着的 ID、标签、层数和来源队列进入事件；触发者是新元素施加者 |
+| 强制异常 | `ForceSpellStatusAction.consumedLayer` 明确指定消费元素与层数 | 只发布实际提交的层数；附件不足而失败时不得发事件 |
+| 显式吸收/主动结束 | `FinishBuff*` 的 `finishSource` 与 `isAbsorbed` | 编译为带消费语义的统一 `FinishBuff`，保留 absorb 子类型；自然到期和内部 cleanup 默认不带消费语义 |
+
+Endaxis 在这一项仍然是结构对照而不是真值来源。它把状态离场事件显式分成 `consumed: true/false`，消费前保存完整状态快照，并把消费技能的 `sourceSkillType/sourceSkillId` 传给 `onStatusConsumed`；这些职责拆分是正确的。另一方面，它依靠每个干员、武器和套装手写 `kind: 'consume'`，没有从 AKE 动作和 Buff 数据生成统一生产者，因此不能照搬为本项目的角色表。
+
+三方证据共同冻结以下事务顺序：
+
+```text
+consumer action / enemy mechanic transaction
+  -> resolve exact Buff instances and requested layers
+  -> commit stack removal or full finish
+  -> snapshot actual consumed layers, Buff tags/Blackboard and by-source ledger
+  -> emit OnConsumeBuff to the consumer entity
+  -> consumer-owned Buff / weapon / suit listeners evaluate event context
+  -> full finish continues OnBuffFinish / child cleanup
+```
+
+`OnConsumeBuff` 的 listener 目标必须是消费者。大潘天赋、装备套装和武器被动都挂在角色身上，而被消费的破防、元素附着和异常状态挂在敌人身上；若沿用 `OnFinishedBuff` 的 carrier 绑定，事件会被发给敌人，所有角色被动都不可达。事件的 `targetId/eventTargetId` 仍指向被消费 Buff 的 carrier，供监听动作对同一敌人施加后续效果；`listenerTargetId` 与 `consumerId` 则指向消费者。
+
+### 15.3 通用事件契约
+
+每次实际消费提交生成一条独立事件。一个动作同时消费多个不同 Buff 实例时逐实例发布，因为消费者可以按 Buff ID/标签筛选；一个共享实例部分消费多层时发布一次，`consumedStacks` 等于实际移除层数。事件至少携带：
+
+```text
+eventType = OnConsumeBuff
+consumerId / listenerTargetId
+targetId / eventTargetId
+buffId / buffTagIds / consumedBuffInstanceId
+beforeStacks / consumedStacks / afterStacks
+consumedBuffBlackboard
+bySource
+consumeReason / consumeKind / isAbsorbed
+skillId / rootSkillId / castId / commandType / skillType
+transactionId / parentEventId / parentHitId / hitEventPhase
+```
+
+边界约束如下：
+
+1. 只有带显式消费语义的动作或已证明的敌方机制事务生产事件；到期、替换、驱散、父子级联、技能结束与 source/owner 移除不生产；
+2. 先提交状态，再同步通知。监听器必须看到消费后的 settled active-state，同时从 payload 读取消费前快照；
+3. `CheckConsumeBuffLayer` 比较实际值并可原子写入 listener Blackboard，不能把请求层数或 Buff 原始总层数写进去；
+4. `GetTargetBuffBBAdvanced(Context)` 读取事件保存的被消费实例 Blackboard，不搜索任意 active Buff；
+5. 消费失败、选择器无匹配、请求 0 层或被 `PreventBuffConsumeAction` 拦截时不生产；
+6. 同帧多次消费保留事务顺序和各自来源；后一个事件不能复用前一个的层数或 Blackboard；
+7. `OnFinishedBuff` 与 `OnConsumeBuff` 可以在一次完整消费中都出现，但语义、listener 绑定和 payload 不合并；部分消费只产生 stack transition 与 consume，不产生 finished；
+8. 事件递归继续受现有 derived-depth 限制。监听器触发的第二次真实消费可以形成子事务，但不能通过 reason 字符串或 UI 标签伪造消费；
+9. 主界面、水位列和变量速率投影不参与判定。UI 后续只展示 runtime ledger 已提交的状态与额外伤害。
+
+### 15.4 分提交实现计划
+
+实现按以下可独立回退的步骤推进：
+
+1. 在 `FinishBuff` 规范动作和 status transition 中加入显式 `consumption`、consumer、absorb 与消费前快照字段；编译 AKE `FinishBuff*` 时解析 `finishSource`，内部 cleanup 默认 false；
+2. 给元素反应、强制异常与物理状态 resolver 的已证明消费路径明确标记 consumption，并删除任何基于 `reason.includes(...)` 的猜测空间；
+3. 在 `CombatRuntime` 的 settled transition 回调中生产 `OnConsumeBuff`，按 consumer 路由 listener，并登记到能力事件生产者清单；
+4. 实现 `CheckConsumeBuffLayer`、`CheckOriginSkillType(attackTypeMask=All)` 与 `GetTargetBuffBBAdvanced(Context)` 的事件上下文读取；训练模式专属 `RaiseTrainLevelEvent` 继续保持外部玩法 provider blocker；
+5. 契约覆盖部分/完整消费、到期/替换/驱散不误发、错误来源不响应、同帧跨角色、元素反应、强制异常、物理破防，以及真实大潘/武器/套装消费者；
+6. 重跑 action、ability-event、operator 审计和前端严格类型检查。只有 producer、条件和真实消费入口同时可达，才把 `OnConsumeBuff` 标记 complete。
+
+本节只冻结状态机与事件载荷，不修改共享变速水位算法、列分组、技能按钮、光标、伤害点或任何画布布局。

@@ -30,7 +30,9 @@ const CATALOG_REVISION_KEY = 'def.ake-catalog.revision.v1';
 // v27 records whether a timing hit is owned by the action or emitted by a
 // status/buff callback.  Older cached profiles could offer a DoT as a release
 // anchor because they only had the coarse `lingering` classification.
-const CATALOG_ADAPTER_VERSION = 27;
+// v28 keeps callback/DoT settlements in the realtime timing catalog but no
+// longer expands them into the player's A/B/E/Q skill hit template.
+const CATALOG_ADAPTER_VERSION = 28;
 
 const LEVEL_KEYS = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'M1', 'M2', 'M3'] as const;
 
@@ -65,6 +67,10 @@ export type AkeHitBuffProfile = {
     durationSeconds?: number;
   }>;
   description?: string;
+  iconUrl?: string;
+  displayable?: boolean;
+  hidden?: boolean;
+  presentationSource?: 'semantic-override' | 'catalog' | 'semantic-fallback' | string;
 };
 
 export type AkeTimingHitProfile = {
@@ -557,7 +563,7 @@ function buildIntentHitMeta(
   const profiles = intentTimingProfiles(skill, type, timingProfiles);
   const expandedHits = profiles.flatMap((profile, profileIndex) => {
     let profileHitIndex = 0;
-    return profile.hits.flatMap(hit => Array.from(
+    return profile.hits.filter(hit => hit.releaseEligible !== false).flatMap(hit => Array.from(
       { length: Math.max(1, hit.hitCount) },
       () => {
         profileHitIndex += 1;
@@ -566,16 +572,20 @@ function buildIntentHitMeta(
     ));
   });
   const unprojectedStatusEffectsByProfile = profiles.map((profile) => {
-    const projectedKeys = new Set(profile.hits.flatMap((hit) => (
+    const projectedKeys = new Set(profile.hits
+      .filter(hit => hit.releaseEligible !== false)
+      .flatMap((hit) => (
       (hit.hitBuffs ?? []).map((effect) => `${effect.id}\u0000${effect.target}`)
-    )));
+      )));
     return mergeAkeHitBuffProfiles(profile.statusEffects)
       .filter((effect) => !projectedKeys.has(`${effect.id}\u0000${effect.target}`));
   });
-  const expandedHitCountsByProfile = profiles.map((profile) => profile.hits.reduce(
+  const expandedHitCountsByProfile = profiles.map((profile) => profile.hits
+    .filter(hit => hit.releaseEligible !== false)
+    .reduce(
     (count, hit) => count + Math.max(1, hit.hitCount),
     0,
-  ));
+    ));
 
   if (expandedHits.length === 0) {
     return {

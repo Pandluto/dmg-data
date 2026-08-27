@@ -200,6 +200,13 @@ export interface HitBuffEffect {
     durationSeconds?: number;
   }>;
   description?: string;
+  /** AKE BuffData 中真实可展示的图标；无图标的引擎状态保持为空。 */
+  iconUrl?: string;
+  /** 是否拥有游戏侧可见图标。 */
+  displayable?: boolean;
+  /** 纯引擎控制标记不进入面向玩家的 Buff 列表。 */
+  hidden?: boolean;
+  presentationSource?: 'semantic-override' | 'catalog' | 'semantic-fallback' | string;
 }
 
 export interface SandboxSkillHit {

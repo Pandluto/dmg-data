@@ -81,6 +81,24 @@ const REACTION_PRESENTATION = Object.freeze({
 
 function structuralPresentationOverride(buffId) {
     const normalized = String(buffId ?? '').toLowerCase();
+    if (/(?:^|_)tut(?:orial)?(?:_|$)|_failure$/.test(normalized)) {
+        return {
+            displayName: '内部条件标记', shortName: '内',
+            applicationScope: 'system', hidden: true
+        };
+    }
+    if (/_smarttarget$/.test(normalized)) {
+        return {
+            displayName: '智能索敌状态', shortName: '索',
+            applicationScope: 'system', hidden: true
+        };
+    }
+    if (/_timer$/.test(normalized)) {
+        return {
+            displayName: '技能计时状态', shortName: '时',
+            applicationScope: 'system', hidden: true
+        };
+    }
     if (/^buff_common_try_(?:fire|pulse|natural|cryst)_(?:fire|pulse|natural|cryst)_triggered$/.test(normalized)
         || /_(?:triggered_start|triggered_fx|triggered_wrapper)$/.test(normalized)) {
         return {
@@ -107,6 +125,13 @@ const TOKEN_LABELS = Object.freeze({
     physical: '物理', fire: '灼热', pulse: '电磁', cryst: '寒冷', natural: '自然',
     vulnerable: '易伤', fragile: '易伤', heal: '治疗', shield: '护盾', speed: '速度',
     up: '提升', down: '降低', stack: '叠层', status: '状态', skill: '技能'
+});
+
+const COMPOUND_TOKEN_LABELS = Object.freeze({
+    atkup: '攻击力提升', atkdown: '攻击力降低',
+    defup: '防御力提升', defdown: '防御力降低',
+    dmgup: '伤害提升', dmgdown: '伤害降低',
+    normalskill: '战技', comboskill: '连携技', ultimateskill: '终结技'
 });
 
 const IGNORED_TOKENS = new Set([
@@ -143,7 +168,10 @@ function semanticFallback(buffId, sourceSkillName = '') {
         .toLowerCase()
         .split('_')
         .filter(token => token && !/^\d+$/.test(token) && !IGNORED_TOKENS.has(token))
-        .flatMap(token => TOKEN_LABELS[token] ? [TOKEN_LABELS[token]] : [])
+        .flatMap(token => {
+            const label = TOKEN_LABELS[token] ?? COMPOUND_TOKEN_LABELS[token];
+            return label ? [label] : [];
+        })
         .filter((token, index, all) => all.indexOf(token) === index);
     if (translated.length > 0) return translated.join('·');
     return sourceSkillName ? `${sourceSkillName}·技能状态` : '未命名状态';

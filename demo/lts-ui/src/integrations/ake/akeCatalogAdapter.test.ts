@@ -79,6 +79,18 @@ const profiles = [
   profile('attack4', 3, [1.27]),
   profile('normal-skill', 0, [4], 'NormalSkill'),
 ];
+profiles[4].hits.push({
+  offsetFrames: 20,
+  sourceSkillId: 'normal-skill-dot',
+  rootSkillId: 'normal-skill',
+  kind: 'lingering',
+  hitCount: 12,
+  damageTypes: ['Pulse'],
+  damageType: 'Pulse',
+  releaseEligible: false,
+  levels: levels(0.2),
+  multiplierDerivation: 'compiled-damage-packet',
+});
 profiles[1].statusEffects = [{
   id: 'state-only-attack2',
   displayName: '二段结束状态',
@@ -291,6 +303,7 @@ assert.ok(!(attack.hitMeta.hit2.hitBuffs ?? []).some((buff) => buff.id === 'stat
 assert.ok((attack.hitMeta.hit3.hitBuffs ?? []).some((buff) => buff.id === 'state-only-attack2'), 'a profile-only state should be projected once onto the profile tail, not every hit');
 assert.ok(Object.values(attack.hitMeta).every(hit => hit.element === 'electric'));
 assert.equal(normalSkill.hitMeta.hit1.levels.M3, 4);
+assert.equal(normalSkill.hitCount, 1, 'callback/DoT settlements must not become player-intent hits');
 assert.deepEqual(normalSkill.hitMeta.hit1.hitBuffs, [{
   id: 'buff_common_energy_shard_attached_pulse',
   displayName: '电磁附着',

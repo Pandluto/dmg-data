@@ -2,6 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { AkeActionCompiler } from './ake-action-compiler.mjs';
+import {
+    buildAkeBuffPresentationIndex,
+    resolveAkeBuffPresentation
+} from './ake-buff-presentation.mjs';
 import { AkeDataRepository, parseAkeJson } from './ake-data-repository.mjs';
 import { resolveValue } from './ake-parser.mjs';
 import { AKE_FORCED_SPELL_STATUS_BUFF_IDS } from './combat-status-resolver.mjs';
@@ -769,7 +773,40 @@ export function enrichAkeTimingWithHitMultipliers({ projectRoot, timing }) {
     const resolvedRoot = path.resolve(projectRoot);
     const { readProgram, data } = createProgramReader(resolvedRoot);
     const enriched = structuredClone(timing);
-    const characterCatalog = new Map(data.catalog().characters.map(character => [
+    const catalog = data.catalog();
+    const presentationIndex = buildAkeBuffPresentationIndex(catalog);
+    const presentHitBuff = (hitBuff, sourceSkillId) => {
+        if (!String(hitBuff?.id ?? '').startsWith('buff_')) return hitBuff;
+        let rawPresentation = null;
+        try {
+            rawPresentation = data.buffPresentation(hitBuff.id);
+        } catch {
+            // Synthetic or partially extracted Buff ids still receive a
+            // catalog-wide semantic fallback below.
+        }
+        const presentation = resolveAkeBuffPresentation({
+            buffId: hitBuff.id,
+            sourceSkillId,
+            index: presentationIndex,
+            rawPresentation,
+            dataOrigin: data.dataOrigin
+        });
+        const parsedDisplayName = String(hitBuff.displayName ?? '').trim();
+        const keepsParsedSemanticName = /[\u3400-\u9fff]/u.test(parsedDisplayName)
+            && !parsedDisplayName.startsWith('AKE');
+        return {
+            ...hitBuff,
+            displayName: keepsParsedSemanticName
+                ? parsedDisplayName
+                : presentation.displayName || parsedDisplayName,
+            ...(presentation.iconUrl ? { iconUrl: presentation.iconUrl } : {}),
+            displayable: presentation.displayable,
+            hidden: presentation.hidden,
+            presentationSource: presentation.presentationSource,
+            description: presentation.description || hitBuff.description
+        };
+    };
+    const characterCatalog = new Map(catalog.characters.map(character => [
         character.id,
         character
     ]));
@@ -826,9 +863,10 @@ export function enrichAkeTimingWithHitMultipliers({ projectRoot, timing }) {
                             : [];
                     })
                 );
-                return Object.keys(statusValueLevels).length > 0
+                const leveledStatusEffect = Object.keys(statusValueLevels).length > 0
                     ? { ...statusEffect, statusValueLevels }
                     : statusEffect;
+                return presentHitBuff(leveledStatusEffect, profile.skillId);
             });
             const sourceOccurrences = new Map();
             profile.hits = (profile.hits ?? []).map(timingHit => {
@@ -858,9 +896,10 @@ export function enrichAkeTimingWithHitMultipliers({ projectRoot, timing }) {
                             ? [[levelKey, Number(matching.statusValue)]]
                             : [];
                     }));
-                    return Object.keys(statusValueLevels).length > 0
+                    const leveledHitBuff = Object.keys(statusValueLevels).length > 0
                         ? { ...hitBuff, statusValueLevels }
                         : hitBuff;
+                    return presentHitBuff(leveledHitBuff, timingHit.sourceSkillId);
                 });
                 return {
                     ...timingHit,

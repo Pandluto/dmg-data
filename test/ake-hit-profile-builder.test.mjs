@@ -92,6 +92,46 @@ test('compiled AKE hit profiles preserve target routing and numeric hit-applied 
     }]);
 });
 
+test('forced spell statuses project to the same hit that executes the runtime action', () => {
+    const projectRoot = path.resolve(import.meta.dirname, '..');
+    const timing = JSON.parse(fs.readFileSync(path.join(
+        projectRoot,
+        'derived',
+        'cleanroom',
+        'ake-timing-profiles.json'
+    ), 'utf8'));
+    timing.characters = Object.fromEntries([
+        'chr_0007_ikut',
+        'chr_0024_deepfin',
+        'chr_0035_liino'
+    ].map(characterId => [characterId, timing.characters[characterId]]));
+
+    const enriched = enrichAkeTimingWithHitMultipliers({ projectRoot, timing });
+    const forcedStatuses = Object.fromEntries(Object.entries(enriched.characters)
+        .map(([characterId, character]) => [
+            characterId,
+            character.profiles.flatMap(profile => profile.hits ?? [])
+                .flatMap(hit => hit.hitBuffs ?? [])
+                .filter(buff => ['conductive', 'freeze'].includes(buff.statusKey))
+                .map(buff => ({ id: buff.id, statusKey: buff.statusKey }))
+        ]));
+
+    assert.deepEqual(forcedStatuses, {
+        chr_0007_ikut: [{
+            id: 'buff_common_pulse_pulse_conduct_triggered',
+            statusKey: 'conductive'
+        }],
+        chr_0024_deepfin: [{
+            id: 'buff_common_cryst_cryst_frozen_triggered',
+            statusKey: 'freeze'
+        }],
+        chr_0035_liino: [{
+            id: 'buff_common_pulse_pulse_conduct_triggered',
+            statusKey: 'conductive'
+        }]
+    });
+});
+
 test('cross-operator audit keeps real multipliers, compact bodies and stable state markers', () => {
     const projectRoot = path.resolve(import.meta.dirname, '..');
     const timing = JSON.parse(fs.readFileSync(path.join(

@@ -4,6 +4,7 @@ import path from 'node:path';
 import { AkeActionCompiler } from './ake-action-compiler.mjs';
 import { AkeDataRepository, parseAkeJson } from './ake-data-repository.mjs';
 import { resolveValue } from './ake-parser.mjs';
+import { AKE_FORCED_SPELL_STATUS_BUFF_IDS } from './combat-status-resolver.mjs';
 
 export const AKE_SKILL_LEVEL_KEYS = Object.freeze([
     'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'M1', 'M2', 'M3'
@@ -119,6 +120,21 @@ function actionHitBuffs(action, blackboard, data) {
             kind: 'attachment',
             statusKey: hitBuffStatusKey(buffId),
             description: `AKE 法术附着动作 · ${hitBuffTargetLabel(target)} · ${buffId}`
+        }];
+    }
+    if (action.type === 'ForceEnemySpellStatus') {
+        const buffId = action.statusBuffId
+            ?? AKE_FORCED_SPELL_STATUS_BUFF_IDS[action.spellStatusType];
+        if (!buffId) return [];
+        const target = normalizeHitBuffTarget(action.target);
+        return [{
+            id: buffId,
+            displayName: displayNameForHitBuff(buffId),
+            target,
+            targetLabel: hitBuffTargetLabel(target),
+            kind: 'status',
+            statusKey: hitBuffStatusKey(buffId),
+            description: `AKE 强制元素异常 · ${hitBuffTargetLabel(target)} · ${buffId}`
         }];
     }
     if (action.type !== 'ApplyBuff') return [];

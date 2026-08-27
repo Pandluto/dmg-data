@@ -2,6 +2,20 @@ function clone(value) {
     return value === undefined ? undefined : structuredClone(value);
 }
 
+export const AKE_SPELL_ELEMENTS_BY_CONSUMED_TYPE = Object.freeze({
+    0: 'Fire',
+    1: 'Pulse',
+    2: 'Cryst',
+    3: 'Natural'
+});
+
+export const AKE_FORCED_SPELL_STATUS_BUFF_IDS = Object.freeze({
+    Fire: 'buff_common_fire_fire_burning_triggered',
+    Pulse: 'buff_common_pulse_pulse_conduct_triggered',
+    Cryst: 'buff_common_cryst_cryst_frozen_triggered',
+    Natural: 'buff_common_natural_natural_corrupt_triggered'
+});
+
 function countLayers(statusEffects, targetId, buffId) {
     if (!buffId) return 0;
     return statusEffects.list({ active: true, targetId, buffId })
@@ -23,6 +37,36 @@ function normalizedAttachmentMap(action) {
 function statusEventsForTransaction(statusEffects, startIndex, transactionId) {
     return statusEffects.trace.slice(startIndex)
         .filter(event => event.transactionId === transactionId);
+}
+
+function consumedStatusSummary(statusEvents, buffId) {
+    const consumedEvents = statusEvents.filter(event => event.buffId === buffId
+        && ['StatusEffectStackRemoved', 'StatusEffectFinished'].includes(event.stage));
+    const consumedStacks = consumedEvents.reduce(
+        (sum, event) => sum + Number(event.consumedStacks ?? event.actual ?? 0),
+        0
+    );
+    const bySource = new Map();
+    for (const event of consumedEvents) {
+        for (const source of event.bySource ?? []) {
+            const key = `${String(source.sourceId)}\u0000${String(source.ownerId)}`;
+            const current = bySource.get(key) ?? {
+                sourceId: source.sourceId ?? null,
+                ownerId: source.ownerId ?? null,
+                count: 0
+            };
+            current.count += Number(source.count ?? 0);
+            bySource.set(key, current);
+        }
+    }
+    return { consumedStacks, bySource: [...bySource.values()] };
+}
+
+function boundedInteger(value, minimum, maximum) {
+    const number = Number(value);
+    return Number.isInteger(number) && number >= minimum && number <= maximum
+        ? number
+        : null;
 }
 
 /**
@@ -181,6 +225,209 @@ export class EnemyMechanicResolver {
                 transactionId,
                 activeBuffIds: beforeInstances.map(instance => instance.buffId)
             }] : []
+        };
+    }
+
+    /**
+     * Executes AKE's ForceSpellStatusAction without an operator-specific
+     * branch. The public enum selects the consumed attachment, while the
+     * spell status enum selects one of the four canonical abnormal-entry
+     * Buffs. A zero consumedLayer is valid and creates the abnormal state
+     * directly (Liino); positive values consume exactly that many attachment
+     * layers before applying the state (Yvonne, Ikut and Alesh).
+     */
+    resolveForcedSpellStatus(action, eventContext, targetId) {
+        const transactionId = eventContext.transactionId
+            ?? `forced-spell-status:${this.nextTransactionSequence++}`;
+        const spellStatusType = action.spellStatusType ?? null;
+        const count = boundedInteger(action.count, 1, 4);
+        const consumedLayer = boundedInteger(action.consumedLayer, 0, 4);
+        const consumedType = boundedInteger(action.consumedType, 0, 3);
+        const consumedElement = consumedType === null
+            ? null
+            : AKE_SPELL_ELEMENTS_BY_CONSUMED_TYPE[consumedType] ?? null;
+        const statusBuffId = action.statusBuffId
+            ?? AKE_FORCED_SPELL_STATUS_BUFF_IDS[spellStatusType]
+            ?? null;
+        const attachmentBuffId = consumedElement
+            ? action.attachmentBuffIds?.[consumedElement] ?? null
+            : null;
+        const attachmentInstances = attachmentBuffId
+            ? this.statusEffects.list({ active: true, targetId, buffId: attachmentBuffId })
+                .sort((left, right) => Number(right.startFrame ?? 0) - Number(left.startFrame ?? 0)
+                    || String(right.instanceId).localeCompare(String(left.instanceId)))
+            : [];
+        const before = attachmentInstances.reduce(
+            (sum, instance) => sum + Number(instance.stackCount ?? 0),
+            0
+        );
+        const mappingValid = typeof spellStatusType === 'string'
+            && Object.prototype.hasOwnProperty.call(
+                AKE_FORCED_SPELL_STATUS_BUFF_IDS,
+                spellStatusType
+            )
+            && typeof statusBuffId === 'string'
+            && statusBuffId.length > 0
+            && consumedElement !== null
+            && (consumedLayer === 0
+                || (typeof attachmentBuffId === 'string' && attachmentBuffId.length > 0));
+        const definitionAvailable = mappingValid
+            && this.statusEffects.getDefinition(statusBuffId) !== null;
+        const requestValid = count !== null && consumedLayer !== null && consumedType !== null;
+        const enoughAttachment = consumedLayer !== null && consumedLayer <= before;
+
+        if (!mappingValid || !definitionAvailable || !requestValid || !enoughAttachment) {
+            const code = !requestValid
+                ? 'FORCED_SPELL_STATUS_VALUE_INVALID'
+                : !mappingValid
+                    ? 'FORCED_SPELL_STATUS_MAPPING_MISSING'
+                    : !definitionAvailable
+                        ? 'FORCED_SPELL_STATUS_DEFINITION_MISSING'
+                        : 'FORCED_SPELL_STATUS_ATTACHMENT_INSUFFICIENT';
+            return {
+                status: 'Unresolved',
+                code,
+                reason: code,
+                transactionId,
+                spellStatusType,
+                targetId,
+                statusBuffId,
+                consumedType,
+                consumedElement,
+                attachmentBuffId,
+                count,
+                consumedLayer,
+                before,
+                after: before,
+                consumedStacks: 0,
+                bySource: [],
+                branch: 'Unresolved',
+                diagnostics: [{
+                    code,
+                    severity: 'error',
+                    transactionId,
+                    availableAttachmentLayers: before
+                }]
+            };
+        }
+
+        let remaining = consumedLayer;
+        const finishActions = [];
+        for (const instance of attachmentInstances) {
+            if (remaining <= 0) break;
+            const stackCount = Number(instance.stackCount ?? 0);
+            const amount = Math.min(remaining, stackCount);
+            if (amount <= 0) continue;
+            finishActions.push({
+                type: 'FinishBuff',
+                instanceId: instance.instanceId,
+                target: targetId,
+                finishAll: amount >= stackCount,
+                stackCount: amount,
+                reason: `ForceSpellStatus:${String(spellStatusType)}`
+            });
+            remaining -= amount;
+        }
+
+        const statusTraceStart = this.statusEffects.trace.length;
+        const effectTraceStart = this.getEffectTrace().length;
+        const context = {
+            ...clone(eventContext),
+            targetId,
+            carrierId: targetId,
+            damageSourceId: eventContext.damageSourceId ?? eventContext.sourceId ?? null,
+            transactionId,
+            eventType: 'ForcedSpellStatusTransaction',
+            payload: {
+                ...clone(eventContext.payload ?? {}),
+                spellStatusType,
+                statusBuffId,
+                consumedType,
+                consumedElement,
+                attachmentBuffId,
+                consumedLayer,
+                count
+            }
+        };
+        const execution = this.executeTransaction([
+            ...finishActions,
+            {
+                type: 'ApplyBuff',
+                target: targetId,
+                buffId: statusBuffId,
+                count: 1,
+                inheritEventBlackboard: false,
+                triggerEnhancementEvent: true,
+                blackboard: {
+                    count,
+                    consumed_layer: consumedLayer,
+                    consumed_type: consumedType
+                },
+                metadata: {
+                    ...clone(action.metadata ?? {}),
+                    akeForcedSpellStatus: true,
+                    spellStatusType,
+                    consumedElement,
+                    isExtra: action.isExtra === true,
+                    transactionId
+                },
+                reason: action.reason ?? 'ForceSpellStatusAction'
+            }
+        ], context);
+        const statusEvents = statusEventsForTransaction(
+            this.statusEffects,
+            statusTraceStart,
+            transactionId
+        );
+        const effectEvents = this.getEffectTrace().slice(effectTraceStart)
+            .filter(event => event.transactionId === transactionId);
+        const after = countLayers(
+            this.statusEffects,
+            targetId,
+            attachmentBuffId
+        );
+        const consumed = consumedStatusSummary(statusEvents, attachmentBuffId);
+        const unresolvedEvents = statusEvents.filter(event =>
+            event.stage === 'StatusEffectUnresolved');
+        const statusApplied = statusEvents.some(event => event.buffId === statusBuffId
+            && ['StatusEffectApplied', 'StatusEffectRefreshed'].includes(event.stage));
+        const spawnedHits = effectEvents
+            .filter(event => event.stage === 'ActionDelegated'
+                && event.type === 'ResolveDamagePacket')
+            .flatMap(event => event.result?.resolution?.hits ?? []);
+
+        return {
+            status: unresolvedEvents.length > 0 ? 'Unresolved' : 'Applied',
+            code: unresolvedEvents[0]?.code ?? null,
+            reason: unresolvedEvents[0]?.reason
+                ?? action.reason
+                ?? 'ForceSpellStatusAction',
+            transactionId,
+            spellStatusType,
+            targetId,
+            statusBuffId,
+            consumedType,
+            consumedElement,
+            attachmentBuffId,
+            count,
+            consumedLayer,
+            before,
+            after,
+            consumedStacks: consumed.consumedStacks,
+            bySource: consumed.bySource,
+            branch: statusApplied ? 'ForcedSpellStatusApplied' : 'Unresolved',
+            spawnedHitIds: spawnedHits.map(hit => hit.hitId).filter(Boolean),
+            spawnedHits: clone(spawnedHits),
+            statusEvents: clone(statusEvents),
+            effectEvents: clone(effectEvents),
+            execution: clone(execution),
+            diagnostics: unresolvedEvents.map(event => ({
+                code: event.code,
+                severity: 'error',
+                buffId: event.buffId,
+                eventId: event.eventId,
+                transactionId
+            }))
         };
     }
 

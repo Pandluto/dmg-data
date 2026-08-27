@@ -2685,6 +2685,47 @@ export class CombatRuntime {
                 );
                 return this.enemyMechanics.resolveInfliction(action, eventContext, targetId);
             },
+            ForceEnemySpellStatus: (action, eventContext) => {
+                const targetId = this.#entityId(
+                    action.targetRef ?? action.target ?? action.targetId,
+                    eventContext,
+                    'Target'
+                );
+                const sourceId = this.#optionalEntityId(
+                    action.sourceRef ?? action.sourceId,
+                    eventContext,
+                    eventContext.sourceId
+                );
+                const ownerId = this.#optionalEntityId(
+                    action.ownerRef ?? action.ownerId,
+                    eventContext,
+                    eventContext.ownerId
+                );
+                return this.enemyMechanics.resolveForcedSpellStatus({
+                    ...action,
+                    count: this.#number(
+                        action.count,
+                        eventContext,
+                        'forced spell status count'
+                    ),
+                    consumedLayer: this.#number(
+                        action.consumedLayer,
+                        eventContext,
+                        'forced spell status consumed layer'
+                    ),
+                    consumedType: this.#number(
+                        action.consumedType,
+                        eventContext,
+                        'forced spell status consumed type'
+                    )
+                }, {
+                    ...eventContext,
+                    sourceId,
+                    ownerId,
+                    targetId,
+                    damageSourceId: sourceId ?? eventContext.damageSourceId ?? null
+                }, targetId);
+            },
             ApplyInfliction: (action, eventContext) => this.reactions.applyInfliction({
                 ...this.#attribution(action, eventContext),
                 element: action.element ?? action.inflictionType,

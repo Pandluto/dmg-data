@@ -98,7 +98,7 @@ AKE SkillData / BuffData / TableCfg
 禁止专有：状态推进、消费、伤害、资源、冷却、命中结算、合法性和 UI 公式
 ```
 
-## 3. 30 名干员专有机制归纳
+## 3. 31 名干员专有机制归纳
 
 下表不是照搬 Endaxis 的角色数据，而是把其实现暴露出来的测试维度归并为 cleanroom 需要验证的能力。`当前重点缺口` 依据本仓库 AKE 闭包与编译器审计，不表示该角色的所有数值都已经确认。
 
@@ -108,7 +108,7 @@ AKE SkillData / BuffData / TableCfg
 | Perlica / `chr_0004_pelica` | 末段命中开启连携、导电 | 末段事件、元素状态、限时 admission window | 验证窗口从真实 Hit commit 开启，过期后不能释放；导电来源属于同一敌方状态 |
 | Chen Qianyu / `chr_0005_chen` | 多段普攻、攻击叠层、物理击飞连携 | 多段 Hit、逐 Hit 自身堆叠、物理状态、连携观察器 | 验证七段技能前五段逐层生效；一次战技不能被 UI 重放成两层破防 |
 | Wulfgard / `chr_0006_wolfgd` | 燃烧/灼热、追加射击、冷却重置 | 元素附着与反应、子 Hit、冷却事务 | `SetSkillCdAtOnce`；验证追加 Hit 的 source、时间和状态快照 |
-| Arclight / `chr_0007_ikut` | 追踪状态与追加命中 | 事件订阅、标记状态、子 Hit | 验证标记只由匹配 Hit 触发且有 ICD/来源去重 |
+| Arclight / `chr_0007_ikut` | 追踪状态、追加命中、强制导电 | 事件订阅、标记状态、子 Hit、强制元素状态 | 验证标记只由匹配 Hit 触发且有 ICD/来源去重；强制导电按公开枚举进入公共异常事务 |
 | Ember / `chr_0009_azrila` | 动作期间保护、治疗、倒地 | `duringAction` 生命周期、护盾/治疗、物理状态 | 验证动作结束清理与倒地失败原因，不由 UI 猜测 |
 | Xaihi / `chr_0011_seraph` | 辅助晶体、双元素增幅、队伍消费 | owner/controlled 目标、队伍状态、元素筛选、消费 | `DispelAction`、`EnhancedAction`；验证队友伤害读取敌方而非施法者私有状态 |
 | Avywenna / `chr_0012_avywen` | 雷枪/强化雷枪、返回、按消费层缩放 | 来源实体、独立状态层、消费读数、倍率/失衡缩放 | ability entity 与 source attribution；验证返回不是重复施加 |
@@ -133,7 +133,7 @@ AKE SkillData / BuffData / TableCfg
 | Mifu / `chr_0031_mifu` | 三段战技、失衡目标分支、猛击视作反应 | 条件形态选择、目标状态、反应别名、护盾/脆弱 | `PauseBuffTime`、`TakeDownAction`、目标 provider；验证第三段由状态自动选择 |
 | Arcane / `chr_0032_lizhiyan` | 双形态、属性比较、终结技冷却、收尾触发簇击 | selector/form、冷却条件、owner 消费、消费层读取、子动作簇 | `CastSkill`、ability entity、`VulnerableAction`；“诀”不是独立引擎，只是原语组合压力测试 |
 | Camille / `chr_0033_camille` | 追击状态、末段触发伤害、自身/队伍分离 Buff | final-hit 事件、triggered damage、recipient scope | 验证 team/self 两份来源不合并且末段只触发一次 |
-| Liino / `chr_0035_liino` | 战斗开始状态、技能冷却、受控目标、倒计时伤害/治疗、姿态 | `onBattleStart`、冷却就绪、controlled target、事件监听、继承 Buff、非技能动作 | `InheritBuffAction`、`AddTagAction`、`EventListenerAction`、`ChannelingCasting`；需要完整生命周期场景测试 |
+| Liino / `chr_0035_liino` | 战斗开始状态、技能冷却、受控目标、倒计时伤害/治疗、姿态、零消费强制导电 | `onBattleStart`、冷却就绪、controlled target、事件监听、继承 Buff、非技能动作、强制元素状态 | `AddTagAction`、`EventListenerAction`、`ChannelingCasting`；强制导电必须允许 `consumedLayer=0`，其余仍需要完整生命周期场景测试 |
 
 ### 3.1 表格揭示出的真实规律
 
@@ -213,7 +213,7 @@ AKE SkillData / BuffData / TableCfg
 | `InheritBuffAction` | 伊冯、黎诺等 | 子实体/形态无法继承来源状态，命中语义断裂 |
 | `SetSkillCdAtOnce` | 管理员、狼卫、洛茜 | 冷却合法性与 UI 等待会偏离真实状态 |
 | `VulnerableAction` | 安塔尔、艾尔黛拉、诀 | 敌方脆弱不进入统一伤害乘区 |
-| `ForceSpellStatusAction` | 伊冯、阿列什 | 元素状态分支可能完全不触发 |
+| `ForceSpellStatusAction` | 弧光、伊冯、阿列什、梨诺 | 元素状态分支可能完全不触发；零消费直接异常与按层消费不能混为普通附着 |
 | `EventListenerAction` | 黎诺等 | 依赖事件的倒计时/姿态不会推进 |
 | `RandomAction` | 洛茜、庄方宜 | 不做确定性抽样就不可复现；直接跳过则 Hit 数错误 |
 | `SpawnAbilityEntity` / `CastSkill` | 雷枪、诀、庄方宜等 | 子实体命中、延迟和来源关系丢失 |
@@ -513,7 +513,7 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 
 本轮严格按“原始数据证据 → 通用编译原语 → runtime 事务 → 账本/UI 投影 → 逐干员审计”推进，没有修改共享变速水位轴的布局或坐标模型：
 
-1. 已建立 31 名具体干员的逐路径机制审计；当前报告共 3095 条 finding，其中 356 条 combat-blocking、160 条 combat-partial、422 条 evidence-missing、1767 条 spatial-assumption、390 条 presentation-only；
+1. 已建立 31 名具体干员的逐路径机制审计；当前报告共 3088 条 finding，其中 349 条 combat-blocking、160 条 combat-partial、422 条 evidence-missing、1767 条 spatial-assumption、390 条 presentation-only；
 2. `PauseBuffTime` 已进入统一 Buff 生命周期，暂停时同时冻结到期、周期触发和 Buff 时间线，恢复后从剩余本地时间继续；
 3. Blackboard 动态子 Buff、fallback dependency 与 `asChildBuff` 父子所有权已统一，父实例结束只级联回滚自己的子实例；
 4. `VulnerableAction` 已映射为 AKE 的“脆弱”，Defender `NormalCalcZone` 保留为“易伤”，两者进入独立公式区；
@@ -522,7 +522,9 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 7. `ExtendBuffAction` 的六处公开机制已实现为引用计数的“到期计时租约”：只延后 Buff 到期，不冻结周期动作或内部时间线；重叠技能分别持有/释放租约，并在首次触发时激活 `tagsAfterTriggerExtendBuffAction`；
 8. `InheritBuffAction` 的 52 处公开动作已进入统一的技能动作所有权租约：`CreateBuffAction` 创建租约，后续白名单技能接管同一个 Buff 实例并重写下一跳，旧动作的迟到 cleanup 因租约不匹配而无权误删；未接管或进入非白名单技能时 fail closed；BuffData 内原有父子 cleanup 不受影响；
 9. `FinishBuffAdvanced` 的 `Environment` 选择器已从 354 处全库 BuffData 反证为“当前回调 Buff 实例”，不再误判为外部 provider；运行时按 `buffInstanceId` 精确结束，忽略该模式下残留的编辑器 ID，避免误删同 ID 并发实例或错误目标 Buff；逐干员报告中的九处相关 blocker 已消除；
-10. `VulnerableAction`、`WeakAction`、`ShelterAction`、`ExtendBuffAction`、`InheritBuffAction` 与逐干员可达的 `FinishBuffAdvanced` 已不再出现在 unresolved source type 中；本轮新增能力没有角色 ID、技能 ID 或队伍模板分支；
-11. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁。
+10. `ForceSpellStatusAction` 的七处公开动作已编译为统一 `ForceEnemySpellStatus` 事务：`consumedType` 使用公共元素枚举（`0=Fire`、`1=Pulse`、`2=Cryst`、`3=Natural`），`spellStatusType` 选择燃烧/导电/冻结/腐蚀入口，`consumedLayer` 精确消费旧附着层；梨诺的零层消费因此可以直接制造导电，伊冯、弧光、阿列什则沿同一事务按层消费；
+11. 强制异常事务在修改状态前校验数值范围、Buff 映射、依赖定义和可消费层数；不足时 fail closed，不先删附着。消费账本保留每层来源，异常 Buff 继承当前技能来源，命中详情从同一个编译动作投影状态，不建立 UI 私有推演；
+12. `VulnerableAction`、`WeakAction`、`ShelterAction`、`ExtendBuffAction`、`InheritBuffAction`、`ForceSpellStatusAction` 与逐干员可达的 `FinishBuffAdvanced` 已不再出现在 unresolved source type 中；本轮新增能力没有角色 ID、技能 ID 或队伍模板分支；
+13. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁。
 
-356 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。下一阶段进入 `ForceSpellStatusAction`、事件订阅和派生命中闭包。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
+349 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。`ForceSpellStatusAction` 已闭合，但普通元素反应链仍受动态 `ReadSkillSettingData` 表值和 `OnSpellAbnormalStartFinish` 事件语义阻塞，不能把强制异常通过等同于四元素系统全部完成。下一阶段进入事件订阅和派生命中闭包。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。

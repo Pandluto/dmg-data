@@ -5,6 +5,9 @@ import {
     parseSkill,
     resolveValue
 } from './ake-parser.mjs';
+import {
+    AKE_FORCED_SPELL_STATUS_BUFF_IDS
+} from './combat-status-resolver.mjs';
 
 const PRESENTATION_TOKENS = [
     'animation', 'animator', 'hurtanim', 'playanim', 'effectaction', 'vfx',
@@ -164,6 +167,18 @@ function mergeCompilation(target, source) {
 function descriptor(value, fallback = 0) {
     if (value === undefined || value === null) return fallback;
     return clone(value);
+}
+
+function elementalAttachmentBuffIds(semanticMappings) {
+    return Object.fromEntries(semanticMappings
+        .filter(candidate => candidate.actionType === 'SpellInfliction'
+            && candidate.effect?.operation === 'ApplyBuff'
+            && typeof candidate.selector?.inflictionType === 'string'
+            && typeof candidate.effect?.buffId === 'string')
+        .map(candidate => [
+            candidate.selector.inflictionType,
+            candidate.effect.buffId
+        ]));
 }
 
 function normalizeAssignments(buff) {
@@ -2558,15 +2573,9 @@ export class AkeActionCompiler {
                     candidate.selector?.inflictionType === node.inflictionType
                 );
                 if (mapping?.effect?.operation === 'ApplyBuff') {
-                    const attachmentBuffIds = Object.fromEntries(this.semanticMappings
-                        .filter(candidate => candidate.actionType === 'SpellInfliction'
-                            && candidate.effect?.operation === 'ApplyBuff'
-                            && typeof candidate.selector?.inflictionType === 'string'
-                            && typeof candidate.effect?.buffId === 'string')
-                        .map(candidate => [
-                            candidate.selector.inflictionType,
-                            candidate.effect.buffId
-                        ]));
+                    const attachmentBuffIds = elementalAttachmentBuffIds(
+                        this.semanticMappings
+                    );
                     result.actions.push({
                         type: 'ApplyEnemyInfliction',
                         element: node.inflictionType,
@@ -2583,6 +2592,73 @@ export class AkeActionCompiler {
                         state.path,
                         `No attachment mapping is available for ${node.inflictionType}.`
                     ));
+                }
+                break;
+            }
+            case 'ForceSpellStatusAction': {
+                const source = this.#targetRef(
+                    node.source ?? 'Source',
+                    state,
+                    'forced spell status source'
+                );
+                const target = this.#targetRef(
+                    node.target ?? 'Target',
+                    state,
+                    'forced spell status target'
+                );
+                if (source.unresolved) result.unresolved.push(source.unresolved);
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                const spellStatusType = resolveValue(
+                    node.spellStatusType,
+                    state.blackboard,
+                    node.spellStatusType
+                );
+                const statusBuffId = AKE_FORCED_SPELL_STATUS_BUFF_IDS[
+                    spellStatusType
+                ];
+                const attachmentBuffIds = elementalAttachmentBuffIds(
+                    this.semanticMappings
+                );
+                if (typeof statusBuffId !== 'string' || statusBuffId.length === 0) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_FORCED_SPELL_STATUS_MAPPING_MISSING',
+                        type,
+                        state.path,
+                        `No canonical abnormal-state Buff is available for ${String(spellStatusType)}.`,
+                        { spellStatusType }
+                    ));
+                }
+                const missingElements = Object.keys(AKE_FORCED_SPELL_STATUS_BUFF_IDS)
+                    .filter(element => typeof attachmentBuffIds[element] !== 'string');
+                if (missingElements.length > 0) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_FORCED_SPELL_ATTACHMENT_MAPPING_MISSING',
+                        type,
+                        state.path,
+                        'ForceSpellStatusAction requires the shared four-element attachment mapping.',
+                        { missingElements }
+                    ));
+                }
+                if (source.ref && target.ref && statusBuffId
+                    && missingElements.length === 0) {
+                    result.actions.push({
+                        type: 'ForceEnemySpellStatus',
+                        sourceRef: source.ref,
+                        target: target.ref,
+                        spellStatusType,
+                        statusBuffId,
+                        attachmentBuffIds,
+                        count: descriptor(node.count, 1),
+                        consumedLayer: descriptor(node.consumedLayer, 0),
+                        consumedType: descriptor(node.consumedType),
+                        isExtra: node.isExtra === true,
+                        metadata: {
+                            akeSourceAction: type,
+                            akeSourcePath: state.path
+                        },
+                        reason: type,
+                        sourcePath: state.path
+                    });
                 }
                 break;
             }

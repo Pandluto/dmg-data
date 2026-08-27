@@ -11,18 +11,18 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3095,
-    "combatRiskCount": 938,
+    "findingCount": 3088,
+    "combatRiskCount": 931,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 356,
+      "combat-blocking": 349,
       "combat-partial": 160,
       "evidence-missing": 422,
       "presentation-only": 390,
       "spatial-assumption": 1767
     },
     "byPriority": {
-      "P0": 215,
+      "P0": 208,
       "P1": 649,
       "P2": 1841,
       "P3": 390
@@ -42,7 +42,7 @@
       "physical-status": 77,
       "presentation": 390,
       "resource-transaction": 1,
-      "status-lifecycle": 27,
+      "status-lifecycle": 20,
       "targeting-scope": 83,
       "targeting-spatial": 1767,
       "unclassified": 74
@@ -102,7 +102,6 @@
       "EnhancedAction": 11,
       "EventListenerAction": 17,
       "FindTargetAction": 24,
-      "ForceSpellStatusAction": 7,
       "ForceTargetInFightAction": 1,
       "IfElseAction": 4,
       "IgnoreModelIntervalCheck": 4,
@@ -10215,18 +10214,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 109,
-        "combatRiskCount": 30,
+        "findingCount": 105,
+        "combatRiskCount": 26,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 20,
+          "combat-blocking": 16,
           "combat-partial": 3,
           "evidence-missing": 7,
           "presentation-only": 14,
           "spatial-assumption": 65
         },
         "byPriority": {
-          "P0": 8,
+          "P0": 4,
           "P1": 21,
           "P2": 66,
           "P3": 14
@@ -10239,7 +10238,6 @@
           "form-state": 2,
           "physical-status": 2,
           "presentation": 14,
-          "status-lifecycle": 4,
           "targeting-scope": 1,
           "targeting-spatial": 65,
           "unclassified": 1
@@ -10257,7 +10255,6 @@
           "CustomRootMotionAction": 10,
           "DisableRootMotionAction": 5,
           "EventListenerAction": 1,
-          "ForceSpellStatusAction": 4,
           "ModifyWeaponMountPoint": 2,
           "MoveToAction": 1,
           "NotNextCheckAction": 3,
@@ -10344,74 +10341,6 @@
           "priority": "P0",
           "capability": "form-state",
           "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection."
-        },
-        {
-          "characterId": "chr_0017_yvonne",
-          "characterName": "伊冯",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0017_yvonne_normal_skill_projhit",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0017_yvonne_normal_skill_projhit.json",
-          "jsonPath": "actionGroupData.timelineActions[1][2].failure[0].action[0].success[0].failure[1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ForceSpellStatusAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for ForceSpellStatusAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0017_yvonne",
-          "characterName": "伊冯",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0017_yvonne_normal_skill_projhit",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0017_yvonne_normal_skill_projhit.json",
-          "jsonPath": "actionGroupData.timelineActions[1][2].failure[0].action[0].success[0].success[1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ForceSpellStatusAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for ForceSpellStatusAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0017_yvonne",
-          "characterName": "伊冯",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0017_yvonne_normal_skill_projhit",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0017_yvonne_normal_skill_projhit.json",
-          "jsonPath": "actionGroupData.timelineActions[1][2].success[0].action[0].success[0].failure[1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ForceSpellStatusAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for ForceSpellStatusAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0017_yvonne",
-          "characterName": "伊冯",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0017_yvonne_normal_skill_projhit",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0017_yvonne_normal_skill_projhit.json",
-          "jsonPath": "actionGroupData.timelineActions[1][2].success[0].action[0].success[0].success[1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ForceSpellStatusAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for ForceSpellStatusAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
         },
         {
           "characterId": "chr_0017_yvonne",
@@ -36292,25 +36221,25 @@
         "initialSkillCount": 12,
         "discoveredSkillCount": 38,
         "programCount": 42,
-        "buffCount": 120,
+        "buffCount": 122,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 0,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 151,
-        "combatRiskCount": 53,
+        "findingCount": 150,
+        "combatRiskCount": 52,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 37,
+          "combat-blocking": 36,
           "combat-partial": 4,
           "evidence-missing": 12,
           "presentation-only": 24,
           "spatial-assumption": 74
         },
         "byPriority": {
-          "P0": 30,
+          "P0": 29,
           "P1": 15,
           "P2": 82,
           "P3": 24
@@ -36325,7 +36254,7 @@
           "event-subscription": 10,
           "form-state": 8,
           "presentation": 24,
-          "status-lifecycle": 2,
+          "status-lifecycle": 1,
           "targeting-scope": 4,
           "targeting-spatial": 74,
           "unclassified": 8
@@ -36349,7 +36278,6 @@
           "DoOnceAction": 1,
           "EnhancedAction": 4,
           "EventListenerAction": 7,
-          "ForceSpellStatusAction": 1,
           "ReceiveMoveInputAction": 3,
           "SaveBuffLifeTime": 1,
           "SaveTargetDistanceAction": 2,
@@ -36858,23 +36786,6 @@
           "priority": "P0",
           "capability": "event-subscription",
           "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0035_liino",
-          "characterName": "梨诺",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0035_liino_ultimate_skill_projhit_damage_02",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0035_liino_ultimate_skill_projhit_damage_02.json",
-          "jsonPath": "actionGroupData.timelineActions[1][1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ForceSpellStatusAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for ForceSpellStatusAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
         },
         {
           "characterId": "chr_0035_liino",
@@ -41986,25 +41897,25 @@
         "initialSkillCount": 10,
         "discoveredSkillCount": 8,
         "programCount": 11,
-        "buffCount": 62,
+        "buffCount": 64,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 0,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 88,
-        "combatRiskCount": 16,
+        "findingCount": 87,
+        "combatRiskCount": 15,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 6,
+          "combat-blocking": 5,
           "combat-partial": 1,
           "evidence-missing": 9,
           "presentation-only": 18,
           "spatial-assumption": 54
         },
         "byPriority": {
-          "P0": 3,
+          "P0": 2,
           "P1": 11,
           "P2": 56,
           "P3": 18
@@ -42014,7 +41925,7 @@
           "deterministic-choice": 7,
           "event-scheduling": 1,
           "presentation": 18,
-          "status-lifecycle": 2,
+          "status-lifecycle": 1,
           "targeting-scope": 1,
           "targeting-spatial": 54,
           "unclassified": 2
@@ -42028,7 +41939,6 @@
           "CheckTwoDirectionAngle": 1,
           "CurveEvaluateFloat": 7,
           "CustomRootMotionAction": 11,
-          "ForceSpellStatusAction": 1,
           "MoveToAction": 4,
           "NotNextCheckAction": 1,
           "Probablity": 1,
@@ -42060,23 +41970,6 @@
           "priority": "P0",
           "capability": "event-scheduling",
           "rationale": "Channel timing determines tick count, hit time, and interruption behavior."
-        },
-        {
-          "characterId": "chr_0007_ikut",
-          "characterName": "弧光",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0007_ikut_ultimate_skill_abentity",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0007_ikut_ultimate_skill_abentity.json",
-          "jsonPath": "actionGroupData.timelineActions[6][0].action[0].success[1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ForceSpellStatusAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for ForceSpellStatusAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
         },
         {
           "characterId": "chr_0007_ikut",
@@ -47783,25 +47676,25 @@
         "initialSkillCount": 10,
         "discoveredSkillCount": 7,
         "programCount": 10,
-        "buffCount": 63,
+        "buffCount": 65,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 0,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 86,
-        "combatRiskCount": 22,
+        "findingCount": 85,
+        "combatRiskCount": 21,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 8,
+          "combat-blocking": 7,
           "combat-partial": 9,
           "evidence-missing": 5,
           "presentation-only": 7,
           "spatial-assumption": 57
         },
         "byPriority": {
-          "P0": 3,
+          "P0": 2,
           "P1": 18,
           "P2": 58,
           "P3": 7
@@ -47813,7 +47706,6 @@
           "event-subscription": 1,
           "physical-status": 8,
           "presentation": 7,
-          "status-lifecycle": 1,
           "targeting-scope": 1,
           "targeting-spatial": 57,
           "unclassified": 1
@@ -47829,7 +47721,6 @@
           "CurveEvaluateFloat": 4,
           "CustomRootMotionAction": 11,
           "EventListenerAction": 1,
-          "ForceSpellStatusAction": 1,
           "LaunchUpwardAction": 3,
           "NotNextCheckAction": 1,
           "Probablity": 3,
@@ -47844,23 +47735,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0024_deepfin",
-          "characterName": "阿列什",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0024_deepfin_normal_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0024_deepfin_normal_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[14][0].actionOnTick[0].success[1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ForceSpellStatusAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for ForceSpellStatusAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
         {
           "characterId": "chr_0024_deepfin",
           "characterName": "阿列什",
@@ -55019,18 +54893,18 @@
   ],
   "sharedDependencies": {
     "summary": {
-      "findingCount": 285,
-      "combatRiskCount": 182,
+      "findingCount": 281,
+      "combatRiskCount": 178,
       "isCombatClosed": false,
       "byImpact": {
-        "combat-blocking": 40,
+        "combat-blocking": 36,
         "combat-partial": 17,
         "evidence-missing": 125,
         "presentation-only": 13,
         "spatial-assumption": 90
       },
       "byPriority": {
-        "P0": 14,
+        "P0": 10,
         "P1": 98,
         "P2": 160,
         "P3": 13
@@ -55046,7 +54920,7 @@
         "form-state": 3,
         "physical-status": 6,
         "presentation": 13,
-        "status-lifecycle": 5,
+        "status-lifecycle": 1,
         "targeting-scope": 11,
         "targeting-spatial": 90,
         "unclassified": 70
@@ -55076,7 +54950,6 @@
         "DoOnceAction": 1,
         "FindTargetAction": 1,
         "FlowTextAction": 3,
-        "ForceSpellStatusAction": 4,
         "ForceTriggerWeakness": 1,
         "IgniteBuffTextAction": 9,
         "ImmuneTextAction": 1,
@@ -55289,78 +55162,6 @@
       },
       {
         "scope": "shared-dependency",
-        "entityKind": "SkillData",
-        "entityId": "chr_0017_yvonne_normal_skill_projhit",
-        "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0017_yvonne_normal_skill_projhit.json",
-        "jsonPath": "actionGroupData.timelineActions[1][2].failure[0].action[0].success[0].failure[1]",
-        "code": "AKE_ACTION_UNSUPPORTED",
-        "sourceType": "ForceSpellStatusAction",
-        "compilerCategory": "other",
-        "message": "No executable compiler route exists for ForceSpellStatusAction.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "status-lifecycle",
-        "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal.",
-        "characters": [
-          "chr_0032_lizhiyan"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "SkillData",
-        "entityId": "chr_0017_yvonne_normal_skill_projhit",
-        "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0017_yvonne_normal_skill_projhit.json",
-        "jsonPath": "actionGroupData.timelineActions[1][2].failure[0].action[0].success[0].success[1]",
-        "code": "AKE_ACTION_UNSUPPORTED",
-        "sourceType": "ForceSpellStatusAction",
-        "compilerCategory": "other",
-        "message": "No executable compiler route exists for ForceSpellStatusAction.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "status-lifecycle",
-        "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal.",
-        "characters": [
-          "chr_0032_lizhiyan"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "SkillData",
-        "entityId": "chr_0017_yvonne_normal_skill_projhit",
-        "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0017_yvonne_normal_skill_projhit.json",
-        "jsonPath": "actionGroupData.timelineActions[1][2].success[0].action[0].success[0].failure[1]",
-        "code": "AKE_ACTION_UNSUPPORTED",
-        "sourceType": "ForceSpellStatusAction",
-        "compilerCategory": "other",
-        "message": "No executable compiler route exists for ForceSpellStatusAction.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "status-lifecycle",
-        "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal.",
-        "characters": [
-          "chr_0032_lizhiyan"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "SkillData",
-        "entityId": "chr_0017_yvonne_normal_skill_projhit",
-        "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0017_yvonne_normal_skill_projhit.json",
-        "jsonPath": "actionGroupData.timelineActions[1][2].success[0].action[0].success[0].success[1]",
-        "code": "AKE_ACTION_UNSUPPORTED",
-        "sourceType": "ForceSpellStatusAction",
-        "compilerCategory": "other",
-        "message": "No executable compiler route exists for ForceSpellStatusAction.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "status-lifecycle",
-        "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal.",
-        "characters": [
-          "chr_0032_lizhiyan"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
         "entityKind": "BuffData",
         "entityId": "buff_chr_0017_yvonne_combo_skill_finish",
         "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0017_yvonne_combo_skill_finish.json",
@@ -55412,6 +55213,7 @@
         "characters": [
           "chr_0014_aurora",
           "chr_0017_yvonne",
+          "chr_0024_deepfin",
           "chr_0032_lizhiyan"
         ]
       },
@@ -55432,6 +55234,7 @@
         "characters": [
           "chr_0014_aurora",
           "chr_0017_yvonne",
+          "chr_0024_deepfin",
           "chr_0032_lizhiyan"
         ]
       },
@@ -55996,8 +55799,10 @@
         "rationale": "An unevaluated condition can select the wrong gameplay branch.",
         "characters": [
           "chr_0004_pelica",
+          "chr_0007_ikut",
           "chr_0016_laevat",
-          "chr_0030_zhuangfy"
+          "chr_0030_zhuangfy",
+          "chr_0035_liino"
         ]
       },
       {
@@ -56431,6 +56236,7 @@
         "characters": [
           "chr_0014_aurora",
           "chr_0017_yvonne",
+          "chr_0024_deepfin",
           "chr_0032_lizhiyan"
         ]
       },
@@ -58521,6 +58327,7 @@
         "characters": [
           "chr_0014_aurora",
           "chr_0017_yvonne",
+          "chr_0024_deepfin",
           "chr_0032_lizhiyan"
         ]
       },
@@ -58541,6 +58348,7 @@
         "characters": [
           "chr_0014_aurora",
           "chr_0017_yvonne",
+          "chr_0024_deepfin",
           "chr_0032_lizhiyan"
         ]
       },
@@ -60627,8 +60435,10 @@
         "rationale": "The gameplay consequence has not yet been proven; it must not be silently treated as supported.",
         "characters": [
           "chr_0004_pelica",
+          "chr_0007_ikut",
           "chr_0016_laevat",
-          "chr_0030_zhuangfy"
+          "chr_0030_zhuangfy",
+          "chr_0035_liino"
         ]
       },
       {
@@ -60647,8 +60457,10 @@
         "rationale": "The gameplay consequence has not yet been proven; it must not be silently treated as supported.",
         "characters": [
           "chr_0004_pelica",
+          "chr_0007_ikut",
           "chr_0016_laevat",
-          "chr_0030_zhuangfy"
+          "chr_0030_zhuangfy",
+          "chr_0035_liino"
         ]
       },
       {

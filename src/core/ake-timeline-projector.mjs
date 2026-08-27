@@ -355,6 +355,46 @@ function projectComboWindows(trace, durationFrames, tickRate) {
         });
 }
 
+function projectTimedInputWindows(windows, durationFrames, tickRate) {
+    return (windows ?? []).map(window => {
+        const startFrame = finite(
+            window.activeStartFrame,
+            finite(window.createdFrame) + finite(window.earlyDurationTicks)
+        );
+        const endFrameExclusive = finite(
+            window.activeEndFrameExclusive,
+            startFrame + finite(window.activeDurationTicks)
+        );
+        const resolvedFrame = window.resolvedFrame !== null
+            && window.resolvedFrame !== undefined
+            && Number.isFinite(Number(window.resolvedFrame))
+            ? Number(window.resolvedFrame)
+            : null;
+        const state = resolvedFrame !== null
+            ? 'resolved'
+            : durationFrames >= endFrameExclusive
+                ? 'missed'
+                : durationFrames >= startFrame ? 'active' : 'upcoming';
+        return {
+            id: window.id,
+            ownerId: window.ownerId ?? null,
+            inputTypes: clone(window.inputTypes ?? []),
+            createdFrame: finite(window.createdFrame),
+            startFrame,
+            startSeconds: startFrame / tickRate,
+            endFrameExclusive,
+            endSecondsExclusive: endFrameExclusive / tickRate,
+            resolvedFrame,
+            resolvedCommandId: window.resolvedCommandId ?? null,
+            state,
+            boundary: window.boundary ?? 'start-inclusive-end-exclusive',
+            sourceBuffId: window.sourceBuffId ?? null,
+            sourceSkillId: window.sourceSkillId ?? null,
+            reason: window.reason ?? null
+        };
+    });
+}
+
 export function projectAkeTimeline(result) {
     if (!result || typeof result !== 'object') {
         throw new TypeError('projectAkeTimeline requires a scenario result object.');
@@ -386,6 +426,11 @@ export function projectAkeTimeline(result) {
     );
     const cooldowns = projectCooldowns(result.cooldownTrace, durationFrames, tickRate);
     const comboWindows = projectComboWindows(result.comboTrace, durationFrames, tickRate);
+    const timedInputWindows = projectTimedInputWindows(
+        result.timedInputWindows,
+        durationFrames,
+        tickRate
+    );
     const sharedAtb = resourcePools.find(pool =>
         pool.resourceType === 'Atb' && pool.scope === 'Shared'
     ) ?? null;
@@ -403,6 +448,7 @@ export function projectAkeTimeline(result) {
         uspPools,
         cooldowns,
         comboWindows,
+        timedInputWindows,
         lanes: [
             { id: 'inputs', kind: 'CommandInput', items: commands },
             { id: 'casts', kind: 'SkillCast', items: casts },
@@ -417,6 +463,13 @@ export function projectAkeTimeline(result) {
             { id: 'cooldowns', kind: 'Cooldown', items: cooldowns },
             ...(comboWindows.length > 0
                 ? [{ id: 'combo-windows', kind: 'ComboWindow', items: comboWindows }]
+                : []),
+            ...(timedInputWindows.length > 0
+                ? [{
+                    id: 'timed-input-windows',
+                    kind: 'TimedInputWindow',
+                    items: timedInputWindows
+                }]
                 : [])
         ]
     };

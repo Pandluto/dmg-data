@@ -79,6 +79,35 @@ test('AKE timeline projector fuses input, cast, hits, shared ATB segments and co
             durationTicks: 120,
             endFrame: 125
         }],
+        timedInputWindows: [{
+            id: 'timed-input:1',
+            ownerId: 'chr:test',
+            inputTypes: ['ComboSkill'],
+            createdFrame: 30,
+            earlyDurationTicks: 15,
+            activeDurationTicks: 12,
+            activeStartFrame: 45,
+            activeEndFrameExclusive: 57,
+            resolvedFrame: 50,
+            resolvedCommandId: 'cmd:combo',
+            boundary: 'start-inclusive-end-exclusive',
+            sourceSkillId: 'skill:combo-1',
+            reason: 'ShowComboRingQte'
+        }, {
+            id: 'timed-input:2',
+            ownerId: 'chr:test',
+            inputTypes: ['ComboSkill'],
+            createdFrame: 80,
+            earlyDurationTicks: 15,
+            activeDurationTicks: 12,
+            activeStartFrame: 95,
+            activeEndFrameExclusive: 107,
+            resolvedFrame: null,
+            resolvedCommandId: null,
+            boundary: 'start-inclusive-end-exclusive',
+            sourceSkillId: 'skill:combo-2',
+            reason: 'ShowComboRingQte'
+        }],
         finalState: {
             resourcePools: {
                 'squad:Atb': {
@@ -119,8 +148,25 @@ test('AKE timeline projector fuses input, cast, hits, shared ATB segments and co
         open: false
     }]);
     assert.equal(projection.cooldowns[0].remainingFrames, 25);
+    assert.deepEqual(projection.timedInputWindows.map(window => [
+        window.ownerId,
+        window.startFrame,
+        window.endFrameExclusive,
+        window.state
+    ]), [
+        ['chr:test', 45, 57, 'resolved'],
+        ['chr:test', 95, 107, 'active']
+    ]);
+    assert.equal(projection.timedInputWindows[1].resolvedFrame, null);
     assert.deepEqual(
         projection.lanes.map(lane => lane.kind),
-        ['CommandInput', 'SkillCast', 'HitBurst', 'SharedAtb', 'Cooldown']
+        [
+            'CommandInput',
+            'SkillCast',
+            'HitBurst',
+            'SharedAtb',
+            'Cooldown',
+            'TimedInputWindow'
+        ]
     );
 });

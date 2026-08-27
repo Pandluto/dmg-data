@@ -13,7 +13,12 @@ export type ReleaseGraphNode = {
 };
 
 export type ReleaseAnchorGraphIssue = {
-  code: 'DANGLING_SOURCE' | 'SELF_REFERENCE' | 'CYCLE' | 'INVALID_HIT_OFFSET';
+  code:
+    | 'DANGLING_SOURCE'
+    | 'SELF_REFERENCE'
+    | 'CYCLE'
+    | 'INVALID_HIT_OFFSET'
+    | 'INVALID_TIMED_INPUT_OFFSET';
   buttonId: string;
   sourceButtonId?: string;
   message: string;
@@ -73,6 +78,14 @@ export type TimedReleaseHit = {
   commandId: string;
   frame: number;
   offsetFrames: number;
+  label?: string;
+};
+
+export type TimedReleaseInputWindow = {
+  id: string;
+  sourceCommandId: string;
+  startFrame: number;
+  endFrameExclusive: number;
   label?: string;
 };
 
@@ -252,6 +265,19 @@ export function solveReleaseStartOffsets(
             } else {
               value = sourceStart + safeFrame(Number(hitOffset)) + debounce;
             }
+          } else if (anchor?.kind === 'timed-input') {
+            const timedInputOffset = anchor.sourceTimedInputOffsetFrames;
+            if (!Number.isFinite(timedInputOffset) || Number(timedInputOffset) < 0) {
+              addIssue({
+                code: 'INVALID_TIMED_INPUT_OFFSET',
+                buttonId: node.id,
+                sourceButtonId: sourceId,
+                message: `${node.id} has no valid persisted timed-input offset.`,
+              });
+              value = fallbackOffset(node);
+            } else {
+              value = sourceStart + safeFrame(Number(timedInputOffset)) + debounce;
+            }
           } else {
             value = fallbackOffset(node);
           }
@@ -279,6 +305,7 @@ export function solveReleaseStartOffsets(
 export function buildReleaseSnapPoints(input: {
   actions: readonly TimedReleaseAction[];
   hits: readonly TimedReleaseHit[];
+  timedInputWindows?: readonly TimedReleaseInputWindow[];
   debounceFrames: number;
   projectFrame: (frame: number) => number | null;
 }): ReleaseSnapPoint[] {
@@ -359,6 +386,38 @@ export function buildReleaseSnapPoints(input: {
         sourceHitId: hit.id,
         sourceHitOffsetFrames: safeFrame(hit.offsetFrames),
         debounceFrames: safeFrame(input.debounceFrames),
+      },
+    });
+  });
+
+  (input.timedInputWindows ?? []).forEach((window) => {
+    const action = actionById.get(window.sourceCommandId);
+    if (!action) return;
+    const startFrame = safeFrame(window.startFrame);
+    const endFrameExclusive = safeFrame(window.endFrameExclusive);
+    if (endFrameExclusive <= startFrame) return;
+    // Use the middle executable frame. The right boundary is exclusive, so
+    // `end - 1` is the final legal input frame.
+    const frame = Math.floor((startFrame + endFrameExclusive - 1) / 2);
+    const sourceOffsetFrames = frame - action.startFrame;
+    if (sourceOffsetFrames < 0) return;
+    const globalX = input.projectFrame(frame);
+    if (globalX === null) return;
+    points.push({
+      id: `timed-input:${window.id}`,
+      kind: 'timed-input',
+      frame,
+      globalX,
+      groupId: action.groupId,
+      groupIndex: action.groupIndex,
+      label: `${action.label ?? action.id} · ${window.label ?? '精准输入'}`,
+      anchor: {
+        schemaVersion: 1,
+        kind: 'timed-input',
+        sourceButtonId: action.id,
+        sourceTimedInputId: window.id,
+        sourceTimedInputOffsetFrames: sourceOffsetFrames,
+        debounceFrames: 0,
       },
     });
   });

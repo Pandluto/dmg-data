@@ -262,6 +262,9 @@ function profileComboPendingEvents(result, bundle, characterId) {
     ));
     if (!actionRule) return [];
     const effect = actionRule.effect ?? {};
+    const statusBuffByInstanceId = new Map((result?.statusTrace ?? [])
+        .filter(event => event.stage === 'StatusEffectApplied')
+        .map(event => [event.instanceId, event.buffId]));
     return (result?.comboTrace ?? []).flatMap(event => {
         if (!['PENDING_CREATED', 'PENDING_REPLACED', 'PENDING_REFRESHED']
             .includes(event.stage)
@@ -269,6 +272,14 @@ function profileComboPendingEvents(result, bundle, characterId) {
             || event.targetId !== characterId
             || typeof event.skillId !== 'string'
             || event.skillId.length === 0) return [];
+        const timedInputWindow = (result?.timedInputWindows ?? []).find(window => (
+            window.ownerId === event.targetId
+            && window.createdFrame === event.frame
+            && window.inputTypes?.includes('ComboSkill')
+            && (event.sourceCastId === null
+                || event.sourceCastId === undefined
+                || window.castId === event.sourceCastId)
+        ));
         return [{
             offsetFrames: Number(event.frame ?? 0),
             operation: 'trigger',
@@ -287,7 +298,28 @@ function profileComboPendingEvents(result, bundle, characterId) {
             selectionPolicy: effect.selectionPolicy ?? 'newest',
             consumePolicy: effect.consumePolicy ?? 'selected',
             sourceActionType: event.sourceActionType,
-            sourceActionPath: event.sourceActionPath ?? null
+            sourceActionPath: event.sourceActionPath ?? null,
+            ...(timedInputWindow ? {
+                precisionWindow: {
+                    startAfterTriggerFrames: Number(
+                        timedInputWindow.earlyDurationTicks ?? 0
+                    ),
+                    endAfterTriggerFramesExclusive: Number(
+                        timedInputWindow.earlyDurationTicks ?? 0
+                    ) + Number(timedInputWindow.activeDurationTicks ?? 0),
+                    activeDurationFrames: Number(
+                        timedInputWindow.activeDurationTicks ?? 0
+                    ),
+                    boundary: timedInputWindow.boundary
+                        ?? 'start-inclusive-end-exclusive',
+                    sourceActionType: timedInputWindow.metadata?.akeSourceAction
+                        ?? timedInputWindow.reason
+                        ?? 'ShowComboRingQte',
+                    sourceBuffId: statusBuffByInstanceId.get(
+                        timedInputWindow.buffInstanceId
+                    ) ?? null
+                }
+            } : {})
         }];
     }).sort((left, right) => left.offsetFrames - right.offsetFrames
         || left.ruleId.localeCompare(right.ruleId));
@@ -542,7 +574,7 @@ const atbRule = JSON.parse(fs.readFileSync(
 ))?.effect;
 
 const output = {
-    schemaVersion: 6,
+    schemaVersion: 7,
     tickRate: 30,
     nodeFrameScale: 15,
     source: {

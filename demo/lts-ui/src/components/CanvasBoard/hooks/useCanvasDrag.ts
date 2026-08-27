@@ -174,10 +174,11 @@ function nearestAvailableNode(
 }
 
 function snapKindRank(kind: SkillReleaseAnchor['kind']): number {
-  if (kind === 'damage-hit') return 0;
-  if (kind === 'action-end') return 1;
-  if (kind === 'group-start') return 2;
-  return 3;
+  if (kind === 'timed-input') return 0;
+  if (kind === 'damage-hit') return 1;
+  if (kind === 'action-end') return 2;
+  if (kind === 'group-start') return 3;
+  return 4;
 }
 
 export function hitsEligibleForReleaseSnap(
@@ -281,6 +282,15 @@ export function useCanvasDrag({
           frame: hit.frame,
           offsetFrames: hit.offsetFrames,
           })),
+        timedInputWindows: akeRealtimeTimeline.comboWindows.flatMap(window => (
+          window.precisionWindow ? [{
+            id: window.id,
+            sourceCommandId: window.sourceCommandId,
+            startFrame: window.precisionWindow.startFrame,
+            endFrameExclusive: window.precisionWindow.endFrameExclusive,
+            label: '精准输入',
+          }] : []
+        )),
         debounceFrames: debounceFramesForTickRate(akeRealtimeTimeline.tickRate),
         projectFrame: frame => projectSharedTimelineFrame(model, frame, 'after')
           ?? (frame >= model.endFrame ? model.width : null),
@@ -495,6 +505,19 @@ export function useCanvasDrag({
     const targets: CanvasDropTarget[] = [];
 
     for (const point of releaseSnapPoints) {
+      if (point.kind === 'timed-input') {
+        const sourceWindow = point.anchor.sourceTimedInputId
+          ? akeRealtimeTimeline?.comboWindows.find(window => (
+            window.id === point.anchor.sourceTimedInputId
+          ))
+          : null;
+        if (draggingState.timelineModuleKind
+          || draggingState.skillType !== 'E'
+          || !sourceWindow
+          || sourceWindow.characterId !== draggingState.characterId) {
+          continue;
+        }
+      }
       // Verified combo skills only expose anchors inside a trigger window.
       // A consumed window remains available while moving the command that
       // consumed it, but cannot be reused by a second combo button.

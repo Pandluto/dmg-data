@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 6,
+  "schemaVersion": 7,
   "tickRate": 30,
   "nodeFrameScale": 15,
   "source": {
@@ -4403,6 +4403,15 @@
               "target": "self",
               "gainMethod": "Gain",
               "amount": 10,
+              "reason": "ObtainCostAction"
+            },
+            {
+              "offsetFrames": 124,
+              "resourceType": "UltimateSp",
+              "scope": "Entity",
+              "target": "self",
+              "gainMethod": "Gain",
+              "amount": 15,
               "reason": "ObtainCostAction"
             }
           ],
@@ -9834,7 +9843,15 @@
               "selectionPolicy": "newest",
               "consumePolicy": "selected",
               "sourceActionType": "TriggerComboSkillAction",
-              "sourceActionPath": "actionGroupData.timelineActions[21][1].success[0].success[0]"
+              "sourceActionPath": "actionGroupData.timelineActions[21][1].success[0].success[0]",
+              "precisionWindow": {
+                "startAfterTriggerFrames": 15,
+                "endAfterTriggerFramesExclusive": 27,
+                "activeDurationFrames": 12,
+                "boundary": "start-inclusive-end-exclusive",
+                "sourceActionType": "ShowComboRingQte",
+                "sourceBuffId": "buff_chr_0028_wulfa_combo_2_qte_timerlistening"
+              }
             }
           ],
           "derivation": "isolated-runtime-probe"

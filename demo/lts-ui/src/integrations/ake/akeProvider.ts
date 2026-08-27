@@ -309,6 +309,21 @@ export type AkeProjectedTimeline = {
     state: 'active' | 'ready' | 'consumed' | 'expired' | 'suppressed';
     reason: string | null;
   }>;
+  timedInputWindows?: Array<{
+    id: string;
+    ownerId: string | null;
+    inputTypes: string[];
+    createdFrame: number;
+    startFrame: number;
+    endFrameExclusive: number;
+    resolvedFrame: number | null;
+    resolvedCommandId: string | null;
+    state: 'upcoming' | 'active' | 'resolved' | 'missed';
+    boundary: string;
+    sourceBuffId: string | null;
+    sourceSkillId: string | null;
+    reason: string | null;
+  }>;
 };
 
 type AkeSquadMemberResult = {

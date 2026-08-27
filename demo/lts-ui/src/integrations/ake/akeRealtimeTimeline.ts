@@ -108,6 +108,18 @@ export type AkeRealtimeComboWindow = {
   state: 'ready' | 'consumed' | 'expired' | 'suppressed';
   reason: string;
   bypassSkillCooldown?: boolean;
+  precisionWindow?: AkeRealtimePrecisionWindow;
+};
+
+export type AkeRealtimePrecisionWindow = {
+  startFrame: number;
+  endFrameExclusive: number;
+  resolvedFrame: number | null;
+  resolvedCommandId: string | null;
+  state: 'upcoming' | 'resolved' | 'missed';
+  boundary: string;
+  sourceActionType: string;
+  sourceBuffId: string | null;
 };
 
 export type AkeRealtimeCommand = AkeCommandSettlement & {
@@ -130,6 +142,7 @@ export type AkeRealtimeCommand = AkeCommandSettlement & {
   hits: AkeRealtimeHit[];
   /** UI-confirmed number of rendered basic stages before the successor. */
   selectedBasicAttackStageCount: number | null;
+  precisionVerdict?: 'resolved' | 'missed' | null;
 };
 
 export type AkeRealtimeTimeline = {
@@ -1212,6 +1225,7 @@ function simulateAkeRealtimeTimeline(
     rule: AkeTimingComboTrigger,
     observation: ComboTriggerObservation,
     frame: number,
+    precision?: AkeTimingComboPendingEvent['precisionWindow'],
   ) => {
     const actor = actorFor(ownerCharacterId);
     const cooldownGroupId = cooldownGroupForSkill(
@@ -1221,6 +1235,19 @@ function simulateAkeRealtimeTimeline(
     );
     const cooldownEnd = actor.cooldowns.get(cooldownGroupId) ?? 0;
     const id = `combo:${rule.id}:${comboSequence++}`;
+    const precisionWindow: AkeRealtimePrecisionWindow | undefined = precision ? {
+      startFrame: frame + Math.max(0, precision.startAfterTriggerFrames),
+      endFrameExclusive: frame + Math.max(
+        precision.startAfterTriggerFrames + 1,
+        precision.endAfterTriggerFramesExclusive,
+      ),
+      resolvedFrame: null,
+      resolvedCommandId: null,
+      state: 'upcoming',
+      boundary: precision.boundary,
+      sourceActionType: precision.sourceActionType,
+      sourceBuffId: precision.sourceBuffId,
+    } : undefined;
     if (rule.requireComboOffCooldown && cooldownEnd > frame) {
       const suppressed: PendingCombo = {
         id,
@@ -1235,6 +1262,7 @@ function simulateAkeRealtimeTimeline(
         state: 'suppressed',
         reason: 'COOLDOWN_ACTIVE_AT_TRIGGER',
         bypassSkillCooldown: rule.bypassSkillCooldown === true,
+        ...(precisionWindow ? { precisionWindow } : {}),
         rule,
       };
       pendingCombos.push(suppressed);
@@ -1255,6 +1283,7 @@ function simulateAkeRealtimeTimeline(
       newest.createdFrame = frame;
       newest.expireFrame = frame + Math.max(1, rule.pendingDurationFrames) - 1;
       newest.reason = 'WINDOW_REFRESHED';
+      if (precisionWindow) newest.precisionWindow = precisionWindow;
       return;
     }
     if (rule.pendingPolicy === 'replace-all') {
@@ -1276,6 +1305,7 @@ function simulateAkeRealtimeTimeline(
       state: 'ready',
       reason: 'TRIGGER_MATCHED',
       bypassSkillCooldown: rule.bypassSkillCooldown === true,
+      ...(precisionWindow ? { precisionWindow } : {}),
       rule,
     };
     pendingCombos.push(created);
@@ -1348,7 +1378,7 @@ function simulateAkeRealtimeTimeline(
       targetId: pending.event.triggerTargetId ?? 'fixed-dummy',
       damageAttributeType: null,
       buffId: null,
-    }, pending.frame);
+    }, pending.frame, pending.event.precisionWindow);
   };
 
   const ruleMatchesComboObservation = (
@@ -1526,6 +1556,15 @@ function simulateAkeRealtimeTimeline(
       pending.consumedFrame = frame;
       pending.consumedCommandId = commandId;
       pending.reason = 'CAST_SUCCESS';
+      if (pending.precisionWindow) {
+        const precise = frame >= pending.precisionWindow.startFrame
+          && frame < pending.precisionWindow.endFrameExclusive;
+        pending.precisionWindow.state = precise ? 'resolved' : 'missed';
+        pending.precisionWindow.resolvedFrame = precise ? frame : null;
+        pending.precisionWindow.resolvedCommandId = precise ? commandId : null;
+        const resolvedCommand = commandById.get(commandId);
+        if (resolvedCommand) resolvedCommand.precisionVerdict = precise ? 'resolved' : 'missed';
+      }
     }
   };
 

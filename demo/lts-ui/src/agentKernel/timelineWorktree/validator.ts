@@ -137,7 +137,13 @@ export function validateTimelinePayload(payload: TimelineSnapshotPayload): AiTim
     id: button.id,
     releaseAnchor: button.releaseAnchor,
   }));
-  const validReleaseKinds = new Set(['group-start', 'action-start', 'action-end', 'damage-hit']);
+  const validReleaseKinds = new Set([
+    'group-start',
+    'action-start',
+    'action-end',
+    'damage-hit',
+    'timed-input',
+  ]);
   const validTimelineModuleKinds = new Set(['lane-wait', 'forced-wait', 'dodge', 'perfect-dodge', 'operator-switch']);
   for (const [buttonId, button] of Object.entries(payload.skillButtonTable)) {
     if (button.timelineModuleKind && !validTimelineModuleKinds.has(button.timelineModuleKind)) {
@@ -222,6 +228,12 @@ export function validateTimelinePayload(payload: TimelineSnapshotPayload): AiTim
             || !Number.isInteger(anchor.sourceHitOffsetFrames)
             || Number(anchor.sourceHitOffsetFrames) < 0)) {
           issues.push(issue('invalid-release-hit-anchor', `Button ${buttonId} has an invalid damage-hit anchor.`, releasePath));
+        }
+        if (anchor.kind === 'timed-input'
+          && (!anchor.sourceTimedInputId?.trim()
+            || !Number.isInteger(anchor.sourceTimedInputOffsetFrames)
+            || Number(anchor.sourceTimedInputOffsetFrames) < 0)) {
+          issues.push(issue('invalid-release-timed-input-anchor', `Button ${buttonId} has an invalid timed-input anchor.`, releasePath));
         }
       }
     }

@@ -115,6 +115,13 @@ const groupStart = {
       frame: 54,
       offsetFrames: 24,
     }],
+    timedInputWindows: [{
+      id: 'combo-window:1',
+      sourceCommandId: 'skill',
+      startFrame: 75,
+      endFrameExclusive: 87,
+      label: '精准输入',
+    }],
     debounceFrames: 6,
     projectFrame: frame => frame,
   });
@@ -124,4 +131,29 @@ const groupStart = {
   assert.equal(hit.anchor.sourceHitOffsetFrames, 24);
   assert.equal(hit.anchor.debounceFrames, 6);
   assert.equal(points.filter(point => point.kind === 'group-start').length, 1);
+  const timedInput = points.find(point => point.kind === 'timed-input');
+  assert(timedInput);
+  assert.equal(timedInput.frame, 80);
+  assert.equal(timedInput.anchor.sourceTimedInputId, 'combo-window:1');
+  assert.equal(timedInput.anchor.sourceTimedInputOffsetFrames, 50);
+}
+
+{
+  const solution = solveReleaseStartOffsets([
+    { id: 'stage-1', durationFrames: 84, releaseAnchor: groupStart },
+    {
+      id: 'stage-2',
+      durationFrames: 30,
+      releaseAnchor: {
+        schemaVersion: 1,
+        kind: 'timed-input',
+        sourceButtonId: 'stage-1',
+        sourceTimedInputId: 'combo-window:stage-2',
+        sourceTimedInputOffsetFrames: 77,
+        debounceFrames: 0,
+      },
+    },
+  ]);
+  assert.equal(solution.offsets.get('stage-2'), 77);
+  assert.deepEqual(solution.issues, []);
 }

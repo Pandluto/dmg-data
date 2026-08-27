@@ -20,7 +20,8 @@ export type SkillReleaseAnchorKind =
   | 'group-start'
   | 'action-start'
   | 'action-end'
-  | 'damage-hit';
+  | 'damage-hit'
+  | 'timed-input';
 
 export interface SkillReleaseAnchor {
   schemaVersion: 1;
@@ -28,6 +29,8 @@ export interface SkillReleaseAnchor {
   sourceButtonId?: string;
   sourceHitId?: string;
   sourceHitOffsetFrames?: number;
+  sourceTimedInputId?: string;
+  sourceTimedInputOffsetFrames?: number;
   debounceFrames: number;
 }
 

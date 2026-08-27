@@ -2040,7 +2040,10 @@ export function SkillButtonComponent({
       && !akeComboStage,
   );
   const akeTemporalKindLabel = akeComboStage
-    ? `连携·${akeComboStage.index}段`
+    ? `连携·${akeComboStage.index}段${
+      akePreviewCommand?.profile.comboStage?.index === 2
+      && akePreviewCommand.precisionVerdict === 'resolved' ? '·精准' : ''
+    }`
     : `${akeResolvedEnhancedForm ? '强化' : ''}${
       AKE_TEMPORAL_SHORT_LABELS[skillType] ?? skillType
     }`;

@@ -242,6 +242,14 @@ test('cross-operator audit keeps real multipliers, compact bodies and stable sta
         }],
         'the timing catalog projects the settled chained-combo pending transaction'
     );
+    assert.deepEqual(wulfaCombo2.comboPendingEvents[0].precisionWindow, {
+        startAfterTriggerFrames: 15,
+        endAfterTriggerFramesExclusive: 27,
+        activeDurationFrames: 12,
+        boundary: 'start-inclusive-end-exclusive',
+        sourceActionType: 'ShowComboRingQte',
+        sourceBuffId: 'buff_chr_0028_wulfa_combo_2_qte_timerlistening'
+    }, 'the precise QTE subwindow uses the settled level-patched Buff Blackboard');
 
     const catalogStatusKeys = new Set(Object.values(enriched.characters)
         .flatMap(character => character.profiles)

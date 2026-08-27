@@ -1200,6 +1200,14 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
       consumePolicy: 'selected',
       sourceActionType: 'TriggerComboSkillAction',
       sourceActionPath: 'fixture.combo2.trigger',
+      precisionWindow: {
+        startAfterTriggerFrames: 1,
+        endAfterTriggerFramesExclusive: 3,
+        activeDurationFrames: 2,
+        boundary: 'start-inclusive-end-exclusive',
+        sourceActionType: 'ShowComboRingQte',
+        sourceBuffId: 'fixture-qte-listener',
+      },
     }],
     hits: [],
   });
@@ -1262,6 +1270,10 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
   assertEqual(second.releaseVerdict, 'valid', 'settled action pending is verified');
   assertEqual(chainedWindow?.bypassSkillCooldown, true, 'pending owns the cooldown bypass');
   assertEqual(chainedWindow?.consumedFrame, 1, 'pending is consumed exactly once');
+  assertEqual(chainedWindow?.precisionWindow?.startFrame, 1, 'precision uses the pending trigger as its clock origin');
+  assertEqual(chainedWindow?.precisionWindow?.endFrameExclusive, 3, 'precision preserves the exclusive right boundary');
+  assertEqual(chainedWindow?.precisionWindow?.state, 'resolved', 'stage 2 resolves inside the precise subwindow');
+  assertEqual(second.precisionVerdict, 'resolved', 'the consumed command carries its precision verdict to the button');
   assertEqual(repeated.success, false, 'consumed chained pending cannot be reused');
   assertEqual(repeated.releaseReason, 'COMBO_TRIGGER_MISSING', 'repeat failure is a combo gate');
 }

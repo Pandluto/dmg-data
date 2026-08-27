@@ -25,7 +25,9 @@ const CATALOG_REVISION_KEY = 'def.ake-catalog.revision.v1';
 // and Originium were present in SkillData but absent from the visible hit.
 // Keep this revision in sync with adapter output changes so an existing browser
 // cannot retain a pre-state-machine catalog.
-const CATALOG_ADAPTER_VERSION = 25;
+// v26 adds staged ComboSkill identity plus the nested precise-input interval.
+// Older caches can expose the second stage but cannot render its QTE window.
+const CATALOG_ADAPTER_VERSION = 26;
 
 const LEVEL_KEYS = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'M1', 'M2', 'M3'] as const;
 
@@ -163,6 +165,14 @@ export type AkeTimingComboPendingEvent = {
   consumePolicy: string;
   sourceActionType: string;
   sourceActionPath?: string | null;
+  precisionWindow?: {
+    startAfterTriggerFrames: number;
+    endAfterTriggerFramesExclusive: number;
+    activeDurationFrames: number;
+    boundary: 'start-inclusive-end-exclusive' | string;
+    sourceActionType: string;
+    sourceBuffId: string | null;
+  };
 };
 
 export type AkeTimingComboCondition = {

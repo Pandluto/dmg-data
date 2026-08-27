@@ -698,6 +698,39 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
     const comboWindows = (akeTimeline?.comboWindows ?? akeRealtimeTimeline.comboWindows)
       .map(window => ({ window, point: visualPointForFrame(window.createdFrame, 'after') }))
       .filter(entry => entry.point?.pageIndex === staffIndex);
+    const precisionWindows = (akeTimeline
+      ? (akeTimeline.timedInputWindows ?? []).map(window => ({
+        ...window,
+        characterId: window.ownerId,
+      }))
+      : akeRealtimeTimeline.comboWindows.flatMap(window => (
+        window.precisionWindow ? [{
+          id: `${window.id}:precision`,
+          characterId: window.characterId,
+          ...window.precisionWindow,
+        }] : []
+      )))
+      .flatMap((window) => {
+        const startGlobalX = projectSharedTimelineFrame(
+          variableTimeline,
+          window.startFrame,
+          'after',
+        );
+        const endGlobalX = projectSharedTimelineFrame(
+          variableTimeline,
+          window.endFrameExclusive,
+          'before',
+        );
+        if (startGlobalX === null || endGlobalX === null
+          || endGlobalX <= pageStartX || startGlobalX >= pageEndX) return [];
+        const segmentStart = Math.max(pageStartX, startGlobalX);
+        const segmentEnd = Math.min(pageEndX, endGlobalX);
+        return [{
+          window,
+          left: GRID_FIRST_COLUMN_WIDTH + segmentStart - pageStartX,
+          width: Math.max(4, segmentEnd - segmentStart),
+        }];
+      });
     const actionsOnPage = variableTimeline.actions.filter(action => (
       action.startX < pageEndX && action.endX > pageStartX
     ));
@@ -865,6 +898,29 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
               style={{ left: point.x, top: getGridLineCenterY(lineIndex) - 23 }}
               title={`${seconds(window.createdFrame)} 连携触发 · 有效至 ${seconds(window.expireFrame)} · ${stateLabel}`}
             >E</i>
+          );
+        })}
+        {precisionWindows.map(({ window, left, width }) => {
+          const lineIndex = selectedCharacters.findIndex(character => (
+            character.id === window.characterId
+          ));
+          if (lineIndex < 0) return null;
+          const stateLabel = window.state === 'resolved'
+            ? `${seconds(window.resolvedFrame ?? window.startFrame)} 命中精准`
+            : window.state === 'missed' ? '未命中精准' : '精准时段';
+          return (
+            <div
+              key={window.id}
+              className={`ake-combo-precision-window is-${window.state}`}
+              style={{
+                left,
+                width,
+                top: getGridLineCenterY(lineIndex) - 7,
+              }}
+              title={`精准时段 ${seconds(window.startFrame)}～${seconds(window.endFrameExclusive)}（末端不含） · ${stateLabel}`}
+            >
+              <span>精准</span>
+            </div>
           );
         })}
         {selectedCharacters.map((character, lineIndex) => {

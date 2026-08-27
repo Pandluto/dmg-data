@@ -2484,6 +2484,19 @@
   transform: rotate(45deg) scale(0.72);
 }
 
+.canvas-release-snap-point.is-timed-input {
+  width: 10px;
+  height: 18px;
+  margin-left: 2px;
+  margin-top: -2px;
+  border: 1px solid #fff7bd;
+  border-radius: 5px;
+  background: #ffd85a;
+  box-shadow:
+    0 0 0 2px rgba(48, 155, 181, 0.3),
+    0 0 9px rgba(255, 216, 90, 0.9);
+}
+
 .canvas-release-snap-point.is-active {
   z-index: 5;
   opacity: 1;
@@ -2493,6 +2506,13 @@
 
 .canvas-release-snap-point.is-damage-hit.is-active {
   transform: rotate(45deg) scale(1.12);
+}
+
+.canvas-release-snap-point.is-timed-input.is-active {
+  transform: scale(1.18);
+  box-shadow:
+    0 0 0 5px rgba(48, 155, 181, 0.28),
+    0 0 14px rgba(255, 216, 90, 1);
 }
 
 /* 表格行列标注层 - 文字在最上方 */
@@ -3016,6 +3036,58 @@
   background: #e48a7d;
   box-shadow: 0 0 0 1px rgba(132, 47, 39, 0.7), 0 0 6px rgba(221, 91, 73, 0.55);
   color: #7c2e27;
+}
+
+.ake-combo-precision-window {
+  position: absolute;
+  z-index: 6;
+  height: 4px;
+  min-width: 4px;
+  pointer-events: none;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #42d4e8, #f7de72, #42d4e8);
+  box-shadow:
+    0 0 0 1px rgba(27, 103, 117, 0.5),
+    0 0 7px rgba(62, 211, 230, 0.72);
+}
+
+.ake-combo-precision-window::before,
+.ake-combo-precision-window::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  width: 1px;
+  height: 10px;
+  background: #167487;
+  box-shadow: 0 0 4px rgba(48, 213, 232, 0.72);
+}
+
+.ake-combo-precision-window::before { left: 0; }
+.ake-combo-precision-window::after { right: 0; }
+
+.ake-combo-precision-window > span {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  color: #17606d;
+  font-size: 7px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.ake-combo-precision-window.is-resolved {
+  background: #ffe266;
+  box-shadow:
+    0 0 0 1px rgba(130, 92, 12, 0.55),
+    0 0 9px rgba(255, 210, 52, 0.9);
+}
+
+.ake-combo-precision-window.is-missed {
+  filter: grayscale(0.75);
+  opacity: 0.48;
 }
 
 .ake-operator-usp-lane {

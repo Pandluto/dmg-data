@@ -149,6 +149,7 @@ export class ComboTriggerMachine {
         this.trace = trace;
         this.getCooldownEnd = getCooldownEnd;
         this.pending = new Map();
+        this.pauseLeases = new Map();
         this.seenOccurrences = new Set();
         this.nextPendingId = 1;
         this.nextTraceSequence = 1;
@@ -210,7 +211,8 @@ export class ComboTriggerMachine {
 
     #expire(pendingId, frame) {
         const pending = this.pending.get(pendingId);
-        if (!pending || pending.expireFrame !== frame) return false;
+        if (!pending || pending.expireFrame !== frame
+            || pending.pauseLeaseIds.size > 0) return false;
         this.pending.delete(pendingId);
         this.#record({
             frame,
@@ -244,6 +246,9 @@ export class ComboTriggerMachine {
     }
 
     #createPending(rule, event, ownerId, triggerTargetId) {
+        const pauseLeaseIds = new Set([...this.pauseLeases.values()]
+            .filter(lease => lease.isAll || lease.ownerId === ownerId)
+            .map(lease => lease.leaseId));
         const pending = {
             id: this.nextPendingId++,
             ruleId: rule.id,
@@ -257,11 +262,121 @@ export class ComboTriggerMachine {
             expireFrame: event.frame + rule.effect.pendingDurationTicks - 1,
             durationTicks: rule.effect.pendingDurationTicks,
             selectionPolicy: rule.effect.selectionPolicy,
-            consumePolicy: rule.effect.consumePolicy
+            consumePolicy: rule.effect.consumePolicy,
+            pauseLeaseIds,
+            pausedAtFrame: pauseLeaseIds.size > 0 ? event.frame : null
         };
         this.pending.set(pending.id, pending);
         this.#scheduleExpiry(pending);
         return pending;
+    }
+
+    #remainingFrames(pending, frame) {
+        const effectiveFrame = pending.pausedAtFrame ?? frame;
+        return Math.max(0, pending.expireFrame - effectiveFrame);
+    }
+
+    pause({ frame, ownerId = null, isAll = false, leaseId, castId = null,
+        reason = 'PauseComboWindowTime' }) {
+        if (!Number.isInteger(frame) || frame < 0) {
+            throw new TypeError('combo pause frame must be a non-negative integer.');
+        }
+        requiredString(leaseId, 'combo pause leaseId');
+        if (!isAll) requiredString(ownerId, 'combo pause ownerId');
+        this.#expireDueBeforeOrAt(frame);
+        const existing = this.pauseLeases.get(leaseId);
+        if (existing) {
+            if (existing.ownerId !== ownerId || existing.isAll !== isAll) {
+                throw new Error(`Conflicting combo pause lease ${leaseId}.`);
+            }
+            return { status: 'Ignored', reason: 'LEASE_ALREADY_ACTIVE', ...existing };
+        }
+        const lease = { leaseId, ownerId, isAll, castId, frame, reason };
+        this.pauseLeases.set(leaseId, lease);
+        let affectedCount = 0;
+        for (const pending of this.pending.values()) {
+            if (!isAll && pending.ownerId !== ownerId) continue;
+            if (pending.pauseLeaseIds.size === 0) pending.pausedAtFrame = frame;
+            pending.pauseLeaseIds.add(leaseId);
+            affectedCount += 1;
+            this.#record({
+                frame,
+                stage: 'PENDING_TIME_PAUSED',
+                ruleId: pending.ruleId,
+                pendingId: pending.id,
+                skillId: pending.skillId,
+                targetId: pending.ownerId,
+                triggerTargetId: pending.triggerTargetId,
+                pendingRemainingFrames: this.#remainingFrames(pending, frame),
+                result: true,
+                reason
+            });
+        }
+        return { status: 'Paused', affectedCount, ...lease };
+    }
+
+    resume({ frame, leaseId, reason = 'ResumeComboWindowTime' }) {
+        if (!Number.isInteger(frame) || frame < 0) {
+            throw new TypeError('combo resume frame must be a non-negative integer.');
+        }
+        requiredString(leaseId, 'combo resume leaseId');
+        const lease = this.pauseLeases.get(leaseId);
+        if (!lease) return { status: 'Ignored', reason: 'LEASE_NOT_ACTIVE', leaseId };
+        this.pauseLeases.delete(leaseId);
+        let affectedCount = 0;
+        for (const pending of this.pending.values()) {
+            if (!pending.pauseLeaseIds.delete(leaseId)) continue;
+            affectedCount += 1;
+            if (pending.pauseLeaseIds.size === 0) {
+                const pausedAtFrame = pending.pausedAtFrame ?? frame;
+                pending.expireFrame += Math.max(0, frame - pausedAtFrame);
+                pending.pausedAtFrame = null;
+                this.#scheduleExpiry(pending);
+            }
+            this.#record({
+                frame,
+                stage: 'PENDING_TIME_RESUMED',
+                ruleId: pending.ruleId,
+                pendingId: pending.id,
+                skillId: pending.skillId,
+                targetId: pending.ownerId,
+                triggerTargetId: pending.triggerTargetId,
+                pendingRemainingFrames: this.#remainingFrames(pending, frame),
+                result: true,
+                reason
+            });
+        }
+        this.#expireDueBeforeOrAt(frame);
+        return { status: 'Resumed', affectedCount, ...lease, resumeFrame: frame };
+    }
+
+    releaseCastPauses({ frame, castId, reason = 'ComboPauseCastEnded' }) {
+        if (castId === null || castId === undefined) {
+            return { status: 'Ignored', reason: 'CAST_ID_MISSING', releasedCount: 0 };
+        }
+        const leaseIds = [...this.pauseLeases.values()]
+            .filter(lease => lease.castId === castId)
+            .map(lease => lease.leaseId);
+        for (const leaseId of leaseIds) this.resume({ frame, leaseId, reason });
+        return {
+            status: leaseIds.length > 0 ? 'Released' : 'Ignored',
+            reason: leaseIds.length > 0 ? reason : 'NO_CAST_PAUSE_LEASES',
+            releasedCount: leaseIds.length,
+            castId
+        };
+    }
+
+    resolveTimeControl(input = {}) {
+        switch (input.operation) {
+            case 'Pause':
+                return this.pause(input);
+            case 'Resume':
+                return this.resume(input);
+            case 'ReleaseCast':
+                return this.releaseCastPauses(input);
+            default:
+                throw new Error(`Unsupported combo pending time operation: ${input.operation}.`);
+        }
     }
 
     observe(event, context = {}) {
@@ -397,7 +512,7 @@ export class ComboTriggerMachine {
             commandId,
             castId,
             triggerTargetId: pending?.triggerTargetId ?? null,
-            pendingRemainingFrames: pending ? pending.expireFrame - frame : null,
+            pendingRemainingFrames: pending ? this.#remainingFrames(pending, frame) : null,
             result: ready,
             reason
         });
@@ -429,7 +544,7 @@ export class ComboTriggerMachine {
             commandId,
             castId,
             triggerTargetId: selected.triggerTargetId,
-            pendingRemainingFrames: selected.expireFrame - frame,
+            pendingRemainingFrames: this.#remainingFrames(selected, frame),
             result: true,
             reason: 'CAST_SUCCESS'
         });
@@ -440,6 +555,16 @@ export class ComboTriggerMachine {
         if (Number.isFinite(frame)) this.#expireDueBeforeOrAt(frame);
         return [...this.pending.values()]
             .sort((left, right) => left.createdFrame - right.createdFrame || left.id - right.id)
-            .map(pending => ({ ...pending }));
+            .map(pending => {
+                const { pauseLeaseIds, ...snapshot } = pending;
+                return {
+                    ...snapshot,
+                    paused: pauseLeaseIds.size > 0,
+                    pauseLeaseIds: [...pauseLeaseIds],
+                    remainingFrames: Number.isFinite(frame)
+                        ? this.#remainingFrames(pending, frame)
+                        : null
+                };
+            });
     }
 }

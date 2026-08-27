@@ -291,6 +291,64 @@ test('status transitions and other-operator combo hits use the same generic pend
     }).ready, true);
 });
 
+test('owner-scoped pause leases freeze combo expiry with strict resume boundaries', () => {
+    const machine = new ComboTriggerMachine({
+        rules: [{
+            id: 'test.pause-window',
+            eventType: 'BeforeHpDamage',
+            selector: {
+                rootSkillIds: ['trigger-skill'],
+                damageAttributeType: 'Hp',
+                occurrence: 'first-per-cast-target'
+            },
+            effect: {
+                comboSkillId: 'combo-skill',
+                pendingDurationTicks: 30,
+                ownerBinding: 'event-source',
+                triggerTargetBinding: 'event-target',
+                pendingPolicy: 'replace-all',
+                selectionPolicy: 'newest',
+                consumePolicy: 'selected'
+            }
+        }]
+    });
+    machine.observe({
+        eventType: 'BeforeHpDamage',
+        frame: 10,
+        sourceId: 'actor',
+        sourceSkillId: 'trigger-hit',
+        rootSkillId: 'trigger-skill',
+        sourceCastId: 'trigger-cast',
+        targetId: 'enemy',
+        damageAttributeType: 'Hp'
+    });
+
+    machine.pause({
+        frame: 20,
+        ownerId: 'actor',
+        leaseId: 'heavy-action:1',
+        castId: 'heavy-cast'
+    });
+    const paused = machine.snapshot(45)[0];
+    assert.equal(paused.paused, true);
+    assert.equal(paused.remainingFrames, 19,
+        'wall time does not consume the frozen right-open combo window');
+
+    machine.resume({ frame: 50, leaseId: 'heavy-action:1' });
+    assert.equal(machine.gate({
+        frame: 68,
+        skillId: 'combo-skill',
+        ownerId: 'actor',
+        targetId: 'enemy'
+    }).ready, true);
+    assert.equal(machine.gate({
+        frame: 69,
+        skillId: 'combo-skill',
+        ownerId: 'actor',
+        targetId: 'enemy'
+    }).ready, false, 'the resumed end frame remains a strict expiry boundary');
+});
+
 test('simulator contains no character-specific combo trigger branch', () => {
     const implementation = fs.readFileSync(
         path.join(projectRoot, 'src', 'core', 'simulator.mjs'),

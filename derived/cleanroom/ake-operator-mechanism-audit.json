@@ -11,18 +11,18 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3042,
-    "combatRiskCount": 881,
+    "findingCount": 3041,
+    "combatRiskCount": 880,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 298,
+      "combat-blocking": 297,
       "combat-partial": 161,
       "evidence-missing": 422,
       "presentation-only": 390,
       "spatial-assumption": 1771
     },
     "byPriority": {
-      "P0": 157,
+      "P0": 156,
       "P1": 650,
       "P2": 1845,
       "P3": 390
@@ -30,7 +30,6 @@
     "byCapability": {
       "child-action": 41,
       "condition-algebra": 133,
-      "cooldown-window": 1,
       "damage-factor": 11,
       "data-provider": 1,
       "dependency-closure": 1,
@@ -116,7 +115,6 @@
       "ObtainUspInNormalSkill": 1,
       "OrConditionAction": 1,
       "OverrideMultiDashLimit": 1,
-      "PauseComboSkillTime": 1,
       "Probablity": 27,
       "PullAction": 16,
       "PushBackAction": 4,
@@ -16651,18 +16649,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 339,
-        "combatRiskCount": 196,
+        "findingCount": 338,
+        "combatRiskCount": 195,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 25,
+          "combat-blocking": 24,
           "combat-partial": 8,
           "evidence-missing": 163,
           "presentation-only": 45,
           "spatial-assumption": 98
         },
         "byPriority": {
-          "P0": 7,
+          "P0": 6,
           "P1": 186,
           "P2": 101,
           "P3": 45
@@ -16670,7 +16668,6 @@
         "byCapability": {
           "child-action": 1,
           "condition-algebra": 18,
-          "cooldown-window": 1,
           "deterministic-choice": 160,
           "event-scheduling": 1,
           "event-subscription": 3,
@@ -16703,7 +16700,6 @@
           "MoveToAction": 20,
           "NotNextCheckAction": 1,
           "ObtainUspInNormalSkill": 1,
-          "PauseComboSkillTime": 1,
           "RandomAction": 150,
           "ReceiveMoveInputAction": 1,
           "SaveTargetDistanceAction": 4,
@@ -16787,23 +16783,6 @@
           "priority": "P0",
           "capability": "resource-transaction",
           "rationale": "A missing resource value changes future command admission."
-        },
-        {
-          "characterId": "chr_0028_wulfa",
-          "characterName": "洛茜",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0028_wulfa_power_attack",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0028_wulfa_power_attack.json",
-          "jsonPath": "actionGroupData.timelineActions[17][1..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "PauseComboSkillTime",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for PauseComboSkillTime.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
         },
         {
           "characterId": "chr_0028_wulfa",

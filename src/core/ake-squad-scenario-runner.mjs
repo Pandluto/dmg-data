@@ -464,6 +464,10 @@ export class AkeSquadScenarioRunner {
                 status: 'Ignored',
                 reason: 'CommandStateNotReady'
             }),
+            comboPendingTimeResolver: request => comboMachine?.resolveTimeControl(request) ?? ({
+                status: 'Unresolved',
+                reason: 'ComboTriggerMachineNotReady'
+            }),
             onStatusTransition: observeStatusTransitionForCombos,
             maxEventsPerRun: this.maxEventsPerRun
         });

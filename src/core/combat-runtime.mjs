@@ -114,6 +114,7 @@ export class CombatRuntime {
         skillProgramResolver = null,
         timeDilationResolver = null,
         skillInterruptResolver = null,
+        comboPendingTimeResolver = null,
         onStatusTransition = null,
         maxDerivedDepth = 16,
         maxEventsPerRun = 10000
@@ -134,6 +135,10 @@ export class CombatRuntime {
         if (skillInterruptResolver !== null && typeof skillInterruptResolver !== 'function') {
             throw new TypeError('skillInterruptResolver must be a function or null.');
         }
+        if (comboPendingTimeResolver !== null
+            && typeof comboPendingTimeResolver !== 'function') {
+            throw new TypeError('comboPendingTimeResolver must be a function or null.');
+        }
         if (onStatusTransition !== null && typeof onStatusTransition !== 'function') {
             throw new TypeError('onStatusTransition must be a function or null.');
         }
@@ -141,6 +146,7 @@ export class CombatRuntime {
         this.skillProgramResolver = skillProgramResolver;
         this.timeDilationResolver = timeDilationResolver;
         this.skillInterruptResolver = skillInterruptResolver;
+        this.comboPendingTimeResolver = comboPendingTimeResolver;
         this.tickRate = finite(tickRate, 'tickRate');
         if (this.tickRate <= 0) throw new RangeError('tickRate must be positive.');
         this.maxDerivedDepth = nonNegativeInteger(maxDerivedDepth, 'maxDerivedDepth');
@@ -577,6 +583,28 @@ export class CombatRuntime {
         ));
     }
 
+    #releaseComboPendingPauseLeases({ frame, castId, actorId, reason }, eventContext = {}) {
+        if (!this.comboPendingTimeResolver || castId === null || castId === undefined) {
+            return null;
+        }
+        const result = this.comboPendingTimeResolver({
+            operation: 'ReleaseCast',
+            frame,
+            castId,
+            ownerId: actorId,
+            reason,
+            eventContext: cloneValue(eventContext),
+            runtime: this
+        });
+        this.#record('ComboPendingPauseCastReleased', {
+            ...cloneValue(eventContext),
+            frame,
+            sourceId: actorId,
+            castId
+        }, { reason, result: cloneValue(result) });
+        return result;
+    }
+
     beginSkillActionLifetimes(input, eventContext = {}) {
         if (!isRecord(input)) {
             throw new TypeError('beginSkillActionLifetimes requires an input object.');
@@ -644,6 +672,12 @@ export class CombatRuntime {
                 reason: input.reason ?? 'SkillEnded'
             }, eventContext);
         }
+        if (firstEnd) this.#releaseComboPendingPauseLeases({
+            frame,
+            castId,
+            actorId,
+            reason: input.reason ?? 'SkillEnded'
+        }, eventContext);
         return transition;
     }
 
@@ -1062,6 +1096,12 @@ export class CombatRuntime {
         this.abilityEventListeners.remove({
             frame: cancelFrame,
             programExecutionId: executionId,
+            reason: `ProgramCancelled:${reason}`
+        }, execution.context);
+        this.#releaseComboPendingPauseLeases({
+            frame: cancelFrame,
+            castId: execution.castId,
+            actorId: execution.context.sourceId,
             reason: `ProgramCancelled:${reason}`
         }, execution.context);
         this.#record('SkillProgramCancelled', {
@@ -2991,6 +3031,45 @@ export class CombatRuntime {
                 }
                 return this.skillInterruptResolver({
                     action: cloneValue(action),
+                    eventContext: cloneValue(eventContext),
+                    runtime: this
+                });
+            },
+            SetComboPendingTimePaused: (action, eventContext) => {
+                if (!this.comboPendingTimeResolver) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'MissingComboPendingTimeResolver'
+                    };
+                }
+                if (typeof action.isPaused !== 'boolean') {
+                    throw new TypeError('SetComboPendingTimePaused requires boolean isPaused.');
+                }
+                const ownerId = this.#entityId(
+                    action.target ?? action.targetRef ?? action.targetId,
+                    eventContext,
+                    'Owner'
+                );
+                const leaseKey = identifier(action.leaseKey, 'combo pending pause lease key');
+                const lifetimeId = eventContext.castId
+                    ?? eventContext.programExecutionId
+                    ?? null;
+                if (lifetimeId === null) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'ComboPendingPauseLifetimeMissing',
+                        leaseKey
+                    };
+                }
+                return this.comboPendingTimeResolver({
+                    operation: action.isPaused ? 'Pause' : 'Resume',
+                    frame: eventContext.frame,
+                    ownerId,
+                    isAll: action.isAll === true,
+                    leaseId: `${leaseKey}:${String(lifetimeId)}`,
+                    leaseKey,
+                    castId: eventContext.castId ?? null,
+                    reason: action.reason ?? 'SetComboPendingTimePaused',
                     eventContext: cloneValue(eventContext),
                     runtime: this
                 });

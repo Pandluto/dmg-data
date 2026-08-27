@@ -538,8 +538,9 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 23. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁；
 24. 全库 40 处 `SetSkillCdAtOnce` 已收敛为一个角色无关的 `ModifySkillCooldown` 事务，覆盖 Set/Reduce、固定秒数/基础冷却比例、指定 skill id/skill type 四个维度。冷却事实从单人和小队 runner 的局部 Map 提升到共享 `SkillCooldownSystem`，按“角色 × 公共技能组”拥有状态；强化/替换 skill id 因此与原按钮共用冷却。连携触发、command admission、最终状态和 UI cooldown interval 读取同一 end frame；陈千语 `OnBeforeOutputAirborne` 的比例减冷却现可在事件帧修改正在运行的连携冷却。逐干员 blocker 由 322 降至 304，报告中不再存在 `SetSkillCdAtOnce` finding。
 25. 全库成对出现的 14 处 `CheckGlobalCDTimerAction` 与 14 处 `AddGlobalCDTimer` 已收敛到公共 timed-marker 事务：键为“目标实体 × 原始 buffId 桶”，结束帧使用全局战斗时间，Blackboard/固定秒数统一解析；逐干员 blocker 由 304 降至 298。动作覆盖审计现区分 runtime action 与 runtime condition，避免把可执行的条件节点继续误报为 `AKE_ACTION_UNSUPPORTED`。
+26. 唯一一处 `PauseComboSkillTime` 已按 AKE 原始生命周期收敛为连携待释放时间的暂停租约：租约以角色/全体范围、timeline path 与 cast 标识，不消耗暂停期间的剩余 Tick；正常组结束释放，技能中断或 program cancel 也按 cast 兜底释放。逐干员 blocker 由 298 降至 297，`cooldown-window` 类 finding 已清零。
 
-304 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。强制异常、异常生命周期、同元素爆发、普通四元素反应、技能时间窗 tag、技能/Buff 事件订阅生命周期、对应事件生产者与 `SetSkillCdAtOnce` 公共数据链已经闭合；狼卫空 selector 等子动作仍未闭合。`PauseComboSkillTime`、global-CD 与未见于本动作的 remaining-basis 操作仍是独立冷却能力，不得借本次实现宣称完成。仍未证实的 `弭弗特殊猛击` 数值继续保持 evidence-missing，而不是借元素表猜值。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
+297 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。强制异常、异常生命周期、同元素爆发、普通四元素反应、技能时间窗 tag、技能/Buff 事件订阅生命周期、对应事件生产者、技能组冷却、internal cooldown 与连携窗口暂停的公共数据链已经闭合；狼卫空 selector 等子动作仍未闭合。未见于当前 AKE 动作的 remaining-basis 冷却操作不得借已实现的 base-basis 百分比猜补。仍未证实的 `弭弗特殊猛击` 数值继续保持 evidence-missing，而不是借元素表猜值。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
 
 ### 12.1 普通元素链的证据矩阵
 
@@ -623,7 +624,7 @@ Endaxis 的 `src/simulation/engine/TriggerRegistry.ts` 证明“集中事件注�
 6. runner 的连携窗口创建、技能释放合法性、最终状态和 cooldown interval 全部读取该状态机，避免“计算已经减 CD、按钮仍显示旧 CD”或反向情况；
 7. 多角色以 actorId 隔离；相同 skill id 不会跨角色串冷却。
 
-当前切片只实现 AKE `SetSkillCdAtOnce` 已出现的语义。`PauseComboSkillTime`、`AddGlobalCDTimer`、`CheckGlobalCDTimerAction` 以及确有原始证据时的 remaining-basis 百分比，继续由审计保留为后续能力，不能在没有字段证据时塞进本动作。
+这个切片只定义 AKE `SetSkillCdAtOnce` 已出现的语义；`GlobalCDTimer` 与 `PauseComboSkillTime` 随后分别在 12.6、12.7 按自己的原始字段和生命周期实现，没有塞进技能冷却事务。确有原始证据时的 remaining-basis 百分比仍应作为独立 operation 增量实现，不能从 base-basis 猜补。
 
 ### 12.5 实时画布的共享冷却投影
 
@@ -649,3 +650,27 @@ Endaxis 的 `src/simulation/engine/TriggerRegistry.ts` 证明“集中事件注�
 6. 实际 fixture 同时覆盖弭弗技能内护盾门与物理套装触发门，并验证角色隔离、Blackboard 秒数和严格到期边界。
 
 Endaxis 的 `internalCooldown/sharedIcdKey` 说明成熟模拟器同样需要把 proc 冷却从技能冷却中分离，但其桶名和触发配置来自手填数据。本项目只借鉴这种分层，桶身份、目标和持续时间仍全部来自 AKE 原始动作；没有把 Endaxis 的专有规则复制进运行时。
+
+### 12.7 `PauseComboSkillTime` 的动作生命周期租约
+
+公开 AKE 数据中只有一处 `PauseComboSkillTime`，位于洛茜（`chr_0028_wulfa`）重击的 0～65 帧 timeline group。单看动作名不足以决定它是“暂停技能 CD”“暂停角色本地时钟”还是“暂停待释放连携”，因此实现前额外交叉检查了同一动作组和三份 BuffData：
+
+| 证据 | 原始行为 | 对通用语义的约束 |
+| --- | --- | --- |
+| 重击动作组 | 先检查 `buff_chr_0028_wulfa_combo_2_qte_timerlistening`，再执行 `PauseComboSkillTime(isAll=false, Owner)` | 只在二段连携监听存在时暂停 Owner 的待释放连携时间，不是技能组 CD |
+| 同组 resume Buff | 创建 `buff_chr_0028_wulfa_powerattack_resumecombo`，且 `autoFinishByAction=true` | 暂停边界由当前动作生命周期拥有，不能永久写入角色状态 |
+| listening Buff | `OnBeforeCastSkill(power_attack)` 执行 `PauseBuffTime(true)`；resume Buff 结束后执行 `PauseBuffTime(false)` | 连携监听 Buff 的剩余时间与 pending window 必须在同一重击区间一起冻结/恢复 |
+| use-timer Buff | 使用相同的 pause/resume 事件对，并在结束时恢复二段连携技能与冷却 | pending window 与 AKE 的二段连携可用计时是同一个生命周期问题 |
+| Endaxis 洛茜实现 | 源码明确保留“二段连携窗口对应关系” TODO | 只能作为未闭合反证，不能复制它的手写窗口规则冒充 AKE 语义 |
+
+据此冻结以下运行时边界：
+
+1. 暂停对象是 `ComboTriggerMachine` 中的 pending entries；普通技能冷却、internal cooldown、角色局部时钟和敌方状态时间均不受影响；
+2. 每个 pause 使用独立 lease，身份由 timeline path 与 cast 组成；重叠动作必须全部释放后时间才继续；
+3. `isAll=false` 只匹配目标角色；状态机也保留 `isAll=true` 的全体范围语义，但当前数据集没有以它扩展角色规则；
+4. 暂停期间新创建且属于该范围的 pending 同样立即冻结，防止依赖同帧执行顺序产生不同结果；
+5. 恢复时只把实际冻结的 wall Tick 加回原到期帧；到期继续使用右开边界，不能多送或少送一帧；
+6. timeline group cleanup 正常释放 lease；技能中断、动作提前结束和 program cancel 另按 cast 释放，避免 cleanup timer 被取消后窗口永久冻结；
+7. trace 明确输出 `PENDING_TIME_PAUSED` / `PENDING_TIME_RESUMED`、lease 与剩余帧，UI 只能投影这一事实，不能按按钮宽度猜持续时间。
+
+原语回归使用任意 owner/skill 的数据驱动规则验证暂停与严格到期边界；真实回归直接读取洛茜原始 `PauseComboSkillTime` 结构，验证编译出的 start/cleanup 租约以及中断兜底。核心实现没有判断洛茜、重击或二段连携 ID。

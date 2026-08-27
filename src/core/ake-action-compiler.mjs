@@ -2238,6 +2238,57 @@ export class AkeActionCompiler {
                 });
                 break;
             }
+            case 'PauseComboSkillTime': {
+                const target = this.#targetRef(
+                    node.characterSettings,
+                    state,
+                    'combo pending owner'
+                );
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                if (state.scope !== 'skill'
+                    || !Number.isFinite(Number(state.timelineEndFrame))) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_COMBO_PAUSE_ACTION_LIFETIME_REQUIRED',
+                        type,
+                        state.path,
+                        'PauseComboSkillTime requires a SkillData timeline group end boundary.'
+                    ));
+                    break;
+                }
+                const leaseKey = `ake-skill:${state.path}:combo-pending-pause`;
+                if (target.ref) {
+                    const pause = {
+                        type: 'SetComboPendingTimePaused',
+                        target: target.ref,
+                        isAll: node.isAll === true,
+                        isPaused: true,
+                        leaseKey,
+                        reason: type,
+                        metadata: {
+                            akeSourceAction: type,
+                            akeSourcePath: state.path,
+                            ownerLifetime: 'TimelineGroup'
+                        }
+                    };
+                    result.actions.push(pause);
+                    result.cleanupActions.push({
+                        ...pause,
+                        isPaused: false,
+                        reason: `${type}:timeline-end`
+                    });
+                }
+                result.metadata.push({
+                    type,
+                    path: state.path,
+                    category: 'combo-window',
+                    operation: 'pause-until-timeline-end',
+                    isAll: node.isAll === true,
+                    leaseKey,
+                    timelineStartFrame: Number(state.timelineStartFrame ?? 0),
+                    timelineEndFrame: Number(state.timelineEndFrame)
+                });
+                break;
+            }
             case 'SetSkillCdAtOnce': {
                 const target = this.#targetRef(
                     node.target,

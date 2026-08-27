@@ -354,6 +354,12 @@ export class CombatRuntime {
                 definition.attributeComponents
             );
         }
+        if (definition.attributeBaselineSources !== undefined) {
+            this.effectSources.registerBaselineSources(
+                entity.id,
+                definition.attributeBaselineSources
+            );
+        }
         this.entityBlackboards.set(entity.id, cloneValue(definition.blackboard ?? {}));
         const clockDefinition = definition.clockDomain ?? (definition.clockDomainId
             ? { id: definition.clockDomainId, kind: definition.kind, ownerId: entity.id }
@@ -1986,6 +1992,21 @@ export class CombatRuntime {
                 );
                 return compare(currentHp, condition.operator, expected);
             },
+            HealTagMatch: (condition, eventContext) => {
+                const actual = new Set([
+                    ...(eventContext.payload?.healTagIds ?? []),
+                    ...(eventContext.payload?.healTags ?? [])
+                ].map(tag => String(tag)));
+                const requested = (condition.tags ?? condition.tagIds ?? [])
+                    .map(tag => String(tag));
+                if (requested.length === 0) return false;
+                const matches = requested.map(tag => actual.has(tag));
+                switch (condition.queryType ?? condition.checkType ?? 'HasAny') {
+                    case 'HasAll': return matches.every(Boolean);
+                    case 'HasNone': return matches.every(match => !match);
+                    default: return matches.some(Boolean);
+                }
+            },
             EntityIsMainCharacter: (condition, eventContext) => {
                 const targetId = this.#entityId(
                     condition.entity ?? condition.target ?? condition.targetId,
@@ -2354,6 +2375,11 @@ export class CombatRuntime {
                 if (action.excludeOwner === true) {
                     candidates = candidates.filter(entity => entity.id !== ownerId);
                 }
+                if (action.onlyMainCharacter === true) {
+                    candidates = candidates.filter(entity =>
+                        entity.metadata?.isMainCharacter === true
+                    );
+                }
                 const requestedTagIds = action.tagIds ?? [];
                 if (requestedTagIds.length > 0) {
                     candidates = candidates.filter(entity => {
@@ -2418,6 +2444,15 @@ export class CombatRuntime {
                     const transaction = this.effects.executeTransaction(action.actions ?? [], {
                         ...cloneValue(eventContext),
                         targetId,
+                        // AKE's EventTarget reference means the current
+                        // ForEach iteration target, not the event's original
+                        // target.  Keep the payload in sync so nested
+                        // CreateBuff/Heal/Damage actions resolve the same
+                        // entity as the loop's `targetId`.
+                        payload: {
+                            ...cloneValue(eventContext.payload ?? {}),
+                            eventTargetId: targetId
+                        },
                         blackboard: cloneValue(eventContext.blackboard)
                     });
                     eventContext.blackboard = cloneValue(transaction.eventContext.blackboard);
@@ -2840,17 +2875,68 @@ export class CombatRuntime {
                 const abilityEvents = this.#notifyResourceEvent(record, eventContext);
                 return abilityEvents.length === 0 ? record : { ...record, abilityEvents };
             },
-            Heal: (action, eventContext) => this.vitals.heal({
-                ...this.#attribution(action, eventContext),
-                baseAmount: this.#number(action.baseAmount ?? action.amount ?? action.value,
-                    eventContext, 'heal amount'),
-                healingDoneScalar: this.#number(action.healingDoneScalar ?? 1,
-                    eventContext, 'healingDoneScalar', 1),
-                healingTakenScalar: this.#number(action.healingTakenScalar ?? 1,
-                    eventContext, 'healingTakenScalar', 1),
-                buffId: action.buffId ?? eventContext.payload?.buffId ?? null,
-                revive: action.revive
-            }),
+            Heal: (action, eventContext) => {
+                const attribution = this.#attribution(action, eventContext);
+                const healTags = Array.isArray(action.healTags)
+                    ? cloneValue(action.healTags)
+                    : [];
+                const result = this.vitals.heal({
+                    ...attribution,
+                    baseAmount: this.#number(action.baseAmount ?? action.amount ?? action.value,
+                        eventContext, 'heal amount'),
+                    healingDoneScalar: this.#number(action.healingDoneScalar ?? 1,
+                        eventContext, 'healingDoneScalar', 1),
+                    healingTakenScalar: this.#number(action.healingTakenScalar ?? 1,
+                        eventContext, 'healingTakenScalar', 1),
+                    buffId: action.buffId ?? eventContext.payload?.buffId ?? null,
+                    revive: action.revive
+                });
+                const healContext = this.context.createEventContext(eventContext, {
+                    frame: result.frame,
+                    sourceId: attribution.sourceId,
+                    ownerId: attribution.ownerId,
+                    targetId: result.targetId,
+                    skillId: attribution.skillId,
+                    rootSkillId: attribution.rootSkillId,
+                    castId: attribution.castId,
+                    clockDomainId: attribution.clockDomainId,
+                    payload: {
+                        ...cloneValue(eventContext.payload ?? {}),
+                        healType: action.healType ?? null,
+                        healTagIds: cloneValue(healTags),
+                        healTags: cloneValue(healTags),
+                        baseAmount: result.requestedAmount ?? result.requested ?? 0,
+                        requestedHealing: result.requestedAmount ?? result.requested ?? 0,
+                        actualHealing: result.actualHealing ?? result.actual ?? 0,
+                        healingOverflow: result.healingOverflow ?? result.discarded ?? 0,
+                        hpOverflow: result.hpOverflow ?? 0,
+                        capOverflow: result.capOverflow ?? 0,
+                        eventTargetId: result.targetId
+                    }
+                });
+                const outputListenerId = attribution.sourceId ?? attribution.ownerId;
+                const abilityEvents = [
+                    ...(outputListenerId === null || outputListenerId === undefined
+                        ? []
+                        : this.#notifyHealEvent(
+                            'OnOutputHeal',
+                            result,
+                            healContext,
+                            outputListenerId,
+                            healTags
+                        )),
+                    ...this.#notifyHealEvent(
+                        'OnReceiveHeal',
+                        result,
+                        healContext,
+                        result.targetId,
+                        healTags
+                    )
+                ];
+                return abilityEvents.length === 0
+                    ? result
+                    : { ...result, abilityEvents };
+            },
             AddShield: (action, eventContext) => this.vitals.addShield({
                 ...this.#attribution(action, eventContext),
                 amount: this.#number(action.amount ?? action.value, eventContext, 'shield amount'),
@@ -4619,6 +4705,45 @@ export class CombatRuntime {
             }
         });
         return this.#notifyLifecycleAbilityEvent(eventType, context, targetId);
+    }
+
+    #notifyHealEvent(eventType, heal, eventContext, listenerTargetId, healTags = []) {
+        if (listenerTargetId === null || listenerTargetId === undefined) return [];
+        if (this.abilityNotifyDepth >= this.maxDerivedDepth) {
+            throw new Error(`Maximum ability-event depth ${this.maxDerivedDepth} exceeded.`);
+        }
+        this.abilityNotifyDepth += 1;
+        try {
+            const context = this.context.createEventContext(eventContext, {
+                eventType,
+                payload: {
+                    ...cloneValue(eventContext.payload ?? {}),
+                    healTagIds: cloneValue(healTags),
+                    healTags: cloneValue(healTags),
+                    targetHpBefore: heal.before ?? null,
+                    targetHpAfter: heal.after ?? null,
+                    requestedHealing: heal.requestedAmount ?? heal.requested ?? null,
+                    actualHealing: heal.actualHealing ?? heal.actual ?? null,
+                    healingOverflow: heal.healingOverflow ?? heal.discarded ?? null,
+                    eventTargetId: heal.targetId,
+                    listenerTargetId
+                }
+            });
+            const results = this.notifyAbilityEvent({
+                ...context,
+                listenerTargetId
+            });
+            this.#record('AbilityEventNotified', context, {
+                eventType,
+                listenerTargetId,
+                handled: results.length,
+                actualHealing: heal.actualHealing ?? heal.actual ?? null,
+                healingOverflow: heal.healingOverflow ?? heal.discarded ?? null
+            });
+            return results;
+        } finally {
+            this.abilityNotifyDepth -= 1;
+        }
     }
 
     #notifyDamageEvent(eventType, hit, appliedResult, eventContext, listenerTargetId) {

@@ -68,6 +68,32 @@ function resolveModifierOperand(rawValue, modifier) {
         : rawValue;
 }
 
+function normalizeAttributeModifiers(rawModifiers = []) {
+    if (!Array.isArray(rawModifiers)) {
+        throw new TypeError('modifiers must be an array.');
+    }
+    return rawModifiers.map((modifier, index) => {
+        if (!isRecord(modifier)) {
+            throw new TypeError('modifiers[' + index + '] must be an object.');
+        }
+        const attribute = modifier.attribute ?? modifier.attributeType;
+        if (typeof attribute !== 'string' || attribute.length === 0) {
+            throw new TypeError('modifiers[' + index + '].attribute is required.');
+        }
+        const zone = modifier.zone ?? modifier.formulaItem ?? 'Addition';
+        if (!SUPPORTED_ZONES.has(zone)) {
+            throw new Error('Unsupported attribute modifier zone: ' + zone + '.');
+        }
+        return {
+            modifierIndex: index,
+            attribute,
+            zone,
+            value: cloneValue(modifier.value ?? modifier.param ?? 0),
+            metadata: cloneValue(modifier.metadata ?? {})
+        };
+    });
+}
+
 /**
  * Reversible source registry for equipment, talents, potentials, contracts
  * and status effects.
@@ -90,6 +116,11 @@ export class EffectSourceRegistry {
         this.resolveValue = resolveValue;
         this.evaluateCondition = evaluateCondition;
         this.sources = new Map();
+        // Static AKE layers are already folded into the entity's attribute
+        // components at assembly time. Keep their provenance in a separate
+        // collection so snapshots can explain the value without applying the
+        // same modifier a second time.
+        this.baselineSources = new Map();
         this.baseAttributes = new Map();
         this.attributeComponents = new Map();
         this.tagReferences = new Map();
@@ -132,6 +163,61 @@ export class EffectSourceRegistry {
             .map(cloneValue);
     }
 
+    registerBaselineSources(targetId, inputs = []) {
+        identifier(targetId, 'baseline source targetId');
+        if (!Array.isArray(inputs)) {
+            throw new TypeError('baseline sources must be an array.');
+        }
+        const registered = [];
+        for (const [index, input] of inputs.entries()) {
+            if (!isRecord(input)) {
+                throw new TypeError(`baselineSources[${index}] must be an object.`);
+            }
+            const key = identifier(
+                input.sourceKey ?? `ake-baseline:${String(targetId)}:${index}`,
+                `baselineSources[${index}].sourceKey`
+            );
+            const sourceTargetId = identifier(
+                input.targetId ?? targetId,
+                `baselineSources[${index}].targetId`
+            );
+            const source = {
+                sourceKey: key,
+                sourceType: input.sourceType ?? 'ConfiguredAttribute',
+                sourceCategory: sourceCategory(
+                    input.sourceCategory ?? input.sourceType ?? 'ConfiguredAttribute'
+                ),
+                sourceId: input.sourceId ?? null,
+                ownerId: input.ownerId ?? null,
+                carrierId: input.carrierId ?? sourceTargetId,
+                targetId: sourceTargetId,
+                damageSourceId: input.damageSourceId ?? input.sourceId ?? null,
+                buffInstanceId: input.buffInstanceId ?? null,
+                buffId: input.buffId ?? null,
+                sourceSkillId: input.sourceSkillId ?? null,
+                castId: input.castId ?? null,
+                transactionId: input.transactionId ?? null,
+                ruleId: input.ruleId ?? null,
+                blackboard: cloneValue(input.blackboard ?? {}),
+                payload: cloneValue(input.payload ?? {}),
+                modifiers: normalizeAttributeModifiers(input.modifiers ?? []),
+                damageModifiers: [],
+                tags: [],
+                metadata: {
+                    ...cloneValue(input.metadata ?? {}),
+                    baseline: true,
+                    preApplied: true
+                },
+                appliedFrame: Number(input.frame ?? 0),
+                baseline: true,
+                preApplied: true
+            };
+            this.baselineSources.set(typedKey(key), source);
+            registered.push(cloneValue(source));
+        }
+        return registered;
+    }
+
     apply(input = {}, eventContext = {}) {
         if (!isRecord(input)) throw new TypeError('EffectSourceRegistry.apply requires an object.');
         const key = identifier(
@@ -142,26 +228,7 @@ export class EffectSourceRegistry {
         if (this.sources.has(typedKey(key))) {
             this.remove({ sourceKey: key, frame: input.frame }, eventContext);
         }
-        const modifiers = (input.modifiers ?? []).map((modifier, index) => {
-            if (!isRecord(modifier)) {
-                throw new TypeError('modifiers[' + index + '] must be an object.');
-            }
-            const attribute = modifier.attribute ?? modifier.attributeType;
-            if (typeof attribute !== 'string' || attribute.length === 0) {
-                throw new TypeError('modifiers[' + index + '].attribute is required.');
-            }
-            const zone = modifier.zone ?? modifier.formulaItem ?? 'Addition';
-            if (!SUPPORTED_ZONES.has(zone)) {
-                throw new Error('Unsupported attribute modifier zone: ' + zone + '.');
-            }
-            return {
-                modifierIndex: index,
-                attribute,
-                zone,
-                value: cloneValue(modifier.value ?? modifier.param ?? 0),
-                metadata: cloneValue(modifier.metadata ?? {})
-            };
-        });
+        const modifiers = normalizeAttributeModifiers(input.modifiers ?? []);
         const tags = [...new Set((input.tags ?? []).map(tag => String(tag)))];
         const damageModifiers = (input.damageModifiers ?? []).map((modifier, index) => {
             if (!isRecord(modifier)) {
@@ -417,7 +484,10 @@ export class EffectSourceRegistry {
                 : emptyAttributeComponent(currentValue);
         const component = cloneValue(baseComponent);
         const contributions = [];
-        for (const source of this.sources.values()) {
+        for (const source of [
+            ...this.baselineSources.values(),
+            ...this.sources.values()
+        ]) {
             if (source.targetId !== targetId) continue;
             for (const modifier of source.modifiers) {
                 if (modifier.attribute !== attribute) continue;
@@ -429,11 +499,13 @@ export class EffectSourceRegistry {
                 }), attribute + '.' + modifier.zone);
                 const resolvedValue = resolveModifierOperand(value, modifier);
                 const field = modifier.zone[0].toLowerCase() + modifier.zone.slice(1);
-                if (modifier.zone === 'BaseFinalMultiplier'
-                    || modifier.zone === 'FinalMultiplier') {
-                    component[field] *= resolvedValue;
-                } else {
-                    component[field] += resolvedValue;
+                if (!source.baseline) {
+                    if (modifier.zone === 'BaseFinalMultiplier'
+                        || modifier.zone === 'FinalMultiplier') {
+                        component[field] *= resolvedValue;
+                    } else {
+                        component[field] += resolvedValue;
+                    }
                 }
                 contributions.push({
                     contributionId: `${String(source.sourceKey)}:attribute:${attribute}:${modifier.modifierIndex}`,
@@ -459,6 +531,8 @@ export class EffectSourceRegistry {
                     rawValue: value,
                     resolvedValue,
                     value: resolvedValue,
+                    baseline: source.baseline === true,
+                    preApplied: source.preApplied === true,
                     stackCount: Number(source.payload?.stackCount ?? 1),
                     metadata: cloneValue(modifier.metadata),
                     sourceMetadata: cloneValue(source.metadata),
@@ -481,6 +555,7 @@ export class EffectSourceRegistry {
     snapshot() {
         return {
             sources: [...this.sources.values()].map(cloneValue),
+            baselineSources: [...this.baselineSources.values()].map(cloneValue),
             baseAttributes: [...this.baseAttributes.values()].map(cloneValue),
             attributeComponents: [...this.attributeComponents.values()].map(cloneValue),
             trace: this.trace.map(cloneValue)

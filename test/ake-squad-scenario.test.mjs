@@ -43,6 +43,111 @@ test('squad assembler keeps one enemy, one shared ATB pool and one USP pool per 
     assert.equal(bundle.members[1].parameters.characterAttributes.Atk, 83.07);
 });
 
+test('settlement exposes weapon and derived-ability attack provenance without double-applying it', () => {
+    const bundle = assemble();
+    const result = new AkeSquadScenarioRunner(bundle).run({
+        commands: [],
+        endFrame: 0
+    });
+    const snapshot = result.attributeSnapshots['chr_0005_chen'].Atk;
+
+    assert.equal(snapshot.evaluation.value, 83.07);
+    assert.deepEqual(snapshot.contributions.map(contribution => [
+        contribution.sourceType,
+        contribution.zone,
+        contribution.resolvedValue,
+        contribution.baseline,
+        contribution.preApplied
+    ]), [
+        ['Weapon', 'BaseAddition', 29, true, true],
+        ['WeaponPassive', 'BaseFinalAddition', 12, true, true],
+        ['DerivedAbility', 'BaseFinalMultiplier', 1.17, true, true]
+    ]);
+});
+
+test('Wulfa runtime attack keeps Wolf Scarlet weapon layers traceable', () => {
+    const bundle = assemble({
+        members: [{
+            memberId: 'wulfa',
+            characterId: 'chr_0028_wulfa',
+            level: 90,
+            talentRank: 3,
+            potentialLevel: 0,
+            weaponId: 'wpn_sword_0022',
+            weaponLevel: 90,
+            weaponPotential: 9,
+            weaponSkillLevels: { skill1: 9, skill2: 9, skill3: 4 },
+            equipment: []
+        }]
+    });
+    const result = new AkeSquadScenarioRunner(bundle).run({
+        commands: [],
+        endFrame: 0
+    });
+    const snapshot = result.attributeSnapshots['chr_0028_wulfa'].Atk;
+
+    assert.equal(snapshot.evaluation.value, 3323.7377280000005);
+    assert.deepEqual(snapshot.contributions.map(contribution => [
+        contribution.sourceType,
+        contribution.zone,
+        contribution.resolvedValue
+    ]), [
+        ['Weapon', 'BaseAddition', 505],
+        ['WeaponPassive', 'BaseMultiplier', 0.256],
+        ['DerivedAbility', 'BaseFinalMultiplier', 3.196]
+    ]);
+});
+
+test('generic team heal events fan a one-shot Camille talent Buff to every ally', () => {
+    const bundle = assemble({
+        members: [
+            {
+                memberId: 'camille',
+                characterId: 'chr_0033_camille',
+                level: 40,
+                breakStage: 2,
+                talentRank: 2,
+                potentialLevel: 0,
+                weaponLevel: 1
+            },
+            {
+                memberId: 'wulfa',
+                characterId: 'chr_0028_wulfa',
+                level: 40,
+                breakStage: 2,
+                talentRank: 2,
+                potentialLevel: 0,
+                weaponLevel: 1
+            }
+        ]
+    });
+    const runner = new AkeSquadScenarioRunner(bundle);
+    runner.run({ commands: [], endFrame: 0 });
+    const runtime = runner.lastRuntime;
+    runtime.execute({
+        type: 'Heal',
+        target: 'chr_0033_camille',
+        baseAmount: 10,
+        healTags: [-1517158118]
+    }, {
+        frame: 0,
+        eventType: 'ManualHeal',
+        sourceId: 'chr_0033_camille',
+        ownerId: 'chr_0033_camille',
+        targetId: 'chr_0033_camille',
+        skillId: 'fixture-heal',
+        rootSkillId: 'fixture-heal',
+        clockDomainId: 'chr_0033_camille:clock'
+    });
+    const active = runtime.statusEffects.list({ active: true })
+        .filter(status => status.buffId === 'buff_chr_0033_camille_talent1_atkup')
+        .map(status => [status.targetId, status.stackCount]);
+    assert.deepEqual(active, [
+        ['chr_0033_camille', 2],
+        ['chr_0028_wulfa', 2]
+    ]);
+});
+
 test('same-frame shared ATB contention follows observed lexical member UUID order', () => {
     const bundle = assemble({ initialAtb: 100 });
     const result = new AkeSquadScenarioRunner(bundle).run({

@@ -181,6 +181,8 @@ export interface PanelCalcSnapshot {
   agility: number;
   intelligence: number;
   will: number;
+  /** Unrounded values kept for AKE's floor-before-conversion rule. */
+  rawAbilityValues?: Record<AbilityField, number>;
   operatorAtk: number;
   weaponAtk: number;
   operatorHp: number;
@@ -206,6 +208,8 @@ export interface PanelCalcSnapshot {
 
 export interface PanelDisplaySnapshot {
   atk: number;
+  /** AKE runtime projection; the panel deliberately keeps its rounded value. */
+  runtimeAtk: number;
   hp: number;
   baseAtk: number;
   abilityBonus: number;
@@ -222,6 +226,7 @@ export interface PanelDisplaySnapshot {
     flatAtk: number;
     baseAtk: number;
     panelAtk: number;
+    runtimeAtk: number;
   };
   abilityDetail: {
     rawMainStat: number;
@@ -231,6 +236,8 @@ export interface PanelDisplaySnapshot {
     allStatScale: number;
     mainStatBeforeRounding: number;
     subStatBeforeRounding: number;
+    mainStatForAttack: number;
+    subStatForAttack: number;
     mainAtkBonus: number;
     subAtkBonus: number;
   };
@@ -949,8 +956,14 @@ function formatOperatorBuffLine(groupKey: OperatorBuffGroupKey, effectKey: strin
 function buildDisplay(calc: PanelCalcSnapshot, mainStat: string, subStat: string): PanelDisplaySnapshot {
   const mainField = resolveAbilityField(mainStat);
   const subField = resolveAbilityField(subStat);
-  const rawMainStat = mainField ? calc[mainField] : 0;
-  const rawSubStat = subField ? calc[subField] : 0;
+  const abilitySource = calc.rawAbilityValues ?? {
+    strength: calc.strength,
+    agility: calc.agility,
+    intelligence: calc.intelligence,
+    will: calc.will,
+  };
+  const rawMainStat = mainField ? abilitySource[mainField] : 0;
+  const rawSubStat = subField ? abilitySource[subField] : 0;
   const mainStatBeforeRounding = rawMainStat * (1 + calc.mainStatBoost) * (1 + calc.allStatBoost);
   const subStatBeforeRounding = rawSubStat * (1 + calc.subStatBoost) * (1 + calc.allStatBoost);
   const mainStatFinal = Math.round(mainStatBeforeRounding);
@@ -963,12 +976,20 @@ function buildDisplay(calc: PanelCalcSnapshot, mainStat: string, subStat: string
   };
   if (mainField) abilityValues[mainField] = mainStatFinal;
   if (subField) abilityValues[subField] = subStatFinal;
+  // The panel follows the established LTS display contract and converts the
+  // displayed (rounded) ability values. AKE itself applies the floor rule to
+  // the unrounded values; keep that projection separate below so panel data
+  // never gets silently replaced with a runtime value.
+  const mainStatForAttack = Math.floor(mainStatBeforeRounding);
+  const subStatForAttack = Math.floor(subStatBeforeRounding);
   const mainAtkBonus = mainStatFinal * 0.005;
   const subAtkBonus = subStatFinal * 0.002;
   const abilityBonus = mainAtkBonus + subAtkBonus;
+  const runtimeAbilityBonus = mainStatForAttack * 0.005 + subStatForAttack * 0.002;
   const rawAtk = calc.operatorAtk + calc.weaponAtk;
   const baseAtk = rawAtk * (1 + calc.atkPercentBoost) + calc.flatAtk;
   const atk = baseAtk * (1 + abilityBonus);
+  const runtimeAtk = baseAtk * (1 + runtimeAbilityBonus);
   const hp = calc.operatorHp * (1 + calc.hpPercent);
   const critRate = 0.05 + calc.critRateBoost;
   const critDmg = 0.5 + calc.critDmgBonusBoost;
@@ -1046,6 +1067,7 @@ function buildDisplay(calc: PanelCalcSnapshot, mainStat: string, subStat: string
   ];
   return {
     atk: round(atk),
+    runtimeAtk: round(runtimeAtk),
     hp: round(hp),
     baseAtk: round(baseAtk),
     abilityBonus: round(abilityBonus),
@@ -1067,6 +1089,7 @@ function buildDisplay(calc: PanelCalcSnapshot, mainStat: string, subStat: string
       flatAtk: round(calc.flatAtk),
       baseAtk: round(baseAtk),
       panelAtk: round(atk),
+      runtimeAtk: round(runtimeAtk),
     },
     abilityDetail: {
       rawMainStat: round(rawMainStat),
@@ -1076,6 +1099,8 @@ function buildDisplay(calc: PanelCalcSnapshot, mainStat: string, subStat: string
       allStatScale: round(calc.allStatBoost),
       mainStatBeforeRounding: round(mainStatBeforeRounding),
       subStatBeforeRounding: round(subStatBeforeRounding),
+      mainStatForAttack: round(mainStatForAttack),
+      subStatForAttack: round(subStatForAttack),
       mainAtkBonus: round(mainAtkBonus),
       subAtkBonus: round(subAtkBonus),
     },
@@ -1103,7 +1128,8 @@ function buildMarkdown(snapshot: Omit<ConfigSnapshot, 'detailMarkdown'>): string
   lines.push(`- 基础攻击 = ${formatNumber(snapshot.panel.calc.operatorAtk)} + ${formatNumber(snapshot.panel.calc.weaponAtk)}`);
   lines.push(`- 百分比加成 = ${formatPercent(snapshot.panel.display.attackDetail.atkPercent)}`);
   lines.push(`- 最终基础 = ${formatNumber(snapshot.panel.display.baseAtk)}`);
-  lines.push(`- 面板攻击 = ${formatNumber(snapshot.panel.display.atk)}`);
+  lines.push(`- 面板攻击（LTS 显示）= ${formatNumber(snapshot.panel.display.atk)}`);
+  lines.push(`- 运行时攻击（AKE floor 规则）= ${formatNumber(snapshot.panel.display.runtimeAtk)}`);
   lines.push('');
   lines.push('## 干员能力值');
   lines.push(`- 力量: ${formatNumber(snapshot.operator.baseAttributes.strength)}`);
@@ -1120,8 +1146,10 @@ function buildMarkdown(snapshot: Omit<ConfigSnapshot, 'detailMarkdown'>): string
   lines.push('## 主副能力换算');
   lines.push(`- 主能力: ${snapshot.operator.mainStat || '-'} ${formatNumber(snapshot.panel.display.abilityDetail.rawMainStat)} × (1 + ${formatPercent(snapshot.panel.display.abilityDetail.mainStatScale)}) × (1 + ${formatPercent(snapshot.panel.display.abilityDetail.allStatScale)}) = ${formatNumber(snapshot.panel.display.abilityDetail.mainStatBeforeRounding)}`);
   lines.push(`- 主能力取整: ${formatNumber(snapshot.panel.display.abilityDetail.mainStatBeforeRounding)} → ${formatNumber(snapshot.panel.display.mainStatFinal)}`);
+  lines.push(`- 主能力攻击换算取整（AKE）: ${formatNumber(snapshot.panel.display.abilityDetail.mainStatBeforeRounding)} → ${formatNumber(snapshot.panel.display.abilityDetail.mainStatForAttack)}`);
   lines.push(`- 副能力: ${snapshot.operator.subStat || '-'} ${formatNumber(snapshot.panel.display.abilityDetail.rawSubStat)} × (1 + ${formatPercent(snapshot.panel.display.abilityDetail.subStatScale)}) × (1 + ${formatPercent(snapshot.panel.display.abilityDetail.allStatScale)}) = ${formatNumber(snapshot.panel.display.abilityDetail.subStatBeforeRounding)}`);
   lines.push(`- 副能力取整: ${formatNumber(snapshot.panel.display.abilityDetail.subStatBeforeRounding)} → ${formatNumber(snapshot.panel.display.subStatFinal)}`);
+  lines.push(`- 副能力攻击换算取整（AKE）: ${formatNumber(snapshot.panel.display.abilityDetail.subStatBeforeRounding)} → ${formatNumber(snapshot.panel.display.abilityDetail.subStatForAttack)}`);
   lines.push(`- 主能力固定加值: ${formatNumber(snapshot.operator.mainStatFlatBonus)}`);
   lines.push(`- 副能力固定加值: ${formatNumber(snapshot.operator.subStatFlatBonus)}`);
   lines.push('');
@@ -1238,6 +1266,7 @@ export function buildConfigSnapshot(input: OperatorPanelInput): ConfigSnapshot {
       agility: round(abilityByField.agility),
       intelligence: round(abilityByField.intelligence),
       will: round(abilityByField.will),
+      rawAbilityValues: abilityByField,
       operatorAtk,
       weaponAtk,
       operatorHp: attributes.hp,

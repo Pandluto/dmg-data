@@ -819,6 +819,7 @@ export class AkeScenarioAssembler {
                 const listenerId = `ake-passive-listener:${passiveInput.skillId}:${blackboardToken}`;
                 passiveListenerDefinitions.set(listenerId, {
                     buffId: listenerId,
+                    sourcePath: passiveFile.path,
                     blackboard: clone(passiveEvents.blackboard),
                     lifeType: 'Infinity',
                     stacking: {
@@ -830,6 +831,7 @@ export class AkeScenarioAssembler {
                     abilityEventActions: clone(passiveEvents.groups),
                     compiler: clone(passiveEvents.compiler)
                 });
+                sourcePaths.buffs[listenerId] = passiveFile.path;
                 effect.buffs.push({
                     buffId: listenerId,
                     blackboard: clone(passiveEvents.blackboard),
@@ -845,6 +847,83 @@ export class AkeScenarioAssembler {
                 buffIds: referencedBuffIds,
                 skillIds: discoveredSkillIds
             });
+        }
+
+        // Character intrinsic passives use the same event-action language as
+        // weapon and set passives. Previously only their directly attached
+        // Buffs were installed; a passive made solely of passiveEventActions
+        // (for example a heal-triggered squad-wide effect) disappeared at the
+        // final intrinsic projection. Install an event-only loadout effect so
+        // the generic listener/target machinery handles it without a
+        // character-specific branch. Direct raw Buffs remain in
+        // intrinsicPassives below and are intentionally not duplicated here.
+        for (const skillId of intrinsicPassiveIds) {
+            const passiveFile = rawSkills.get(skillId);
+            if (!passiveFile) continue;
+            const isPotentialPassive = /_potential_/i.test(skillId);
+            const isTalentPassive = /_talent_/i.test(skillId)
+                || allTalentReferences.skills.has(skillId);
+            const sourceType = isPotentialPassive
+                ? 'Potential'
+                : isTalentPassive ? 'Talent' : 'CharacterPassive';
+            const effect = loadoutCompiler.compilePassiveSkill(passiveFile, {
+                blackboard: intrinsicPassiveBlackboards.get(skillId) ?? {},
+                sourceType
+            });
+            // The old intrinsic installer owns these direct Buff instances.
+            // Keep only static card modifiers, toggles and the synthetic event
+            // listener in this effect.
+            effect.buffs = [];
+            const passiveEvents = compiler.compilePassiveEventActions(passiveFile, {
+                blackboard: effect.blackboard
+            });
+            if (passiveEvents.groups.some(group => group.actions.length > 0)) {
+                const blackboardToken = encodeURIComponent(JSON.stringify(
+                    Object.entries(passiveEvents.blackboard).sort(([left], [right]) =>
+                        left.localeCompare(right)
+                    )
+                ));
+                const listenerId = `ake-passive-listener:${skillId}:${blackboardToken}`;
+                passiveListenerDefinitions.set(listenerId, {
+                    buffId: listenerId,
+                    // `rawSkills` stores the parsed JSON object, so it has no
+                    // `.path` field. Reuse the SkillData path recorded while
+                    // the dependency was drained; synthetic listeners must
+                    // remain traceable in the mechanism audit.
+                    sourcePath: sourcePaths.skills[skillId] ?? null,
+                    blackboard: clone(passiveEvents.blackboard),
+                    lifeType: 'Infinity',
+                    stacking: {
+                        identifierType: 'Id',
+                        stackingType: 'Unique',
+                        stackingKey: listenerId,
+                        maxStackCount: 1
+                    },
+                    abilityEventActions: clone(passiveEvents.groups),
+                    compiler: clone(passiveEvents.compiler)
+                });
+                sourcePaths.buffs[listenerId] = sourcePaths.skills[skillId] ?? null;
+                effect.buffs.push({
+                    buffId: listenerId,
+                    blackboard: clone(passiveEvents.blackboard),
+                    sourcePath: 'actionGroupData.passiveEventActions'
+                });
+                collectReferences(passiveEvents.groups, {
+                    buffIds: referencedBuffIds,
+                    skillIds: discoveredSkillIds
+                });
+            }
+            const hasToggleBuffs = (effect.toggleEffects ?? [])
+                .some(toggle => (toggle.buffs ?? []).length > 0);
+            if (effect.buffs.length > 0
+                || (effect.attributeModifiers ?? []).length > 0
+                || hasToggleBuffs) {
+                loadoutEffects.push(effect);
+                collectReferences(effect, {
+                    buffIds: referencedBuffIds,
+                    skillIds: discoveredSkillIds
+                });
+            }
         }
 
         const buffs = new Map(passiveListenerDefinitions);
@@ -991,6 +1070,67 @@ export class AkeScenarioAssembler {
             abilityInputAttributes,
             character
         );
+        // These layers are folded into the AKE attribute components exactly
+        // once. Preserve each raw source as provenance for runtime hit
+        // snapshots; the registry treats them as baseline (explanatory)
+        // sources and therefore never applies them a second time.
+        const baselineSourceGroups = new Map();
+        const addBaselineModifiers = (modifiers, sourceType, layer) => {
+            for (const [index, modifier] of (modifiers ?? []).entries()) {
+                const effectiveSourceType = sourceType
+                    ?? String(modifier.source ?? 'Loadout').split(':', 1)[0]
+                    ?? 'Loadout';
+                const sourceLabel = String(
+                    modifier.source ?? `${effectiveSourceType}:${layer}:${index}`
+                );
+                const key = `${effectiveSourceType}:${sourceLabel}`;
+                if (!baselineSourceGroups.has(key)) {
+                    baselineSourceGroups.set(key, {
+                        sourceType: effectiveSourceType,
+                        sourceLabel,
+                        layer,
+                        modifiers: []
+                    });
+                }
+                baselineSourceGroups.get(key).modifiers.push({
+                    attribute: modifier.attribute,
+                    zone: modifier.zone,
+                    value: clone(modifier.value),
+                    metadata: {
+                        ...clone(modifier.metadata ?? {}),
+                        rawSource: sourceLabel,
+                        baselineLayer: layer
+                    }
+                });
+            }
+        };
+        addBaselineModifiers(weaponBuild.modifiers, 'Weapon', 'weaponAttributes');
+        addBaselineModifiers(
+            selectedAttributeTalentModifiers,
+            'Talent',
+            'attributeTalent'
+        );
+        addBaselineModifiers(
+            preAppliedLoadoutModifiers,
+            null,
+            'loadout'
+        );
+        addBaselineModifiers(derivedAbilityModifiers, 'DerivedAbility', 'abilityProjection');
+        const attributeBaselineSources = [...baselineSourceGroups.values()].map(group => ({
+            sourceKey: `ake-baseline:${characterId}:${encodeURIComponent(
+                `${group.sourceType ?? 'Loadout'}:${group.sourceLabel}`
+            )}`,
+            sourceType: group.sourceType ?? group.sourceLabel.split(':', 1)[0] ?? 'Loadout',
+            sourceId: characterId,
+            ownerId: characterId,
+            targetId: characterId,
+            modifiers: group.modifiers,
+            metadata: {
+                sourceLabel: group.sourceLabel,
+                baselineLayer: group.layer,
+                preApplied: true
+            }
+        }));
         const characterAttributeComponents = buildAkeAttributeComponents(
             characterLevel.attributes,
             [...preDerivedAttributeModifiers, ...derivedAbilityModifiers]
@@ -1124,6 +1264,7 @@ export class AkeScenarioAssembler {
                         : {}),
                     attributes: characterAttributes,
                     attributeComponents: runtimeCharacterAttributeComponents,
+                    attributeBaselineSources: clone(attributeBaselineSources),
                     vital: characterAttributes.MaxHp
                         ? {
                             maxHp: characterAttributes.MaxHp,

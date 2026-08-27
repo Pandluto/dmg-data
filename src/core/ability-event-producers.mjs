@@ -12,6 +12,8 @@ const PRODUCER_DEFINITIONS = [
     ['OnBeforeTakeDamage', 'combat-runtime-damage-transaction'],
     ['OnOutputDamage', 'combat-runtime-damage-transaction'],
     ['OnTakeDamage', 'combat-runtime-damage-transaction'],
+    ['OnOutputHeal', 'combat-runtime-heal-transaction'],
+    ['OnReceiveHeal', 'combat-runtime-heal-transaction'],
     ['OnOutputCriticalDamage', 'combat-runtime-damage-transaction'],
     ['OnTakeCriticalDamage', 'combat-runtime-damage-transaction'],
     ['OnBeforeOutputPoiseDamage', 'combat-runtime-poise-damage-transaction'],

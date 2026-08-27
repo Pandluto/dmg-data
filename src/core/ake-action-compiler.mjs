@@ -1426,7 +1426,44 @@ export class AkeActionCompiler {
                 result.metadata.push(...children.metadata);
                 result.unresolved.push(...children.unresolved);
                 result.diagnostics.push(...children.diagnostics);
-                if (target.ref === 'Target') {
+                const directFinderType = selectorSource(node.target) === 'InstantSearch'
+                    ? finderType(node.target)
+                    : null;
+                if (directFinderType === 'CharacterTeamFinder') {
+                    const groupKey = `instant-team:${state.path}`;
+                    const validators = node.target?.selectorData?.validatorData ?? [];
+                    const ownerRef = this.#targetRef(
+                        node.target?.selectorOwner ?? 'Source',
+                        state,
+                        'instant team finder owner'
+                    );
+                    if (ownerRef.unresolved) result.unresolved.push(ownerRef.unresolved);
+                    result.actions.push({
+                        type: 'FindTargets',
+                        targetGroupKey: groupKey,
+                        finderMode: 'AlliedCharacters',
+                        ownerRef: ownerRef.ref ?? 'Source',
+                        excludeOwner: validators.some(validator =>
+                            nestedDataType(validator) === 'ExcludeOwnerValidator'
+                        ),
+                        onlyMainCharacter: validators.some(validator =>
+                            nestedDataType(validator) === 'MainCharacterValidator'
+                        ),
+                        tagIds: validators.flatMap(validator =>
+                            nestedDataType(validator) === 'TagValidator'
+                                ? tagIds(validator.query?.tags)
+                                : []
+                        ),
+                        rawFinderType: directFinderType,
+                        reason: 'ForEachAction:InstantSearch'
+                    }, {
+                        type: 'ForEachTarget',
+                        targetGroupKey: groupKey,
+                        actions: children.actions,
+                        reason: 'ForEachAction:CharacterTeamFinder'
+                    });
+                    result.cleanupActions.push(...children.cleanupActions);
+                } else if (target.ref === 'Target') {
                     // The clean-room scenario owns one explicit combat target;
                     // Context/targets therefore has exactly one member and the
                     // nested Blackboard writes can stay in this transaction.
@@ -2899,6 +2936,9 @@ export class AkeActionCompiler {
                     target: target.ref,
                     baseAmount: calculation.value,
                     healType: node.healType,
+                    healTags: node.useHealTags === true
+                        ? tagIds(node.healTags)
+                        : [],
                     reason: type
                 });
                 break;
@@ -3643,6 +3683,27 @@ export class AkeActionCompiler {
                 };
                 break;
             }
+            case 'CheckHealTag': {
+                const queryType = node.query?.queryType ?? 'HasAny';
+                result.condition = {
+                    type: 'HealTagMatch',
+                    tags: tagIds(node.query?.tags),
+                    queryType
+                };
+                break;
+            }
+            case 'CheckOverHeal':
+                // AKE's over-heal condition is a boolean gate: any amount
+                // discarded by the healing cap satisfies it. The runtime
+                // carries the exact overflow on the heal event payload.
+                result.condition = {
+                    type: 'PayloadCompare',
+                    payloadKey: 'healingOverflow',
+                    operator: 'GT',
+                    value: 0,
+                    defaultValue: 0
+                };
+                break;
             case 'CheckTargetsEqual': {
                 const firstSettings = node.firstTargetSettings ?? node.firstTarget;
                 const secondSettings = node.secondTargetSettings ?? node.secondTarget;

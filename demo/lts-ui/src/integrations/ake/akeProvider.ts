@@ -351,7 +351,14 @@ type AkeSquadMemberResult = {
       iconUrl: string;
     }>;
   };
-  profile: { atk: number; maxHp: number; maxUltimateSp: number };
+  profile: {
+    /** Runtime value after AKE static and dynamic source settlement. */
+    atk: number;
+    runtimeAtk?: number;
+    runtimeAttackAttribute?: AkeRuntimeAttributeSnapshot | null;
+    maxHp: number;
+    maxUltimateSp: number;
+  };
   commands: AkeCommandSettlement[];
   summary: {
     totalDamage: number;
@@ -377,6 +384,7 @@ type AkeSquadSimulation = {
   commands: AkeCommandSettlement[];
   hits: AkeRuntimeHit[];
   statusEvents: AkeRuntimeStatusEvent[];
+  attributeSnapshots?: Record<string, Record<string, AkeRuntimeAttributeSnapshot>>;
   timeline: AkeProjectedTimeline;
   summary: {
     totalDamage: number;
@@ -418,6 +426,9 @@ export type AkeCharacterReport = {
     potentialEffectIds: string[];
     panelAtk: number;
     panelHp: number;
+    /** The UI panel is a display projection; keep the engine value separate. */
+    runtimeAtk?: number;
+    runtimeAttackSources?: AkeRuntimeModifierContribution[];
     damageBonuses: Array<{ label: string; value: number }>;
   };
   skippedButtonIds: string[];
@@ -648,6 +659,8 @@ function prepareMember(input: {
       ?.filter(item => item.level <= characterPotentialLevel).map(item => item.effectId) ?? [],
     panelAtk: Number(snapshot?.panel.display.atk) || 0,
     panelHp: Number(snapshot?.panel.display.hp) || 0,
+    runtimeAtk: 0,
+    runtimeAttackSources: [],
     damageBonuses: configuredDamageBonuses(snapshot),
   };
   return {
@@ -705,8 +718,14 @@ function characterReport(
         equipmentId: equipment.equipmentId,
         name: equipment.name,
       })),
-      panelAtk: member.profile.atk,
-      panelHp: member.profile.maxHp,
+      // Keep the rounded local panel and the AKE runtime value distinct. The
+      // old mapping replaced the panel number with the runtime number, which
+      // made a 3328 panel look like a 3323 calculation error and hid the
+      // source chain entirely.
+      panelAtk: prepared.reportLoadout.panelAtk,
+      panelHp: prepared.reportLoadout.panelHp,
+      runtimeAtk: Number(member.profile.runtimeAtk ?? member.profile.atk ?? 0),
+      runtimeAttackSources: member.profile.runtimeAttackAttribute?.contributions ?? [],
     },
     skippedButtonIds: prepared.skippedButtonIds,
     simulation: {

@@ -130,3 +130,47 @@ assertEqual(finalNormalDamageSnapshot.panel.calc.damageBonus.physicalDmgBonus, 0
 assertEqual(finalNormalDamageSnapshot.panel.display.mainStatFinal, 24, 'fixed mainStat should be reflected in the displayed main stat');
 assertEqual(finalNormalDamageSnapshot.panel.display.subStatFinal, 27, 'fixed subStat should be reflected in the displayed sub stat');
 assertEqual(finalNormalDamageSnapshot.panel.display.damageBonus.physicalDmgBonus, 0.2, 'last normal damage effect should reach panel damage display');
+
+const fractionalAbilitySnapshot = buildConfigSnapshot({
+  ...baseInput,
+  operator: {
+    ...baseInput.operator,
+    attributes: {
+      level90: {
+        ...baseInput.operator.attributes.level90!,
+        atk: 100,
+      },
+    },
+    buffs: {
+      talent: {
+        effects: {
+          fractionalMain: {
+            effectId: 'fractional-main',
+            name: '主能力百分比',
+            type: 'mainStatBoost',
+            category: 'positive',
+            value: 0.06,
+            unit: 'percent',
+          },
+          fractionalAll: {
+            effectId: 'fractional-all',
+            name: '全能力百分比',
+            type: 'allStatBoost',
+            category: 'positive',
+            value: 0.03,
+            unit: 'percent',
+          },
+        },
+      },
+      potential: { effects: {} },
+      skill: { effects: {} },
+    },
+  },
+});
+
+assertEqual(fractionalAbilitySnapshot.panel.display.mainStatFinal, 11, 'panel should round the displayed main stat');
+assertEqual(fractionalAbilitySnapshot.panel.display.subStatFinal, 21, 'panel should round the displayed sub stat');
+assertEqual(fractionalAbilitySnapshot.panel.display.abilityDetail.mainStatForAttack, 10, 'AKE should floor the unrounded main stat before attack conversion');
+assertEqual(fractionalAbilitySnapshot.panel.display.abilityDetail.subStatForAttack, 20, 'AKE should floor the unrounded sub stat before attack conversion');
+assertEqual(fractionalAbilitySnapshot.panel.display.atk, 109.7, 'panel attack should preserve the rounded LTS display conversion');
+assertEqual(fractionalAbilitySnapshot.panel.display.runtimeAtk, 109, 'AKE runtime attack must not reuse rounded panel abilities');

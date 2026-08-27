@@ -47,6 +47,15 @@ function skillSlotForCommand(commandType) {
     }[commandType] ?? null;
 }
 
+// Attribute snapshots are part of the settlement contract rather than a UI
+// convenience.  AKE folds weapon/talent/static layers into the character
+// component before the run and applies dynamic Buff layers during the run;
+// exposing the same snapshot at the end lets consumers distinguish those two
+// sources instead of treating the runtime number as an unexplained scalar.
+const RUNTIME_ATTRIBUTE_SNAPSHOT_FIELDS = Object.freeze([
+    'Atk', 'MaxHp', 'Str', 'Agi', 'Wisd', 'Will'
+]);
+
 function baseRoleSkill(roles, commandType) {
     switch (commandType) {
         case 'Attack': return roles.normalAttackIds?.[0] ?? null;
@@ -1443,6 +1452,23 @@ export class AkeSquadScenarioRunner {
             state.characterId,
             runtime.cooldowns.endFramesForActor(state.characterId)
         ]));
+        const attributeSnapshots = Object.fromEntries(bundle.members.map(member => [
+            member.characterId,
+            Object.fromEntries(RUNTIME_ATTRIBUTE_SNAPSHOT_FIELDS.map(attribute => [
+                attribute,
+                runtime.effectSources.attributeSnapshot({
+                    targetId: member.characterId,
+                    attribute
+                }, {
+                    frame: durationTicks,
+                    eventType: 'ScenarioSettled',
+                    sourceId: member.characterId,
+                    ownerId: member.characterId,
+                    targetId: member.characterId,
+                    clockDomainId: `${member.characterId}:clock`
+                })
+            ]))
+        ]));
         return {
             schemaVersion: 3,
             engine: 'ake-squad-combat-runtime',
@@ -1467,6 +1493,7 @@ export class AkeSquadScenarioRunner {
             cooldownMutationTrace: clone(runtime.cooldowns.trace),
             resourceTrace: clone(runtime.resources.trace),
             statusTrace: clone(runtime.statusEffects.trace),
+            attributeSnapshots,
             timedInputWindows: runtime.timedInputWindowSnapshot(durationTicks),
             clockTrace: clone(runtime.clockDomains.trace),
             localClockTriggerTrace,

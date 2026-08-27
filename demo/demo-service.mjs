@@ -1099,6 +1099,13 @@ export function simulateSquadDemo(input, { projectRoot = defaultProjectRoot } = 
         const weapon = catalogWeaponById.get(build.weaponId);
         const damage = result.damageSummary.byCharacterId[member.characterId] ?? {};
         const commands = timeline.commands.filter(command => command.memberId === member.memberId);
+        const runtimeAttackAttribute = result.attributeSnapshots?.[member.characterId]?.Atk
+            ?? null;
+        const runtimeAtk = Number(
+            runtimeAttackAttribute?.evaluation?.value
+                ?? member.parameters.characterAttributes.Atk
+                ?? 0
+        );
         return {
             memberId: member.memberId,
             characterId: member.characterId,
@@ -1125,7 +1132,12 @@ export function simulateSquadDemo(input, { projectRoot = defaultProjectRoot } = 
                 })
             },
             profile: {
-                atk: Number(member.parameters.characterAttributes.Atk ?? 0),
+                // `atk` is retained as the historical runtime baseline field;
+                // the explicit names below make it impossible for the UI to
+                // mistake it for the rounded operator panel value.
+                atk: runtimeAtk,
+                runtimeAtk,
+                runtimeAttackAttribute: structuredClone(runtimeAttackAttribute),
                 maxHp: Number(member.parameters.characterAttributes.MaxHp ?? 0),
                 maxUltimateSp: Number(member.ultimateSp.max ?? 0)
             },
@@ -1153,6 +1165,7 @@ export function simulateSquadDemo(input, { projectRoot = defaultProjectRoot } = 
         enemy: structuredClone(request.enemy),
         members,
         commands: structuredClone(timeline.commands),
+        attributeSnapshots: structuredClone(result.attributeSnapshots),
         hits: compactSquadHits(result.damageLog),
         timeline,
         summary: {

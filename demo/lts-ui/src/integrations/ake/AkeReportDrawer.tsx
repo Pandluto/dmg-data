@@ -23,9 +23,52 @@ function commandStatus(command: NonNullable<AkeCharacterReport['simulation']>['c
   return '失败';
 }
 
+const RUNTIME_SOURCE_LABELS: Record<string, string> = {
+  WeaponPassive: '武器被动',
+  Weapon: '武器属性',
+  AttributeTalent: '属性天赋',
+  Talent: '干员天赋',
+  Potential: '干员潜能',
+  EquipmentPassive: '装备被动',
+  EquipmentSet: '三件套',
+  Equipment: '装备属性',
+  DerivedAbility: '能力换算',
+  CharacterPassive: '干员被动',
+};
+
+function runtimeSourceLabel(source: NonNullable<AkeCharacterReport['loadout']['runtimeAttackSources']>[number]): string {
+  const metadata = source.sourceMetadata;
+  const raw = metadata && typeof metadata === 'object'
+    ? (metadata as Record<string, unknown>).sourceLabel
+      ?? (metadata as Record<string, unknown>).rawSource
+    : null;
+  const token = String(raw ?? source.sourceType ?? source.sourceCategory ?? '');
+  return RUNTIME_SOURCE_LABELS[token.split(':', 1)[0]]
+    ?? RUNTIME_SOURCE_LABELS[String(source.sourceType ?? '')]
+    ?? RUNTIME_SOURCE_LABELS[String(source.sourceCategory ?? '')]
+    ?? '运行时来源';
+}
+
+function runtimeSourceValue(source: NonNullable<AkeCharacterReport['loadout']['runtimeAttackSources']>[number]): string {
+  const value = Number(source.resolvedValue ?? source.value ?? source.rawValue ?? 0);
+  const zone = String(source.zone ?? source.semanticKey ?? '');
+  if (/^(?:Base)?FinalMultiplier$/.test(zone) || /\.FinalMultiplier$/.test(zone)) {
+    return `×${decimal(value)}`;
+  }
+  if (/Multiplier$/.test(zone)) return `+${decimal(value * 100)}%`;
+  return `+${decimal(value)}`;
+}
+
 function CharacterResult({ report }: { report: AkeCharacterReport }) {
   const simulation = report.simulation;
   const damageBonuses = report.loadout.damageBonuses ?? [];
+  const runtimeSources = (report.loadout.runtimeAttackSources ?? []).filter((source, index, all) => (
+    all.findIndex(candidate => (
+      candidate.sourceKey === source.sourceKey
+      && candidate.zone === source.zone
+      && candidate.resolvedValue === source.resolvedValue
+    )) === index
+  )).slice(0, 12);
   return (
     <details className="ake-report-character" open={report.status === 'calculated'}>
       <summary>
@@ -40,8 +83,21 @@ function CharacterResult({ report }: { report: AkeCharacterReport }) {
         <span>Lv.{report.loadout.level}</span>
         <span>技能 {report.loadout.skillLevel}</span>
         <span>面板 ATK {decimal(report.loadout.panelAtk)}</span>
+        {report.loadout.runtimeAtk !== undefined ? (
+          <span className="ake-report-runtime-atk">运行时 ATK {decimal(report.loadout.runtimeAtk)}</span>
+        ) : null}
         <span>{report.loadout.weaponId || '武器 ID 未映射'}</span>
       </div>
+      {runtimeSources.length > 0 ? (
+        <div className="ake-report-runtime-sources" aria-label="运行时攻击力来源">
+          <small>运行时攻击力来源</small>
+          {runtimeSources.map((source, index) => (
+            <span key={source.contributionId ?? `${source.sourceKey}-${index}`}>
+              {runtimeSourceLabel(source)} {runtimeSourceValue(source)}
+            </span>
+          ))}
+        </div>
+      ) : null}
       <div className="ake-report-equipment">
         {report.loadout.equipment.length > 0
           ? report.loadout.equipment.map((piece) => (

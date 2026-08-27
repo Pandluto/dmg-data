@@ -510,12 +510,44 @@ const DAMAGE_TYPE_BUFF_PREFIX: Record<string, string> = {
   Ether: 'magic',
 };
 
+const RUNTIME_SOURCE_LABELS: Record<string, string> = {
+  WeaponPassive: '武器被动',
+  Weapon: '武器属性',
+  AttributeTalent: '属性天赋',
+  Talent: '干员天赋',
+  Potential: '干员潜能',
+  EquipmentPassive: '装备被动',
+  EquipmentSet: '三件套',
+  Equipment: '装备属性',
+  DerivedAbility: '能力换算',
+  CharacterPassive: '干员被动',
+};
+
+function readableSourceToken(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  const token = value.trim();
+  if (!token || /^(?:buff|chr|wpn|equip)_/i.test(token)) return '';
+  const prefix = token.split(':', 1)[0];
+  return RUNTIME_SOURCE_LABELS[prefix] ?? '';
+}
+
 function readableContributionName(value: unknown): string {
   if (!isRecord(value)) return '';
-  for (const candidate of [value.displayName, value.name, value.label]) {
+  for (const candidate of [
+    value.displayName,
+    value.name,
+    value.label,
+    value.sourceLabel,
+    value.rawSource,
+  ]) {
     if (typeof candidate === 'string'
       && candidate.trim()
       && !/^(?:buff|chr|wpn|equip)_/i.test(candidate.trim())) {
+      const sourceLabel = readableSourceToken(candidate);
+      if (sourceLabel) return sourceLabel;
+      // Internal ids are useful in diagnostics, but should not become the
+      // visible buff label when the AKE source registry has no localized name.
+      if (/^(?:ake-|abilityentity_|sk_)/i.test(candidate.trim())) continue;
       return candidate.trim();
     }
   }
@@ -593,7 +625,9 @@ function contributionBuffTags(
       ? runtimeStatusMetadata(identityStatus.buffId, labels, identityStatus)
       : null;
     const sourceMetadataName = readableContributionName(contribution.sourceMetadata)
-      || readableContributionName(contribution.metadata);
+      || readableContributionName(contribution.metadata)
+      || RUNTIME_SOURCE_LABELS[String(contribution.sourceType ?? '')]
+      || RUNTIME_SOURCE_LABELS[String(contribution.sourceCategory ?? '')];
     const label = statusMetadata?.label
       || sourceMetadataName
       || ATTRIBUTE_LABELS[attribute]

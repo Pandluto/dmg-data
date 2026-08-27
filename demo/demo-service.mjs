@@ -752,7 +752,8 @@ export function simulateDemo(input, { projectRoot = defaultProjectRoot } = {}) {
                 stackCount: status.stackCount,
                 expireFrame: status.expireFrame
             })),
-            resilience: structuredClone(result.finalState.resilience)
+            resilience: structuredClone(result.finalState.resilience),
+            poise: structuredClone(result.finalState.poise)
         },
         resourceSeries: resourceSeries(result.resourceTrace, result.durationTicks),
         resourceEvents: meaningfulResourceEvents(result.resourceTrace),
@@ -1159,7 +1160,8 @@ export function simulateSquadDemo(input, { projectRoot = defaultProjectRoot } = 
                 stackCount: status.stackCount,
                 expireFrame: status.expireFrame
             })),
-            resilience: structuredClone(result.finalState.resilience)
+            resilience: structuredClone(result.finalState.resilience),
+            poise: structuredClone(result.finalState.poise)
         },
         resourceEvents: meaningfulResourceEvents(result.resourceTrace),
         statusEvents: compactStatusEvents(result.statusTrace, { projectRoot }),

@@ -289,6 +289,7 @@ const report = {
     ultimateSpByCharacterId: {},
     activeStatuses: [],
     resilience: {},
+    poise: {},
   },
 } as AkeTeamReport;
 
@@ -598,6 +599,34 @@ const expiredLedger = buildAkeRuntimeCommandLedger({
 });
 assert.ok(!expiredLedger?.hits[0].statuses.some((status) => status.title.includes('短时易伤')),
   'expired runtime status must not remain active on a later Hit');
+
+const poiseReport = structuredClone(report);
+poiseReport.schemaVersion = 3;
+poiseReport.statusEvents.push(...[
+  ['buff_common_poise_can_be_breaking_attacked', 'status:poise-broken'],
+  ['buff_common_poise_break_damage_taken_scale', 'status:poise-vulnerability'],
+].map(([buffId, instanceId], index) => ({
+  ...statusBase,
+  traceIndex: 50 + index,
+  frame: 14,
+  stage: 'StatusEffectApplied',
+  instanceId,
+  buffId,
+  before: 0,
+  after: 1,
+  castId: 'cast:current',
+  sourceId: 'enemy-shared',
+  ownerId: 'enemy-shared',
+} as AkeRuntimeStatusEvent)));
+const poiseLedger = buildAkeRuntimeCommandLedger({
+  report: poiseReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+});
+assert.ok(poiseLedger?.statuses.some((status) => status.title === '失衡'));
+assert.ok(poiseLedger?.statuses.some((status) => status.title === '失衡易伤'),
+  'double-click ledger must expose both generic poise lifecycle statuses');
 
 const partialReport = structuredClone(report);
 partialReport.schemaVersion = 3;

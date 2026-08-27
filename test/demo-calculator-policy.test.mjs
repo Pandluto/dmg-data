@@ -32,6 +32,8 @@ test('calculator dummy stays alive so a living-target launch does not enter Only
         'the death-only airborne branch must not add a second anomaly hit'
     );
     assert.ok(result.finalState.targetHp > 999_000_000_000);
+    assert.equal(result.finalState.poise.byTargetId[enemyId].maxPoise, 160,
+        'demo transport must retain the generic runtime poise state');
 });
 
 test('calculator accepts commands moved beyond one minute by fixed waits', () => {

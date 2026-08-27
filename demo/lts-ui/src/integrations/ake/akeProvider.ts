@@ -373,6 +373,7 @@ type AkeSquadSimulation = {
     ultimateSpByCharacterId: Record<string, number>;
     activeStatuses: Array<Record<string, unknown>>;
     resilience: Record<string, unknown>;
+    poise: Record<string, unknown>;
   };
   diagnostics: {
     unresolvedEffectCount: number;
@@ -411,6 +412,7 @@ export type AkeCharacterReport = {
       resources: { Atb: number; UltimateSp: number };
       activeStatuses: Array<Record<string, unknown>>;
       resilience: Record<string, unknown>;
+      poise: Record<string, unknown>;
     };
     diagnostics: {
       unresolvedEffectCount: number;
@@ -704,6 +706,7 @@ function characterReport(
         },
         activeStatuses: squad.finalState.activeStatuses,
         resilience: squad.finalState.resilience,
+        poise: squad.finalState.poise,
       },
       diagnostics: {
         unresolvedEffectCount: squad.diagnostics.unresolvedEffectCount,
@@ -821,6 +824,15 @@ export function readLatestAkeTeamReport(): AkeTeamReport | null {
           ...value,
           hits: Array.isArray(value.hits) ? value.hits : [],
           statusEvents: Array.isArray(value.statusEvents) ? value.statusEvents : [],
+          finalState: {
+            ...(value.finalState ?? {
+              sharedAtb: { current: 0, max: 0 },
+              ultimateSpByCharacterId: {},
+              activeStatuses: [],
+              resilience: {},
+            }),
+            poise: value.finalState?.poise ?? {},
+          },
           diagnostics: value.diagnostics ?? {
             unresolvedEffectCount: 0,
             compilerUnresolvedEffectCount: 0,

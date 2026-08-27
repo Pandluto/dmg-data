@@ -1190,3 +1190,33 @@ resolve candidate Buff instances
 Buff 后同一个消费动作立刻恢复、非匹配 Buff 不受影响，以及真实
 `buff_eny_0114_jzmking_hdg024` 编译后不再出现动作缺口。消费守卫属于状态事务，
 不进入共享水位求解或画布布局。
+
+### 15.6 Buff 消费生命周期已经闭环
+
+本轮按可回退边界完成了五层实现，而不是给大潘、某把武器或某个套装写分支：
+
+1. `StatusEffectSystem` 的离场 transition 现在显式区分普通 finish 与 consume，消费时
+   保存实际层数、来源队列、离场前 Blackboard、消费者和触发技能上下文；
+2. AKE `FinishBuff*`、异元素反应、`ForceSpellStatusAction` 与失衡处决门票通过同一个
+   显式消费入口，普通到期、替换、父子清理与技能生命周期释放仍不生产消费事件；
+3. `CombatRuntime` 在状态提交后把 `OnConsumeBuff` 路由给消费者，同时保持
+   `eventTargetId` 指向被消费状态的 carrier；
+4. `CheckConsumeBuffLayer`、`CheckOriginSkillType(attackTypeMask=All)` 与
+   `GetTargetBuffBBAdvanced(Context)` 都读取同一事件快照。大潘真实天赋按实际消费
+   两层生成两层增益；真实套装能在原状态已失活后读取其 `count=3`；武器被动保留
+   原始技能类型门槛；
+5. 唯一公开 `PreventBuffConsumeAction` 编译成目标级、Buff 实例租约持有的提交前
+   守卫。受保护事务记录 `StatusEffectConsumptionPrevented(actual=0)`，不改变层数、
+   Blackboard 或来源队列，也不广播 `OnConsumeBuff`；保护来源结束后同一动作恢复。
+
+全库 21 组消费者中，17 组现在无 unresolved 并可直接执行；另外 4 组只剩训练玩法
+专属 `RaiseTrainLevelEvent` 外部 provider，消费事件、条件和上下文本身均已闭合。
+能力事件审计从 `completeEventTypes=25 / completeConsumerGroups=866` 提升到
+`26 / 887`，`OnConsumeBuff` 明确为 complete；缺生产者组从 199 降到 178。
+动作审计把唯一 `PreventBuffConsumeAction` 从 blocked 改为 complete，calculator-core
+blocked 从 202 降到 201。
+
+真实与合成契约覆盖部分/完整消费、普通 finish 不误发、错误消费者不响应、元素反应、
+消费层数、离场快照、原始技能类型和消费保护。根运行时全量 257 项测试通过，前端
+TypeScript 严格检查通过。本轮没有修改 `sharedVariableRateTimeline`、水位列、技能按钮、
+光标、Hit 坐标或画布 CSS；前端只继续消费既有运行时账本，因此没有推翻水位特色。

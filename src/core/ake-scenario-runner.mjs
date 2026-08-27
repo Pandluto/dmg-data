@@ -395,7 +395,14 @@ export class AkeScenarioRunner {
             trace: comboTrace,
             getCooldownEnd: skillId => runtime.cooldowns.getEndFrame(characterId, skillId),
             evaluateCondition: (condition, eventContext) =>
-                runtime.effects.evaluate(condition, eventContext)
+                runtime.effects.evaluate(condition, eventContext),
+            onPendingSetEmpty: event => runtime.notifyAbilityEvent({
+                ...event,
+                payload: {
+                    reason: event.reason,
+                    removedPending: event.removedPending
+                }
+            })
         });
         this.lastRuntime = runtime;
         this.lastComboMachine = comboMachine;

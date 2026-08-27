@@ -91,7 +91,8 @@ const RUNTIME_ABILITY_EVENT_TYPES = new Set([
     'OnSkillEnd',
     'OnBeforeAddedBuff',
     'OnTrulyExitFight',
-    'OnFinishedBuff'
+    'OnFinishedBuff',
+    'OnRemoveAllPendingComboSkill'
 ]);
 const TARGET_ALIASES = new Map([
     ['Source', 'Source'],

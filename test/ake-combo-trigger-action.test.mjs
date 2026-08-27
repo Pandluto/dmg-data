@@ -147,9 +147,58 @@ test('real Wulfa combo 2 changes the slot and opens combo 3 without clearing coo
         && entry.frame === 38
         && entry.skillId === COMBO_3
     ));
+    assert.ok(result.statusTrace.some(entry =>
+        entry.stage === 'AbilityEventHandled'
+        && entry.frame === 38
+        && entry.buffId === 'buff_chr_0028_wulfa_combo_usetimer'
+        && entry.eventType === 'OnRemoveAllPendingComboSkill'
+    ), 'consuming the final pending dispatches the raw use-timer listener');
     assert.deepEqual(result.cooldownTrace.filter(entry =>
         entry.stage === 'Started'
     ).map(entry => entry.skillId), [COMBO_2],
     'the first-stage group cooldown remains authoritative after the chained stage');
     assert.ok(result.cooldownTrace[0].endFrame > 38);
+});
+
+test('real Wulfa use-timer ends when its final chained pending times out', () => {
+    const assembled = new AkeSquadScenarioAssembler().assemble({
+        enemyId: ENEMY,
+        members: [{ memberId: 'wulfa', characterId: WULFA }],
+        initialAtb: 300
+    });
+    const bundle = {
+        ...assembled,
+        semanticMappings: assembled.semanticMappings.filter(mapping =>
+            mapping.actionType !== 'ComboTriggerRule'
+        )
+    };
+    const result = new AkeSquadScenarioRunner(bundle).run({
+        commands: [{
+            memberId: 'wulfa',
+            frame: 0,
+            commandType: 'ComboSkill',
+            skillId: COMBO_2,
+            commandId: 'wulfa-combo-2'
+        }],
+        endFrame: 220
+    });
+    const useTimerTrace = result.statusTrace.filter(entry =>
+        entry.buffId === 'buff_chr_0028_wulfa_combo_usetimer'
+    );
+
+    assert.ok(result.comboTrace.some(entry =>
+        entry.stage === 'PENDING_EXPIRED'
+        && entry.frame === 216
+        && entry.skillId === COMBO_3
+    ));
+    assert.ok(useTimerTrace.some(entry =>
+        entry.stage === 'StatusEffectFinished'
+        && entry.frame === 216
+        && entry.reason === 'FinishBuffAdvanced'
+    ), 'the pending edge finishes the six-second timer before its frame-217 expiry');
+    assert.ok(useTimerTrace.some(entry =>
+        entry.stage === 'AbilityEventHandled'
+        && entry.frame === 216
+        && entry.eventType === 'OnRemoveAllPendingComboSkill'
+    ));
 });

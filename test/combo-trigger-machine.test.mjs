@@ -67,6 +67,74 @@ test('the trigger source is data-driven instead of hard-coded to Pelica attack4'
     assert.equal(gate.result, true);
 });
 
+test('pending-empty lifecycle is owner-scoped, final-only, and replacement-safe', () => {
+    const lifecycleEvents = [];
+    const machine = new ComboTriggerMachine({
+        onPendingSetEmpty: event => lifecycleEvents.push(event)
+    });
+    const trigger = ({ frame, ownerId, skillId, pendingPolicy = 'append',
+        durationTicks = 10 }) => machine.trigger({
+        frame,
+        ownerId,
+        targetId: 'enemy',
+        skillId,
+        ruleId: `fixture:${ownerId}:${skillId}:${frame}`,
+        pendingDurationTicks: durationTicks,
+        pendingPolicy,
+        selectionPolicy: 'newest',
+        consumePolicy: 'selected'
+    });
+
+    const ownerAFirst = trigger({ frame: 0, ownerId: 'owner-a', skillId: 'combo-a' }).pending;
+    const ownerASecond = trigger({ frame: 0, ownerId: 'owner-a', skillId: 'combo-b' }).pending;
+    trigger({ frame: 0, ownerId: 'owner-b', skillId: 'combo-a' });
+    trigger({ frame: 1, ownerId: 'owner-b', skillId: 'combo-a', pendingPolicy: 'replace-all' });
+    assert.equal(lifecycleEvents.length, 0, 'atomic replacement never exposes an empty set');
+
+    machine.consume({ frame: 2, pendingId: ownerAFirst.id, currentSkillId: 'combo-a' });
+    assert.equal(lifecycleEvents.length, 0, 'partial removal is not an empty-set event');
+    machine.consume({ frame: 3, pendingId: ownerASecond.id, currentSkillId: 'combo-b' });
+    assert.equal(lifecycleEvents.length, 1, 'another owner pending does not suppress this owner edge');
+    assert.deepEqual({
+        eventType: lifecycleEvents[0].eventType,
+        frame: lifecycleEvents[0].frame,
+        ownerId: lifecycleEvents[0].ownerId,
+        reason: lifecycleEvents[0].reason,
+        removedSkillIds: lifecycleEvents[0].removedPending.map(entry => entry.skillId)
+    }, {
+        eventType: 'OnRemoveAllPendingComboSkill',
+        frame: 3,
+        ownerId: 'owner-a',
+        reason: 'CAST_SUCCESS',
+        removedSkillIds: ['combo-b']
+    });
+
+    const expiring = trigger({
+        frame: 4,
+        ownerId: 'owner-c',
+        skillId: 'combo-expiring',
+        durationTicks: 2
+    }).pending;
+    machine.snapshot(expiring.expireFrame);
+    assert.deepEqual(lifecycleEvents.at(-1), {
+        eventType: 'OnRemoveAllPendingComboSkill',
+        frame: 5,
+        ownerId: 'owner-c',
+        sourceId: 'owner-c',
+        targetId: 'owner-c',
+        listenerTargetId: 'owner-c',
+        reason: 'TIMEOUT',
+        removedPending: [{
+            pendingId: expiring.id,
+            ruleId: expiring.ruleId,
+            skillId: 'combo-expiring',
+            triggerTargetId: 'enemy',
+            createdFrame: 4,
+            expireFrame: 5
+        }]
+    });
+});
+
 test('target-bound pending entries do not cross enemies and can be consumed independently', () => {
     const trace = [];
     const machine = new ComboTriggerMachine({

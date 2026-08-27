@@ -165,15 +165,19 @@ export function normalizeComboTriggerRules(rules = []) {
 
 export class ComboTriggerMachine {
     constructor({ rules = [], schedule = null, trace = [], getCooldownEnd = () => 0,
-        evaluateCondition = null } = {}) {
+        evaluateCondition = null, onPendingSetEmpty = null } = {}) {
         if (evaluateCondition !== null && typeof evaluateCondition !== 'function') {
             throw new TypeError('combo evaluateCondition must be a function or null.');
+        }
+        if (onPendingSetEmpty !== null && typeof onPendingSetEmpty !== 'function') {
+            throw new TypeError('combo onPendingSetEmpty must be a function or null.');
         }
         this.rules = normalizeComboTriggerRules(rules);
         this.schedule = schedule;
         this.trace = trace;
         this.getCooldownEnd = getCooldownEnd;
         this.evaluateCondition = evaluateCondition;
+        this.onPendingSetEmpty = onPendingSetEmpty;
         this.pending = new Map();
         this.actionManagedSkills = new Set();
         this.pauseLeases = new Map();
@@ -189,6 +193,32 @@ export class ComboTriggerMachine {
             sequence,
             ...event
         });
+    }
+
+    #notifyPendingSetEmpty({ frame, ownerId, reason, removed }) {
+        if (typeof ownerId !== 'string' || ownerId.length === 0
+            || !Array.isArray(removed) || removed.length === 0
+            || [...this.pending.values()].some(pending => pending.ownerId === ownerId)) {
+            return null;
+        }
+        const removedPending = removed.map(pending => ({
+            pendingId: pending.id,
+            ruleId: pending.ruleId,
+            skillId: pending.skillId,
+            triggerTargetId: pending.triggerTargetId,
+            createdFrame: pending.createdFrame,
+            expireFrame: pending.expireFrame
+        }));
+        return this.onPendingSetEmpty?.({
+            eventType: 'OnRemoveAllPendingComboSkill',
+            frame,
+            ownerId,
+            sourceId: ownerId,
+            targetId: ownerId,
+            listenerTargetId: ownerId,
+            reason,
+            removedPending
+        }) ?? null;
     }
 
     #occurrenceKey(rule, event) {
@@ -296,6 +326,12 @@ export class ComboTriggerMachine {
             pendingRemainingFrames: 0,
             result: false,
             reason: 'TIMEOUT'
+        });
+        this.#notifyPendingSetEmpty({
+            frame,
+            ownerId: pending.ownerId,
+            reason: 'TIMEOUT',
+            removed: [pending]
         });
         return true;
     }
@@ -709,14 +745,17 @@ export class ComboTriggerMachine {
         commandId = null, castId = null }) {
         const selected = this.pending.get(pendingId);
         if (!selected) throw new Error(`Cannot consume missing combo pending ${pendingId}.`);
+        const removed = [];
         if (selected.consumePolicy === 'all-for-owner-and-skill') {
             for (const candidate of [...this.pending.values()]) {
                 if (candidate.ownerId === selected.ownerId && candidate.skillId === selected.skillId) {
                     this.pending.delete(candidate.id);
+                    removed.push(candidate);
                 }
             }
         } else {
             this.pending.delete(selected.id);
+            removed.push(selected);
         }
         this.#record({
             frame,
@@ -733,6 +772,12 @@ export class ComboTriggerMachine {
             pendingRemainingFrames: this.#remainingFrames(selected, frame),
             result: true,
             reason: 'CAST_SUCCESS'
+        });
+        this.#notifyPendingSetEmpty({
+            frame,
+            ownerId: selected.ownerId,
+            reason: 'CAST_SUCCESS',
+            removed
         });
         return selected;
     }

@@ -790,7 +790,7 @@ frame 37 ChangeSkillAction(ComboSkill -> combo_3_skill, Infinite)
 
 核心契约分三层验证：编译洛茜真实 SkillData 的两个目标分支均得到同一 normalized operation；无静态角色规则的原语测试证明接续 pending 可在共享冷却活动时单次放行；小队 runner 真实执行 `combo_2` 后在第 37 帧开窗、第 38 帧解析并释放 `combo_3`，同时 cooldown ledger 只保留第一段启动的原共享组记录。测试没有出现 `if (characterId === wulfa)`，洛茜只作为原始数据完整的 fixture。
 
-这一步仍未关闭 `OnRemoveAllPendingComboSkill`。该事件表示 owner 的 pending 集合从非空变为空后的生命周期通知，应由状态机在 consume、timeout、replace 或显式 clear 事务之后统一发出，再交给 Buff listener 清理计时和换槽；不能只在洛茜二段释放后手动结束某个 Buff。
+这一步仍未关闭 `OnRemoveAllPendingComboSkill`。该事件表示 owner 的 pending 集合从非空变为空后的生命周期通知，应由状态机在 consume、timeout 或显式 clear 事务之后统一发出，再交给 Buff listener 清理计时和换槽；replace/refresh 必须以整个替换事务的最终集合为准，不能在“先删旧项、再加新项”的中间态误发事件，也不能只在洛茜二段释放后手动结束某个 Buff。
 
 ### 12.13 动作创建的 pending 必须作为运行时事实投影到画布
 
@@ -813,3 +813,27 @@ frame 37 ChangeSkillAction(ComboSkill -> combo_3_skill, Infinite)
 重新扫描 3517 份 SkillData/BuffData 后，`TriggerComboSkillAction` 的 6 个原始节点（SkillData 3、BuffData 3）现均为 `complete`，`runtimeActions=6`、`unresolved=0`；角色机制审计中原先的 “No executable compiler route exists for TriggerComboSkillAction” 已全部消失。审计分类同时把已落地的 `ChangeSkillAction`、`SwitchModeAction`、`AddGlobalCDTimer` 和 `TriggerComboSkillAction` 归回 calculator-core 的通用 logic，而不是继续标成 `other/unresolved`。因此 calculator-core 可执行路径覆盖率由约 96.598% 升至约 96.621%。
 
 这不是“所有连携已经完成”的结论：静态初始开窗规则仍只有有证据的子集，`OnRemoveAllPendingComboSkill` 生产者仍未闭环，若干 Trigger 动作所在 Buff 在单角色隔离探针中也未必能达到。审计的意义是把已经实现的原语从 blocker 清单移除，使下一轮可以直接按剩余事件生产者和条件证据排序，而不会重复修同一动作类型。
+
+### 12.15 `OnRemoveAllPendingComboSkill` 是 owner 集合边沿事件
+
+公开数据中 `OnRemoveAllPendingComboSkill` 只出现一次：`buff_chr_0028_wulfa_combo_usetimer` 监听该事件，并对 `Environment` 选择器执行 `FinishBuffAdvanced`。这条原始链路没有直接切换技能、清理冷却或指定洛茜；计时 Buff 被结束后，它自己的 `OnBuffFinish` 才负责恢复 `ComboSkill` 槽和处理冷却。因此可以从单一角色样本中提炼出通用事件边界，而不把样本的后续效果写入连携状态机：
+
+```text
+owner pending count: N > 0
+  -> consume / timeout / explicit clear transaction
+  -> owner pending count: 0
+  -> emit OnRemoveAllPendingComboSkill(owner)
+  -> owner 身上的 Buff/EventListener 自行响应
+```
+
+实现与测试冻结以下语义：
+
+1. 集合按 owner 隔离。小队中 A 的最后一个 pending 被移除，只通知 A；B 的 pending 不阻止 A 的事件，也不能让 B 的监听器响应；
+2. 这是 `N > 0 -> 0` 的边沿，而不是“删除了一条 pending”的通知。一个 owner 同时拥有多个 pending 时，消费或超时其中一条不触发，最后一条离开才触发一次；
+3. `replace-all` 与 `refresh-newest` 是原子事务。事务结束后仍有新 pending 时不得暴露瞬时空集合，也不得提前结束 use-timer；
+4. removal trace 先提交，能力事件随后同步分发。监听器由此看到已经为空的 settled pending 快照；监听器引发的 Buff finish、换槽和冷却动作仍保留同帧因果链；
+5. callback 只发布通用上下文：`eventType`、frame、owner、原因和被移除项摘要。它不能引用角色 ID、Buff ID、技能槽恢复目标或 UI 图标；
+6. emitter 必须同时连接单角色与小队 runner，并加入编译器的已证明事件词表。只有消费者可编译而生产者不存在，仍属于审计 blocker；
+7. 第一轮契约覆盖 `consume final`、`expire final`、多 pending 部分删除、replace/refresh 不误发，以及真实洛茜第二段消费后 use-timer 由原始 Buff listener 提前结束。洛茜只是端到端 fixture，不是实现分支。
+
+这一步不改变水位列、变量斜率、按钮坐标或伤害点投影。它只补上核心状态事务缺少的生命周期出口；若后续画布需要直接显示该事件，应从同一 runtime ledger 投影，而不是在前端另算一次 pending 是否为空。

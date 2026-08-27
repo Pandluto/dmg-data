@@ -849,4 +849,46 @@ owner pending count: N > 0
 
 时序目录只更新这一处 settled 差异，catalog adapter 升至 v25 以清除旧缓存；水位分组、变量斜率、列宽、按钮与伤害点布局没有修改。核心全库 235 项测试、前端严格类型检查、命中目录契约和生产构建均通过。
 
-重跑现有 action/operator 审计没有产生文件差异，原因不是该事件仍缺失，而是审计器存在一个更大的结构性盲区：严格的 `AKE_ABILITY_EVENT_EMITTER_REQUIRED` 目前只检查 Skill 内嵌 `EventListenerAction`，没有检查 BuffData 顶层 `abilityEventAction`。公开 BuffData 实际使用 81 种能力事件；只验证 listener 子动作可编译，会把“消费者存在但生产者不存在”误报为可执行。所以下一项不是再挑一个角色补丁，而是建立运行时事件生产者清单，并把顶层 Buff listener 也纳入同一 fail-closed 审计。`OnRemoveAllPendingComboSkill` 应在该新审计中保持 complete，其他没有源码生产者或边界探针的事件必须显式暴露。
+重跑现有 action/operator 审计没有产生文件差异，原因不是该事件仍缺失，而是审计器存在一个更大的结构性盲区：严格的 `AKE_ABILITY_EVENT_EMITTER_REQUIRED` 目前只检查 Skill 内嵌 `EventListenerAction`，没有检查 BuffData 顶层 `abilityEventAction`。公开 BuffData 实际使用 82 种序列化事件值；只验证 listener 子动作可编译，会把“消费者存在但生产者不存在”误报为可执行。所以下一项不是再挑一个角色补丁，而是建立运行时事件生产者清单，并把顶层 Buff listener 也纳入同一 fail-closed 审计。`OnRemoveAllPendingComboSkill` 应在该新审计中保持 complete，其他没有源码生产者或边界探针的事件必须显式暴露。
+
+## 13. 能力事件生产者审计
+
+### 13.1 顶层 listener 不能只验证“子动作能执行”
+
+对当前公开 BuffData 的顶层 `abilityEventAction` 做独立计数，得到 953 个 listener 组、82 种序列化事件值。沿 `CombatRuntime`、单/小队 runner、连携状态机桥接与 reaction callback 逐条核对后，当前可证明有生产者的事件只有 22 种，覆盖 613 组；剩余 60 种、340 组没有已实现生产链。两种事件值甚至是 `0`、`32`，属于非字符串枚举/导出残留，不能当作合法运行时事件静默保留。
+
+当前已证明的 22 种是：
+
+```text
+OnBeforeCastSkill, OnSkillEnd, OnTrulyExitFight,
+OnBeforeAddedBuff, OnAddedBuff, OnBeforeOutputBuff, OnOutputBuff, OnFinishedBuff,
+OnBeforeOutputDamage, OnBeforeTakeDamage, OnOutputDamage, OnTakeDamage,
+OnOutputCriticalDamage, OnTakeCriticalDamage, OnAfterKillEntity, OnTakePoiseDamage,
+OnBeforeOutputAirborne,
+OnObtainAtb, OnAtbMax, OnAfterSkillApplyCost, OnSquadUspChange,
+OnRemoveAllPendingComboSkill
+```
+
+未证明事件按 listener 数量排序，头部已经直接指出后续通用引擎优先级：
+
+| 事件 | listener 组 | 暴露的公共缺口 |
+|---|---:|---|
+| `OnOwnerHpZero` | 105 | HP 归零/死亡前后生命周期没有能力事件出口 |
+| `OnPoiseZero` | 49 | 韧性首次归零没有公共边沿事件 |
+| `OnPoiseRecover` | 19 | 韧性恢复周期结束没有公共事件 |
+| `OnOwnerDead` | 18 | 死亡提交与 HP 归零事件尚未分层 |
+| `OnConsumeBuff` | 10 | Buff 层/实例消费没有标准生产者 |
+| `OnAfterOutputPhysicalInfliction` | 10 | 物理异常事务缺少前后事件桥接 |
+| `OnEnterFight` | 9 | 战斗进入生命周期未建模 |
+| `OnReceiveHeal` | 6 | 治疗结算只写 vital ledger，未发能力事件 |
+
+这解释了为什么某个动作编译成功、Buff 也出现在配置面板，实战状态机仍可能“毫无反应”：消费者代码存在不等于触发事件存在。接下来的审计升级冻结为：
+
+1. 建立一份带来源说明的运行时事件生产者注册表，由编译器三个消费者路径共用：Buff 顶层 `abilityEventAction`、Skill `passiveEventActions`、内嵌 `EventListenerAction`；
+2. 非字符串/空事件值标记 `AKE_ABILITY_EVENT_TYPE_REQUIRED`；合法字符串但无已证明生产者时标记 `AKE_ABILITY_EVENT_EMITTER_REQUIRED`；
+3. listener 的子动作仍继续编译并保留，不用“生产者缺失”掩盖另一个动作缺口，但拥有该 listener 的定义整体必须为 unresolved；
+4. `igniteEventAction` 暂不混入静态能力事件表，它由 reaction/ignite 类型驱动，需使用独立的 reaction producer 审计；
+5. 审计结果按事件类型聚合 listener 数、受影响 Buff 和干员，不能把 340 个缺口重复包装成 340 个角色特例；
+6. 下一轮实现从公共边沿价值和覆盖量排序，优先研究 HP zero/dead 与 poise zero/recover 的提交顺序，而不是从某个界面缺少图标倒推逻辑。
+
+这次改动首先提升“我们知道什么没做”的正确性，不会立即伪造 60 个事件生产者。已实现的 22 种必须保持 executable，`OnRemoveAllPendingComboSkill` 的真实洛茜契约继续作为新审计的正例。

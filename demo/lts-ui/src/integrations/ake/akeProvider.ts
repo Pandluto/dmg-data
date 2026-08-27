@@ -610,6 +610,39 @@ function potentialCount(value: string | undefined, fallback = 1): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+type LocalWeaponSkillLevels = {
+  skill1: number;
+  skill2: number;
+  skill3: number;
+};
+
+/**
+ * The config page presents weapon skills by semantic role:
+ * primary / secondary / passive. AKE resolves levels by the physical order in
+ * weaponSkillList, and some weapons omit the secondary entry entirely. Map the
+ * editor roles back to those physical slots before sending the runtime request.
+ */
+export function resolveAkeWeaponSkillLevels(
+  skillPatches: Array<{ role: string }>,
+  localLevels: LocalWeaponSkillLevels,
+): LocalWeaponSkillLevels {
+  const resolved: LocalWeaponSkillLevels = { ...localLevels };
+  const roleLevel = {
+    primary: localLevels.skill1,
+    secondary: localLevels.skill2,
+    passive: localLevels.skill3,
+  } as const;
+
+  skillPatches.slice(0, 3).forEach((patch, index) => {
+    const physicalSlot = `skill${index + 1}` as keyof LocalWeaponSkillLevels;
+    const mappedLevel = roleLevel[patch.role as keyof typeof roleLevel];
+    if (typeof mappedLevel === 'number') {
+      resolved[physicalSlot] = mappedLevel;
+    }
+  });
+  return resolved;
+}
+
 function configuredDamageBonuses(snapshot: ConfigSnapshot | undefined) {
   if (!snapshot) return [];
   const damage = snapshot.panel.display.damageBonus;
@@ -679,11 +712,15 @@ function prepareMember(input: {
   const weaponPotential = Math.max(1, Math.min(
     9, potentialCount(snapshot?.weapon.config.potential, 1),
   ));
-  const weaponSkillLevels = {
+  const localWeaponSkillLevels = {
     skill1: Math.max(1, Math.min(9, Number(snapshot?.weapon.config.skillLevels.skill1) || 9)),
     skill2: Math.max(1, Math.min(9, Number(snapshot?.weapon.config.skillLevels.skill2) || 9)),
     skill3: Math.max(1, Math.min(9, Number(snapshot?.weapon.config.skillLevels.skill3) || 4)),
   };
+  const weaponSkillLevels = resolveAkeWeaponSkillLevels(
+    weapon?.skillPatches ?? [],
+    localWeaponSkillLevels,
+  );
   const mainAbilityLabel = snapshot?.operator.mainStat
     || catalogCharacter?.mainAttributeLabel
     || '主能力';

@@ -674,3 +674,65 @@ Endaxis 的 `internalCooldown/sharedIcdKey` 说明成熟模拟器同样需要把
 7. trace 明确输出 `PENDING_TIME_PAUSED` / `PENDING_TIME_RESUMED`、lease 与剩余帧，UI 只能投影这一事实，不能按按钮宽度猜持续时间。
 
 原语回归使用任意 owner/skill 的数据驱动规则验证暂停与严格到期边界；真实回归直接读取洛茜原始 `PauseComboSkillTime` 结构，验证编译出的 start/cleanup 租约以及中断兜底。核心实现没有判断洛茜、重击或二段连携 ID。
+
+### 12.8 连携触发条件不在 SkillData 动作树中的证据断层
+
+逐个对照 31 个可用角色条目后，可以确认 AKE 的连携机制分成两个数据面，而不是一棵可以从 SkillData 独立闭包的动作树：
+
+| 数据面 | 能证明什么 | 不能证明什么 |
+| --- | --- | --- |
+| `CharGrowthTable.skillGroupMap` 与中文文本 | 每名干员的开窗条件、公开技能形态和描述中的状态阈值 | 条件使用的内部事件枚举、窗口精确边界、同帧优先级 |
+| `SkillData` / `BuffData` | 开窗后的伤害、Buff、换段、QTE、暂停、清理和冷却事务 | 大多数干员“何时创建初始 pending”的全局注册表 |
+| Calc 黑盒边界 | 实际 pending 起止、同帧释放、刷新/替换和冷却抑制 | 未探测角色的内部实现 |
+| Endaxis `comboWindow` | 一套成熟项目手填了哪些触发维度 | AKE 权威事件名、数值和窗口边界 |
+
+AKE 文本中的触发条件可以归并为少量公共事件，而不是 31 种角色引擎：
+
+| 公共事件族 | AKE 代表 | 需要的通用条件 |
+| --- | --- | --- |
+| 重击/处决提交 | 佩丽卡、艾维文娜、黎风、伊冯、艾尔黛拉、庄方宜 | 命中角色、目标状态、末段/处决标签 |
+| 敌方状态施加或达到层数 | 陈千语、秋栗、狼卫、安塔尔、汤汤、洁尔佩塔、莱万汀、别礼、大潘、弭弗、洛茜、诀 | 状态族、层数比较、目标同时持有的其他状态 |
+| 敌方状态消费 | 边境、弧光、阿列什、卡米尔、梨诺 | 被消费状态族、消费量、姿态条件 |
+| 其他干员技能命中 | 管理员 | 技能类型、施法者不等于 pending owner |
+| 主控受击/生命阈值 | 艾米尔、昼雪、别礼 | 受击事件、受击后 HP、敌方蓄力事件 |
+| 自身资源/实体生命周期 | 赛希 | 支援实体次数耗尽或状态消费 |
+| 属性形态 | 诀 | 同一状态事件在不同 form 下使用不同阈值与冷却组 |
+
+因此，“纯通用”不能解释成“完全不要逐角色规则数据”。正确边界是：事件生产者、条件代数、pending 生命周期、冷却、选择与消费策略只实现一次；每名干员只提供声明式规则和证据。运行时出现 `if (characterId === ...)` 是错误，但规则的 `ownerId`、状态 ID 和技能 ID 本来就是合法数据。
+
+当前 `spec/engine-semantic-mappings.json` 只有佩丽卡、陈千语和男女管理员共 4 条 `ComboTriggerRule`。这解释了为什么已有状态事务本身可能正确，画布仍会把大量连携判为“没有合法释放空间”：不是水位投影错误，而是 pending 从未被创建。测试只覆盖这 4 条规则时全部通过，也不能证明其他干员正确。
+
+下一步冻结以下实现纪律：
+
+1. `ComboTriggerRule` 复用公共条件代数，至少支持目标 Buff 层数、任一/全部状态族、否定、HP、技能类型和 source/owner 身份比较；
+2. 条件在事件提交后的同一运行时快照上求值，不能由 UI 根据图标或中文名推测；
+3. 每条角色规则必须记录 E1 文本、可用的 E1 原始状态 ID 和 E2 边界探针；缺 E2 时标为 `public-data-derived`，不得写成 confirmed；
+4. 核心 runner 与实时画布消费同一 normalized rule；前端不能另建简化的角色触发表；
+5. `TriggerComboSkillAction`、`ChangeSkillAction` 和 `ShowComboRingQte` 分别表示开窗后的动作触发、技能槽 overlay 与精准时机提示，不能看到 “Combo” 字样就全部编译成 `CreateComboPending`。
+
+### 12.9 洛茜两段连携的原始链路
+
+洛茜是上述分层的最小压力测试。三路证据给出的链路如下：
+
+```text
+敌人首次满足：破防 AND 任一四元素附着
+  -> 创建洛茜第一段连携 pending
+  -> 释放 chr_0028_wulfa_combo_2_skill
+  -> ChangeSkillAction 把 ComboSkill 槽换成 chr_0028_wulfa_combo_3_skill
+  -> 第二段可用计时与 QTE listening Buff 启动
+  -> 重击期间 PauseComboSkillTime + PauseBuffTime 同步冻结
+  -> 精准窗口仅由 ShowComboRingQte / timing_success 表示
+  -> 释放第二段或计时结束后恢复 chr_0028_wulfa_combo_2_skill
+  -> OnRemoveAllPendingComboSkill / Buff finish 清理监听与计时
+```
+
+原始数据中的关键边界是：
+
+- 公共技能组只公开 `combo_2_skill` 和 `combo_3_skill`，与中文描述的“可连续发动两次”一致；
+- `combo_2_skill` 在 37 帧把连携槽换成 `combo_3_skill`，而 `combo_3_skill` 在起始组换回 `combo_2_skill`；这是通用 skill-slot overlay，不是洛茜专用状态机；
+- 内部 `combo_1_skill` 不在公开技能组中，但包含 6 秒临时换槽、`TriggerComboSkillAction`、冷却清零和 use-timer 创建，属于内部触发/接续代理，不能作为第三个用户技能暴露；
+- `TriggerComboSkillAction` 没有目标 skill id，且出现在技能已经执行后的条件分支中，所以它不足以定义最初的全局开窗条件；
+- `ShowComboRingQte` 只写入 QTE 成功标记和教程 Buff，不能用来代替普通 pending；
+- Endaxis 在洛茜源码中明确留下“两段连携窗口尚未对应”的 TODO，进一步证明其手填窗口不能作为本项目的行为真值。
+
+由此，洛茜的实现必须拆成三份可复用事实：复合状态条件创建第一段 pending、`ChangeSkillAction` 驱动技能槽 overlay、原始 Buff/动作驱动第二段计时与精准窗口。任何只在画布中把一个按钮强行改绿的修复都会掩盖这三者中的至少一个缺口。

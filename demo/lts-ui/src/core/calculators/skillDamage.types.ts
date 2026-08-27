@@ -187,6 +187,13 @@ export interface FormulaViewModel {
   title: string;
   panelLines: string[];
   attackLines?: string[];
+  /** AKE 命中详情里的面板值/运行时值对照；手动预览没有此字段。 */
+  attackComparison?: {
+    panel: number;
+    runtime: number;
+    delta: number;
+    sourceCount: number;
+  };
   buffTags: AppliedBuffTagViewModel[];
   showNoBuff: boolean;
   baseMultiplierText: string;

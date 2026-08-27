@@ -704,6 +704,7 @@ function buildRuntimeFormula(
   title: string,
   statusEvents: AkeRuntimeStatusEvent[],
   labels: AkeRuntimeStatusLabelMap,
+  panelAttack?: number,
 ): FormulaViewModel {
   const operands = hit.operands ?? {};
   const factors = hit.factors ?? [];
@@ -737,6 +738,7 @@ function buildRuntimeFormula(
   const attackAfterRuntime = finite(attackEvaluation?.afterRuntime, attackAfterBaseFinal);
   const attackFinal = finite(attackEvaluation?.value, attack);
   const attackSourceCount = attackAttribute?.contributions?.length ?? 0;
+  const hasPanelAttack = Number.isFinite(panelAttack) && (panelAttack ?? 0) > 0;
   const attackerCombinedScale = attackerScale * configuredScale;
   const buffTags = contributionBuffTags(hit, statusEvents, labels);
   const nonCritFactors = factors.length > 0
@@ -756,11 +758,15 @@ function buildRuntimeFormula(
     title: `${title} 运行时计算过程`,
     panelLines: [
       `ATK: ${trimNumber(attack)}`,
+      ...(hasPanelAttack ? [`面板ATK: ${trimNumber(panelAttack ?? 0)}`] : []),
       `暴击率: ${percent(criticalRate)}`,
       `暴击伤害: ${percent(criticalDamageIncrease)}`,
       `运行帧: F${hit.frame}`,
     ],
     attackLines: [
+      ...(hasPanelAttack
+        ? [`LTS 面板攻击力: ${trimNumber(panelAttack ?? 0)}`]
+        : []),
       ...(attackSourceCount > 0
         ? [`攻击力属性链: ${[attackBase, attackAfterBase, attackAfterBaseFinal, attackAfterRuntime, attackFinal]
           .filter((value, index, values) => index === 0 || Math.abs(value - values[index - 1]) > 1e-9)
@@ -770,6 +776,14 @@ function buildRuntimeFormula(
       `运行时最终攻击力: ${trimNumber(attackFinal)}`,
       `原始伤害: ${trimNumber(attack)} × ${trimNumber(atkScale, 4)} = ${trimNumber(hit.rawDamage)}`,
     ],
+    attackComparison: hasPanelAttack
+      ? {
+        panel: panelAttack ?? 0,
+        runtime: attackFinal,
+        delta: attackFinal - (panelAttack ?? 0),
+        sourceCount: attackSourceCount,
+      }
+      : undefined,
     buffTags,
     showNoBuff: buffTags.length === 0,
     baseMultiplierText: percent(atkScale, 2),
@@ -964,9 +978,15 @@ export function buildAkeRuntimeCommandLedger(input: {
   const runtimeHits = (report.hits ?? [])
     .filter((hit) => hit.castId === castId && hit.damageAttributeType === 'Hp')
     .sort((left, right) => left.frame - right.frame || left.hitIndex - right.hitIndex);
+  const reportCharacter = report.characters.find((character) => (
+    character.akeCharacterId === command.characterId
+    || character.memberId === command.memberId
+    || character.localCharacterId === command.characterId
+  ));
+  const panelAttack = reportCharacter?.loadout.panelAtk;
   const hits = runtimeHits.map((hit, index) => {
     const title = hitTitle(hit, index, labels, statusEvents);
-    const formula = buildRuntimeFormula(hit, title, statusEvents, labels);
+    const formula = buildRuntimeFormula(hit, title, statusEvents, labels, panelAttack);
     return {
       key: `ake-runtime-hit:${castId}:${hit.hitIndex}`,
       title,

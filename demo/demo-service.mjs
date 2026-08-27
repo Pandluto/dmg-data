@@ -17,6 +17,7 @@ import { projectAkeTimeline } from '../src/core/ake-timeline-projector.mjs';
 const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
 const defaultProjectRoot = path.resolve(moduleDirectory, '..');
 const timingProfileCache = new Map();
+const timingProfileSourceSignature = new Map();
 
 export const SLOT_FRAMES = 15;
 export const TIMELINE_SLOTS = 40;
@@ -358,14 +359,28 @@ export function getDemoCatalog({ projectRoot = defaultProjectRoot } = {}) {
         catalogCache.set(resolvedRoot, demoRepository(resolvedRoot).catalog());
     }
     const akeCatalog = catalogCache.get(resolvedRoot);
-    if (!timingProfileCache.has(resolvedRoot)) {
-        const timingPath = path.join(
-            resolvedRoot, 'derived', 'cleanroom', 'ake-timing-profiles.json'
-        );
+    const timingPath = path.join(
+        resolvedRoot, 'derived', 'cleanroom', 'ake-timing-profiles.json'
+    );
+    // The Vite middleware is a long-lived process, while the timing catalog is
+    // a generated artifact that can be rebuilt during development.  Keying
+    // the cache by the file signature prevents an old catalog from continuing
+    // to expose every status tick as a release snap after a rebuild.  This is
+    // deliberately server-side; the UI already requests the endpoint with
+    // `cache: no-store`.
+    const timingStat = fs.statSync(timingPath);
+    const timingSignature = [
+        timingStat.mtimeMs,
+        timingStat.size,
+        timingStat.ino ?? 0
+    ].join(':');
+    if (!timingProfileCache.has(resolvedRoot)
+        || timingProfileSourceSignature.get(resolvedRoot) !== timingSignature) {
         timingProfileCache.set(resolvedRoot, enrichAkeTimingWithHitMultipliers({
             projectRoot: resolvedRoot,
             timing: JSON.parse(fs.readFileSync(timingPath, 'utf8'))
         }));
+        timingProfileSourceSignature.set(resolvedRoot, timingSignature);
     }
     return {
         ...structuredClone(akeCatalog),

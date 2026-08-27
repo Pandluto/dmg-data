@@ -11704,8 +11704,7 @@
               "observedAtkScale": 2.7,
               "damageTypes": [
                 "Pulse"
-              ],
-              "releaseEligible": false
+              ]
             }
           ],
           "resourceEvents": [
@@ -13383,8 +13382,7 @@
               "observedAtkScale": 0.8,
               "damageTypes": [
                 "Natural"
-              ],
-              "releaseEligible": false
+              ]
             }
           ],
           "resourceEvents": [

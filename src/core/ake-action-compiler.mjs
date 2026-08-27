@@ -74,6 +74,9 @@ const STATUS_ENHANCEMENT_OPERATIONS = Object.freeze({
     Min: 'Min',
     Max: 'Max'
 });
+const SPELL_ABNORMAL_TYPES = new Set([
+    'Fire', 'Pulse', 'Cryst', 'Natural', 'Burst'
+]);
 const CONDITION_PREFIX = /^(Check|Compare|Probablity$|OrCondition|NotNextCheck)/;
 const TARGET_ALIASES = new Map([
     ['Source', 'Source'],
@@ -2708,6 +2711,48 @@ export class AkeActionCompiler {
                     reason: type
                 });
                 break;
+            case 'OnSpellAbnormalStartFinish': {
+                if (typeof node.isStart !== 'boolean') {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_SPELL_ABNORMAL_LIFECYCLE_PHASE_MISSING',
+                        type,
+                        state.path,
+                        'OnSpellAbnormalStartFinish requires a Boolean isStart value.'
+                    ));
+                    break;
+                }
+                if (!SPELL_ABNORMAL_TYPES.has(node.abnormalType)) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_SPELL_ABNORMAL_LIFECYCLE_TYPE_UNSUPPORTED',
+                        type,
+                        state.path,
+                        `Unsupported spell abnormal type ${String(node.abnormalType)}.`,
+                        { abnormalType: node.abnormalType ?? null }
+                    ));
+                    break;
+                }
+                const eventType = node.isStart
+                    ? 'SpellAbnormalStarted'
+                    : 'SpellAbnormalFinished';
+                result.actions.push({
+                    type: 'EmitEvent',
+                    eventType,
+                    payload: {
+                        abnormalType: node.abnormalType,
+                        isStart: node.isStart
+                    },
+                    reason: type
+                });
+                result.metadata.push({
+                    type,
+                    path: state.path,
+                    category: 'spell-abnormal-lifecycle',
+                    eventType,
+                    abnormalType: node.abnormalType,
+                    isStart: node.isStart
+                });
+                break;
+            }
             case 'SetSuperArmorAction': {
                 const target = this.#targetRef(node.targetSettings ?? node.targetSource, state);
                 if (target.unresolved) result.unresolved.push(target.unresolved);

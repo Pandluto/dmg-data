@@ -525,6 +525,7 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 10. `ForceSpellStatusAction` 的七处公开动作已编译为统一 `ForceEnemySpellStatus` 事务：`consumedType` 使用公共元素枚举（`0=Fire`、`1=Pulse`、`2=Cryst`、`3=Natural`），`spellStatusType` 选择燃烧/导电/冻结/腐蚀入口，`consumedLayer` 精确消费旧附着层；梨诺的零层消费因此可以直接制造导电，伊冯、弧光、阿列什则沿同一事务按层消费；
 11. 强制异常事务在修改状态前校验数值范围、Buff 映射、依赖定义和可消费层数；不足时 fail closed，不先删附着。消费账本保留每层来源，异常 Buff 继承当前技能来源，命中详情从同一个编译动作投影状态，不建立 UI 私有推演；
 12. `VulnerableAction`、`WeakAction`、`ShelterAction`、`ExtendBuffAction`、`InheritBuffAction`、`ForceSpellStatusAction` 与逐干员可达的 `FinishBuffAdvanced` 已不再出现在 unresolved source type 中；本轮新增能力没有角色 ID、技能 ID 或队伍模板分支；
-13. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁。
+13. 全量 BuffData 中 46 处 `OnSpellAbnormalStartFinish` 声明（42 处启用、4 处原始数据明确禁用）只有一种稳定结构：`OnBuffStart/isStart=true` 与 `OnBuffFinish/isStart=false` 成对出现，覆盖 Fire、Pulse、Cryst、Natural 与 Burst。启用动作现已编译为 `SpellAbnormalStarted/Finished` 统一账本事件，保留 source/owner/target/Buff instance 归因；禁用动作继续不执行；实际 Buff 实例仍是唯一状态事实，没有再造一套平行元素状态机；
+14. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁。
 
-349 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。`ForceSpellStatusAction` 已闭合，但普通元素反应链仍受动态 `ReadSkillSettingData` 表值和 `OnSpellAbnormalStartFinish` 事件语义阻塞，不能把强制异常通过等同于四元素系统全部完成。下一阶段进入事件订阅和派生命中闭包。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
+349 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。`ForceSpellStatusAction` 与异常生命周期通知已闭合，但普通元素反应链仍受动态 `ReadSkillSettingData` 表值阻塞，不能把强制异常通过等同于四元素系统全部完成。下一阶段先闭合四级异常数值表与术式强度修正，再进入事件订阅和派生命中闭包。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。

@@ -399,6 +399,12 @@ function normalizeBuffAction(raw) {
             };
         case 'TriggerSpellBurstEventAction':
             return { type, spellBurstType: raw.spellBurstType };
+        case 'OnSpellAbnormalStartFinish':
+            return {
+                type,
+                isStart: raw.isStart,
+                abnormalType: raw.abnormalType
+            };
         case 'ModifyResilienceDecreaseFactor':
             return { type, resilienceDecreaseFactor: raw.resilienceDecreaseFactor };
         case 'DamageAction':

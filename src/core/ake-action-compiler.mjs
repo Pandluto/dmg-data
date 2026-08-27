@@ -2361,6 +2361,61 @@ export class AkeActionCompiler {
                 });
                 break;
             }
+            case 'TriggerComboSkillAction': {
+                const mapping = this.#findMapping(type, candidate => (
+                    candidate.effect?.operation === 'TriggerComboPending'
+                ));
+                if (!mapping) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_COMBO_TRIGGER_ACTION_RULE_MISSING',
+                        type,
+                        state.path,
+                        'TriggerComboSkillAction requires an evidence-backed pending policy.'
+                    ));
+                    break;
+                }
+                const owner = this.#targetRef(node.owner, state, 'combo pending owner');
+                const target = this.#targetRef(node.target, state, 'combo pending target');
+                const trigger = node.needTrigger
+                    ? this.#targetRef(node.trigger, state, 'combo pending trigger')
+                    : { ref: null, unresolved: null };
+                for (const resolved of [owner, target, trigger]) {
+                    if (resolved.unresolved) result.unresolved.push(resolved.unresolved);
+                }
+                const durationTicks = Number(mapping.effect.pendingDurationTicks);
+                if (!Number.isInteger(durationTicks) || durationTicks <= 0) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_COMBO_TRIGGER_ACTION_DURATION_INVALID',
+                        type,
+                        state.path,
+                        'TriggerComboSkillAction pending duration must be a positive tick count.'
+                    ));
+                    break;
+                }
+                if (!owner.ref || !target.ref || (node.needTrigger && !trigger.ref)) break;
+                result.actions.push({
+                    type: 'TriggerComboPending',
+                    owner: owner.ref,
+                    target: target.ref,
+                    ...(trigger.ref ? { trigger: trigger.ref } : {}),
+                    needTrigger: node.needTrigger === true,
+                    triggerId: `ake-trigger-combo:${state.path}`,
+                    skillSlot: mapping.effect.skillSlot ?? 'ComboSkill',
+                    pendingDurationTicks: durationTicks,
+                    requireComboOffCooldown:
+                        mapping.effect.requireComboOffCooldown === true,
+                    bypassSkillCooldown: mapping.effect.bypassSkillCooldown === true,
+                    pendingPolicy: mapping.effect.pendingPolicy ?? 'replace-all',
+                    selectionPolicy: mapping.effect.selectionPolicy ?? 'newest',
+                    consumePolicy: mapping.effect.consumePolicy ?? 'selected',
+                    reason: type,
+                    metadata: {
+                        akeSourceAction: type,
+                        akeSourcePath: state.path
+                    }
+                });
+                break;
+            }
             case 'AddGlobalCDTimer': {
                 const target = this.#targetRef(
                     node.target,

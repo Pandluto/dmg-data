@@ -468,6 +468,45 @@ export class AkeSquadScenarioRunner {
                 status: 'Unresolved',
                 reason: 'ComboTriggerMachineNotReady'
             }),
+            comboPendingTriggerResolver: request => {
+                if (!comboMachine) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'ComboTriggerMachineNotReady'
+                    };
+                }
+                const ownerState = states.get(request.ownerId);
+                if (!ownerState) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'ComboPendingOwnerUnknown'
+                    };
+                }
+                const skillSlot = request.skillSlot ?? 'ComboSkill';
+                const override = runtime.skillForms.resolveOverride({
+                    targetId: request.ownerId,
+                    skillSlot
+                });
+                const skillId = override?.targetSkillId
+                    ?? baseRoleSkill(ownerState.roles, 'ComboSkill');
+                if (!skillId) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'ComboPendingSkillSlotUnresolved'
+                    };
+                }
+                return comboMachine.trigger({
+                    ...request,
+                    skillId,
+                    ruleId: request.triggerId
+                }, {
+                    currentSkillId: ownerState.currentSkill?.skillId
+                        ?? request.rootSkillId,
+                    currentPriority: ownerState.currentSkill?.priority ?? 0,
+                    sourceActionType: request.metadata?.akeSourceAction ?? null,
+                    sourceActionPath: request.metadata?.akeSourcePath ?? null
+                });
+            },
             onStatusTransition: observeStatusTransitionForCombos,
             maxEventsPerRun: this.maxEventsPerRun
         });
@@ -1134,10 +1173,10 @@ export class AkeSquadScenarioRunner {
                             : 'character-template';
 
             if (command.commandType === 'ComboSkill') {
-                const requiresPending = bundle.semanticMappings.some(mapping =>
-                    mapping.actionType === 'ComboTriggerRule'
-                    && mapping.effect?.comboSkillId === skillId
-                );
+                const requiresPending = comboMachine.isManagedSkill({
+                    ownerId: state.characterId,
+                    skillId
+                });
                 if (requiresPending) {
                     comboGate = comboMachine.gate({
                         frame,
@@ -1198,7 +1237,7 @@ export class AkeSquadScenarioRunner {
                 state.characterId,
                 skillId
             );
-            if (skillCooldownEnd > frame) {
+            if (skillCooldownEnd > frame && !comboGate?.pending?.bypassSkillCooldown) {
                 failCommand(state, command, frame, 'COOLDOWN_ACTIVE', skillId, skillSource);
                 return;
             }

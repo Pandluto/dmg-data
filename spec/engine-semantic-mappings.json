@@ -346,6 +346,39 @@
       ]
     },
     {
+      "id": "global.trigger-combo-skill-action",
+      "actionType": "TriggerComboSkillAction",
+      "effect": {
+        "operation": "TriggerComboPending",
+        "skillSlot": "ComboSkill",
+        "pendingDurationTicks": 180,
+        "requireComboOffCooldown": false,
+        "bypassSkillCooldown": true,
+        "pendingPolicy": "replace-all",
+        "selectionPolicy": "newest",
+        "consumePolicy": "selected"
+      },
+      "confidence": "public-data-plus-calc-boundary",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0028_wulfa_combo_2_skill.json",
+          "observation": "After ChangeSkillAction selects combo_3_skill, both target branches call TriggerComboSkillAction; all six public action instances use needTrigger=false."
+        },
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_combo_usetimer.json",
+          "observation": "The chained-use timer lasts six seconds and restores combo_2_skill when the pending lifecycle ends."
+        },
+        {
+          "type": "black-box-boundary-observation",
+          "fixture": "fixtures/calc/pelica-combo-boundaries.oracle.json",
+          "observation": "Calc's shared pending boundary is 180 ticks; action-triggered stages use the same six-second admission vocabulary without requiring the ordinary skill cooldown to be ready."
+        }
+      ],
+      "notes": "The action has no concrete skill id. Runtime resolves the owner's currently active ComboSkill slot after preceding ChangeSkillAction effects. bypassSkillCooldown admits that action-created stage while preserving the original group cooldown for the next normal cycle."
+    },
+    {
       "id": "pelica.attack4.first-hp-damage",
       "actionType": "ComboTriggerRule",
       "eventType": "BeforeHpDamage",

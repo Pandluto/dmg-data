@@ -122,6 +122,7 @@ function normalizeRule(rawRule, index) {
                 `combo trigger rule ${id} effect.triggerTargetBinding`
             ),
             requireComboOffCooldown: effect.requireComboOffCooldown ?? false,
+            bypassSkillCooldown: effect.bypassSkillCooldown === true,
             pendingPolicy: selectedPolicy(
                 effect.pendingPolicy ?? 'append',
                 PENDING_POLICIES,
@@ -147,6 +148,10 @@ function sameSlot(left, right) {
         && left.triggerTargetId === right.triggerTargetId;
 }
 
+function managedSkillKey(ownerId, skillId) {
+    return JSON.stringify([ownerId, skillId]);
+}
+
 export function normalizeComboTriggerRules(rules = []) {
     if (!Array.isArray(rules)) throw new Error('combo trigger rules must be an array.');
     const normalized = rules.map(normalizeRule);
@@ -170,6 +175,7 @@ export class ComboTriggerMachine {
         this.getCooldownEnd = getCooldownEnd;
         this.evaluateCondition = evaluateCondition;
         this.pending = new Map();
+        this.actionManagedSkills = new Set();
         this.pauseLeases = new Map();
         this.seenOccurrences = new Set();
         this.nextPendingId = 1;
@@ -328,6 +334,7 @@ export class ComboTriggerMachine {
             durationTicks: rule.effect.pendingDurationTicks,
             selectionPolicy: rule.effect.selectionPolicy,
             consumePolicy: rule.effect.consumePolicy,
+            bypassSkillCooldown: rule.effect.bypassSkillCooldown === true,
             pauseLeaseIds,
             pausedAtFrame: pauseLeaseIds.size > 0 ? event.frame : null
         };
@@ -339,6 +346,147 @@ export class ComboTriggerMachine {
     #remainingFrames(pending, frame) {
         const effectiveFrame = pending.pausedAtFrame ?? frame;
         return Math.max(0, pending.expireFrame - effectiveFrame);
+    }
+
+    #activatePending(rule, event, ownerId, triggerTargetId, context = {}, reason = 'TRIGGERED') {
+        const slot = {
+            ownerId,
+            skillId: rule.effect.comboSkillId,
+            triggerTargetId
+        };
+        const existing = [...this.pending.values()].filter(candidate => sameSlot(candidate, slot));
+        let pending;
+        let stage = 'PENDING_CREATED';
+
+        switch (rule.effect.pendingPolicy) {
+            case 'keep-existing':
+                if (existing.length > 0) {
+                    return {
+                        ruleId: rule.id,
+                        status: 'ignored',
+                        reason: 'EXISTING_PENDING_KEPT',
+                        pendingId: existing.at(-1).id
+                    };
+                }
+                pending = this.#createPending(rule, event, slot.ownerId, slot.triggerTargetId);
+                break;
+            case 'refresh-newest': {
+                const newest = existing.sort((left, right) => right.createdFrame - left.createdFrame
+                    || right.id - left.id)[0];
+                if (!newest) {
+                    pending = this.#createPending(rule, event, slot.ownerId, slot.triggerTargetId);
+                    break;
+                }
+                this.pending.delete(newest.id);
+                pending = this.#createPending(rule, event, slot.ownerId, slot.triggerTargetId);
+                stage = 'PENDING_REFRESHED';
+                break;
+            }
+            case 'replace-all':
+                for (const candidate of existing) this.pending.delete(candidate.id);
+                pending = this.#createPending(rule, event, slot.ownerId, slot.triggerTargetId);
+                stage = existing.length > 0 ? 'PENDING_REPLACED' : 'PENDING_CREATED';
+                break;
+            default:
+                pending = this.#createPending(rule, event, slot.ownerId, slot.triggerTargetId);
+                break;
+        }
+
+        this.#record({
+            frame: event.frame,
+            stage,
+            ruleId: rule.id,
+            pendingId: pending.id,
+            skillId: pending.skillId,
+            currentSkillId: context.currentSkillId ?? event.rootSkillId,
+            currentPriority: context.currentPriority ?? 0,
+            targetId: pending.ownerId,
+            triggerTargetId: pending.triggerTargetId,
+            pendingRemainingFrames: pending.durationTicks,
+            bypassSkillCooldown: pending.bypassSkillCooldown,
+            sourceActionType: context.sourceActionType ?? null,
+            sourceActionPath: context.sourceActionPath ?? null,
+            result: true,
+            reason
+        });
+        return { ruleId: rule.id, status: 'created', pending };
+    }
+
+    trigger(input = {}, context = {}) {
+        const frame = Number(input.frame);
+        if (!Number.isInteger(frame) || frame < 0) {
+            throw new TypeError('combo action trigger frame must be a non-negative integer.');
+        }
+        const ownerId = requiredString(input.ownerId, 'combo action trigger ownerId');
+        const skillId = requiredString(input.skillId, 'combo action trigger skillId');
+        const durationTicks = Number(input.pendingDurationTicks);
+        if (!Number.isInteger(durationTicks) || durationTicks <= 0) {
+            throw new TypeError('combo action trigger pendingDurationTicks must be a positive integer.');
+        }
+        const ruleId = requiredString(
+            input.ruleId ?? input.triggerId,
+            'combo action trigger ruleId'
+        );
+        const rule = {
+            id: ruleId,
+            effect: {
+                comboSkillId: skillId,
+                pendingDurationTicks: durationTicks,
+                requireComboOffCooldown: input.requireComboOffCooldown === true,
+                bypassSkillCooldown: input.bypassSkillCooldown === true,
+                pendingPolicy: selectedPolicy(
+                    input.pendingPolicy ?? 'replace-all',
+                    PENDING_POLICIES,
+                    `combo action trigger ${ruleId} pendingPolicy`
+                ),
+                selectionPolicy: selectedPolicy(
+                    input.selectionPolicy ?? 'newest',
+                    SELECTION_POLICIES,
+                    `combo action trigger ${ruleId} selectionPolicy`
+                ),
+                consumePolicy: selectedPolicy(
+                    input.consumePolicy ?? 'selected',
+                    CONSUME_POLICIES,
+                    `combo action trigger ${ruleId} consumePolicy`
+                )
+            }
+        };
+        this.#expireDueBeforeOrAt(frame);
+        this.actionManagedSkills.add(managedSkillKey(ownerId, skillId));
+        const cooldownEnd = Number(this.getCooldownEnd(skillId) ?? 0);
+        if (rule.effect.requireComboOffCooldown && cooldownEnd > frame) {
+            return {
+                ruleId,
+                status: 'suppressed',
+                reason: 'COMBO_ON_COOLDOWN',
+                cooldownEndFrame: cooldownEnd
+            };
+        }
+        const event = {
+            eventType: 'TriggerComboSkillAction',
+            frame,
+            sourceId: input.sourceId ?? null,
+            sourceSkillId: input.sourceSkillId ?? null,
+            rootSkillId: input.rootSkillId ?? null,
+            sourceCastId: input.sourceCastId ?? null,
+            targetId: input.targetId ?? null
+        };
+        return this.#activatePending(
+            rule,
+            event,
+            ownerId,
+            input.targetId ?? null,
+            context,
+            input.reason ?? 'ACTION_TRIGGERED'
+        );
+    }
+
+    isManagedSkill({ ownerId, skillId } = {}) {
+        if (this.actionManagedSkills.has(managedSkillKey(ownerId, skillId))) return true;
+        return this.rules.some(rule => (
+            rule.effect.comboSkillId === skillId
+            && (rule.effect.ownerBinding !== 'fixed' || rule.effect.ownerId === ownerId)
+        ));
     }
 
     pause({ frame, ownerId = null, isAll = false, leaseId, castId = null,
@@ -494,13 +642,9 @@ export class ComboTriggerMachine {
                 continue;
             }
 
-            const slot = {
-                ownerId,
-                skillId: rule.effect.comboSkillId,
-                triggerTargetId: this.#boundTarget(rule, event)
-            };
+            const triggerTargetId = this.#boundTarget(rule, event);
             if (rule.selector.requireSourceOtherThanOwner
-                && slot.ownerId === event.sourceId) {
+                && ownerId === event.sourceId) {
                 decisions.push({
                     ruleId: rule.id,
                     status: 'ignored',
@@ -508,60 +652,13 @@ export class ComboTriggerMachine {
                 });
                 continue;
             }
-            const existing = [...this.pending.values()].filter(candidate => sameSlot(candidate, slot));
-            let pending;
-            let stage = 'PENDING_CREATED';
-
-            switch (rule.effect.pendingPolicy) {
-                case 'keep-existing':
-                    if (existing.length > 0) {
-                        decisions.push({
-                            ruleId: rule.id,
-                            status: 'ignored',
-                            reason: 'EXISTING_PENDING_KEPT',
-                            pendingId: existing.at(-1).id
-                        });
-                        continue;
-                    }
-                    pending = this.#createPending(rule, event, slot.ownerId, slot.triggerTargetId);
-                    break;
-                case 'refresh-newest': {
-                    const newest = existing.sort((left, right) => right.createdFrame - left.createdFrame
-                        || right.id - left.id)[0];
-                    if (!newest) {
-                        pending = this.#createPending(rule, event, slot.ownerId, slot.triggerTargetId);
-                        break;
-                    }
-                    this.pending.delete(newest.id);
-                    pending = this.#createPending(rule, event, slot.ownerId, slot.triggerTargetId);
-                    stage = 'PENDING_REFRESHED';
-                    break;
-                }
-                case 'replace-all':
-                    for (const candidate of existing) this.pending.delete(candidate.id);
-                    pending = this.#createPending(rule, event, slot.ownerId, slot.triggerTargetId);
-                    stage = existing.length > 0 ? 'PENDING_REPLACED' : 'PENDING_CREATED';
-                    break;
-                default:
-                    pending = this.#createPending(rule, event, slot.ownerId, slot.triggerTargetId);
-                    break;
-            }
-
-            this.#record({
-                frame: event.frame,
-                stage,
-                ruleId: rule.id,
-                pendingId: pending.id,
-                skillId: pending.skillId,
-                currentSkillId: context.currentSkillId ?? event.rootSkillId,
-                currentPriority: context.currentPriority ?? 0,
-                targetId: pending.ownerId,
-                triggerTargetId: pending.triggerTargetId,
-                pendingRemainingFrames: pending.durationTicks,
-                result: true,
-                reason: 'TRIGGERED'
-            });
-            decisions.push({ ruleId: rule.id, status: 'created', pending });
+            decisions.push(this.#activatePending(
+                rule,
+                event,
+                ownerId,
+                triggerTargetId,
+                context
+            ));
         }
         return decisions;
     }
@@ -584,7 +681,9 @@ export class ComboTriggerMachine {
             return direction * (left.createdFrame - right.createdFrame || left.id - right.id);
         });
         const pending = candidates[0] ?? null;
-        const ready = Boolean(pending) && Number(cooldownEnd) <= frame;
+        const ready = Boolean(pending) && (
+            pending.bypassSkillCooldown || Number(cooldownEnd) <= frame
+        );
         const reason = ready
             ? 'COMBO_PENDING_READY'
             : (pending ? 'COOLDOWN' : 'COMBO_PENDING_MISSING');

@@ -314,6 +314,43 @@ export class AkeScenarioRunner {
                 status: 'Unresolved',
                 reason: 'ComboTriggerMachineNotReady'
             }),
+            comboPendingTriggerResolver: request => {
+                if (!comboMachine) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'ComboTriggerMachineNotReady'
+                    };
+                }
+                if (request.ownerId !== characterId) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'ComboPendingOwnerUnknown'
+                    };
+                }
+                const skillSlot = request.skillSlot ?? 'ComboSkill';
+                const override = runtime.skillForms.resolveOverride({
+                    targetId: characterId,
+                    skillSlot
+                });
+                const skillId = override?.targetSkillId
+                    ?? bundle.roles.comboSkillId;
+                if (!skillId) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'ComboPendingSkillSlotUnresolved'
+                    };
+                }
+                return comboMachine.trigger({
+                    ...request,
+                    skillId,
+                    ruleId: request.triggerId
+                }, {
+                    currentSkillId: currentSkill?.skillId ?? request.rootSkillId,
+                    currentPriority: currentSkill?.priority ?? 0,
+                    sourceActionType: request.metadata?.akeSourceAction ?? null,
+                    sourceActionPath: request.metadata?.akeSourcePath ?? null
+                });
+            },
             onStatusTransition: observeStatusTransitionForCombos,
             maxEventsPerRun: this.maxEventsPerRun
         });
@@ -792,11 +829,20 @@ export class AkeScenarioRunner {
                 skillId = forcedSkillId ?? mappedSkill(currentSkill?.skill, 'Attack')
                     ?? bundle.roles.normalAttackIds[0];
             } else if (command.commandType === 'ComboSkill') {
-                skillId = forcedSkillId ?? command.skillId ?? bundle.roles.comboSkillId;
-                const requiresPending = bundle.semanticMappings.some(mapping =>
-                    mapping.actionType === 'ComboTriggerRule'
-                    && mapping.effect?.comboSkillId === skillId
-                );
+                const mapped = mappedSkill(currentSkill?.skill, 'ComboSkill');
+                const override = runtime.skillForms.resolveOverride({
+                    targetId: characterId,
+                    skillSlot: 'ComboSkill'
+                });
+                skillId = forcedSkillId
+                    ?? command.skillId
+                    ?? mapped
+                    ?? override?.targetSkillId
+                    ?? bundle.roles.comboSkillId;
+                const requiresPending = comboMachine.isManagedSkill({
+                    ownerId: characterId,
+                    skillId
+                });
                 if (requiresPending) {
                     comboGate = comboMachine.gate({
                         frame,
@@ -839,7 +885,7 @@ export class AkeScenarioRunner {
             });
             if (!skill) throw new Error(`Missing compiled SkillData ${skillId}.`);
             const skillCooldownEnd = runtime.cooldowns.getEndFrame(characterId, skillId);
-            if (skillCooldownEnd > frame) {
+            if (skillCooldownEnd > frame && !comboGate?.pending?.bypassSkillCooldown) {
                 failCommand(command, frame, 'COOLDOWN_ACTIVE', skillId);
                 return;
             }

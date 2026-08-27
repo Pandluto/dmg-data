@@ -115,6 +115,7 @@ export class CombatRuntime {
         timeDilationResolver = null,
         skillInterruptResolver = null,
         comboPendingTimeResolver = null,
+        comboPendingTriggerResolver = null,
         onStatusTransition = null,
         maxDerivedDepth = 16,
         maxEventsPerRun = 10000
@@ -139,6 +140,10 @@ export class CombatRuntime {
             && typeof comboPendingTimeResolver !== 'function') {
             throw new TypeError('comboPendingTimeResolver must be a function or null.');
         }
+        if (comboPendingTriggerResolver !== null
+            && typeof comboPendingTriggerResolver !== 'function') {
+            throw new TypeError('comboPendingTriggerResolver must be a function or null.');
+        }
         if (onStatusTransition !== null && typeof onStatusTransition !== 'function') {
             throw new TypeError('onStatusTransition must be a function or null.');
         }
@@ -147,6 +152,7 @@ export class CombatRuntime {
         this.timeDilationResolver = timeDilationResolver;
         this.skillInterruptResolver = skillInterruptResolver;
         this.comboPendingTimeResolver = comboPendingTimeResolver;
+        this.comboPendingTriggerResolver = comboPendingTriggerResolver;
         this.tickRate = finite(tickRate, 'tickRate');
         if (this.tickRate <= 0) throw new RangeError('tickRate must be positive.');
         this.maxDerivedDepth = nonNegativeInteger(maxDerivedDepth, 'maxDerivedDepth');
@@ -3070,6 +3076,54 @@ export class CombatRuntime {
                     leaseKey,
                     castId: eventContext.castId ?? null,
                     reason: action.reason ?? 'SetComboPendingTimePaused',
+                    eventContext: cloneValue(eventContext),
+                    runtime: this
+                });
+            },
+            TriggerComboPending: (action, eventContext) => {
+                if (!this.comboPendingTriggerResolver) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'MissingComboPendingTriggerResolver'
+                    };
+                }
+                const ownerId = this.#entityId(
+                    action.owner ?? action.ownerRef ?? action.ownerId,
+                    eventContext,
+                    'Owner'
+                );
+                const targetId = this.#entityId(
+                    action.target ?? action.targetRef ?? action.targetId,
+                    eventContext,
+                    'Target'
+                );
+                const triggerId = action.needTrigger === true
+                    ? this.#entityId(
+                        action.trigger ?? action.triggerRef ?? action.triggerEntityId,
+                        eventContext,
+                        'Target'
+                    )
+                    : null;
+                return this.comboPendingTriggerResolver({
+                    operation: 'Trigger',
+                    frame: eventContext.frame,
+                    ownerId,
+                    targetId,
+                    triggerEntityId: triggerId,
+                    triggerId: action.triggerId,
+                    skillSlot: action.skillSlot ?? 'ComboSkill',
+                    pendingDurationTicks: action.pendingDurationTicks,
+                    requireComboOffCooldown: action.requireComboOffCooldown === true,
+                    bypassSkillCooldown: action.bypassSkillCooldown === true,
+                    pendingPolicy: action.pendingPolicy,
+                    selectionPolicy: action.selectionPolicy,
+                    consumePolicy: action.consumePolicy,
+                    sourceId: eventContext.sourceId ?? null,
+                    sourceSkillId: eventContext.skillId ?? null,
+                    rootSkillId: eventContext.rootSkillId ?? null,
+                    sourceCastId: eventContext.castId ?? null,
+                    reason: action.reason ?? 'TriggerComboPending',
+                    metadata: cloneValue(action.metadata ?? {}),
                     eventContext: cloneValue(eventContext),
                     runtime: this
                 });

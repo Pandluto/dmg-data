@@ -78,6 +78,15 @@ const SPELL_ABNORMAL_TYPES = new Set([
     'Fire', 'Pulse', 'Cryst', 'Natural', 'Burst'
 ]);
 const CONDITION_PREFIX = /^(Check|Compare|Probablity$|OrCondition|NotNextCheck)/;
+// Keep this list synchronized with CombatRuntime's concrete event emitters.
+// An EventListenerAction may still compile its executable child actions when
+// an emitter is missing, but the compiler must retain that missing boundary as
+// an explicit audit blocker instead of pretending that the listener can fire.
+const RUNTIME_ABILITY_EVENT_TYPES = new Set([
+    'OnBeforeTakeDamage',
+    'OnAddedBuff',
+    'OnOutputBuff'
+]);
 const TARGET_ALIASES = new Map([
     ['Source', 'Source'],
     ['ActionSource', 'Source'],
@@ -343,7 +352,10 @@ export class AkeActionCompiler {
             path: options.path ?? '$',
             blackboard: options.blackboard ?? {},
             scope: options.scope ?? 'standalone',
-            eventTargetMode: options.eventTargetMode === true
+            skillId: options.skillId ?? null,
+            eventTargetMode: options.eventTargetMode === true,
+            timelineStartFrame: options.timelineStartFrame ?? null,
+            timelineEndFrame: options.timelineEndFrame ?? null
         });
         this.diagnostics.push(...result.diagnostics.map(clone));
         return finalize(result);
@@ -2071,6 +2083,132 @@ export class AkeActionCompiler {
                     type: 'RemoveEffectSource',
                     sourceKey,
                     sourceType: 'SkillActionTag',
+                    reason: `${type}:timeline-end`
+                });
+                break;
+            }
+            case 'EventListenerAction': {
+                result.metadata.push({
+                    type,
+                    path: state.path,
+                    category: 'ability-event-listener',
+                    scope: state.scope,
+                    timelineStartFrame: state.timelineStartFrame,
+                    timelineEndFrame: state.timelineEndFrame,
+                    eventTypes: (node.abilityActionMap ?? [])
+                        .map(group => group?.abilityEvent)
+                        .filter(Boolean)
+                });
+                if (state.scope !== 'skill') {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_EVENT_LISTENER_LIFETIME_REQUIRED',
+                        type,
+                        state.path,
+                        'Non-skill EventListenerAction must be bound to its Buff or passive owner lifetime before execution.',
+                        { scope: state.scope }
+                    ));
+                    break;
+                }
+                if (state.timelineStartFrame === null
+                    || state.timelineStartFrame === undefined
+                    || state.timelineEndFrame === null
+                    || state.timelineEndFrame === undefined
+                    || !Number.isFinite(Number(state.timelineStartFrame))
+                    || !Number.isFinite(Number(state.timelineEndFrame))) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_EVENT_LISTENER_TIMELINE_REQUIRED',
+                        type,
+                        state.path,
+                        'Skill EventListenerAction requires an explicit timeline start and end frame.'
+                    ));
+                    break;
+                }
+                const eventGroups = [];
+                for (const [groupIndex, group] of (node.abilityActionMap ?? []).entries()) {
+                    const eventType = group?.abilityEvent;
+                    const wrappers = Array.isArray(group?.actions) ? group.actions : [];
+                    if (typeof eventType !== 'string' || eventType.length === 0) {
+                        result.unresolved.push(this.#unresolved(
+                            'AKE_EVENT_LISTENER_EVENT_TYPE_REQUIRED',
+                            type,
+                            `${state.path}.abilityActionMap[${groupIndex}]`,
+                            'EventListenerAction group has no abilityEvent.'
+                        ));
+                        continue;
+                    }
+                    if (!RUNTIME_ABILITY_EVENT_TYPES.has(eventType)) {
+                        result.unresolved.push(this.#unresolved(
+                            'AKE_ABILITY_EVENT_EMITTER_REQUIRED',
+                            type,
+                            `${state.path}.abilityActionMap[${groupIndex}]`,
+                            `Runtime has no proven emitter for ${eventType}.`,
+                            { abilityEvent: eventType }
+                        ));
+                    }
+                    const compiledWrappers = wrappers.map((wrapper, wrapperIndex) =>
+                        this.compileActions(actionData(wrapper), {
+                            path: `${state.path}.abilityActionMap[${groupIndex}].actions[${wrapperIndex}]`,
+                            blackboard: state.blackboard,
+                            scope: 'skill',
+                            skillId: state.skillId,
+                            eventTargetMode: true,
+                            timelineStartFrame: state.timelineStartFrame,
+                            timelineEndFrame: state.timelineEndFrame
+                        })
+                    );
+                    for (const compiled of compiledWrappers) {
+                        result.metadata.push(...compiled.metadata);
+                        result.unresolved.push(...compiled.unresolved);
+                        result.diagnostics.push(...compiled.diagnostics);
+                        if (compiled.cleanupActions.length > 0) {
+                            result.unresolved.push(this.#unresolved(
+                                'AKE_EVENT_LISTENER_CHILD_CLEANUP_LIFETIME_REQUIRED',
+                                type,
+                                `${state.path}.abilityActionMap[${groupIndex}]`,
+                                'An event-listener child action produced cleanup actions whose event lifetime is not yet proven.',
+                                { cleanupActionCount: compiled.cleanupActions.length }
+                            ));
+                        }
+                    }
+                    const actions = compiledWrappers.flatMap(compiled => compiled.actions);
+                    const childUnresolved = compiledWrappers.flatMap(compiled =>
+                        compiled.unresolved
+                    );
+                    if (actions.length === 0 && childUnresolved.length === 0) {
+                        result.unresolved.push(this.#unresolved(
+                            'AKE_EVENT_LISTENER_ACTIONS_EMPTY',
+                            type,
+                            `${state.path}.abilityActionMap[${groupIndex}]`,
+                            `${eventType} has no executable child action.`,
+                            { abilityEvent: eventType }
+                        ));
+                    }
+                    if (actions.length > 0) eventGroups.push({
+                        eventType,
+                        actions,
+                        priority: Number(node.priorityOffset ?? 0)
+                    });
+                }
+                if (eventGroups.length === 0) break;
+                const sourceKey = `ake-skill:${state.path}:ability-listener`;
+                result.actions.push({
+                    type: 'RegisterAbilityEventListener',
+                    sourceKey,
+                    listenerTarget: 'Owner',
+                    timelineStartFrame: Number(state.timelineStartFrame),
+                    timelineEndFrame: Number(state.timelineEndFrame),
+                    priority: Number(node.priorityOffset ?? 0),
+                    eventGroups,
+                    metadata: {
+                        akeSourceAction: type,
+                        akeSourcePath: state.path,
+                        lifetime: 'TimelineGroup'
+                    },
+                    reason: type
+                });
+                result.cleanupActions.push({
+                    type: 'UnregisterAbilityEventListener',
+                    sourceKey,
                     reason: `${type}:timeline-end`
                 });
                 break;

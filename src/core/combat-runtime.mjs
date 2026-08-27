@@ -10,6 +10,7 @@ import { StatusEffectSystem } from './status-effect-system.mjs';
 import { EffectSourceRegistry } from './effect-source-registry.mjs';
 import { SkillFormStateRegistry } from './skill-form-state-registry.mjs';
 import { EnemyMechanicResolver } from './combat-status-resolver.mjs';
+import { AbilityEventListenerRegistry } from './ability-event-listener-registry.mjs';
 
 function isRecord(value) {
     return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -223,6 +224,19 @@ export class CombatRuntime {
             clockDomains: this.clockDomains,
             tickRate: this.tickRate,
             onTransition: transition => onStatusTransition?.(transition),
+            executeActions: (actions, eventContext) => this.effects.executeTransaction(
+                actions,
+                {
+                    ...cloneValue(eventContext),
+                    blackboard: this.#runtimeBlackboard(
+                        eventContext.sourceId,
+                        eventContext.blackboard
+                    )
+                }
+            )
+        });
+        this.abilityEventListeners = new AbilityEventListenerRegistry({
+            targetValidator: targetId => this.context.hasEntity(targetId),
             executeActions: (actions, eventContext) => this.effects.executeTransaction(
                 actions,
                 {
@@ -507,6 +521,13 @@ export class CombatRuntime {
         return this.effects.executeTransaction(actions, context);
     }
 
+    notifyAbilityEvent(eventContext = {}) {
+        const context = this.context.createEventContext(eventContext);
+        const persistent = this.statusEffects.notifyAbilityEvent(context);
+        const transient = this.abilityEventListeners.notify(context);
+        return [...persistent, ...transient];
+    }
+
     beginSkillActionLifetimes(input, eventContext = {}) {
         if (!isRecord(input)) {
             throw new TypeError('beginSkillActionLifetimes requires an input object.');
@@ -546,6 +567,11 @@ export class CombatRuntime {
                 castId,
                 reason: input.reason ?? 'SkillEnded'
             });
+            this.abilityEventListeners.remove({
+                frame,
+                castId,
+                reason: input.reason ?? 'SkillEnded'
+            }, eventContext);
         }
         return transition;
     }
@@ -882,6 +908,12 @@ export class CombatRuntime {
             );
         }
         execution.generation += 1;
+        this.abilityEventListeners.reconcileProgramSeek({
+            programExecutionId: executionId,
+            destFrame,
+            frame,
+            reason: 'TimelineSeek'
+        }, execution.context);
         execution.timelineAnchorFrame = destFrame;
         execution.timelineAnchorGlobalFrame = frame;
         execution.scheduleFrom(frame, destFrame, execution.generation);
@@ -956,6 +988,11 @@ export class CombatRuntime {
             frame: cancelFrame,
             reason: `ProgramCancelled:${reason}`
         });
+        this.abilityEventListeners.remove({
+            frame: cancelFrame,
+            programExecutionId: executionId,
+            reason: `ProgramCancelled:${reason}`
+        }, execution.context);
         this.#record('SkillProgramCancelled', {
             ...execution.context,
             frame: cancelFrame
@@ -1015,6 +1052,7 @@ export class CombatRuntime {
             resources: this.resources.snapshot(),
             vitals: this.vitals.snapshot(),
             statusEffects: this.statusEffects.snapshot(),
+            abilityEventListeners: this.abilityEventListeners.snapshot(),
             effectSources: this.effectSources.snapshot(),
             skillForms: this.skillForms.snapshot(),
             auras: this.auras.snapshot(),
@@ -2826,7 +2864,7 @@ export class CombatRuntime {
                 const sourceId = action.sourceRef === undefined
                     ? eventContext.sourceId
                     : this.#optionalEntityId(action.sourceRef, eventContext);
-                return this.statusEffects.notifyAbilityEvent({
+                return this.notifyAbilityEvent({
                     ...cloneValue(eventContext),
                     sourceId,
                     eventType: action.eventType,
@@ -2834,6 +2872,41 @@ export class CombatRuntime {
                     useEventSourceAsActionSource: action.eventSourceAsActionSource === true
                 });
             },
+            RegisterAbilityEventListener: (action, eventContext) => {
+                const listenerTargetId = this.#entityId(
+                    action.listenerTarget ?? action.listenerTargetRef ?? 'Owner',
+                    eventContext,
+                    'Owner'
+                );
+                return this.abilityEventListeners.register({
+                    listenerId: action.listenerId ?? action.sourceKey,
+                    sourceKey: action.sourceKey,
+                    listenerTargetId,
+                    sourceId: eventContext.sourceId,
+                    ownerId: eventContext.ownerId,
+                    targetId: eventContext.targetId,
+                    skillId: eventContext.skillId,
+                    rootSkillId: eventContext.rootSkillId,
+                    castId: eventContext.castId,
+                    programExecutionId: eventContext.programExecutionId,
+                    clockDomainId: eventContext.clockDomainId,
+                    timelineStartFrame: action.timelineStartFrame,
+                    timelineEndFrame: action.timelineEndFrame,
+                    priority: action.priority,
+                    eventGroups: action.eventGroups,
+                    blackboard: eventContext.blackboard,
+                    metadata: action.metadata,
+                    frame: eventContext.frame
+                }, eventContext);
+            },
+            UnregisterAbilityEventListener: (action, eventContext) =>
+                this.abilityEventListeners.remove({
+                    frame: eventContext.frame,
+                    listenerId: action.listenerId ?? action.sourceKey,
+                    castId: eventContext.castId,
+                    programExecutionId: eventContext.programExecutionId,
+                    reason: action.reason ?? 'TimelineGroupEnded'
+                }, eventContext),
             LaunchSkillProgram: (action, eventContext) => {
                 if (!this.skillProgramResolver) {
                     return {
@@ -3498,7 +3571,7 @@ export class CombatRuntime {
             ...(payload.reactionEventTypes ?? [])
         ].filter(Boolean))];
         const listenerResults = listenerEventTypes.flatMap(eventType =>
-            this.statusEffects.notifyAbilityEvent({
+            this.notifyAbilityEvent({
                 ...context,
                 eventType,
                 listenerTargetId: payload.targetId,
@@ -3545,7 +3618,7 @@ export class CombatRuntime {
                     listenerTargetId
                 }
             });
-            const results = this.statusEffects.notifyAbilityEvent({
+            const results = this.notifyAbilityEvent({
                 ...context,
                 listenerTargetId
             });
@@ -3587,7 +3660,7 @@ export class CombatRuntime {
                     listenerTargetId
                 }
             });
-            const results = this.statusEffects.notifyAbilityEvent({
+            const results = this.notifyAbilityEvent({
                 ...context,
                 listenerTargetId
             });
@@ -3627,7 +3700,7 @@ export class CombatRuntime {
                     listenerTargetId
                 }
             });
-            const results = this.statusEffects.notifyAbilityEvent({
+            const results = this.notifyAbilityEvent({
                 ...context,
                 listenerTargetId
             });
@@ -3669,7 +3742,7 @@ export class CombatRuntime {
                     listenerTargetId
                 }
             });
-            const results = this.statusEffects.notifyAbilityEvent({
+            const results = this.notifyAbilityEvent({
                 ...context,
                 listenerTargetId
             });
@@ -3738,7 +3811,7 @@ export class CombatRuntime {
                         skillType: eventContext.skillType ?? eventContext.commandType ?? null
                     }
                 });
-                const results = this.statusEffects.notifyAbilityEvent({
+                const results = this.notifyAbilityEvent({
                     ...context,
                     listenerTargetId
                 });

@@ -3739,9 +3739,9 @@
             },
             "runtimeActions": 0,
             "cleanupActions": 0,
-            "metadataNodes": 0,
+            "metadataNodes": 3,
             "unresolvedCodes": {
-              "AKE_ACTION_UNSUPPORTED": 3
+              "AKE_EVENT_LISTENER_LIFETIME_REQUIRED": 3
             }
           },
           "parserSupported": false,
@@ -13800,21 +13800,24 @@
           ],
           "compiler": {
             "statusCounts": {
-              "executable": 0,
+              "executable": 4,
               "metadata-only": 0,
-              "unresolved": 17
+              "unresolved": 13
             },
             "executionRouteCounts": {
-              "complete": 0,
-              "adapter-required": 0,
-              "blocked": 17,
+              "complete": 4,
+              "adapter-required": 11,
+              "blocked": 2,
               "metadata-only": 0
             },
-            "runtimeActions": 0,
-            "cleanupActions": 0,
-            "metadataNodes": 0,
+            "runtimeActions": 15,
+            "cleanupActions": 15,
+            "metadataNodes": 18,
             "unresolvedCodes": {
-              "AKE_ACTION_UNSUPPORTED": 17
+              "AKE_ABILITY_EVENT_EMITTER_REQUIRED": 8,
+              "AKE_ACTION_UNSUPPORTED": 7,
+              "AKE_TARGET_PROVIDER_REQUIRED": 1,
+              "AKE_EVENT_LISTENER_ACTIONS_EMPTY": 1
             }
           },
           "parserSupported": false,
@@ -19662,18 +19665,18 @@
     "parserCoverage": 0.27571035747021083,
     "effectRouteCoverage": 0.2914390467461045,
     "compilerStatuses": {
-      "executable": 9029,
+      "executable": 9033,
       "metadata-only": 11080,
-      "unresolved": 7166
+      "unresolved": 7162
     },
-    "compilerRoutingCoverage": 0.7372685609532539,
+    "compilerRoutingCoverage": 0.7374152153987168,
     "compilerExecutionRoutes": {
-      "complete": 9029,
-      "adapter-required": 4057,
-      "blocked": 3109,
+      "complete": 9033,
+      "adapter-required": 4068,
+      "blocked": 3094,
       "metadata-only": 11080
     },
-    "executableRouteCoverage": 0.47978001833180567,
+    "executableRouteCoverage": 0.4803299725022915,
     "categoryOccurrences": {
       "presentation": 10082,
       "logic": 4050,
@@ -19688,12 +19691,12 @@
       "condition": 113
     },
     "gameplayOccurrences": 14945,
-    "gameplayExecutableOccurrences": 8916,
+    "gameplayExecutableOccurrences": 8920,
     "gameplayMetadataOnlyOccurrences": 236,
-    "gameplayUnresolvedOccurrences": 5793,
-    "gameplayCompilerCoverage": 0.596587487453998,
-    "gameplayExecutableRouteOccurrences": 11653,
-    "gameplayExecutableRouteCoverage": 0.7797256607561057,
+    "gameplayUnresolvedOccurrences": 5789,
+    "gameplayCompilerCoverage": 0.5968551354968217,
+    "gameplayExecutableRouteOccurrences": 11668,
+    "gameplayExecutableRouteCoverage": 0.7807293409166945,
     "calculatorCore": {
       "categories": [
         "logic",
@@ -23384,21 +23387,25 @@
       },
       "compiler": {
         "statusCounts": {
-          "executable": 0,
+          "executable": 4,
           "metadata-only": 0,
-          "unresolved": 20
+          "unresolved": 16
         },
         "executionRouteCounts": {
-          "complete": 0,
-          "adapter-required": 0,
-          "blocked": 20,
+          "complete": 4,
+          "adapter-required": 11,
+          "blocked": 5,
           "metadata-only": 0
         },
-        "runtimeActions": 0,
-        "cleanupActions": 0,
-        "metadataNodes": 0,
+        "runtimeActions": 15,
+        "cleanupActions": 15,
+        "metadataNodes": 21,
         "unresolvedCodes": {
-          "AKE_ACTION_UNSUPPORTED": 20
+          "AKE_EVENT_LISTENER_LIFETIME_REQUIRED": 3,
+          "AKE_ABILITY_EVENT_EMITTER_REQUIRED": 8,
+          "AKE_ACTION_UNSUPPORTED": 7,
+          "AKE_TARGET_PROVIDER_REQUIRED": 1,
+          "AKE_EVENT_LISTENER_ACTIONS_EMPTY": 1
         }
       }
     },

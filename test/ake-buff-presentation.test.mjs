@@ -61,6 +61,30 @@ test('semantic status table supplies the actual game icon when the root Buff has
     assert.match(presentation.iconUrl, /bufficon\/icon_battle_conduct\.png$/);
 });
 
+test('shared combo uses one player-facing team status while transient carriers stay hidden', () => {
+    const combo = resolveAkeBuffPresentation({
+        buffId: 'buff_common_affixes_combo_trigger',
+        index,
+        dataOrigin: 'https://data.akedata.wiki'
+    });
+    assert.equal(combo.displayName, '连击');
+    assert.equal(combo.applicationScope, 'team');
+    assert.equal(combo.hidden, false);
+
+    for (const buffId of [
+        'buff_common_affixes_skillimbue',
+        'buff_common_affixes_skillimbue_atk'
+    ]) {
+        const carrier = resolveAkeBuffPresentation({
+            buffId,
+            index,
+            dataOrigin: 'https://data.akedata.wiki'
+        });
+        assert.equal(carrier.hidden, true);
+        assert.equal(carrier.applicationScope, 'self');
+    }
+});
+
 test('structural reaction ids map to mechanics while internal event Buffs stay hidden', () => {
     const conduct = resolveAkeBuffPresentation({
         buffId: 'buff_common_pulse_cryst_triggered',

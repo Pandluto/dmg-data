@@ -77,6 +77,18 @@ test('AKEDatabase reader preserves Int64 text ids and hydrates the complete cata
         activation: { kind: 'targetStatus', status: 'originium-seal' }
     }]]);
     assert.match(administrator.loadoutEffects.talent[0].description, /攻击力\+30%/);
+    const camille = catalog.characters.find(character => character.id === 'chr_0033_camille');
+    const comboTalent = camille.loadoutEffects.talent.find(effect =>
+        effect.effectId === 'chr_0033_camille_talent_1_2');
+    assert.deepEqual(
+        [...new Set(comboTalent.skillBlackboardPatches.map(patch => patch.skillId))],
+        ['chr_0033_camille_combo_skill', 'chr_0033_camille_combo_skill_2']
+    );
+    assert.ok(comboTalent.skillBlackboardPatches.some(patch => (
+        patch.skillId === 'chr_0033_camille_combo_skill'
+        && patch.key === 'talent_0'
+        && patch.value === 1
+    )), 'catalog presentation must retain the same unlocked talent patch as runtime');
     const lifengSkillEffects = repository.catalogSkillEffects(
         'chr_0015_lifeng_normal_skill',
         { blackboard: repository.skillBlackboard('chr_0015_lifeng_normal_skill', 12) }

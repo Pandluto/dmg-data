@@ -57,6 +57,15 @@ const PRESENTATION_OVERRIDES = Object.freeze({
     },
     buff_common_damage_immune_ult_skill: {
         displayName: '终结技期间伤害免疫', shortName: '免', applicationScope: 'self', hidden: true
+    },
+    buff_common_affixes_combo_trigger: {
+        displayName: '连击', shortName: '连', applicationScope: 'team'
+    },
+    buff_common_affixes_skillimbue: {
+        displayName: '连击增幅（本次技能）', shortName: '连', applicationScope: 'self', hidden: true
+    },
+    buff_common_affixes_skillimbue_atk: {
+        displayName: '连击伤害增幅', shortName: '连', applicationScope: 'self', hidden: true
     }
 });
 

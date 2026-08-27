@@ -132,6 +132,55 @@ test('forced spell statuses project to the same hit that executes the runtime ac
     });
 });
 
+test('level-unlocked talent patches remain visible in generic operator skill details', () => {
+    const projectRoot = path.resolve(import.meta.dirname, '..');
+    const timing = JSON.parse(fs.readFileSync(path.join(
+        projectRoot,
+        'derived',
+        'cleanroom',
+        'ake-timing-profiles.json'
+    ), 'utf8'));
+    timing.characters = Object.fromEntries([
+        'chr_0028_wulfa',
+        'chr_0033_camille'
+    ].map(characterId => [characterId, timing.characters[characterId]]));
+
+    const enriched = enrichAkeTimingWithHitMultipliers({ projectRoot, timing });
+    const profile = (characterId, skillId) => enriched.characters[characterId].profiles
+        .find(candidate => candidate.skillId === skillId);
+
+    const bleed = profile('chr_0028_wulfa', 'chr_0028_wulfa_normal_skill')
+        .statusEffects.find(effect => effect.id === 'buff_chr_0028_wulfa_normal_bleed');
+    assert.ok(bleed, 'Rossi talent status must not be pruned with the baseline skill Blackboard');
+    assert.equal(bleed.target, 'target');
+    assert.deepEqual(bleed.effects.map(effect => ({
+        type: effect.type,
+        value: effect.value,
+        durationSeconds: effect.durationSeconds
+    })), [{
+        type: 'physicalFragile',
+        value: 0.12,
+        durationSeconds: 25
+    }, {
+        type: 'fireFragile',
+        value: 0.12,
+        durationSeconds: 25
+    }]);
+
+    for (const skillId of [
+        'chr_0033_camille_combo_skill',
+        'chr_0033_camille_combo_skill_2'
+    ]) {
+        const combo = profile('chr_0033_camille', skillId).statusEffects.find(effect =>
+            effect.statusKey === 'combo-state');
+        assert.ok(combo, `${skillId} must expose its unlocked team combo grant`);
+        assert.equal(combo.displayName, '连击');
+        assert.equal(combo.target, 'team');
+        assert.equal(combo.statusValue, 1);
+        assert.match(combo.description, /15 秒/);
+    }
+});
+
 test('cross-operator audit keeps real multipliers, compact bodies and stable state markers', () => {
     const projectRoot = path.resolve(import.meta.dirname, '..');
     const timing = JSON.parse(fs.readFileSync(path.join(

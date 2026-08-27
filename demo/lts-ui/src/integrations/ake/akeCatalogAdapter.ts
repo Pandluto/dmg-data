@@ -34,7 +34,10 @@ const CATALOG_REVISION_KEY = 'def.ake-catalog.revision.v1';
 // longer expands them into the player's A/B/E/Q skill hit template.
 // v29 persists catalog-wide Buff presentation (Chinese names, icons and
 // player-visible/internal classification) into the local operator library.
-const CATALOG_ADAPTER_VERSION = 29;
+// v30 rebuilds skill details with the same level-unlocked talent Blackboard
+// patches as runtime, exposing target debuffs and shared combo grants that v29
+// incorrectly pruned from cached operator profiles.
+const CATALOG_ADAPTER_VERSION = 30;
 
 const LEVEL_KEYS = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'M1', 'M2', 'M3'] as const;
 

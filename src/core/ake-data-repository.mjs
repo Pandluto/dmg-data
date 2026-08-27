@@ -1274,7 +1274,13 @@ export class AkeDataRepository {
             name: displayName,
             description: resolvedDescription,
             level: Number(level),
-            effects
+            effects,
+            // Keep the source-level relation between a talent/potential and the
+            // SkillData blackboards it changes.  Runtime already installs these
+            // patches through AkeLoadoutManager; catalog/profile consumers need
+            // the same relation or a real unlocked branch is incorrectly pruned
+            // while building operator and hit-detail UI.
+            skillBlackboardPatches: structuredClone(compiled.skillBlackboardPatches)
         };
     }
 

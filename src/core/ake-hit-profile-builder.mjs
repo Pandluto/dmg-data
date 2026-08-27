@@ -29,6 +29,7 @@ const AKE_HIT_BUFF_LABELS = Object.freeze({
     buff_common_fire_fire_burning_triggered: '燃烧',
     buff_common_cryst_cryst_frozen_triggered: '冻结',
     buff_physical_no_guard: '破防',
+    buff_common_affixes_combo_trigger: '连击',
     buff_common_originum_frozen: '源石结晶封印'
 });
 
@@ -96,6 +97,7 @@ function hitBuffStatusKey(buffId) {
     if (normalized.includes('cryst_frozen')) return 'freeze';
     if (normalized.includes('poise_break')) return 'imbalance';
     if (normalized.includes('originum_frozen')) return 'originium-seal';
+    if (normalized.includes('affixes_combo_trigger')) return 'combo-state';
     return null;
 }
 
@@ -112,6 +114,23 @@ function displayNameForHitBuff(buffId) {
 }
 
 function actionHitBuffs(action, blackboard, data) {
+    if (action.type === 'GrantTeamCombo') {
+        const buffId = action.buffId ?? 'buff_common_affixes_combo_trigger';
+        const count = Number(resolveValue(action.count, blackboard, 1));
+        const durationSeconds = Number(resolveValue(action.durationSeconds, blackboard, 0));
+        return [{
+            id: buffId,
+            displayName: displayNameForHitBuff(buffId),
+            target: 'team',
+            targetLabel: '队伍',
+            kind: 'status',
+            statusKey: 'combo-state',
+            ...(Number.isFinite(count) && count > 0 ? { statusValue: count } : {}),
+            description: Number.isFinite(durationSeconds) && durationSeconds > 0
+                ? `全队获得 ${count} 层连击，持续 ${durationSeconds} 秒；下一次战技或终结技命中后统一消耗。`
+                : `全队获得 ${count} 层连击；下一次战技或终结技命中后统一消耗。`
+        }];
+    }
     if (['ApplyInfliction', 'ApplyEnemyInfliction'].includes(action.type)) {
         const buffId = action.buffId ?? AKE_ELEMENT_ATTACHMENT_BUFF_IDS[action.element];
         if (!buffId) return [];
@@ -247,6 +266,54 @@ function mergeHitBuffs(...groups) {
     return [...new Map(groups
         .flat()
         .map(buff => [`${buff.id}\u0000${buff.target}`, buff])).values()];
+}
+
+function applySkillBlackboardPatches(baseBlackboard, patches = []) {
+    const blackboard = { ...(baseBlackboard ?? {}) };
+    for (const patch of patches) {
+        const key = String(patch?.key ?? '').trim();
+        if (!key) continue;
+        const patchValue = patch.value;
+        const numericPatch = Number(patchValue);
+        const numericCurrent = Number(blackboard[key]);
+        if (!Number.isFinite(numericPatch)) {
+            blackboard[key] = patchValue;
+            continue;
+        }
+        if (Number(patch.operationCode) === 1) {
+            blackboard[key] = (Number.isFinite(numericCurrent) ? numericCurrent : 0)
+                + numericPatch;
+            continue;
+        }
+        if (Number(patch.operationCode) === 2) {
+            blackboard[key] = (Number.isFinite(numericCurrent) ? numericCurrent : 0)
+                * numericPatch;
+            continue;
+        }
+        // PotentialTalentEffectTable uses 3 for assignment.  This matches the
+        // runtime loadout compiler's fallback for unknown operation codes.
+        blackboard[key] = numericPatch;
+    }
+    return blackboard;
+}
+
+function talentSkillBlackboardPatches(character) {
+    const patches = new Map();
+    for (const loadout of character?.loadoutEffects?.talent ?? []) {
+        for (const patch of loadout?.skillBlackboardPatches ?? []) {
+            if (!patch?.skillId || !patch?.key) continue;
+            if (!patches.has(patch.skillId)) patches.set(patch.skillId, []);
+            patches.get(patch.skillId).push(patch);
+        }
+    }
+    return patches;
+}
+
+function programBlackboard(program, skillId, staticContext = {}) {
+    return applySkillBlackboardPatches(
+        program?.blackboard,
+        staticContext.skillBlackboardPatches?.get(skillId) ?? []
+    );
 }
 
 function nestedActionLists(action) {
@@ -605,11 +672,16 @@ function groupDamagePacketsByFrame(packets) {
     return [...groups.values()].sort((left, right) => left.frame - right.frame);
 }
 
-function observedRuntimeMultiplier(readProgram, timingHit, level) {
+function observedRuntimeMultiplier(readProgram, timingHit, level, staticContext = {}) {
     const observed = Number(timingHit.observedAtkScale);
     if (!Number.isFinite(observed) || observed <= 0) return null;
     const rootAtM3 = readProgram(timingHit.rootSkillId, AKE_SKILL_LEVEL_KEYS.length);
-    const candidates = Object.entries(rootAtM3?.blackboard ?? {})
+    const rootAtM3Blackboard = programBlackboard(
+        rootAtM3,
+        timingHit.rootSkillId,
+        staticContext
+    );
+    const candidates = Object.entries(rootAtM3Blackboard)
         .filter(([, value]) => Number.isFinite(Number(value))
             && Math.abs(Number(value) - observed) <= 1e-7)
         .sort(([left], [right]) => {
@@ -619,8 +691,11 @@ function observedRuntimeMultiplier(readProgram, timingHit, level) {
         });
     const inferredKey = candidates[0]?.[0] ?? null;
     if (inferredKey) {
-        const levelValue = Number(readProgram(timingHit.rootSkillId, level)
-            ?.blackboard?.[inferredKey]);
+        const levelValue = Number(programBlackboard(
+            readProgram(timingHit.rootSkillId, level),
+            timingHit.rootSkillId,
+            staticContext
+        )[inferredKey]);
         if (Number.isFinite(levelValue) && levelValue > 0) {
             return {
                 multiplier: levelValue,
@@ -703,8 +778,8 @@ function profileHitMultiplier(
     const sourceProgram = readProgram(timingHit.sourceSkillId, level);
     const rootProgram = readProgram(timingHit.rootSkillId, level);
     const effectiveBlackboard = {
-        ...(sourceProgram?.blackboard ?? {}),
-        ...(rootProgram?.blackboard ?? {}),
+        ...programBlackboard(sourceProgram, timingHit.sourceSkillId, staticContext),
+        ...programBlackboard(rootProgram, timingHit.rootSkillId, staticContext),
         ...(staticContext.blackboard ?? {})
     };
     const packets = compiledDamagePackets(
@@ -734,7 +809,12 @@ function profileHitMultiplier(
         const compiledMultiplier = packetGroup.packets.reduce((sum, packet) => (
             sum + packetMultiplier(packet, packet.blackboard ?? effectiveBlackboard)
         ), 0);
-        const observed = observedRuntimeMultiplier(readProgram, timingHit, level);
+        const observed = observedRuntimeMultiplier(
+            readProgram,
+            timingHit,
+            level,
+            staticContext
+        );
         const shouldUseObserved = observed
             && Math.abs(compiledMultiplier - observed.multiplier) > 1e-7;
         return {
@@ -747,8 +827,17 @@ function profileHitMultiplier(
         };
     }
 
-    const observed = observedRuntimeMultiplier(readProgram, timingHit, level);
-    const fallback = Number(rootProgram?.blackboard?.atk_scale);
+    const observed = observedRuntimeMultiplier(
+        readProgram,
+        timingHit,
+        level,
+        staticContext
+    );
+    const fallback = Number(programBlackboard(
+        rootProgram,
+        timingHit.rootSkillId,
+        staticContext
+    ).atk_scale);
     return {
         multiplier: observed?.multiplier
             ?? (Number.isFinite(fallback) ? fallback : 0),
@@ -831,7 +920,8 @@ export function enrichAkeTimingWithHitMultipliers({ projectRoot, timing }) {
         ]))].map(skillId => readProgram(skillId, AKE_SKILL_LEVEL_KEYS.length));
         const staticContext = {
             attributes,
-            blackboard: inferredAttributeComparisonBlackboards(characterPrograms, attributes)
+            blackboard: inferredAttributeComparisonBlackboards(characterPrograms, attributes),
+            skillBlackboardPatches: talentSkillBlackboardPatches(sourceCharacter)
         };
         for (const profile of character.profiles ?? []) {
             const statusProgramIds = [...new Set([
@@ -842,10 +932,16 @@ export function enrichAkeTimingWithHitMultipliers({ projectRoot, timing }) {
                 levelKey,
                 mergeHitBuffs(...statusProgramIds.map(skillId => {
                     const program = readProgram(skillId, index + 1);
+                    const rootProgram = readProgram(profile.skillId, index + 1);
                     return compiledProgramStatusEffects(
                         program,
                         {
-                            ...(program?.blackboard ?? {}),
+                            ...programBlackboard(program, skillId, staticContext),
+                            // Projectile/ability-entity children inherit their
+                            // root cast Blackboard. Talent patches commonly live
+                            // on that root and are then copied into the child
+                            // action that applies the actual status.
+                            ...programBlackboard(rootProgram, profile.skillId, staticContext),
                             ...staticContext.blackboard
                         },
                         data,

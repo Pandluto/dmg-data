@@ -230,10 +230,19 @@ export function buildPelicaScenarioModel(options = {}) {
     const skillSettings = {};
     for (const mapping of semanticMappings.filter(mapping =>
         mapping.actionType === 'ReadSkillSettingData'
-        && mapping.effect?.operation === 'ReturnValue'
+        && ['ReturnValue', 'ReturnTable'].includes(mapping.effect?.operation)
     )) {
         skillSettings[mapping.selector.lookupKey] ??= {};
-        skillSettings[mapping.selector.lookupKey][mapping.selector.column] = mapping.effect.value;
+        if (mapping.effect.operation === 'ReturnTable') {
+            Object.assign(
+                skillSettings[mapping.selector.lookupKey],
+                mapping.effect.values ?? {}
+            );
+        } else {
+            skillSettings[mapping.selector.lookupKey][
+                mapping.selector.column ?? 1
+            ] = mapping.effect.value;
+        }
     }
 
     return {

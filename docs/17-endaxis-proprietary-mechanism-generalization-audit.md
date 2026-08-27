@@ -526,6 +526,26 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 11. 强制异常事务在修改状态前校验数值范围、Buff 映射、依赖定义和可消费层数；不足时 fail closed，不先删附着。消费账本保留每层来源，异常 Buff 继承当前技能来源，命中详情从同一个编译动作投影状态，不建立 UI 私有推演；
 12. `VulnerableAction`、`WeakAction`、`ShelterAction`、`ExtendBuffAction`、`InheritBuffAction`、`ForceSpellStatusAction` 与逐干员可达的 `FinishBuffAdvanced` 已不再出现在 unresolved source type 中；本轮新增能力没有角色 ID、技能 ID 或队伍模板分支；
 13. 全量 BuffData 中 46 处 `OnSpellAbnormalStartFinish` 声明（42 处启用、4 处原始数据明确禁用）只有一种稳定结构：`OnBuffStart/isStart=true` 与 `OnBuffFinish/isStart=false` 成对出现，覆盖 Fire、Pulse、Cryst、Natural 与 Burst。启用动作现已编译为 `SpellAbnormalStarted/Finished` 统一账本事件，保留 source/owner/target/Buff instance 归因；禁用动作继续不执行；实际 Buff 实例仍是唯一状态事实，没有再造一套平行元素状态机；
-14. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁。
+14. 普通元素链的 21 处 `ReadSkillSettingData` 动作、47 个字段读取已收敛到 10 张公共表：反应初始伤害、法术爆发、燃烧 Tick、导电数值/持续时间、冻结持续时间、腐蚀初始/每跳/上限/持续时间。动态列优先读取整表，不再被第一列常量短路；异常伤害与异常状态分别使用独立的源石技艺强度公式；
+15. 真实 Buff 图的四元素矩阵已经验证：同元素爆发均以 1.6 倍率延迟结算；二层跨元素初始 Hit 均以 2.4 倍率结算；导电只进入四种法术伤害的敌方 `NormalCalcZone`，冻结按 7 秒到期，燃烧以 0.36 倍率周期结算，腐蚀从 -0.048 全抗开始、每秒追加 -0.0112、由 `RefreshBuffAttrModifierValue` 实时刷新并在 15 秒结束后完整回滚；
+16. 共享依赖审计因此再消除 40 条元素 `ReadSkillSettingData` 缺口：shared finding 从 241 降至 201，shared evidence-missing 从 85 降至 45；逐干员主报告仍有 349 条 combat-blocking，不能用元素链通过掩盖其他机制；
+17. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁。
 
-349 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。`ForceSpellStatusAction` 与异常生命周期通知已闭合，但普通元素反应链仍受动态 `ReadSkillSettingData` 表值阻塞，不能把强制异常通过等同于四元素系统全部完成。下一阶段先闭合四级异常数值表与术式强度修正，再进入事件订阅和派生命中闭包。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
+349 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。强制异常、异常生命周期、同元素爆发与普通四元素反应的公共数据链已经闭合；仍未证实的 `弭弗特殊猛击` 数值继续保持 evidence-missing，而不是借元素表猜值。下一阶段进入事件订阅和派生命中闭包。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
+
+### 12.1 普通元素链的证据矩阵
+
+| 公共读取 | 1～4 级基础值 | 强度规则 | 运行时验收 |
+| --- | --- | --- | --- |
+| 异常初始伤害倍率 | 1.6 / 2.4 / 3.2 / 4.0 | 异常伤害 | 四种跨元素初始 Hit 独立结算 |
+| 法术爆发伤害倍率 | 1.6（各级相同） | 异常伤害 | Fire/Pulse/Cryst/Natural 共用延迟爆发路径 |
+| 燃烧每跳伤害 | 0.24 / 0.36 / 0.48 / 0.60 | 异常伤害 | 二级燃烧每秒按 0.36 结算 |
+| 导电法术伤害提高 | 0.12 / 0.16 / 0.20 / 0.24 | 异常状态 | 四种法术伤害生效，物理不生效 |
+| 导电持续时间 | 12 / 18 / 24 / 30 秒 | 不增强 | 二级状态 18 秒到期 |
+| 冰冻持续时间 | 6 / 7 / 8 / 9 秒 | 不增强 | 二级状态在第 210 本地 Tick 边界结束 |
+| 腐蚀初始减抗 | -0.036 / -0.048 / -0.060 / -0.072 | 异常状态 | 同一敌人的五种抗性同步改变 |
+| 腐蚀每跳减抗 | -0.0084 / -0.0112 / -0.0140 / -0.0168 | 异常状态 | 周期 Blackboard 与 effect source 同步刷新 |
+| 腐蚀减抗上限 | -0.12 / -0.16 / -0.20 / -0.24 | 异常状态 | 公共条件/Blackboard 限幅，不写角色分支 |
+| 腐蚀持续时间 | 15 秒 | 不增强 | 到期移除同一 source，五抗精确回滚 |
+
+这里的“异常伤害”按角色等级系数与 `1 + strength / 100` 结算；“异常状态”按 `1 + 2 × strength / (strength + 300)` 结算。两者不能混用，也不能由 UI 重新计算。默认情况下，`ForceSpellStatusAction` 只进入异常状态，不补发跨元素初始 Hit；这与普通反应路径继续保持隔离。

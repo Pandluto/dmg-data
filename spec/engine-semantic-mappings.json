@@ -545,56 +545,88 @@
       ]
     },
     {
+      "id": "global.spell-abnormal-initial-damage",
       "actionType": "ReadSkillSettingData",
-      "selector": {
-        "lookupKey": "导电法术伤害提高",
-        "column": 1
-      },
+      "selector": { "lookupKey": "异常初始伤害倍率" },
       "effect": {
-        "operation": "ReturnValue",
-        "value": 0.12
+        "operation": "ReturnTable",
+        "values": { "1": 1.6, "2": 2.4, "3": 3.2, "4": 4.0 },
+        "clamp": true,
+        "enhancementMode": "SpellAnomalyDamage"
+      },
+      "confidence": "public-reference",
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Initial elemental-reaction damage is 80 percent times one plus the consumed attachment level."
+      }]
+    },
+    {
+      "id": "global.spell-conduct-vulnerability",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "导电法术伤害提高" },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": { "1": 0.12, "2": 0.16, "3": 0.2, "4": 0.24 },
+        "clamp": true,
+        "enhancementMode": "SpellAnomalyState"
       },
       "confidence": "confirmed-for-fixture",
       "evidence": [
         {
           "type": "public-research",
-          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md"
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Conduct grants 12/16/20/24 percent Arts vulnerability; Arts intensity enhances the attached state value."
         },
         {
           "type": "black-box-observation",
           "fixture": "fixtures/calc/pelica-heavy-combo-skill.response.json",
-          "observation": "NormalCalcZone defender addition is 0.12"
+          "observation": "A level-one Conduct state contributes 0.12 to the defender NormalCalcZone."
         }
       ]
     },
     {
+      "id": "global.spell-conduct-duration",
       "actionType": "ReadSkillSettingData",
-      "selector": {
-        "lookupKey": "导电持续时间",
-        "column": 1
-      },
+      "selector": { "lookupKey": "导电持续时间" },
       "effect": {
-        "operation": "ReturnValue",
-        "value": 12
+        "operation": "ReturnTable",
+        "values": { "1": 12, "2": 18, "3": 24, "4": 30 },
+        "clamp": true
       },
       "confidence": "public-reference",
-      "evidence": [
-        {
-          "type": "public-research",
-          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md"
-        }
-      ],
-      "notes": "The selected combo fixture overrides the parent duration with 5 seconds, so this fallback is parsed but not used in that run."
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Conduct lasts 12/18/24/30 seconds by consumed attachment level."
+      }],
+      "notes": "Some skill-specific fixtures override the common parent duration after this table read."
     },
     {
+      "id": "global.spell-freeze-duration",
       "actionType": "ReadSkillSettingData",
-      "selector": {
-        "lookupKey": "燃烧每跳伤害",
-        "column": 1
-      },
+      "selector": { "lookupKey": "冰冻持续时间" },
       "effect": {
-        "operation": "ReturnValue",
-        "value": 0.24
+        "operation": "ReturnTable",
+        "values": { "1": 6, "2": 7, "3": 8, "4": 9 },
+        "clamp": true
+      },
+      "confidence": "public-reference",
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Freeze lasts 6/7/8/9 seconds by consumed attachment level."
+      }]
+    },
+    {
+      "id": "global.spell-burning-damage",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "燃烧每跳伤害" },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": { "1": 0.24, "2": 0.36, "3": 0.48, "4": 0.6 },
+        "clamp": true,
+        "enhancementMode": "SpellAnomalyDamage"
       },
       "confidence": "confirmed-for-fixture",
       "evidence": [
@@ -606,20 +638,91 @@
         {
           "type": "black-box-observation",
           "fixture": "fixtures/calc/ake-cross-character-smoke.oracle.json",
-          "observation": "Wulfgard's level-1 Atk 82.218 produces raw burn damage 19.73232 and final damage 9.86616 against 100 Def, fixing the Blackboard scale at 0.24."
+          "observation": "Wulfgard's level-one raw burn damage fixes the first column at 0.24."
+        },
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Burning damage is 12 percent times one plus the consumed attachment level."
         }
       ]
     },
     {
+      "id": "global.spell-corrosion-tick-resistance",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "腐蚀每跳减抗" },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": { "1": -0.0084, "2": -0.0112, "3": -0.014, "4": -0.0168 },
+        "clamp": true,
+        "enhancementMode": "SpellAnomalyState"
+      },
+      "confidence": "public-reference",
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Corrosion removes 0.84/1.12/1.4/1.68 resistance points per second; AKE modifiers encode resistance as a signed decimal."
+      }]
+    },
+    {
+      "id": "global.spell-corrosion-maximum-resistance",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "腐蚀减抗上限" },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": { "1": -0.12, "2": -0.16, "3": -0.2, "4": -0.24 },
+        "clamp": true,
+        "enhancementMode": "SpellAnomalyState"
+      },
+      "confidence": "public-reference",
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Corrosion caps at 12/16/20/24 resistance points; AKE modifiers encode the reduction as a negative decimal."
+      }]
+    },
+    {
+      "id": "global.spell-corrosion-initial-resistance",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "腐蚀初始减抗" },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": { "1": -0.036, "2": -0.048, "3": -0.06, "4": -0.072 },
+        "clamp": true,
+        "enhancementMode": "SpellAnomalyState"
+      },
+      "confidence": "public-reference",
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Corrosion starts at 3.6/4.8/6/7.2 resistance points; AKE modifiers encode the reduction as a negative decimal."
+      }]
+    },
+    {
+      "id": "global.spell-corrosion-duration",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "腐蚀持续时间" },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": { "1": 15, "2": 15, "3": 15, "4": 15 },
+        "clamp": true
+      },
+      "confidence": "public-reference",
+      "evidence": [{
+        "type": "public-research",
+        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+        "observation": "Corrosion lasts 15 seconds at every attachment level."
+      }]
+    },
+    {
       "id": "global.spell-burst-damage-scale",
       "actionType": "ReadSkillSettingData",
-      "selector": {
-        "lookupKey": "法术爆发伤害倍率",
-        "column": 1
-      },
+      "selector": { "lookupKey": "法术爆发伤害倍率" },
       "effect": {
-        "operation": "ReturnValue",
-        "value": 1.6
+        "operation": "ReturnTable",
+        "values": { "1": 1.6, "2": 1.6, "3": 1.6, "4": 1.6 },
+        "clamp": true,
+        "enhancementMode": "SpellAnomalyDamage"
       },
       "confidence": "confirmed-for-fixtures",
       "evidence": [
@@ -627,6 +730,11 @@
           "type": "black-box-boundary-observation",
           "fixture": "fixtures/calc/ake-interruption-probe.oracle.json",
           "observation": "Atk 82.218 produces raw Fire burst damage 131.5488, fixing the multiplier at 1.6."
+        },
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Every elemental burst has a constant 160 percent base multiplier and uses the common abnormal-damage level and Arts-intensity factors."
         }
       ]
     },

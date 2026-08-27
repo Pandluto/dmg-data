@@ -2112,6 +2112,7 @@ export class CombatRuntime {
                                     * (1 + skillStrength / 100);
                                 break;
                             case 'PhysicalAnomalyState':
+                            case 'SpellAnomalyState':
                                 after = numericBase * (1 + (
                                     skillStrength > 0
                                         ? 2 * skillStrength / (skillStrength + 300)

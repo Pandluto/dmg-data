@@ -1623,9 +1623,7 @@ export class AkeActionCompiler {
                         candidate => candidate.selector?.lookupKey === read.dataKey
                             && candidate.effect?.operation === 'ReturnTable'
                     );
-                    if (mapping?.effect?.operation === 'ReturnValue') {
-                        entries.push({ key: read.storeKey, value: mapping.effect.value });
-                    } else if (tableMapping) {
+                    if (tableMapping) {
                         const values = clone(tableMapping.effect.values ?? {});
                         if (dynamicColumn || tableMapping.effect.enhancementMode) {
                             runtimeEntries.push({
@@ -1653,6 +1651,8 @@ export class AkeActionCompiler {
                                 { lookupKey: read.dataKey, column, storeKey: read.storeKey }
                             ));
                         }
+                    } else if (mapping?.effect?.operation === 'ReturnValue') {
+                        entries.push({ key: read.storeKey, value: mapping.effect.value });
                     } else {
                         result.unresolved.push(this.#unresolved(
                             'AKE_SKILL_SETTING_MISSING',

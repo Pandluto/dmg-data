@@ -25,6 +25,10 @@ test('raw tables and level-1 patches produce the Pelica scenario model', () => {
     assert.equal(model.character.attack, 83.851);
     assert.equal(model.enemy.maxHp, 692);
     assert.equal(model.enemy.defense, 100);
+    assert.deepEqual(
+        model.semanticRules.skillSettings['导电法术伤害提高'],
+        { 1: 0.12, 2: 0.16, 3: 0.2, 4: 0.24 }
+    );
 
     const expectedScales = [0.25, 0.15, 0.12, 0.57, 0.8, 1.78];
     const ids = [

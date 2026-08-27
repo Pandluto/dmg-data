@@ -158,6 +158,7 @@ export class CombatRuntime {
         this.nextAbilityEntitySequence = 1;
         this.nextDamageHitSequence = 1;
         this.programExecutions = new Map();
+        this.endedSkillCastIds = new Set();
         this.entityBlackboards = new Map();
         this.skillLoadoutPatchSources = new Map();
         this.skillLoadoutPatchRevision = 0;
@@ -528,15 +529,49 @@ export class CombatRuntime {
         return [...persistent, ...transient];
     }
 
+    notifyFightExit(input = {}, eventContext = {}) {
+        if (!isRecord(input)) {
+            throw new TypeError('notifyFightExit requires an input object.');
+        }
+        const actorIds = [...new Set(Array.isArray(input.actorIds)
+            ? input.actorIds
+            : [input.actorId ?? eventContext.sourceId].filter(value =>
+                value !== null && value !== undefined
+            ))];
+        const frame = input.frame ?? eventContext.frame ?? this.currentFrame;
+        return actorIds.flatMap(actorId => this.#notifyLifecycleAbilityEvent(
+            'OnTrulyExitFight',
+            this.context.createEventContext(eventContext, {
+                frame,
+                sourceId: actorId,
+                ownerId: actorId,
+                targetId: input.targetId ?? eventContext.targetId,
+                clockDomainId: this.#entityClockDomainId(
+                    actorId,
+                    eventContext.clockDomainId ?? 'global'
+                ),
+                payload: {
+                    ...cloneValue(eventContext.payload ?? {}),
+                    exitReason: input.reason ?? 'TrulyExitFight'
+                }
+            }),
+            actorId
+        ));
+    }
+
     beginSkillActionLifetimes(input, eventContext = {}) {
         if (!isRecord(input)) {
             throw new TypeError('beginSkillActionLifetimes requires an input object.');
+        }
+        const castId = input.castId ?? eventContext.castId;
+        if (castId !== null && castId !== undefined) {
+            this.endedSkillCastIds.delete(castId);
         }
         return this.statusEffects.beginSkillTransition({
             frame: input.frame ?? eventContext.frame ?? this.currentFrame,
             actorId: input.actorId ?? eventContext.sourceId,
             skillId: input.skillId ?? eventContext.skillId,
-            castId: input.castId ?? eventContext.castId,
+            castId,
             programExecutionId: input.programExecutionId
                 ?? eventContext.programExecutionId,
             reason: input.reason ?? 'SkillStarted'
@@ -549,9 +584,27 @@ export class CombatRuntime {
         }
         const frame = input.frame ?? eventContext.frame ?? this.currentFrame;
         const castId = input.castId ?? eventContext.castId;
+        const actorId = input.actorId ?? eventContext.sourceId;
+        const firstEnd = castId === null || castId === undefined
+            || !this.endedSkillCastIds.has(castId);
+        if (castId !== null && castId !== undefined) this.endedSkillCastIds.add(castId);
+        if (firstEnd && actorId !== null && actorId !== undefined) {
+            this.#notifyLifecycleAbilityEvent('OnSkillEnd', {
+                ...cloneValue(eventContext),
+                frame,
+                sourceId: actorId,
+                ownerId: eventContext.ownerId ?? actorId,
+                skillId: input.skillId ?? eventContext.skillId,
+                castId,
+                payload: {
+                    ...cloneValue(eventContext.payload ?? {}),
+                    skillEndReason: input.reason ?? 'SkillEnded'
+                }
+            }, actorId);
+        }
         const transition = this.statusEffects.endSkillTransition({
             frame,
-            actorId: input.actorId ?? eventContext.sourceId,
+            actorId,
             skillId: input.skillId ?? eventContext.skillId,
             castId,
             reason: input.reason ?? 'SkillEnded'
@@ -1066,6 +1119,7 @@ export class CombatRuntime {
                 ...cloneValue(marker),
                 active: this.#timedMarkerActive(marker, this.currentFrame)
             })),
+            endedSkillCastIds: [...this.endedSkillCastIds],
             effectTrace: cloneValue(this.effects.trace),
             trace: cloneValue(this.trace),
             pendingEvents: this.pendingEvents.map(event => ({
@@ -2393,13 +2447,51 @@ export class CombatRuntime {
                 stackingPolicy: action.stackingPolicy,
                 buffId: action.buffId ?? eventContext.payload?.buffId ?? null
             }),
-            Damage: (action, eventContext) => this.vitals.damage({
-                ...this.#attribution(action, eventContext),
-                amount: this.#number(action.amount ?? action.value ?? action.resolvedAmount,
-                    eventContext, 'damage amount'),
-                damageType: action.damageType ?? 'Generic',
-                bypassShield: action.bypassShield ?? false
-            }),
+            Damage: (action, eventContext) => {
+                const amount = this.#number(
+                    action.amount ?? action.value ?? action.resolvedAmount,
+                    eventContext,
+                    'damage amount'
+                );
+                const attribution = this.#attribution(action, eventContext);
+                const damageContext = this.context.createEventContext(eventContext, {
+                    sourceId: attribution.sourceId,
+                    ownerId: attribution.ownerId,
+                    targetId: attribution.targetId,
+                    skillId: attribution.skillId,
+                    rootSkillId: attribution.rootSkillId,
+                    castId: attribution.castId,
+                    clockDomainId: attribution.clockDomainId
+                });
+                const result = this.vitals.damage({
+                    ...attribution,
+                    amount,
+                    damageType: action.damageType ?? 'Generic',
+                    bypassShield: action.bypassShield ?? false
+                });
+                if (Number(result.before ?? 0) <= 0 || Number(result.after ?? 0) !== 0) {
+                    return result;
+                }
+                const sequence = this.nextDamageHitSequence++;
+                const abilityEvents = this.#notifyDamageEvent(
+                    'OnAfterKillEntity',
+                    {
+                        ...cloneValue(action),
+                        hitId: action.hitId ?? `runtime-hit:${sequence}`,
+                        sequence,
+                        damageUnitIndex: action.damageUnitIndex ?? null,
+                        damageAttributeType: action.damageAttributeType ?? 'Hp',
+                        amount,
+                        targetId: attribution.targetId
+                    },
+                    result,
+                    damageContext,
+                    attribution.sourceId ?? attribution.ownerId
+                );
+                return abilityEvents.length === 0
+                    ? result
+                    : { ...result, abilityEvents };
+            },
             ApplyBuff: (action, eventContext) => {
                 const candidates = Array.isArray(action.buffs)
                     ? action.buffs
@@ -2449,6 +2541,13 @@ export class CombatRuntime {
                         if (definition !== null) {
                             this.#notifyBeforeOutputBuff(
                                 candidate,
+                                attribution,
+                                candidateBlackboard,
+                                eventContext
+                            );
+                            this.#notifyBeforeAddedBuff(
+                                buffId,
+                                definition,
                                 attribution,
                                 candidateBlackboard,
                                 eventContext
@@ -2738,7 +2837,29 @@ export class CombatRuntime {
                     eventContext,
                     'Target'
                 );
-                return this.enemyMechanics.resolve(action, eventContext, targetId);
+                const beforeAbilityEvents = action.statusKey === 'airborne'
+                    ? this.#notifyLifecycleAbilityEvent(
+                        'OnBeforeOutputAirborne',
+                        this.context.createEventContext(eventContext, {
+                            targetId,
+                            payload: {
+                                ...cloneValue(eventContext.payload ?? {}),
+                                statusKey: action.statusKey,
+                                triggerBuffId: action.triggerBuffId ?? null,
+                                statusBuffId: action.statusBuffId ?? null
+                            }
+                        }),
+                        eventContext.sourceId ?? eventContext.ownerId
+                    )
+                    : [];
+                const resolution = this.enemyMechanics.resolve(
+                    action,
+                    eventContext,
+                    targetId
+                );
+                return beforeAbilityEvents.length === 0
+                    ? resolution
+                    : { ...cloneValue(resolution), beforeAbilityEvents };
             },
             ApplyEnemyInfliction: (action, eventContext) => {
                 const targetId = this.#entityId(
@@ -3271,6 +3392,16 @@ export class CombatRuntime {
                                 targetListenerId
                             ));
                         }
+                        if (Number(applied.result?.before ?? 0) > 0
+                            && Number(applied.result?.after ?? 0) === 0) {
+                            outputEvents.push(...this.#notifyDamageEvent(
+                                'OnAfterKillEntity',
+                                applied,
+                                applied.result,
+                                damageEventContext,
+                                sourceListenerId
+                            ));
+                        }
                     }
                     return {
                         damageUnitIndex: applied.damageUnitIndex,
@@ -3613,6 +3744,10 @@ export class CombatRuntime {
                     actualDamage: appliedResult?.actualDamage
                         ?? appliedResult?.actual
                         ?? null,
+                    targetHpBefore: appliedResult?.before ?? null,
+                    targetHpAfter: appliedResult?.after ?? null,
+                    targetKilled: Number(appliedResult?.before ?? 0) > 0
+                        && Number(appliedResult?.after ?? 0) === 0,
                     isCritical: hit.isCritical === true,
                     eventTargetId: eventContext.targetId,
                     listenerTargetId
@@ -3673,6 +3808,27 @@ export class CombatRuntime {
         } finally {
             this.abilityNotifyDepth -= 1;
         }
+    }
+
+    #notifyBeforeAddedBuff(buffId, definition, attribution, blackboard, eventContext) {
+        if (attribution.targetId === null || attribution.targetId === undefined) return [];
+        return this.#notifyLifecycleAbilityEvent(
+            'OnBeforeAddedBuff',
+            this.context.createEventContext(eventContext, {
+                frame: eventContext.frame,
+                sourceId: attribution.sourceId,
+                ownerId: attribution.ownerId,
+                targetId: attribution.targetId,
+                blackboard: cloneValue(blackboard ?? {}),
+                payload: {
+                    ...cloneValue(eventContext.payload ?? {}),
+                    buffId,
+                    buffTagIds: cloneValue(definition?.tagIds ?? []),
+                    outputBuffTargetId: attribution.targetId
+                }
+            }),
+            attribution.targetId
+        );
     }
 
     #notifyOutputBuff(instance, eventContext) {
@@ -3828,6 +3984,36 @@ export class CombatRuntime {
         }
     }
 
+    #notifyLifecycleAbilityEvent(eventType, eventContext, listenerTargetId) {
+        if (listenerTargetId === null || listenerTargetId === undefined) return [];
+        if (this.abilityNotifyDepth >= this.maxDerivedDepth) {
+            throw new Error(`Maximum ability-event depth ${this.maxDerivedDepth} exceeded.`);
+        }
+        this.abilityNotifyDepth += 1;
+        try {
+            const context = this.context.createEventContext(eventContext, {
+                eventType,
+                payload: {
+                    ...cloneValue(eventContext.payload ?? {}),
+                    eventTargetId: eventContext.targetId ?? null,
+                    listenerTargetId
+                }
+            });
+            const results = this.notifyAbilityEvent({
+                ...context,
+                listenerTargetId
+            });
+            this.#record('AbilityEventNotified', context, {
+                eventType,
+                listenerTargetId,
+                handled: results.length
+            });
+            return results;
+        } finally {
+            this.abilityNotifyDepth -= 1;
+        }
+    }
+
     #onAuraTargetEntered(eventContext, instance) {
         const definition = instance.definition ?? {};
         const results = [];
@@ -3840,6 +4026,26 @@ export class CombatRuntime {
         for (const buff of targetBuffs.filter(entry => entry?.buffId !== undefined
             && entry.buffId !== null)) {
             const buffDefinition = this.statusEffects.getDefinition(buff.buffId);
+            if (buffDefinition !== null) {
+                const attribution = {
+                    sourceId: eventContext.sourceId,
+                    ownerId: eventContext.ownerId,
+                    targetId: eventContext.targetId
+                };
+                this.#notifyBeforeOutputBuff(
+                    buff,
+                    attribution,
+                    buff.blackboard,
+                    eventContext
+                );
+                this.#notifyBeforeAddedBuff(
+                    buff.buffId,
+                    buffDefinition,
+                    attribution,
+                    buff.blackboard,
+                    eventContext
+                );
+            }
             const applied = this.statusEffects.apply({
                 ...eventContext,
                 buffId: buff.buffId,

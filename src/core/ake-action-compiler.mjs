@@ -85,7 +85,12 @@ const CONDITION_PREFIX = /^(Check|Compare|Probablity$|OrCondition|NotNextCheck)/
 const RUNTIME_ABILITY_EVENT_TYPES = new Set([
     'OnBeforeTakeDamage',
     'OnAddedBuff',
-    'OnOutputBuff'
+    'OnOutputBuff',
+    'OnBeforeOutputAirborne',
+    'OnAfterKillEntity',
+    'OnSkillEnd',
+    'OnBeforeAddedBuff',
+    'OnTrulyExitFight'
 ]);
 const TARGET_ALIASES = new Map([
     ['Source', 'Source'],

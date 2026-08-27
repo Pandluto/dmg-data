@@ -48,6 +48,46 @@ function listenerProgram({ endFrame = 10 } = {}) {
     };
 }
 
+function lifecycleListenerProgram() {
+    const keys = {
+        OnBeforeAddedBuff: 'before_added',
+        OnBeforeOutputAirborne: 'airborne',
+        OnAfterKillEntity: 'kill',
+        OnTrulyExitFight: 'exit',
+        OnSkillEnd: 'skill_end'
+    };
+    const sourceKey = 'ake-skill:fixture:lifecycle-listener';
+    return {
+        skillId: 'skill.lifecycle-listener-fixture',
+        blackboard: Object.fromEntries(Object.values(keys).map(key => [key, 0])),
+        timeline: [{
+            groupIndex: 0,
+            startFrame: 0,
+            endFrame: 100,
+            actions: [{
+                type: 'RegisterAbilityEventListener',
+                sourceKey,
+                listenerTarget: 'Owner',
+                timelineStartFrame: 0,
+                timelineEndFrame: 100,
+                eventGroups: Object.entries(keys).map(([eventType, key]) => ({
+                    eventType,
+                    actions: [{
+                        type: 'ModifyBlackboard',
+                        key,
+                        operation: 'Add',
+                        value: 1
+                    }]
+                }))
+            }],
+            cleanupActions: [{
+                type: 'UnregisterAbilityEventListener',
+                sourceKey
+            }]
+        }]
+    };
+}
+
 function makeRuntime() {
     return new CombatRuntime({
         definitions: {
@@ -158,6 +198,126 @@ test('timeline seek, program cancellation and early skill finish remove transien
     assert.equal(runtime.abilityEventListeners.list({ active: true }).length, 0);
 });
 
+test('generic state transitions emit every SkillData listener lifecycle event before cleanup', () => {
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [{
+                id: 'actor', kind: 'Character', team: 'ally'
+            }, {
+                id: 'enemy',
+                kind: 'Enemy',
+                team: 'enemy',
+                vital: { maxHp: 10, currentHp: 10 }
+            }, {
+                id: 'enemy-direct',
+                kind: 'Enemy',
+                team: 'enemy',
+                vital: { maxHp: 5, currentHp: 5 }
+            }],
+            buffs: {
+                'buff.fixture': { stackingPolicy: 'Refresh' },
+                'buff.airborne-attempt': { stackingPolicy: 'Independent' },
+                'buff.physical-base': { stackingPolicy: 'Stack', maxStacks: 4 }
+            }
+        },
+        damageResolver: () => ({
+            status: 'Resolved',
+            hits: [{
+                damageUnitIndex: 0,
+                damageAttributeType: 'Hp',
+                damageDecorateMask: 33280,
+                amount: 20
+            }]
+        })
+    });
+    const context = {
+        sourceId: 'actor',
+        ownerId: 'actor',
+        targetId: 'enemy',
+        castId: 'cast:lifecycle'
+    };
+    const scheduled = runtime.scheduleProgram(lifecycleListenerProgram(), {
+        ...context,
+        frame: 0
+    });
+    runtime.runUntil(0);
+
+    runtime.execute({
+        type: 'ApplyBuff',
+        sourceRef: 'Source',
+        target: 'Source',
+        buffId: 'buff.fixture'
+    }, { ...context, frame: 1 });
+    runtime.execute({
+        type: 'ApplyCombatStatus',
+        target: 'Target',
+        statusKey: 'airborne',
+        triggerBuffId: 'buff.airborne-attempt',
+        statusBuffId: null,
+        initialBuffId: 'buff.physical-base'
+    }, { ...context, frame: 2 });
+    runtime.execute({
+        type: 'ResolveDamagePacket',
+        damageUnits: [{}]
+    }, { ...context, frame: 3 });
+    runtime.execute({
+        type: 'Damage',
+        target: 'enemy-direct',
+        amount: 5,
+        damageDecorateMask: 33280
+    }, { ...context, frame: 3 });
+    runtime.notifyFightExit({
+        frame: 4,
+        actorId: 'actor',
+        targetId: 'enemy',
+        reason: 'FixtureExit'
+    });
+    runtime.finishSkillActionLifetimes({
+        frame: 5,
+        actorId: 'actor',
+        skillId: 'skill.lifecycle-listener-fixture',
+        castId: 'cast:lifecycle',
+        reason: 'SkillInterrupted'
+    }, { ...context, frame: 5 });
+    runtime.finishSkillActionLifetimes({
+        frame: 5,
+        actorId: 'actor',
+        skillId: 'skill.lifecycle-listener-fixture',
+        castId: 'cast:lifecycle',
+        reason: 'DuplicateFinish'
+    }, { ...context, frame: 5 });
+    runtime.cancelProgramExecution(scheduled.executionId, 5, 'Interrupted');
+
+    const listener = runtime.abilityEventListeners.list({ active: false })
+        .find(item => item.castId === 'cast:lifecycle');
+    assert.ok(listener);
+    assert.deepEqual(
+        Object.fromEntries([
+            'before_added', 'airborne', 'kill', 'exit', 'skill_end'
+        ].map(key => [key, listener.blackboard[key]])),
+        {
+            before_added: 1,
+            airborne: 1,
+            kill: 2,
+            exit: 1,
+            skill_end: 1
+        }
+    );
+    assert.equal(runtime.trace.some(entry =>
+        entry.stage === 'AbilityEventNotified'
+        && entry.eventType === 'OnAfterKillEntity'
+        && entry.damageDecorateMask === 33280
+    ), true);
+    assert.equal(runtime.abilityEventListeners.trace.some(entry =>
+        entry.stage === 'AbilityEventListenerHandled'
+        && entry.eventType === 'OnSkillEnd'
+    ), true, 'OnSkillEnd must run before interruption unregisters the listener');
+    assert.equal(runtime.trace.filter(entry =>
+        entry.stage === 'AbilityEventNotified'
+        && entry.eventType === 'OnSkillEnd'
+    ).length, 1, 'one cast must emit OnSkillEnd exactly once');
+});
+
 test('all public SkillData EventListenerAction nodes use the generic compiler route', () => {
     let rawListenerCount = 0;
     let registerCount = 0;
@@ -186,7 +346,7 @@ test('all public SkillData EventListenerAction nodes use the generic compiler ro
     ), false, 'the EventListenerAction wrapper itself must never fall through');
     assert.equal(listenerGaps.some(gap =>
         gap.code === 'AKE_ABILITY_EVENT_EMITTER_REQUIRED'
-    ), true, 'unimplemented event producers must remain visible in the audit');
+    ), false, 'every SkillData listener event now has a generic runtime producer');
     assert.equal(listenerGaps.some(gap =>
         gap.code === 'AKE_EVENT_LISTENER_ACTIONS_EMPTY'
     ), true, 'empty serialized selectors must not masquerade as executable');

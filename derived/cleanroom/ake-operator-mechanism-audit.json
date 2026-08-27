@@ -11,18 +11,18 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3074,
-    "combatRiskCount": 913,
+    "findingCount": 3067,
+    "combatRiskCount": 906,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 330,
+      "combat-blocking": 323,
       "combat-partial": 161,
       "evidence-missing": 422,
       "presentation-only": 390,
       "spatial-assumption": 1771
     },
     "byPriority": {
-      "P0": 189,
+      "P0": 182,
       "P1": 650,
       "P2": 1845,
       "P3": 390
@@ -37,7 +37,7 @@
       "derived-state": 8,
       "deterministic-choice": 347,
       "event-scheduling": 28,
-      "event-subscription": 32,
+      "event-subscription": 25,
       "form-state": 30,
       "physical-status": 77,
       "presentation": 390,
@@ -100,7 +100,7 @@
       "DispelAction": 1,
       "DoOnceAction": 16,
       "EnhancedAction": 11,
-      "EventListenerAction": 9,
+      "EventListenerAction": 2,
       "FindTargetAction": 24,
       "ForceTargetInFightAction": 1,
       "IfElseAction": 4,
@@ -16821,18 +16821,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 344,
-        "combatRiskCount": 201,
+        "findingCount": 343,
+        "combatRiskCount": 200,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 30,
+          "combat-blocking": 29,
           "combat-partial": 8,
           "evidence-missing": 163,
           "presentation-only": 45,
           "spatial-assumption": 98
         },
         "byPriority": {
-          "P0": 12,
+          "P0": 11,
           "P1": 186,
           "P2": 101,
           "P3": 45
@@ -16843,7 +16843,7 @@
           "cooldown-window": 5,
           "deterministic-choice": 160,
           "event-scheduling": 1,
-          "event-subscription": 4,
+          "event-subscription": 3,
           "physical-status": 8,
           "presentation": 45,
           "resource-transaction": 1,
@@ -16868,7 +16868,7 @@
           "CreateAdditionalBattleShape": 1,
           "CurveEvaluateFloat": 10,
           "CustomRootMotionAction": 14,
-          "EventListenerAction": 2,
+          "EventListenerAction": 1,
           "LaunchUpwardAction": 6,
           "MoveToAction": 20,
           "NotNextCheckAction": 1,
@@ -17060,23 +17060,6 @@
           "priority": "P0",
           "capability": "event-scheduling",
           "rationale": "Channel timing determines tick count, hit time, and interruption behavior."
-        },
-        {
-          "characterId": "chr_0028_wulfa",
-          "characterName": "洛茜",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0028_wulfa_ultimate_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0028_wulfa_ultimate_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[67][0].abilityActionMap[0]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "EventListenerAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnSkillEnd.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
         },
         {
           "characterId": "chr_0028_wulfa",
@@ -36099,18 +36082,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 140,
-        "combatRiskCount": 42,
+        "findingCount": 138,
+        "combatRiskCount": 40,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 26,
+          "combat-blocking": 24,
           "combat-partial": 4,
           "evidence-missing": 12,
           "presentation-only": 24,
           "spatial-assumption": 74
         },
         "byPriority": {
-          "P0": 19,
+          "P0": 17,
           "P1": 15,
           "P2": 82,
           "P3": 24
@@ -36123,7 +36106,7 @@
           "derived-state": 3,
           "deterministic-choice": 4,
           "event-scheduling": 5,
-          "event-subscription": 5,
+          "event-subscription": 3,
           "form-state": 1,
           "presentation": 24,
           "status-lifecycle": 1,
@@ -36149,7 +36132,6 @@
           "CustomRootMotionAction": 11,
           "DoOnceAction": 1,
           "EnhancedAction": 4,
-          "EventListenerAction": 2,
           "ReceiveMoveInputAction": 3,
           "SaveBuffLifeTime": 1,
           "SaveTargetDistanceAction": 2,
@@ -36378,23 +36360,6 @@
           "entityKind": "SkillData",
           "entityId": "chr_0035_liino_normal_skill",
           "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0035_liino_normal_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[20][0].abilityActionMap[0]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "EventListenerAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnTrulyExitFight.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0035_liino",
-          "characterName": "梨诺",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0035_liino_normal_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0035_liino_normal_skill.json",
           "jsonPath": "actionGroupData.timelineActions[14][0].abilityActionMap[0].actions[0][1..][2]",
           "code": "AKE_ACTION_UNSUPPORTED",
           "sourceType": "SetSkillCdAtOnce",
@@ -36404,23 +36369,6 @@
           "priority": "P0",
           "capability": "cooldown-window",
           "rationale": "The action changes cooldown or combo-window admission state."
-        },
-        {
-          "characterId": "chr_0035_liino",
-          "characterName": "梨诺",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0035_liino_normal_skill_combo",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0035_liino_normal_skill_combo.json",
-          "jsonPath": "actionGroupData.timelineActions[8][0].abilityActionMap[0]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "EventListenerAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnTrulyExitFight.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
         },
         {
           "characterId": "chr_0035_liino",
@@ -39473,18 +39421,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 72,
-        "combatRiskCount": 16,
+        "findingCount": 71,
+        "combatRiskCount": 15,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 6,
+          "combat-blocking": 5,
           "combat-partial": 1,
           "evidence-missing": 9,
           "presentation-only": 4,
           "spatial-assumption": 52
         },
         "byPriority": {
-          "P0": 3,
+          "P0": 2,
           "P1": 10,
           "P2": 55,
           "P3": 4
@@ -39494,7 +39442,6 @@
           "cooldown-window": 1,
           "deterministic-choice": 6,
           "event-scheduling": 1,
-          "event-subscription": 1,
           "presentation": 4,
           "targeting-scope": 1,
           "targeting-spatial": 52,
@@ -39510,7 +39457,6 @@
           "CheckSuperArmor": 1,
           "CurveEvaluateFloat": 6,
           "CustomRootMotionAction": 21,
-          "EventListenerAction": 1,
           "InheritCCSAction": 1,
           "MoveToAction": 1,
           "NotNextCheckAction": 1,
@@ -39526,23 +39472,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0005_chen",
-          "characterName": "陈千语",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0005_chen_combo_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0005_chen_combo_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[7][0].abilityActionMap[0]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "EventListenerAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnBeforeOutputAirborne.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
         {
           "characterId": "chr_0005_chen",
           "characterName": "陈千语",
@@ -46315,18 +46244,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 61,
-        "combatRiskCount": 13,
+        "findingCount": 60,
+        "combatRiskCount": 12,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 5,
+          "combat-blocking": 4,
           "combat-partial": 2,
           "evidence-missing": 6,
           "presentation-only": 6,
           "spatial-assumption": 42
         },
         "byPriority": {
-          "P0": 3,
+          "P0": 2,
           "P1": 8,
           "P2": 44,
           "P3": 6
@@ -46335,7 +46264,6 @@
           "condition-algebra": 2,
           "cooldown-window": 1,
           "deterministic-choice": 4,
-          "event-subscription": 1,
           "form-state": 1,
           "presentation": 6,
           "targeting-scope": 2,
@@ -46350,7 +46278,6 @@
           "CheckTwoDirectionAngle": 1,
           "CurveEvaluateFloat": 4,
           "CustomRootMotionAction": 12,
-          "EventListenerAction": 1,
           "MoveToAction": 1,
           "NotNextCheckAction": 1,
           "SaveTargetDistanceAction": 1,
@@ -46399,23 +46326,6 @@
           "priority": "P0",
           "capability": "form-state",
           "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection."
-        },
-        {
-          "characterId": "chr_0018_dapan",
-          "characterName": "大潘",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0018_dapan_ultimate_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0018_dapan_ultimate_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[3][0].abilityActionMap[0]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "EventListenerAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnAfterKillEntity.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
         },
         {
           "characterId": "chr_0018_dapan",
@@ -47421,18 +47331,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 85,
-        "combatRiskCount": 21,
+        "findingCount": 84,
+        "combatRiskCount": 20,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 7,
+          "combat-blocking": 6,
           "combat-partial": 9,
           "evidence-missing": 5,
           "presentation-only": 7,
           "spatial-assumption": 57
         },
         "byPriority": {
-          "P0": 2,
+          "P0": 1,
           "P1": 18,
           "P2": 58,
           "P3": 7
@@ -47441,7 +47351,6 @@
           "condition-algebra": 5,
           "deterministic-choice": 4,
           "event-scheduling": 1,
-          "event-subscription": 1,
           "physical-status": 8,
           "presentation": 7,
           "targeting-scope": 1,
@@ -47458,7 +47367,6 @@
           "ConvertToTargetContext": 3,
           "CurveEvaluateFloat": 4,
           "CustomRootMotionAction": 11,
-          "EventListenerAction": 1,
           "LaunchUpwardAction": 3,
           "NotNextCheckAction": 1,
           "Probablity": 3,
@@ -47489,23 +47397,6 @@
           "priority": "P0",
           "capability": "event-scheduling",
           "rationale": "Channel timing determines tick count, hit time, and interruption behavior."
-        },
-        {
-          "characterId": "chr_0024_deepfin",
-          "characterName": "阿列什",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0024_deepfin_ultimate_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0024_deepfin_ultimate_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[5][0].abilityActionMap[0]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "EventListenerAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnAfterKillEntity.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
         },
         {
           "characterId": "chr_0024_deepfin",
@@ -52468,17 +52359,17 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 70,
-        "combatRiskCount": 19,
+        "findingCount": 69,
+        "combatRiskCount": 18,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 12,
+          "combat-blocking": 11,
           "evidence-missing": 7,
           "presentation-only": 7,
           "spatial-assumption": 44
         },
         "byPriority": {
-          "P0": 6,
+          "P0": 5,
           "P1": 12,
           "P2": 45,
           "P3": 7
@@ -52488,7 +52379,6 @@
           "cooldown-window": 1,
           "deterministic-choice": 6,
           "event-scheduling": 1,
-          "event-subscription": 1,
           "presentation": 7,
           "status-lifecycle": 3,
           "targeting-spatial": 44,
@@ -52504,7 +52394,6 @@
           "ConvertToTargetContext": 3,
           "CurveEvaluateFloat": 6,
           "CustomRootMotionAction": 10,
-          "EventListenerAction": 1,
           "MoveToAction": 1,
           "NotNextCheckAction": 1,
           "Probablity": 4,
@@ -52536,23 +52425,6 @@
           "priority": "P0",
           "capability": "cooldown-window",
           "rationale": "The action changes cooldown or combo-window admission state."
-        },
-        {
-          "characterId": "chr_0022_bounda",
-          "characterName": "萤石",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0022_bounda_combo_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0022_bounda_combo_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[8][0].abilityActionMap[0]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "EventListenerAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnAfterKillEntity.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
         },
         {
           "characterId": "chr_0022_bounda",

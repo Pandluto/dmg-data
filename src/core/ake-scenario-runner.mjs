@@ -370,6 +370,12 @@ export class AkeScenarioRunner {
             const stopFrame = frame + this.actionIdleExitFightFrames
                 - (fromCompletedSkill ? 1 : 0);
             runtime.schedule(stopFrame, 1000, () => {
+                runtime.notifyFightExit({
+                    frame: stopFrame,
+                    actorId: characterId,
+                    targetId: enemyId,
+                    reason: 'IdleFightStop'
+                });
                 fightStopped = true;
                 durationTicks = stopFrame;
             }, 'idle-fight-stop');
@@ -390,9 +396,6 @@ export class AkeScenarioRunner {
         const finishCurrentSkill = (frame, completion) => {
             if (!currentSkill) return;
             const finished = currentSkill;
-            if (completion !== 'Completed') {
-                cancelProgram(finished, frame, `Skill${completion}`);
-            }
             transition(frame, 'Free', `skill-end:${finished.skillId}:${completion}`);
             runtime.finishSkillActionLifetimes({
                 frame,
@@ -412,6 +415,9 @@ export class AkeScenarioRunner {
                 skillType: finished.commandType,
                 clockDomainId: actorClockDomainId
             });
+            if (completion !== 'Completed') {
+                cancelProgram(finished, frame, `Skill${completion}`);
+            }
             runtime.statusEffects.finish({
                 frame,
                 metadata: { attachedToCastId: finished.castId },

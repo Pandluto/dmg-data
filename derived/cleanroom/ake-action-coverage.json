@@ -4,8 +4,8 @@
   "datasets": {
     "BuffData": {
       "files": 2678,
-      "actionOccurrences": 7210,
-      "uniqueActionTypes": 138,
+      "actionOccurrences": 7216,
+      "uniqueActionTypes": 139,
       "parsedOccurrences": 3431,
       "effectRoutedOccurrences": 2717,
       "actions": [
@@ -987,21 +987,22 @@
           "compiler": {
             "statusCounts": {
               "executable": 0,
-              "metadata-only": 6,
-              "unresolved": 51
+              "metadata-only": 0,
+              "unresolved": 57
             },
             "executionRouteCounts": {
               "complete": 0,
               "adapter-required": 0,
-              "blocked": 51,
-              "metadata-only": 6
+              "blocked": 57,
+              "metadata-only": 0
             },
             "runtimeActions": 0,
             "cleanupActions": 0,
-            "metadataNodes": 6,
+            "metadataNodes": 0,
             "unresolvedCodes": {
-              "AKE_ACTION_UNSUPPORTED": 51
-            }
+              "AKE_CONDITION_UNSUPPORTED": 57
+            },
+            "runtimeConditions": 57
           },
           "parserSupported": false,
           "canonicalEffectType": "NotNextCheckAction",
@@ -3015,6 +3016,48 @@
           }
         },
         {
+          "type": "AddGlobalCDTimer",
+          "count": 6,
+          "samples": [
+            {
+              "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_talent_2_0.json",
+              "path": "$.abilityEventAction[0].actions[0].actionData[2]"
+            },
+            {
+              "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0023_antal_talent_1_heal_trigger.json",
+              "path": "$.abilityEventAction[0].actions[0].actionData[4]"
+            },
+            {
+              "file": "reference/public-data/akedata/Json/BuffData/buff_equipsuit_physuit_01.json",
+              "path": "$.abilityEventAction[0].actions[0].actionData[3]"
+            }
+          ],
+          "compiler": {
+            "statusCounts": {
+              "executable": 6,
+              "metadata-only": 0,
+              "unresolved": 0
+            },
+            "executionRouteCounts": {
+              "complete": 6,
+              "adapter-required": 0,
+              "blocked": 0,
+              "metadata-only": 0
+            },
+            "runtimeActions": 6,
+            "cleanupActions": 0,
+            "metadataNodes": 6,
+            "unresolvedCodes": {}
+          },
+          "parserSupported": false,
+          "canonicalEffectType": "AddGlobalCDTimer",
+          "effectRouteAvailable": false,
+          "classification": {
+            "category": "other",
+            "disposition": "unresolved"
+          }
+        },
+        {
           "type": "BlowOffAction",
           "count": 6,
           "samples": [
@@ -3077,22 +3120,21 @@
           ],
           "compiler": {
             "statusCounts": {
-              "executable": 0,
+              "executable": 6,
               "metadata-only": 0,
-              "unresolved": 6
+              "unresolved": 0
             },
             "executionRouteCounts": {
-              "complete": 0,
+              "complete": 6,
               "adapter-required": 0,
-              "blocked": 6,
+              "blocked": 0,
               "metadata-only": 0
             },
             "runtimeActions": 0,
             "cleanupActions": 0,
             "metadataNodes": 0,
-            "unresolvedCodes": {
-              "AKE_ACTION_UNSUPPORTED": 6
-            }
+            "unresolvedCodes": {},
+            "runtimeConditions": 6
           },
           "parserSupported": false,
           "canonicalEffectType": "CheckGlobalCDTimerAction",
@@ -3873,8 +3915,9 @@
             "cleanupActions": 0,
             "metadataNodes": 0,
             "unresolvedCodes": {
-              "AKE_ACTION_UNSUPPORTED": 3
-            }
+              "AKE_CONDITION_UNSUPPORTED": 3
+            },
+            "runtimeConditions": 3
           },
           "parserSupported": false,
           "canonicalEffectType": "OrConditionAction",
@@ -10920,8 +10963,8 @@
     },
     "SkillData": {
       "files": 839,
-      "actionOccurrences": 20065,
-      "uniqueActionTypes": 112,
+      "actionOccurrences": 20073,
+      "uniqueActionTypes": 113,
       "parsedOccurrences": 4089,
       "effectRoutedOccurrences": 5232,
       "actions": [
@@ -10944,25 +10987,25 @@
           ],
           "compiler": {
             "statusCounts": {
-              "executable": 1172,
+              "executable": 1173,
               "metadata-only": 0,
-              "unresolved": 1303
+              "unresolved": 1302
             },
             "executionRouteCounts": {
-              "complete": 1172,
-              "adapter-required": 1303,
+              "complete": 1173,
+              "adapter-required": 1302,
               "blocked": 0,
               "metadata-only": 0
             },
             "runtimeActions": 2475,
             "cleanupActions": 111,
-            "metadataNodes": 5436,
+            "metadataNodes": 5437,
             "unresolvedCodes": {
               "AKE_TIME_DILATION_RESOLVER_REQUIRED": 318,
               "AKE_SPATIAL_PROVIDER_REQUIRED": 888,
-              "AKE_ACTION_UNSUPPORTED": 895,
+              "AKE_ACTION_UNSUPPORTED": 894,
               "AKE_DAMAGE_RESOLVER_REQUIRED": 630,
-              "AKE_CONDITION_UNSUPPORTED": 351,
+              "AKE_CONDITION_UNSUPPORTED": 350,
               "AKE_TARGET_PROVIDER_REQUIRED": 75,
               "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 323,
               "AKE_TARGET_FINDER_PROVIDER_REQUIRED": 9,
@@ -13166,8 +13209,9 @@
             "cleanupActions": 0,
             "metadataNodes": 0,
             "unresolvedCodes": {
-              "AKE_ACTION_UNSUPPORTED": 34
-            }
+              "AKE_CONDITION_UNSUPPORTED": 34
+            },
+            "runtimeConditions": 34
           },
           "parserSupported": false,
           "canonicalEffectType": "NotNextCheckAction",
@@ -14305,6 +14349,48 @@
           }
         },
         {
+          "type": "AddGlobalCDTimer",
+          "count": 8,
+          "samples": [
+            {
+              "file": "reference/public-data/akedata/Json/SkillData/chr_0031_mifu_combo_skill.json",
+              "path": "$.actionGroupData.timelineActions[14]._sequenceActionData.actionData[0].succeedActions.actionData[4]"
+            },
+            {
+              "file": "reference/public-data/akedata/Json/SkillData/sk_wpn_claym_0006.json",
+              "path": "$.actionGroupData.passiveEventActions[0].actions[0].actionData[5]"
+            },
+            {
+              "file": "reference/public-data/akedata/Json/SkillData/sk_wpn_claym_0007.json",
+              "path": "$.actionGroupData.passiveEventActions[0].actions[0].actionData[3]"
+            }
+          ],
+          "compiler": {
+            "statusCounts": {
+              "executable": 8,
+              "metadata-only": 0,
+              "unresolved": 0
+            },
+            "executionRouteCounts": {
+              "complete": 8,
+              "adapter-required": 0,
+              "blocked": 0,
+              "metadata-only": 0
+            },
+            "runtimeActions": 8,
+            "cleanupActions": 0,
+            "metadataNodes": 8,
+            "unresolvedCodes": {}
+          },
+          "parserSupported": false,
+          "canonicalEffectType": "AddGlobalCDTimer",
+          "effectRouteAvailable": false,
+          "classification": {
+            "category": "other",
+            "disposition": "unresolved"
+          }
+        },
+        {
           "type": "CheckGlobalCDTimerAction",
           "count": 8,
           "samples": [
@@ -14323,22 +14409,21 @@
           ],
           "compiler": {
             "statusCounts": {
-              "executable": 0,
+              "executable": 8,
               "metadata-only": 0,
-              "unresolved": 8
+              "unresolved": 0
             },
             "executionRouteCounts": {
-              "complete": 0,
+              "complete": 8,
               "adapter-required": 0,
-              "blocked": 8,
+              "blocked": 0,
               "metadata-only": 0
             },
             "runtimeActions": 0,
             "cleanupActions": 0,
             "metadataNodes": 0,
-            "unresolvedCodes": {
-              "AKE_ACTION_UNSUPPORTED": 8
-            }
+            "unresolvedCodes": {},
+            "runtimeConditions": 8
           },
           "parserSupported": false,
           "canonicalEffectType": "CheckGlobalCDTimerAction",
@@ -14679,8 +14764,9 @@
             "cleanupActions": 0,
             "metadataNodes": 0,
             "unresolvedCodes": {
-              "AKE_ACTION_UNSUPPORTED": 5
-            }
+              "AKE_CONDITION_UNSUPPORTED": 5
+            },
+            "runtimeConditions": 5
           },
           "parserSupported": false,
           "canonicalEffectType": "OrConditionAction",
@@ -19655,30 +19741,30 @@
   },
   "totals": {
     "files": 3517,
-    "actionOccurrences": 27275,
-    "uniqueActionTypes": 163,
+    "actionOccurrences": 27289,
+    "uniqueActionTypes": 164,
     "parsedOccurrences": 7520,
     "effectRoutedOccurrences": 7949,
-    "parserCoverage": 0.27571035747021083,
-    "effectRouteCoverage": 0.2914390467461045,
+    "parserCoverage": 0.27556891055003846,
+    "effectRouteCoverage": 0.2912895305800872,
     "compilerStatuses": {
-      "executable": 9032,
-      "metadata-only": 11080,
-      "unresolved": 7163
+      "executable": 9061,
+      "metadata-only": 11074,
+      "unresolved": 7154
     },
-    "compilerRoutingCoverage": 0.737378551787351,
+    "compilerRoutingCoverage": 0.737843086958115,
     "compilerExecutionRoutes": {
-      "complete": 9032,
-      "adapter-required": 4057,
-      "blocked": 3106,
-      "metadata-only": 11080
+      "complete": 9061,
+      "adapter-required": 4056,
+      "blocked": 3098,
+      "metadata-only": 11074
     },
-    "executableRouteCoverage": 0.47989000916590285,
+    "executableRouteCoverage": 0.480669866979369,
     "categoryOccurrences": {
       "presentation": 10082,
       "logic": 4050,
       "buff": 3024,
-      "other": 3713,
+      "other": 3727,
       "damage": 1121,
       "spatial": 1795,
       "timeline": 2248,
@@ -19687,13 +19773,13 @@
       "recovery": 119,
       "condition": 113
     },
-    "gameplayOccurrences": 14945,
-    "gameplayExecutableOccurrences": 8919,
-    "gameplayMetadataOnlyOccurrences": 236,
-    "gameplayUnresolvedOccurrences": 5790,
-    "gameplayCompilerCoverage": 0.5967882234861157,
-    "gameplayExecutableRouteOccurrences": 11656,
-    "gameplayExecutableRouteCoverage": 0.7799263967882235,
+    "gameplayOccurrences": 14959,
+    "gameplayExecutableOccurrences": 8948,
+    "gameplayMetadataOnlyOccurrences": 230,
+    "gameplayUnresolvedOccurrences": 5781,
+    "gameplayCompilerCoverage": 0.5981683267598101,
+    "gameplayExecutableRouteOccurrences": 11684,
+    "gameplayExecutableRouteCoverage": 0.781068253225483,
     "calculatorCore": {
       "categories": [
         "logic",
@@ -19705,12 +19791,12 @@
         "condition"
       ],
       "occurrences": 9437,
-      "complete": 6470,
-      "adapterRequired": 2632,
-      "blocked": 210,
-      "metadataOnly": 125,
-      "completeCoverage": 0.6855992370456713,
-      "executableRouteCoverage": 0.9645014305393663
+      "complete": 6485,
+      "adapterRequired": 2631,
+      "blocked": 202,
+      "metadataOnly": 119,
+      "completeCoverage": 0.6871887252304758,
+      "executableRouteCoverage": 0.9659849528451838
     }
   },
   "actions": [
@@ -19790,23 +19876,23 @@
       },
       "compiler": {
         "statusCounts": {
-          "executable": 1403,
+          "executable": 1404,
           "metadata-only": 17,
-          "unresolved": 1460
+          "unresolved": 1459
         },
         "executionRouteCounts": {
-          "complete": 1403,
-          "adapter-required": 1460,
+          "complete": 1404,
+          "adapter-required": 1459,
           "blocked": 0,
           "metadata-only": 17
         },
         "runtimeActions": 2863,
         "cleanupActions": 119,
-        "metadataNodes": 5819,
+        "metadataNodes": 5820,
         "unresolvedCodes": {
           "AKE_TARGET_PROVIDER_REQUIRED": 89,
-          "AKE_CONDITION_UNSUPPORTED": 420,
-          "AKE_ACTION_UNSUPPORTED": 991,
+          "AKE_CONDITION_UNSUPPORTED": 419,
+          "AKE_ACTION_UNSUPPORTED": 990,
           "AKE_DAMAGE_RESOLVER_REQUIRED": 682,
           "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 387,
           "AKE_ABILITY_ENTITY_SKILL_MISSING": 9,
@@ -21791,21 +21877,22 @@
       "compiler": {
         "statusCounts": {
           "executable": 0,
-          "metadata-only": 6,
-          "unresolved": 85
+          "metadata-only": 0,
+          "unresolved": 91
         },
         "executionRouteCounts": {
           "complete": 0,
           "adapter-required": 0,
-          "blocked": 85,
-          "metadata-only": 6
+          "blocked": 91,
+          "metadata-only": 0
         },
         "runtimeActions": 0,
         "cleanupActions": 0,
-        "metadataNodes": 6,
+        "metadataNodes": 0,
         "unresolvedCodes": {
-          "AKE_ACTION_UNSUPPORTED": 85
-        }
+          "AKE_CONDITION_UNSUPPORTED": 91
+        },
+        "runtimeConditions": 91
       }
     },
     {
@@ -23782,6 +23869,52 @@
       }
     },
     {
+      "type": "AddGlobalCDTimer",
+      "count": 14,
+      "samples": [
+        {
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_talent_2_0.json",
+          "path": "$.abilityEventAction[0].actions[0].actionData[2]"
+        },
+        {
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0023_antal_talent_1_heal_trigger.json",
+          "path": "$.abilityEventAction[0].actions[0].actionData[4]"
+        },
+        {
+          "file": "reference/public-data/akedata/Json/BuffData/buff_equipsuit_physuit_01.json",
+          "path": "$.abilityEventAction[0].actions[0].actionData[3]"
+        }
+      ],
+      "datasets": {
+        "BuffData": 6,
+        "SkillData": 8
+      },
+      "parserSupported": false,
+      "canonicalEffectType": "AddGlobalCDTimer",
+      "effectRouteAvailable": false,
+      "classification": {
+        "category": "other",
+        "disposition": "unresolved"
+      },
+      "compiler": {
+        "statusCounts": {
+          "executable": 14,
+          "metadata-only": 0,
+          "unresolved": 0
+        },
+        "executionRouteCounts": {
+          "complete": 14,
+          "adapter-required": 0,
+          "blocked": 0,
+          "metadata-only": 0
+        },
+        "runtimeActions": 14,
+        "cleanupActions": 0,
+        "metadataNodes": 14,
+        "unresolvedCodes": {}
+      }
+    },
+    {
       "type": "BreakInteractiveAction",
       "count": 14,
       "samples": [
@@ -23858,22 +23991,21 @@
       },
       "compiler": {
         "statusCounts": {
-          "executable": 0,
+          "executable": 14,
           "metadata-only": 0,
-          "unresolved": 14
+          "unresolved": 0
         },
         "executionRouteCounts": {
-          "complete": 0,
+          "complete": 14,
           "adapter-required": 0,
-          "blocked": 14,
+          "blocked": 0,
           "metadata-only": 0
         },
         "runtimeActions": 0,
         "cleanupActions": 0,
         "metadataNodes": 0,
-        "unresolvedCodes": {
-          "AKE_ACTION_UNSUPPORTED": 14
-        }
+        "unresolvedCodes": {},
+        "runtimeConditions": 14
       }
     },
     {
@@ -24529,8 +24661,9 @@
         "cleanupActions": 0,
         "metadataNodes": 0,
         "unresolvedCodes": {
-          "AKE_ACTION_UNSUPPORTED": 8
-        }
+          "AKE_CONDITION_UNSUPPORTED": 8
+        },
+        "runtimeConditions": 8
       }
     },
     {

@@ -537,6 +537,7 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 22. BuffData 的三处 `EventListenerAction` 现以精确 `buffInstanceId` 拥有订阅：并发同名 Buff 不共享 listener id，回调 Blackboard 写回监听者 Buff 实例，`OnFinishedBuff` 从统一状态结束事务广播，owner Buff 结束后无论正常 cleanup 是否存在都会注销自己的订阅。伊冯击杀恢复标记因此不再是静态 metadata，逐干员 blocker 降至 322；两个训练监听的表现 signal 仍按 presentation-only 处理；
 23. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁；
 24. 全库 40 处 `SetSkillCdAtOnce` 已收敛为一个角色无关的 `ModifySkillCooldown` 事务，覆盖 Set/Reduce、固定秒数/基础冷却比例、指定 skill id/skill type 四个维度。冷却事实从单人和小队 runner 的局部 Map 提升到共享 `SkillCooldownSystem`，按“角色 × 公共技能组”拥有状态；强化/替换 skill id 因此与原按钮共用冷却。连携触发、command admission、最终状态和 UI cooldown interval 读取同一 end frame；陈千语 `OnBeforeOutputAirborne` 的比例减冷却现可在事件帧修改正在运行的连携冷却。逐干员 blocker 由 322 降至 304，报告中不再存在 `SetSkillCdAtOnce` finding。
+25. 全库成对出现的 14 处 `CheckGlobalCDTimerAction` 与 14 处 `AddGlobalCDTimer` 已收敛到公共 timed-marker 事务：键为“目标实体 × 原始 buffId 桶”，结束帧使用全局战斗时间，Blackboard/固定秒数统一解析；逐干员 blocker 由 304 降至 298。动作覆盖审计现区分 runtime action 与 runtime condition，避免把可执行的条件节点继续误报为 `AKE_ACTION_UNSUPPORTED`。
 
 304 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。强制异常、异常生命周期、同元素爆发、普通四元素反应、技能时间窗 tag、技能/Buff 事件订阅生命周期、对应事件生产者与 `SetSkillCdAtOnce` 公共数据链已经闭合；狼卫空 selector 等子动作仍未闭合。`PauseComboSkillTime`、global-CD 与未见于本动作的 remaining-basis 操作仍是独立冷却能力，不得借本次实现宣称完成。仍未证实的 `弭弗特殊猛击` 数值继续保持 evidence-missing，而不是借元素表猜值。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
 
@@ -633,3 +634,18 @@ Endaxis 的 `src/simulation/engine/TriggerRegistry.ts` 证明“集中事件注�
 这一步没有改变共享变速水位轴的列宽、投影斜率、关系求解或节点布局。当前前端离线预演只闭合“冷却开始与同组合法性”；技能中途发生的 `SetSkillCdAtOnce` 动态修改仍以服务端 runtime ledger 为最终事实，不能把默认配装的隔离探针结果静态烘焙成所有配装都适用的 UI 事件。后续应将 runtime 冷却 mutation ledger 直接投影给画布，或让预演执行同一 normalized operation，而不是再维护一套简化公式。
 
 全量重建同时暴露了旧生成物掩盖的逐 Hit 回归：大潘终结技现在保留 43～50 帧的八次前置伤害与 81 帧结算，AKE 原始 `KnockDownAction` 位于 80 帧动作组，因此倒地只属于 81 帧 Hit。契约测试已从“首个 Hit 有倒地”改为断言“只有 81 帧 Hit 有倒地”，避免多段技能恢复真实命中后把状态错误复制到开头或全部 Hit。
+
+### 12.6 `GlobalCDTimer` 的实体内触发冷却
+
+这里的 “Global CD” 不是战技/连携/终结技的技能组冷却，而是天赋、武器和套装 proc 的 internal cooldown。原始数据闭包共有 14 对检查/启动动作：SkillData 8 对、BuffData 6 对；目标为 Owner 6 处、Source 8 处；12 处从 Blackboard 的 `talent_shield_cd`、`cd` 或 `duration` 读取秒数，另外 2 处使用固定 0.1 秒。每一对都用同一个 `buffId` 作为桶名，检查位于效果分支之前，启动位于成功动作之后。
+
+据此冻结以下通用语义：
+
+1. `CheckGlobalCDTimerAction` 在“目标实体 × buffId 桶”不存在或已经到期时为真；不能只按 buffId 做全队共享锁；
+2. `AddGlobalCDTimer` 从当前事件帧开始或刷新该桶，持续时间按秒乘 tickRate；0 秒不阻塞同帧后续检查；
+3. 到期边界为右开区间：`frame < endFrame` 仍冷却，`frame === endFrame` 已可触发；
+4. 该计时器使用全局战斗时间，不随角色局部时停/变速拉长；它与 `SkillCooldownSystem` 分离，不能出现在技能按钮冷却条上；
+5. 编译器用 `ake-global-cd:<buffId>` 命名空间复用 `CreateTimedMarker/TimedMarkerExists`，因此继续使用已有状态账本和快照，不建立角色专用 Map；
+6. 实际 fixture 同时覆盖弭弗技能内护盾门与物理套装触发门，并验证角色隔离、Blackboard 秒数和严格到期边界。
+
+Endaxis 的 `internalCooldown/sharedIcdKey` 说明成熟模拟器同样需要把 proc 冷却从技能冷却中分离，但其桶名和触发配置来自手填数据。本项目只借鉴这种分层，桶身份、目标和持续时间仍全部来自 AKE 原始动作；没有把 Endaxis 的专有规则复制进运行时。

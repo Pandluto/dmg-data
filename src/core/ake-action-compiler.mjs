@@ -2310,6 +2310,48 @@ export class AkeActionCompiler {
                 });
                 break;
             }
+            case 'AddGlobalCDTimer': {
+                const target = this.#targetRef(
+                    node.target,
+                    state,
+                    'global cooldown owner'
+                );
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                const cooldownId = typeof node.buffId === 'string'
+                    && node.buffId.length > 0
+                    ? `ake-global-cd:${node.buffId}`
+                    : null;
+                if (!cooldownId) result.unresolved.push(this.#unresolved(
+                    'AKE_GLOBAL_COOLDOWN_ID_REQUIRED',
+                    type,
+                    state.path,
+                    'AddGlobalCDTimer requires its serialized buffId bucket.'
+                ));
+                if (target.ref && cooldownId) result.actions.push({
+                    type: 'CreateTimedMarker',
+                    target: target.ref,
+                    markerId: cooldownId,
+                    durationSeconds: descriptor(node.cdTime, 0),
+                    // Despite the historical action name, this is an internal
+                    // proc cooldown on one entity. It follows global battle
+                    // time and must not stretch with the target's local clock.
+                    useTimeDilationDt: false,
+                    reason: type,
+                    metadata: {
+                        akeSourceAction: type,
+                        akeSourcePath: state.path,
+                        cooldownBucket: node.buffId
+                    }
+                });
+                result.metadata.push({
+                    type,
+                    path: state.path,
+                    category: 'global-cooldown',
+                    cooldownBucket: node.buffId ?? null,
+                    duration: clone(node.cdTime ?? null)
+                });
+                break;
+            }
             case 'InheritBuffAction': {
                 const target = this.#targetRef(
                     node.buffOwner,
@@ -3504,6 +3546,34 @@ export class AkeActionCompiler {
                         }
                         : node.id,
                     returnTrueIfNotExists: Boolean(node.returnTrueIfNotExists)
+                } : null;
+                break;
+            }
+            case 'CheckGlobalCDTimerAction': {
+                const target = this.#targetRef(
+                    node.target,
+                    state,
+                    'global cooldown owner'
+                );
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                const cooldownId = typeof node.buffId === 'string'
+                    && node.buffId.length > 0
+                    ? `ake-global-cd:${node.buffId}`
+                    : null;
+                if (!cooldownId) result.unresolved.push(this.#unresolved(
+                    'AKE_GLOBAL_COOLDOWN_ID_REQUIRED',
+                    type,
+                    state.path,
+                    'CheckGlobalCDTimerAction requires its serialized buffId bucket.'
+                ));
+                result.condition = target.ref && cooldownId ? {
+                    type: 'TimedMarkerExists',
+                    target: target.ref,
+                    markerId: cooldownId,
+                    // AKE places this condition before the proc actions and
+                    // adds the timer only after success: the gate passes when
+                    // no active timer exists.
+                    returnTrueIfNotExists: true
                 } : null;
                 break;
             }

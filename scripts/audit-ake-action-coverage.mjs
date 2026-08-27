@@ -40,7 +40,7 @@ const actionNames = new Set([
     'StoreAttributeValue', 'ObtainUspInNormalSkill', 'ModifyResilienceDecreaseFactor',
     'FinishBuffAdvanced', 'FinishBuffByTag', 'SpellInflictionOnChar',
     'InverseSpellInfliction', 'GainBreakingAttackAtb', 'RecoverPoiseAction',
-    'JumpToAction', 'MarkCanInterrupt', 'SpawnAbilityEntity'
+    'JumpToAction', 'MarkCanInterrupt', 'SpawnAbilityEntity', 'AddGlobalCDTimer'
 ]);
 const conditionPattern = /^(Check|Compare|Probablity$|OrCondition|NotNextCheck)/;
 
@@ -83,6 +83,7 @@ function recordCompilation(entry, compilation) {
     const status = compilation.status ?? 'unresolved';
     entry.compiler.statusCounts[status] = (entry.compiler.statusCounts[status] ?? 0) + 1;
     const runtimeActionCount = compilation.actions?.length ?? 0;
+    const runtimeConditionCount = compilation.condition ? 1 : 0;
     const cleanupActionCount = compilation.cleanupActions?.length ?? 0;
     const route = status === 'executable'
         ? 'complete'
@@ -93,6 +94,10 @@ function recordCompilation(entry, compilation) {
                 : 'blocked';
     entry.compiler.executionRouteCounts[route] += 1;
     entry.compiler.runtimeActions += runtimeActionCount;
+    if (runtimeConditionCount > 0) {
+        entry.compiler.runtimeConditions =
+            (entry.compiler.runtimeConditions ?? 0) + runtimeConditionCount;
+    }
     entry.compiler.cleanupActions += cleanupActionCount;
     entry.compiler.metadataNodes += compilation.metadata?.length ?? 0;
     for (const unresolved of compilation.unresolved ?? []) {
@@ -126,6 +131,10 @@ function mergeCompilation(target, source) {
             (target.compiler.executionRouteCounts[route] ?? 0) + count;
     }
     target.compiler.runtimeActions += source.runtimeActions ?? 0;
+    if ((source.runtimeConditions ?? 0) > 0) {
+        target.compiler.runtimeConditions =
+            (target.compiler.runtimeConditions ?? 0) + source.runtimeConditions;
+    }
     target.compiler.cleanupActions += source.cleanupActions ?? 0;
     target.compiler.metadataNodes += source.metadataNodes ?? 0;
     for (const [code, count] of Object.entries(source.unresolvedCodes ?? {})) {
@@ -147,17 +156,32 @@ function visit(value, location, buckets) {
         const type = shortType(value.$type);
         const sample = { file: location.file, path: location.path || '$' };
         record(buckets.serializedTypes, type, sample);
+        const isCondition = conditionPattern.test(type);
         if (actionPattern.test(type) || actionNames.has(type)) {
             const entry = record(buckets.actions, type, sample);
             try {
-                recordCompilation(entry, actionCompiler.compileAction(value, {
-                    path: `${location.file}:${location.path || '$'}`,
-                    // Lifecycle-sensitive actions cannot be judged from an
-                    // isolated node without retaining their source dataset.
-                    // SkillData actions own timeline-group start/end frames;
-                    // BuffData actions instead belong to Buff/event lifetime.
-                    scope: location.scope
-                }));
+                const compiled = isCondition
+                    ? actionCompiler.compileCondition(value, {
+                        path: `${location.file}:${location.path || '$'}`,
+                        scope: location.scope
+                    })
+                    : actionCompiler.compileAction(value, {
+                        path: `${location.file}:${location.path || '$'}`,
+                        // Lifecycle-sensitive actions cannot be judged from an
+                        // isolated node without retaining their source dataset.
+                        // SkillData actions own timeline-group start/end frames;
+                        // BuffData actions instead belong to Buff/event lifetime.
+                        scope: location.scope
+                    });
+                recordCompilation(entry, isCondition ? {
+                    ...compiled,
+                    status: compiled.unresolved.length > 0
+                        ? 'unresolved'
+                        : 'executable',
+                    actions: [],
+                    cleanupActions: [],
+                    metadata: []
+                } : compiled);
             } catch (error) {
                 recordCompilation(entry, {
                     status: 'unresolved',
@@ -168,7 +192,7 @@ function visit(value, location, buckets) {
                 });
             }
         }
-        if (conditionPattern.test(type)) record(buckets.conditions, type, sample);
+        if (isCondition) record(buckets.conditions, type, sample);
     }
     for (const [key, child] of Object.entries(value)) {
         visit(child, {

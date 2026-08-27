@@ -20,6 +20,7 @@
     "sync:akedatabase-tables": "node ./scripts/sync-akedatabase-tables.mjs",
     "sync:ake-runtime-corpus": "node ./scripts/sync-ake-runtime-corpus.mjs",
     "audit:ake-actions": "node ./scripts/audit-ake-action-coverage.mjs",
+    "audit:ake-operator-mechanisms": "node ./scripts/audit-ake-operator-mechanisms.mjs",
     "derive:ake-timing": "node ./scripts/build-ake-timing-profiles.mjs",
     "simulate:pelica": "node ./src/cli.mjs pelica",
     "simulate:pelica-generic": "node ./src/generic-cli.mjs",

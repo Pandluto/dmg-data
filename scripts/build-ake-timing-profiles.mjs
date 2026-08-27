@@ -41,6 +41,20 @@ function containsHpDamage(actions) {
     return found;
 }
 
+// A damage packet can be emitted while a skill is running without being an
+// impact of that skill.  Buff/status callbacks (burning, bleeding and other
+// periodic effects) are attributed by the runtime as `buff-derived`; they
+// remain real damage, but they must not become a release anchor.  Keep the
+// allow-list intentionally small: an explicit unknown semantic value is safer
+// as a non-anchor than accidentally turning a status tick into a skill boundary.
+// An absent value remains compatible with compiled-fallback profiles.
+const ACTION_DAMAGE_SEMANTICS = new Set(['', 'skill']);
+
+function isActionOwnedDamageHit(hit) {
+    const semantic = String(hit?.semanticHitType ?? '').trim().toLowerCase();
+    return ACTION_DAMAGE_SEMANTICS.has(semantic);
+}
+
 function compiledHitFrames(programs, rootSkillId) {
     const hits = [];
     const visit = (skillId, baseFrame, stack) => {
@@ -428,6 +442,7 @@ function simulateProfile(
                 && Math.abs(Number(item.atkScale ?? 0)) > 1e-12
                 && Math.abs(Number(item.finalDamage ?? item.rawDamage ?? 0)) > 1e-12
             ));
+            const releaseEligible = positiveHpHits.some(isActionOwnedDamageHit);
             return {
                 offsetFrames: Number(hit.frame ?? 0),
                 launchOffsetFrames: hit.skillId && hit.skillId !== skillId
@@ -446,7 +461,15 @@ function simulateProfile(
                     (sum, item) => sum + Number(item.atkScale ?? 0),
                     0
                 ) / Math.max(1, positiveHpHits.length),
-                damageTypes: structuredClone(hit.damageTypes ?? [])
+                damageTypes: structuredClone(hit.damageTypes ?? []),
+                // Omit the default `true` value to keep the generated catalog
+                // compact.  A pure status-derived burst carries `false`; a
+                // mixed burst remains anchorable because it has a real skill
+                // impact at the same frame.
+                ...(positiveHpHits.length > 0 && (!releaseEligible
+                    || positiveHpHits.some(item => !isActionOwnedDamageHit(item)))
+                    ? { releaseEligible }
+                    : {})
             };
         })
         .filter(hit => hit.hitCount > 0);

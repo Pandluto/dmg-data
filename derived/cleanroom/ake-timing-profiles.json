@@ -3206,7 +3206,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 114,
@@ -3218,7 +3219,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 144,
@@ -3230,7 +3232,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 174,
@@ -3242,7 +3245,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 204,
@@ -3254,7 +3258,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             }
           ],
           "resourceEvents": [
@@ -3375,7 +3380,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 107,
@@ -3387,7 +3393,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 137,
@@ -3399,7 +3406,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 167,
@@ -3411,7 +3419,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 197,
@@ -3423,7 +3432,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             }
           ],
           "resourceEvents": [
@@ -3496,7 +3506,8 @@
               "observedAtkScale": 5.4,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             }
           ],
           "resourceEvents": [],
@@ -4335,7 +4346,8 @@
               "observedAtkScale": 1,
               "damageTypes": [
                 "Cryst"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 42,
@@ -4347,7 +4359,8 @@
               "observedAtkScale": 1,
               "damageTypes": [
                 "Cryst"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 65,
@@ -4359,7 +4372,8 @@
               "observedAtkScale": 1,
               "damageTypes": [
                 "Cryst"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 88,
@@ -4371,7 +4385,8 @@
               "observedAtkScale": 1,
               "damageTypes": [
                 "Cryst"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 124,
@@ -4383,7 +4398,8 @@
               "observedAtkScale": 2,
               "damageTypes": [
                 "Cryst"
-              ]
+              ],
+              "releaseEligible": false
             }
           ],
           "resourceEvents": [
@@ -7260,7 +7276,8 @@
               "damageTypes": [
                 "Cryst",
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 231,
@@ -7273,7 +7290,8 @@
               "damageTypes": [
                 "Cryst",
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 239,
@@ -7286,7 +7304,8 @@
               "damageTypes": [
                 "Cryst",
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 247,
@@ -7299,7 +7318,8 @@
               "damageTypes": [
                 "Cryst",
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 255,
@@ -7312,7 +7332,8 @@
               "damageTypes": [
                 "Cryst",
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 263,
@@ -7325,7 +7346,8 @@
               "damageTypes": [
                 "Cryst",
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 271,
@@ -7338,7 +7360,8 @@
               "damageTypes": [
                 "Cryst",
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 279,
@@ -7351,7 +7374,8 @@
               "damageTypes": [
                 "Cryst",
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 287,
@@ -7364,7 +7388,8 @@
               "damageTypes": [
                 "Cryst",
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 295,
@@ -7377,7 +7402,8 @@
               "damageTypes": [
                 "Cryst",
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 303,
@@ -7390,7 +7416,8 @@
               "damageTypes": [
                 "Cryst",
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 311,
@@ -7403,7 +7430,8 @@
               "damageTypes": [
                 "Cryst",
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             }
           ],
           "resourceEvents": [],
@@ -8001,7 +8029,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 50,
@@ -8013,7 +8042,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 52,
@@ -8038,7 +8068,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 56,
@@ -8050,7 +8081,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 62,
@@ -8062,7 +8094,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 65,
@@ -8074,7 +8107,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 68,
@@ -8086,7 +8120,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 71,
@@ -8098,7 +8133,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 82,
@@ -8110,7 +8146,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 92,
@@ -8122,7 +8159,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 95,
@@ -8134,7 +8172,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 98,
@@ -8146,7 +8185,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 101,
@@ -8158,7 +8198,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 112,
@@ -8170,7 +8211,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 122,
@@ -8182,7 +8224,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 125,
@@ -8194,7 +8237,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 128,
@@ -8206,7 +8250,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 131,
@@ -8218,7 +8263,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 142,
@@ -8230,7 +8276,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 152,
@@ -8242,7 +8289,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 155,
@@ -8254,7 +8302,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 158,
@@ -8266,7 +8315,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 161,
@@ -8278,7 +8328,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 172,
@@ -8290,7 +8341,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 182,
@@ -8302,7 +8354,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 185,
@@ -8314,7 +8367,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 188,
@@ -8326,7 +8380,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 191,
@@ -8338,7 +8393,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 202,
@@ -8350,7 +8406,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 212,
@@ -8362,7 +8419,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 215,
@@ -8374,7 +8432,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 218,
@@ -8386,7 +8445,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 221,
@@ -8398,7 +8458,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 232,
@@ -8410,7 +8471,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 242,
@@ -8422,7 +8484,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 245,
@@ -8434,7 +8497,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 248,
@@ -8446,7 +8510,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 251,
@@ -8458,7 +8523,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 262,
@@ -8470,7 +8536,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 272,
@@ -8482,7 +8549,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 275,
@@ -8494,7 +8562,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 278,
@@ -8506,7 +8575,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 281,
@@ -8518,7 +8588,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 292,
@@ -8530,7 +8601,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 302,
@@ -8542,7 +8614,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 305,
@@ -8554,7 +8627,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 308,
@@ -8566,7 +8640,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 311,
@@ -8578,7 +8653,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 322,
@@ -8590,7 +8666,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 332,
@@ -8602,7 +8679,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 335,
@@ -8614,7 +8692,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 338,
@@ -8626,7 +8705,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 341,
@@ -8638,7 +8718,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 352,
@@ -8650,7 +8731,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 362,
@@ -8662,7 +8744,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 365,
@@ -8674,7 +8757,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 368,
@@ -8686,7 +8770,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 371,
@@ -8698,7 +8783,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 382,
@@ -8710,7 +8796,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 392,
@@ -8722,7 +8809,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 395,
@@ -8734,7 +8822,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 398,
@@ -8746,7 +8835,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 401,
@@ -8758,7 +8848,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 412,
@@ -8770,7 +8861,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 422,
@@ -8782,7 +8874,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 425,
@@ -8794,7 +8887,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 428,
@@ -8806,7 +8900,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 431,
@@ -8818,7 +8913,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 442,
@@ -8830,7 +8926,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 452,
@@ -8842,7 +8939,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 455,
@@ -8854,7 +8952,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 458,
@@ -8866,7 +8965,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 461,
@@ -8878,7 +8978,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 472,
@@ -8890,7 +8991,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 482,
@@ -8902,7 +9004,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 485,
@@ -8914,7 +9017,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 488,
@@ -8926,7 +9030,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 491,
@@ -8938,7 +9043,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 502,
@@ -8950,7 +9056,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 512,
@@ -8962,7 +9069,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 515,
@@ -8974,7 +9082,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 518,
@@ -8986,7 +9095,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 521,
@@ -8998,7 +9108,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 532,
@@ -9010,7 +9121,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 542,
@@ -9022,7 +9134,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 545,
@@ -9034,7 +9147,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 548,
@@ -9046,7 +9160,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 551,
@@ -9058,7 +9173,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 562,
@@ -9070,7 +9186,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 572,
@@ -9082,7 +9199,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 575,
@@ -9094,7 +9212,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 578,
@@ -9106,7 +9225,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 581,
@@ -9118,7 +9238,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 592,
@@ -9130,7 +9251,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 602,
@@ -9142,7 +9264,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 605,
@@ -9154,7 +9277,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 608,
@@ -9166,7 +9290,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 611,
@@ -9178,7 +9303,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 622,
@@ -9190,7 +9316,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 632,
@@ -9202,7 +9329,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 635,
@@ -9214,7 +9342,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 638,
@@ -9226,7 +9355,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 641,
@@ -9238,7 +9368,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 652,
@@ -9250,7 +9381,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 662,
@@ -9262,7 +9394,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 665,
@@ -9274,7 +9407,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 668,
@@ -9286,7 +9420,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 671,
@@ -9298,7 +9433,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 682,
@@ -9310,7 +9446,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 692,
@@ -9322,7 +9459,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 695,
@@ -9334,7 +9472,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 698,
@@ -9346,7 +9485,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 701,
@@ -9358,7 +9498,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 712,
@@ -9370,7 +9511,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 722,
@@ -9382,7 +9524,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 725,
@@ -9394,7 +9537,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 728,
@@ -9406,7 +9550,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 731,
@@ -9418,7 +9563,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 742,
@@ -9430,7 +9576,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 752,
@@ -9442,7 +9589,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 755,
@@ -9454,7 +9602,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 758,
@@ -9466,7 +9615,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 761,
@@ -9478,7 +9628,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 772,
@@ -9490,7 +9641,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 782,
@@ -9502,7 +9654,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 785,
@@ -9514,7 +9667,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 788,
@@ -9526,7 +9680,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 791,
@@ -9538,7 +9693,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 802,
@@ -9550,7 +9706,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 812,
@@ -9562,7 +9719,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 815,
@@ -9574,7 +9732,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 818,
@@ -9586,7 +9745,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 821,
@@ -9598,7 +9758,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             }
           ],
           "resourceEvents": [
@@ -9662,7 +9823,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 13,
@@ -9686,7 +9848,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 19,
@@ -9698,7 +9861,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 24,
@@ -9722,7 +9886,8 @@
               "observedAtkScale": 0.15000000000000002,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 37,
@@ -9734,7 +9899,8 @@
               "observedAtkScale": 0.15000000000000002,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 41,
@@ -9746,7 +9912,8 @@
               "observedAtkScale": 0.15000000000000002,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 43,
@@ -9758,7 +9925,8 @@
               "observedAtkScale": 0.15000000000000002,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 46,
@@ -9770,7 +9938,8 @@
               "observedAtkScale": 0.15000000000000002,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 49,
@@ -9782,7 +9951,8 @@
               "observedAtkScale": 0.15000000000000002,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 52,
@@ -9794,7 +9964,8 @@
               "observedAtkScale": 0.15000000000000002,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             }
           ],
           "resourceEvents": [
@@ -9910,7 +10081,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 13,
@@ -9922,7 +10094,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 16,
@@ -9934,7 +10107,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 19,
@@ -9946,7 +10120,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 29,
@@ -9970,7 +10145,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 42,
@@ -9982,7 +10158,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 45,
@@ -9994,7 +10171,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 48,
@@ -10006,7 +10184,8 @@
               "observedAtkScale": 0.3,
               "damageTypes": [
                 "Physical"
-              ]
+              ],
+              "releaseEligible": false
             }
           ],
           "resourceEvents": [],
@@ -11525,7 +11704,8 @@
               "observedAtkScale": 2.7,
               "damageTypes": [
                 "Pulse"
-              ]
+              ],
+              "releaseEligible": false
             }
           ],
           "resourceEvents": [
@@ -13203,7 +13383,8 @@
               "observedAtkScale": 0.8,
               "damageTypes": [
                 "Natural"
-              ]
+              ],
+              "releaseEligible": false
             }
           ],
           "resourceEvents": [
@@ -16926,7 +17107,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 106,
@@ -16938,7 +17120,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 136,
@@ -16950,7 +17133,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 166,
@@ -16962,7 +17146,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 196,
@@ -16974,7 +17159,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 226,
@@ -16986,7 +17172,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 256,
@@ -16998,7 +17185,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 286,
@@ -17010,7 +17198,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 316,
@@ -17022,7 +17211,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 346,
@@ -17034,7 +17224,8 @@
               "observedAtkScale": 0.34897959183673466,
               "damageTypes": [
                 "Fire"
-              ]
+              ],
+              "releaseEligible": false
             }
           ],
           "resourceEvents": [],
@@ -19007,7 +19198,8 @@
               "observedAtkScale": 0.65,
               "damageTypes": [
                 "Cryst"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 97,
@@ -19019,7 +19211,8 @@
               "observedAtkScale": 0.65,
               "damageTypes": [
                 "Cryst"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 112,
@@ -19031,7 +19224,8 @@
               "observedAtkScale": 0.65,
               "damageTypes": [
                 "Cryst"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 127,
@@ -19043,7 +19237,8 @@
               "observedAtkScale": 0.65,
               "damageTypes": [
                 "Cryst"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 142,
@@ -19055,7 +19250,8 @@
               "observedAtkScale": 0.65,
               "damageTypes": [
                 "Cryst"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 157,
@@ -19067,7 +19263,8 @@
               "observedAtkScale": 0.65,
               "damageTypes": [
                 "Cryst"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 172,
@@ -19079,7 +19276,8 @@
               "observedAtkScale": 0.65,
               "damageTypes": [
                 "Cryst"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 187,
@@ -19091,7 +19289,8 @@
               "observedAtkScale": 0.65,
               "damageTypes": [
                 "Cryst"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 202,
@@ -19103,7 +19302,8 @@
               "observedAtkScale": 0.65,
               "damageTypes": [
                 "Cryst"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 217,
@@ -19115,7 +19315,8 @@
               "observedAtkScale": 0.65,
               "damageTypes": [
                 "Cryst"
-              ]
+              ],
+              "releaseEligible": false
             }
           ],
           "resourceEvents": [],
@@ -21924,7 +22125,8 @@
               "observedAtkScale": 2.326530612244898,
               "damageTypes": [
                 "Natural"
-              ]
+              ],
+              "releaseEligible": false
             },
             {
               "offsetFrames": 70,
@@ -21949,7 +22151,8 @@
               "observedAtkScale": 2.326530612244898,
               "damageTypes": [
                 "Natural"
-              ]
+              ],
+              "releaseEligible": false
             }
           ],
           "resourceEvents": [

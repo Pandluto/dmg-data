@@ -27,7 +27,10 @@ const CATALOG_REVISION_KEY = 'def.ake-catalog.revision.v1';
 // cannot retain a pre-state-machine catalog.
 // v26 adds staged ComboSkill identity plus the nested precise-input interval.
 // Older caches can expose the second stage but cannot render its QTE window.
-const CATALOG_ADAPTER_VERSION = 26;
+// v27 records whether a timing hit is owned by the action or emitted by a
+// status/buff callback.  Older cached profiles could offer a DoT as a release
+// anchor because they only had the coarse `lingering` classification.
+const CATALOG_ADAPTER_VERSION = 27;
 
 const LEVEL_KEYS = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'M1', 'M2', 'M3'] as const;
 
@@ -75,6 +78,8 @@ export type AkeTimingHitProfile = {
   damageType?: string | null;
   /** AKE probe value used when a timing profile has no per-level table. */
   observedAtkScale?: number | null;
+  /** False when the packet is emitted by a status/buff rather than the action. */
+  releaseEligible?: boolean;
   levels?: Record<string, number>;
   hitBuffs?: AkeHitBuffProfile[];
   multiplierDerivation?: 'compiled-damage-packet' | 'root-blackboard-fallback' | 'unverified' | string;

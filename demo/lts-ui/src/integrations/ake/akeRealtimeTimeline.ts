@@ -74,6 +74,8 @@ export type AkeRealtimeHit = {
   launchFrame: number | null;
   kind: AkeTimingHitProfile['kind'];
   hitCount: number;
+  /** False for status/buff-derived damage that is not an action boundary. */
+  releaseEligible?: boolean;
   /** The resolved AKE attack multiplier for marker presentation. */
   multiplier?: number | null;
   damageTypes: string[];
@@ -366,10 +368,14 @@ function repairIneligibleDamageHitAnchors(
       return input;
     }
     const sourceIsUltimate = sourceInput.commandType === 'UltimateSkill';
-    const matchesEligibleHit = !sourceIsUltimate && sourceProfile.hits.some(hit => (
-      hit.kind !== 'lingering'
-      && Math.round(hit.offsetFrames) === Math.round(persistedOffset)
-    ));
+    const matchesEligibleHit = !sourceIsUltimate && sourceProfile.hits.some((hit, index) => {
+      const expectedHitId = `${sourceInput.commandId}:preview-hit:${index}`;
+      const hitIdMatches = !anchor.sourceHitId || anchor.sourceHitId === expectedHitId;
+      return hitIdMatches
+        && hit.kind !== 'lingering'
+        && hit.releaseEligible !== false
+        && Math.round(hit.offsetFrames) === Math.round(persistedOffset);
+    });
     if (matchesEligibleHit) return input;
     repairs.push({
       buttonId: input.commandId,
@@ -544,7 +550,12 @@ function composeFullAttackProfile(
 
   chain.forEach((stage, stageIndex) => {
     stageStarts.push(stageStart);
-    const ordinaryHits = stage.hits.filter(hit => hit.kind !== 'lingering');
+    // Keep status/buff damage as independent events.  It is real damage, but
+    // it is not the action's impact and therefore must never be collapsed into
+    // the action settlement used to build release anchors.
+    const ordinaryHits = stage.hits.filter(hit => (
+      hit.kind !== 'lingering' && hit.releaseEligible !== false
+    ));
     if (ordinaryHits.length > 0) {
       const settlement = ordinaryHits.reduce((latest, hit) => (
         hit.offsetFrames >= latest.offsetFrames ? hit : latest
@@ -568,7 +579,9 @@ function composeFullAttackProfile(
         hitBuffs: ordinaryHits.flatMap(hit => hit.hitBuffs ?? []),
       });
     }
-    for (const hit of stage.hits.filter(candidate => candidate.kind === 'lingering')) {
+    for (const hit of stage.hits.filter(candidate => (
+      candidate.kind === 'lingering' || candidate.releaseEligible === false
+    ))) {
       hits.push({
         ...hit,
         offsetFrames: stageStart + hit.offsetFrames,
@@ -845,6 +858,7 @@ function hitFromProfile(
       : actualFrame + hit.launchOffsetFrames,
     kind: hit.kind,
     hitCount: hit.hitCount,
+    releaseEligible: hit.releaseEligible ?? hit.kind !== 'lingering',
     multiplier: Number.isFinite(Number(hit.observedAtkScale))
       ? Number(hit.observedAtkScale)
       : (hit.levels?.M3 ?? hit.levels?.L9 ?? null),

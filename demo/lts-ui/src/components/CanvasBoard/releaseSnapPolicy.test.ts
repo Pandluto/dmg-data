@@ -9,10 +9,18 @@ import {
   hitsEligibleForReleaseSnap,
   isComboReleaseFrameAvailable,
 } from './hooks/useCanvasDrag';
+import { buildReleaseSnapPoints } from '../../core/domain/releaseAnchorGraph';
 
 const hits = [
   { id: 'normal-hit', commandId: 'normal', frame: 10, kind: 'direct' },
   { id: 'projectile-hit', commandId: 'normal', frame: 11, kind: 'projectile' },
+  {
+    id: 'status-dot-hit',
+    commandId: 'normal',
+    frame: 12,
+    kind: 'direct',
+    releaseEligible: false,
+  },
   { id: 'lingering-hit', commandId: 'normal', frame: 300, kind: 'lingering' },
   { id: 'ultimate-hit', commandId: 'ultimate', frame: 12, kind: 'direct' },
 ] as AkeRealtimeHit[];
@@ -25,6 +33,30 @@ assert.deepEqual(
   hitsEligibleForReleaseSnap({ commands, hits }).map(hit => hit.id),
   ['normal-hit', 'projectile-hit'],
   'only committed non-ultimate impacts become combo/release snap points',
+);
+assert.equal(
+  buildReleaseSnapPoints({
+    actions: [{
+      id: 'normal',
+      groupId: 'group',
+      groupIndex: 0,
+      startFrame: 0,
+      endFrame: 30,
+      startX: 0,
+      endX: 30,
+    }],
+    hits: [{
+      id: 'status-dot-hit',
+      commandId: 'normal',
+      frame: 12,
+      offsetFrames: 12,
+      releaseEligible: false,
+    }],
+    debounceFrames: 0,
+    projectFrame: frame => frame,
+  }).some(point => point.kind === 'damage-hit'),
+  false,
+  'the snap graph also rejects a status-derived hit when called directly',
 );
 
 const comboTimeline = {

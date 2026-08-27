@@ -961,6 +961,94 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
 }
 
 {
+  const actor = character('status-derived-actor');
+  const source = button('status-derived-source', actor.id, 0, 'B');
+  source.runtimeSkillId = 'status-derived-source-skill';
+  const sourceProfile = profile({
+    skillId: source.runtimeSkillId,
+    hits: [{
+      offsetFrames: 13,
+      launchOffsetFrames: null,
+      sourceSkillId: source.runtimeSkillId,
+      rootSkillId: source.runtimeSkillId,
+      kind: 'direct',
+      hitCount: 1,
+      damageTypes: ['Fire'],
+      releaseEligible: false,
+    }],
+  });
+  const result = buildAkeRealtimeTimeline({
+    timelineData: timeline([{ characterId: actor.id, buttons: [source] }]),
+    selectedCharacters: [actor],
+    catalog: catalog({ [actor.id]: [sourceProfile] }),
+    staffCount: 1,
+  });
+  assertEqual(
+    result.hits[0].releaseEligible,
+    false,
+    'status-derived damage keeps its runtime identity instead of becoming an action hit',
+  );
+}
+
+{
+  const actor = character('same-frame-status-actor');
+  const source = button('same-frame-source', actor.id, 0, 'B');
+  source.runtimeSkillId = 'same-frame-source-skill';
+  const follower = button('same-frame-follower', actor.id, 1, 'B');
+  follower.runtimeSkillId = 'same-frame-follower-skill';
+  follower.releaseAnchor = {
+    schemaVersion: 1,
+    kind: 'damage-hit',
+    sourceButtonId: source.id,
+    sourceHitId: `${source.id}:preview-hit:1`,
+    sourceHitOffsetFrames: 20,
+    debounceFrames: 0,
+  };
+  const sourceProfile = profile({
+    skillId: source.runtimeSkillId,
+    bodyEndOffset: 30,
+    tailEndOffset: 30,
+    exclusiveFrames: 30,
+    hits: [{
+      offsetFrames: 20,
+      launchOffsetFrames: null,
+      sourceSkillId: source.runtimeSkillId,
+      rootSkillId: source.runtimeSkillId,
+      kind: 'direct',
+      hitCount: 1,
+      damageTypes: ['Physical'],
+    }, {
+      offsetFrames: 20,
+      launchOffsetFrames: null,
+      sourceSkillId: source.runtimeSkillId,
+      rootSkillId: source.runtimeSkillId,
+      kind: 'direct',
+      hitCount: 1,
+      damageTypes: ['Fire'],
+      releaseEligible: false,
+    }],
+  });
+  const followerProfile = profile({
+    skillId: follower.runtimeSkillId,
+    bodyEndOffset: 10,
+    tailEndOffset: 10,
+    exclusiveFrames: 10,
+    hits: [],
+  });
+  const result = buildAkeRealtimeTimeline({
+    timelineData: timeline([{ characterId: actor.id, buttons: [source, follower] }]),
+    selectedCharacters: [actor],
+    catalog: catalog({ [actor.id]: [sourceProfile, followerProfile] }),
+    staffCount: 1,
+  });
+  assertEqual(
+    result.commands.find(command => command.commandId === follower.id)?.actualFrame,
+    30,
+    'a persisted same-frame status-hit anchor is repaired by hit identity, not just offset',
+  );
+}
+
+{
   const actor = character('lingering-anchor-actor');
   const source = button('long-dot-source', actor.id, 0, 'B');
   source.runtimeSkillId = 'long-dot-source-skill';

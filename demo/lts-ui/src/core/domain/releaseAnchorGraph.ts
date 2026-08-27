@@ -78,6 +78,8 @@ export type TimedReleaseHit = {
   commandId: string;
   frame: number;
   offsetFrames: number;
+  /** False for status/buff-derived damage that must not become an anchor. */
+  releaseEligible?: boolean;
   label?: string;
 };
 
@@ -370,6 +372,7 @@ export function buildReleaseSnapPoints(input: {
     });
 
   input.hits.forEach((hit, hitIndex) => {
+    if (hit.releaseEligible === false) return;
     const action = actionById.get(hit.commandId);
     if (!action) return;
     const frame = safeFrame(hit.frame + input.debounceFrames);

@@ -294,6 +294,9 @@ export function hitsEligibleForReleaseSnap(
     // is the minimal public-data case: treating its final DoT tick as a skill
     // release point moved the following combo from ~3 s to ~27 s.
     && hit.kind !== 'lingering'
+    // Status/buff damage can be emitted while the source action is still
+    // active, so the coarse `kind` field is not sufficient by itself.
+    && hit.releaseEligible !== false
   ));
 }
 
@@ -385,10 +388,11 @@ export function useCanvasDrag({
         })),
         hits: hitsEligibleForReleaseSnap(akeRealtimeTimeline)
           .map(hit => ({
-          id: hit.id,
-          commandId: hit.commandId,
-          frame: hit.frame,
-          offsetFrames: hit.offsetFrames,
+            id: hit.id,
+            commandId: hit.commandId,
+            frame: hit.frame,
+            offsetFrames: hit.offsetFrames,
+            releaseEligible: hit.releaseEligible,
           })),
         timedInputWindows: comboTimedInputCandidates(akeRealtimeTimeline, akeTimeline),
         debounceFrames: debounceFramesForTickRate(akeRealtimeTimeline.tickRate),

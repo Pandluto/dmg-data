@@ -62,6 +62,7 @@ const VULNERABILITY_BUFF_IDS = Object.freeze({
     Natural: 'buff_common_affixes_vulnerable_natural'
 });
 const WEAKNESS_BUFF_ID = 'buff_common_affixes_weak';
+const SHELTER_BUFF_ID = 'buff_common_affixes_shelter';
 const STATUS_ENHANCEMENT_OPERATIONS = Object.freeze({
     Add: 'Add',
     Subtract: 'Subtract',
@@ -712,7 +713,7 @@ export class AkeActionCompiler {
         };
     }
 
-    #compileParameterizedDebuffAction(node, state, {
+    #compileParameterizedStatusAction(node, state, {
         sourceType,
         buffId,
         effectKind,
@@ -1688,7 +1689,7 @@ export class AkeActionCompiler {
                     ));
                     break;
                 }
-                return this.#compileParameterizedDebuffAction(node, state, {
+                return this.#compileParameterizedStatusAction(node, state, {
                     sourceType: type,
                     buffId: vulnerableBuffId,
                     effectKind: 'Vulnerability',
@@ -1702,7 +1703,7 @@ export class AkeActionCompiler {
                 });
             }
             case 'WeakAction':
-                return this.#compileParameterizedDebuffAction(node, state, {
+                return this.#compileParameterizedStatusAction(node, state, {
                     sourceType: type,
                     buffId: WEAKNESS_BUFF_ID,
                     effectKind: 'Weakness',
@@ -1717,6 +1718,16 @@ export class AkeActionCompiler {
                     }),
                     diagnosticPrefix: 'AKE_WEAKNESS',
                     displayName: 'WeakAction'
+                });
+            case 'ShelterAction':
+                return this.#compileParameterizedStatusAction(node, state, {
+                    sourceType: type,
+                    buffId: SHELTER_BUFF_ID,
+                    effectKind: 'Shelter',
+                    category: 'shelter',
+                    metadata: { akeShelterType: 'IncomingDamageReduction' },
+                    diagnosticPrefix: 'AKE_SHELTER',
+                    displayName: 'ShelterAction'
                 });
             case 'PauseBuffTime':
                 if (typeof node.isPaused !== 'boolean') {

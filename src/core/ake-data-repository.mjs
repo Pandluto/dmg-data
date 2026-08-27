@@ -806,6 +806,15 @@ export class AkeDataRepository {
                         maxStacks
                     );
                 }
+                if (serializedAkeType(value) === 'ShelterAction') {
+                    const rate = Number(akeDescriptorValue(value.rate, blackboard));
+                    appendEffect(
+                        { type: 'damageReduction', value: Math.abs(rate), unit: 'percent' },
+                        input.buffId,
+                        durationSeconds,
+                        maxStacks
+                    );
+                }
                 for (const nested of Object.values(value)) inspectActions(nested);
             };
             inspectActions({

@@ -472,6 +472,59 @@ assert.equal(sameNameLedger?.hits[0].formula.buffTags.filter((buff) => (
   buff.label === '同名增益'
 )).length, 2, 'same-label Buffs must remain distinct by contribution identity');
 
+const shelterReport = structuredClone(report);
+shelterReport.schemaVersion = 3;
+shelterReport.hits = [runtimeHit(0, null, 1, false)];
+shelterReport.statusEvents.push({
+  ...statusBase,
+  traceIndex: 22,
+  frame: 12,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:shelter',
+  buffId: 'buff_common_affixes_shelter',
+  targetId: 'enemy-shared',
+  before: 0,
+  after: 1,
+  castId: 'older-cast',
+  displayName: '庇护',
+});
+shelterReport.hits[0].factors = [{
+  factorId: 'damage-factor:shelter',
+  semanticKey: 'shelter',
+  displayName: '庇护减伤',
+  operation: 'SubtractRate',
+  rawValue: 0.25,
+  additive: -0.25,
+  multiplier: 0.75,
+  finalValue: 0.75,
+  contributions: [{
+    contributionId: 'contribution:shelter',
+    semanticKey: 'attribute.ShelterDmgScalar',
+    sourceKey: 'status:shelter',
+    sourceType: 'StatusEffect',
+    sourceId: 'actor-a',
+    ownerId: 'actor-a',
+    carrierId: 'enemy-shared',
+    targetId: 'enemy-shared',
+    damageSourceId: 'actor-a',
+    buffId: 'buff_common_affixes_shelter',
+    buffInstanceId: 'status:shelter',
+    attribute: 'ShelterDmgScalar',
+    rawValue: 0.25,
+    resolvedValue: 0.25,
+    value: 0.25,
+  }],
+}];
+const shelterLedger = buildAkeRuntimeCommandLedger({
+  report: shelterReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+});
+assert.ok(shelterLedger?.hits[0].formula.buffTags.some((buff) => (
+  buff.label === '庇护' && buff.type === 'damageReduction'
+)), 'ShelterDmgScalar should project as an incoming damage-reduction Buff');
+
 const sameFrameReport = structuredClone(report);
 sameFrameReport.schemaVersion = 3;
 sameFrameReport.hits = [runtimeHit(0, null, 1), runtimeHit(1, null, 1)];

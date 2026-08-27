@@ -498,6 +498,7 @@ const ATTRIBUTE_BUFF_TYPES: Record<string, string> = {
   NaturalVulnerableDmgIncrease: 'natureVulnerability',
   EtherVulnerableDmgIncrease: 'magicVulnerability',
   WeaknessDmgScalar: 'weakness',
+  ShelterDmgScalar: 'damageReduction',
 };
 
 const DAMAGE_TYPE_BUFF_PREFIX: Record<string, string> = {

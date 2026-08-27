@@ -11,18 +11,18 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3168,
-    "combatRiskCount": 1011,
+    "findingCount": 3162,
+    "combatRiskCount": 1005,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 429,
+      "combat-blocking": 423,
       "combat-partial": 160,
       "evidence-missing": 422,
       "presentation-only": 390,
       "spatial-assumption": 1767
     },
     "byPriority": {
-      "P0": 288,
+      "P0": 282,
       "P1": 649,
       "P2": 1841,
       "P3": 390
@@ -31,7 +31,7 @@
       "child-action": 41,
       "condition-algebra": 133,
       "cooldown-window": 22,
-      "damage-factor": 17,
+      "damage-factor": 11,
       "data-provider": 1,
       "dependency-closure": 1,
       "derived-state": 8,
@@ -144,7 +144,6 @@
       "SetAbilityEntityTarget": 1,
       "SetIgnoreGlobalTimeScaleAction": 5,
       "SetSkillCdAtOnce": 15,
-      "ShelterAction": 6,
       "ShowComboRingQte": 1,
       "SkillAffixAction": 2,
       "SkillAIMoveAction": 7,
@@ -4461,32 +4460,31 @@
         "initialSkillCount": 11,
         "discoveredSkillCount": 7,
         "programCount": 11,
-        "buffCount": 68,
+        "buffCount": 69,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 2,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 72,
-        "combatRiskCount": 21,
+        "findingCount": 71,
+        "combatRiskCount": 20,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 6,
+          "combat-blocking": 5,
           "combat-partial": 8,
           "evidence-missing": 7,
           "presentation-only": 7,
           "spatial-assumption": 44
         },
         "byPriority": {
-          "P0": 4,
+          "P0": 3,
           "P1": 16,
           "P2": 45,
           "P3": 7
         },
         "byCapability": {
           "condition-algebra": 2,
-          "damage-factor": 1,
           "deterministic-choice": 6,
           "event-subscription": 2,
           "presentation": 7,
@@ -4512,7 +4510,6 @@
           "SaveTwoDirectionAngle": 3,
           "Selector": 8,
           "SelfRotateAction": 11,
-          "ShelterAction": 1,
           "SnapToTargetWithRangeAction": 12,
           "TeleportAction": 7,
           "TeleportPosSelectAction": 1,
@@ -4536,23 +4533,6 @@
           "priority": "P0",
           "capability": "status-lifecycle",
           "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0009_azrila",
-          "characterName": "余烬",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0009_azrila_normal_skill_shelter",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0009_azrila_normal_skill_shelter.json",
-          "jsonPath": "buffEventAction[0].actions[0][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ShelterAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for ShelterAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
         },
         {
           "characterId": "chr_0009_azrila",
@@ -8255,25 +8235,25 @@
         "initialSkillCount": 18,
         "discoveredSkillCount": 19,
         "programCount": 25,
-        "buffCount": 86,
+        "buffCount": 87,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 3,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 114,
-        "combatRiskCount": 39,
+        "findingCount": 113,
+        "combatRiskCount": 38,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 16,
+          "combat-blocking": 15,
           "combat-partial": 4,
           "evidence-missing": 19,
           "presentation-only": 4,
           "spatial-assumption": 71
         },
         "byPriority": {
-          "P0": 5,
+          "P0": 4,
           "P1": 26,
           "P2": 79,
           "P3": 4
@@ -8281,7 +8261,6 @@
         "byCapability": {
           "condition-algebra": 11,
           "cooldown-window": 3,
-          "damage-factor": 1,
           "deterministic-choice": 11,
           "physical-status": 3,
           "presentation": 4,
@@ -8312,7 +8291,6 @@
           "Selector": 1,
           "SelfRotateAction": 24,
           "SetSkillCdAtOnce": 1,
-          "ShelterAction": 1,
           "SnapToTargetWithRangeAction": 6,
           "TeleportAction": 4,
           "TeleportPosSelectAction": 3,
@@ -8387,23 +8365,6 @@
           "priority": "P0",
           "capability": "cooldown-window",
           "rationale": "The action changes cooldown or combo-window admission state."
-        },
-        {
-          "characterId": "chr_0016_laevat",
-          "characterName": "莱万汀",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0016_laevat_talent_2_1",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_talent_2_1.json",
-          "jsonPath": "buffEventAction[1].actions[0][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ShelterAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for ShelterAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
         },
         {
           "characterId": "chr_0016_laevat",
@@ -46867,32 +46828,31 @@
         "initialSkillCount": 8,
         "discoveredSkillCount": 9,
         "programCount": 12,
-        "buffCount": 67,
+        "buffCount": 68,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 0,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 57,
-        "combatRiskCount": 17,
+        "findingCount": 55,
+        "combatRiskCount": 15,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 11,
+          "combat-blocking": 9,
           "combat-partial": 3,
           "evidence-missing": 3,
           "presentation-only": 2,
           "spatial-assumption": 38
         },
         "byPriority": {
-          "P0": 8,
+          "P0": 6,
           "P1": 8,
           "P2": 39,
           "P3": 2
         },
         "byCapability": {
           "condition-algebra": 3,
-          "damage-factor": 2,
           "deterministic-choice": 2,
           "event-subscription": 3,
           "form-state": 3,
@@ -46918,7 +46878,6 @@
           "SaveTargetDistanceAction": 1,
           "Selector": 2,
           "SelfRotateAction": 11,
-          "ShelterAction": 2,
           "SnapToTargetWithRangeAction": 2,
           "TakeDownAction": 1,
           "TeleportAction": 4,
@@ -46966,23 +46925,6 @@
           "characterName": "昼雪",
           "scope": "operator",
           "entityKind": "BuffData",
-          "entityId": "buff_chr_0014_aurora_reduce_damage",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0014_aurora_reduce_damage.json",
-          "jsonPath": "buffEventAction[0].actions[2][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ShelterAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for ShelterAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
-        },
-        {
-          "characterId": "chr_0014_aurora",
-          "characterName": "昼雪",
-          "scope": "operator",
-          "entityKind": "BuffData",
           "entityId": "buff_chr_0014_aurora_reduce_damage_remain",
           "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0014_aurora_reduce_damage_remain.json",
           "jsonPath": "buffEventAction[0].actions[1][1..][0]",
@@ -46994,23 +46936,6 @@
           "priority": "P0",
           "capability": "form-state",
           "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection."
-        },
-        {
-          "characterId": "chr_0014_aurora",
-          "characterName": "昼雪",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0014_aurora_reduce_damage_remain",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0014_aurora_reduce_damage_remain.json",
-          "jsonPath": "buffEventAction[0].actions[2][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ShelterAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for ShelterAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
         },
         {
           "characterId": "chr_0014_aurora",
@@ -51650,31 +51575,30 @@
         "initialSkillCount": 9,
         "discoveredSkillCount": 7,
         "programCount": 10,
-        "buffCount": 71,
+        "buffCount": 72,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 0,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 73,
-        "combatRiskCount": 13,
+        "findingCount": 71,
+        "combatRiskCount": 11,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 6,
+          "combat-blocking": 4,
           "combat-partial": 4,
           "evidence-missing": 3,
           "presentation-only": 12,
           "spatial-assumption": 48
         },
         "byPriority": {
-          "P0": 6,
+          "P0": 4,
           "P1": 6,
           "P2": 49,
           "P3": 12
         },
         "byCapability": {
-          "damage-factor": 2,
           "deterministic-choice": 2,
           "event-scheduling": 1,
           "event-subscription": 3,
@@ -51702,7 +51626,6 @@
           "SaveTargetDistanceAction": 1,
           "Selector": 2,
           "SelfRotateAction": 15,
-          "ShelterAction": 2,
           "SnapToTargetWithRangeAction": 6,
           "TakeDownAction": 1,
           "TeleportAction": 4,
@@ -51711,40 +51634,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0020_meurs",
-          "characterName": "卡契尔",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0020_meurs_reduce_damage",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0020_meurs_reduce_damage.json",
-          "jsonPath": "buffEventAction[0].actions[1][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ShelterAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for ShelterAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
-        },
-        {
-          "characterId": "chr_0020_meurs",
-          "characterName": "卡契尔",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0020_meurs_reduce_damage_remain",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0020_meurs_reduce_damage_remain.json",
-          "jsonPath": "buffEventAction[0].actions[1][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ShelterAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for ShelterAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "damage-factor",
-          "rationale": "The action changes a target-side or source-side damage factor."
-        },
         {
           "characterId": "chr_0020_meurs",
           "characterName": "卡契尔",
@@ -56285,18 +56174,18 @@
   ],
   "sharedDependencies": {
     "summary": {
-      "findingCount": 290,
-      "combatRiskCount": 187,
+      "findingCount": 289,
+      "combatRiskCount": 186,
       "isCombatClosed": false,
       "byImpact": {
-        "combat-blocking": 45,
+        "combat-blocking": 44,
         "combat-partial": 17,
         "evidence-missing": 125,
         "presentation-only": 13,
         "spatial-assumption": 90
       },
       "byPriority": {
-        "P0": 19,
+        "P0": 18,
         "P1": 98,
         "P2": 160,
         "P3": 13
@@ -56305,7 +56194,6 @@
         "child-action": 2,
         "condition-algebra": 26,
         "cooldown-window": 1,
-        "damage-factor": 1,
         "data-provider": 41,
         "deterministic-choice": 14,
         "event-scheduling": 2,
@@ -56364,7 +56252,6 @@
         "SelfRotateAction": 35,
         "SetFirstDashParam": 2,
         "SetSkillCdAtOnce": 1,
-        "ShelterAction": 1,
         "SkillAffixAction": 1,
         "SlowAction": 1,
         "SnapToTargetWithRangeAction": 5,
@@ -56406,24 +56293,6 @@
         "priority": "P0",
         "capability": "form-state",
         "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection.",
-        "characters": [
-          "chr_0020_meurs"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "BuffData",
-        "entityId": "buff_chr_0014_aurora_reduce_damage_remain",
-        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0014_aurora_reduce_damage_remain.json",
-        "jsonPath": "buffEventAction[0].actions[2][0]",
-        "code": "AKE_ACTION_UNSUPPORTED",
-        "sourceType": "ShelterAction",
-        "compilerCategory": "other",
-        "message": "No executable compiler route exists for ShelterAction.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "damage-factor",
-        "rationale": "The action changes a target-side or source-side damage factor.",
         "characters": [
           "chr_0020_meurs"
         ]

@@ -37,7 +37,9 @@ const CATALOG_REVISION_KEY = 'def.ake-catalog.revision.v1';
 // v30 rebuilds skill details with the same level-unlocked talent Blackboard
 // patches as runtime, exposing target debuffs and shared combo grants that v29
 // incorrectly pruned from cached operator profiles.
-const CATALOG_ADAPTER_VERSION = 30;
+// v31 discards profiles that serialized Refresh/Unique Buff metadata as a
+// player-visible stack limit.
+const CATALOG_ADAPTER_VERSION = 31;
 
 const LEVEL_KEYS = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'M1', 'M2', 'M3'] as const;
 

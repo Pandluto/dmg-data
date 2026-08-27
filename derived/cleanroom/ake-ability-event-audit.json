@@ -8,10 +8,10 @@
   "summary": {
     "eventKeys": 84,
     "consumerGroups": 1072,
-    "completeEventTypes": 28,
-    "completeConsumerGroups": 901,
-    "missingEmitterEventTypes": 54,
-    "missingEmitterConsumerGroups": 164,
+    "completeEventTypes": 29,
+    "completeConsumerGroups": 910,
+    "missingEmitterEventTypes": 53,
+    "missingEmitterConsumerGroups": 155,
     "invalidEventValues": 2,
     "invalidConsumerGroups": 7,
     "byDataset": {
@@ -1815,6 +1815,68 @@
       "sourceEntityCount": 9
     },
     {
+      "key": "OnCharBeforeOutputSpellInfliction",
+      "eventType": "OnCharBeforeOutputSpellInfliction",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnCharBeforeOutputSpellInfliction",
+        "producer": "combat-runtime-infliction-transaction"
+      },
+      "consumerGroups": 9,
+      "byDataset": {
+        "BuffData": 4,
+        "SkillData": 5
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 4,
+        "SkillPassiveEventAction": 5
+      },
+      "sourceEntities": [
+        "buff_tower_energy_inflict_or_status_listener",
+        "buff_twopeoplemode_new3",
+        "buff_wpn_funnel_0006",
+        "buff_wpn_funnel_0016_wisd",
+        "sk_wpn_claym_0013",
+        "sk_wpn_funnel_0018",
+        "sk_wpn_lance_0007",
+        "sk_wpn_lance_0015",
+        "sk_wpn_pistol_0011"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_tower_energy_inflict_or_status_listener",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_tower_energy_inflict_or_status_listener.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_twopeoplemode_new3",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_twopeoplemode_new3.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_wpn_funnel_0006",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_wpn_funnel_0006.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_wpn_funnel_0016_wisd",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_wpn_funnel_0016_wisd.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 9
+    },
+    {
       "key": "OnTrulyExitFight",
       "eventType": "OnTrulyExitFight",
       "serializedValue": null,
@@ -2606,65 +2668,6 @@
         }
       ],
       "sourceEntityCount": 11
-    },
-    {
-      "key": "OnCharBeforeOutputSpellInfliction",
-      "eventType": "OnCharBeforeOutputSpellInfliction",
-      "serializedValue": null,
-      "status": "emitter-required",
-      "producer": null,
-      "consumerGroups": 9,
-      "byDataset": {
-        "BuffData": 4,
-        "SkillData": 5
-      },
-      "byChannel": {
-        "BuffAbilityEventAction": 4,
-        "SkillPassiveEventAction": 5
-      },
-      "sourceEntities": [
-        "buff_tower_energy_inflict_or_status_listener",
-        "buff_twopeoplemode_new3",
-        "buff_wpn_funnel_0006",
-        "buff_wpn_funnel_0016_wisd",
-        "sk_wpn_claym_0013",
-        "sk_wpn_funnel_0018",
-        "sk_wpn_lance_0007",
-        "sk_wpn_lance_0015",
-        "sk_wpn_pistol_0011"
-      ],
-      "characterIds": [],
-      "samples": [
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_tower_energy_inflict_or_status_listener",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_tower_energy_inflict_or_status_listener.json",
-          "path": "$.abilityEventAction[0]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_twopeoplemode_new3",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_twopeoplemode_new3.json",
-          "path": "$.abilityEventAction[0]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_wpn_funnel_0006",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_wpn_funnel_0006.json",
-          "path": "$.abilityEventAction[0]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_wpn_funnel_0016_wisd",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_wpn_funnel_0016_wisd.json",
-          "path": "$.abilityEventAction[0]"
-        }
-      ],
-      "sourceEntityCount": 9
     },
     {
       "key": "OnTeleportationPointRest",

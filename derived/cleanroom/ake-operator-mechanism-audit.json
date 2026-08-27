@@ -11,32 +11,32 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3054,
-    "combatRiskCount": 894,
+    "findingCount": 3034,
+    "combatRiskCount": 874,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 309,
+      "combat-blocking": 289,
       "combat-partial": 163,
       "evidence-missing": 422,
       "presentation-only": 389,
       "spatial-assumption": 1771
     },
     "byPriority": {
-      "P0": 183,
-      "P1": 637,
+      "P0": 165,
+      "P1": 635,
       "P2": 1845,
       "P3": 389
     },
     "byCapability": {
       "child-action": 41,
-      "condition-algebra": 118,
+      "condition-algebra": 116,
       "damage-factor": 11,
       "data-provider": 1,
       "dependency-closure": 1,
       "derived-state": 8,
       "deterministic-choice": 347,
       "event-scheduling": 28,
-      "event-subscription": 51,
+      "event-subscription": 33,
       "form-state": 30,
       "physical-status": 77,
       "presentation": 389,
@@ -78,14 +78,12 @@
       "CheckSkillCameraMotionFree": 7,
       "CheckSkillCastId": 1,
       "CheckSkillHasHit": 1,
-      "CheckSpellInflictionType": 2,
       "CheckSuperArmor": 7,
       "CheckTargetAngle": 4,
       "CheckTargetContains": 12,
       "CheckTargetInScreen": 1,
       "CheckTwoDirectionAngle": 64,
       "ClearProjectileAction": 1,
-      "ComboAction": 2,
       "ContinuousSetAnimTimeScale": 1,
       "ConvertToTargetContext": 48,
       "CreateAdditionalBattleShape": 3,
@@ -94,7 +92,6 @@
       "CustomRootMotionAction": 369,
       "DisableRootMotionAction": 15,
       "DispelAction": 1,
-      "DoOnceAction": 16,
       "EnhancedAction": 11,
       "EventListenerAction": 1,
       "FindTargetAction": 26,
@@ -4382,18 +4379,17 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 69,
-        "combatRiskCount": 18,
+        "findingCount": 68,
+        "combatRiskCount": 17,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 3,
+          "combat-blocking": 2,
           "combat-partial": 8,
           "evidence-missing": 7,
           "presentation-only": 7,
           "spatial-assumption": 44
         },
         "byPriority": {
-          "P0": 1,
           "P1": 16,
           "P2": 45,
           "P3": 7
@@ -4401,7 +4397,6 @@
         "byCapability": {
           "condition-algebra": 2,
           "deterministic-choice": 6,
-          "event-subscription": 1,
           "presentation": 7,
           "targeting-scope": 8,
           "targeting-spatial": 44,
@@ -4414,7 +4409,6 @@
           "CheckTwoDirectionAngle": 4,
           "CurveEvaluateFloat": 6,
           "CustomRootMotionAction": 4,
-          "DoOnceAction": 1,
           "ModifyWeaponMountPoint": 1,
           "MoveToAction": 1,
           "NotNextCheckAction": 1,
@@ -4429,23 +4423,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0009_azrila",
-          "characterName": "余烬",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0009_azrila_attack4",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0009_azrila_attack4.json",
-          "jsonPath": "actionGroupData.timelineActions[7][0].actionOnTick[2].success[2]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
         {
           "characterId": "chr_0009_azrila",
           "characterName": "余烬",
@@ -6687,25 +6664,25 @@
         "initialSkillCount": 12,
         "discoveredSkillCount": 8,
         "programCount": 13,
-        "buffCount": 69,
+        "buffCount": 72,
         "loadoutEffectCount": 8,
         "intrinsicPassiveCount": 3,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 80,
-        "combatRiskCount": 11,
+        "findingCount": 79,
+        "combatRiskCount": 10,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 4,
+          "combat-blocking": 3,
           "combat-partial": 2,
           "evidence-missing": 5,
           "presentation-only": 22,
           "spatial-assumption": 47
         },
         "byPriority": {
-          "P0": 3,
+          "P0": 2,
           "P1": 7,
           "P2": 48,
           "P3": 22
@@ -6714,7 +6691,7 @@
           "condition-algebra": 1,
           "deterministic-choice": 4,
           "event-scheduling": 1,
-          "event-subscription": 2,
+          "event-subscription": 1,
           "physical-status": 2,
           "presentation": 22,
           "targeting-spatial": 47,
@@ -6727,7 +6704,6 @@
           "ChannelingCastingAction": 1,
           "CheckComboSkillCameraAlphaSetting": 1,
           "CheckTwoDirectionAngle": 2,
-          "ComboAction": 1,
           "CurveEvaluateFloat": 4,
           "CustomRootMotionAction": 9,
           "NotNextCheckAction": 1,
@@ -6754,23 +6730,6 @@
           "sourceType": "AbilityEventAction",
           "compilerCategory": null,
           "message": "Runtime has no proven emitter for OnBeforeOutputKnockDown.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0015_lifeng",
-          "characterName": "黎风",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0015_lifeng_combo_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0015_lifeng_combo_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[17][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ComboAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for ComboAction.",
           "impact": "combat-blocking",
           "priority": "P0",
           "capability": "event-subscription",
@@ -8120,11 +8079,11 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 111,
-        "combatRiskCount": 36,
+        "findingCount": 110,
+        "combatRiskCount": 35,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 13,
+          "combat-blocking": 12,
           "combat-partial": 4,
           "evidence-missing": 19,
           "presentation-only": 4,
@@ -8132,12 +8091,12 @@
         },
         "byPriority": {
           "P0": 2,
-          "P1": 26,
+          "P1": 25,
           "P2": 79,
           "P3": 4
         },
         "byCapability": {
-          "condition-algebra": 11,
+          "condition-algebra": 10,
           "deterministic-choice": 11,
           "event-subscription": 1,
           "physical-status": 3,
@@ -8153,7 +8112,6 @@
           "BreakInteractiveAction": 7,
           "CheckComboSkillCameraAlphaSetting": 1,
           "CheckObjectTypeMatch": 2,
-          "CheckSpellInflictionType": 1,
           "CheckTwoDirectionAngle": 1,
           "CurveEvaluateFloat": 11,
           "CustomRootMotionAction": 22,
@@ -8322,23 +8280,6 @@
           "sourceType": "Probablity",
           "compilerCategory": null,
           "message": "Condition Probablity has no safe local evaluator.",
-          "impact": "combat-blocking",
-          "priority": "P1",
-          "capability": "condition-algebra",
-          "rationale": "An unevaluated condition can select the wrong gameplay branch."
-        },
-        {
-          "characterId": "chr_0016_laevat",
-          "characterName": "莱万汀",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0016_laevat_passive_enemy",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_passive_enemy.json",
-          "jsonPath": "abilityEventAction[0].actions[0][0]",
-          "code": "AKE_CONDITION_UNSUPPORTED",
-          "sourceType": "CheckSpellInflictionType",
-          "compilerCategory": null,
-          "message": "Condition CheckSpellInflictionType has no safe local evaluator.",
           "impact": "combat-blocking",
           "priority": "P1",
           "capability": "condition-algebra",
@@ -14748,18 +14689,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 105,
-        "combatRiskCount": 38,
+        "findingCount": 100,
+        "combatRiskCount": 33,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 22,
+          "combat-blocking": 17,
           "combat-partial": 9,
           "evidence-missing": 7,
           "presentation-only": 12,
           "spatial-assumption": 55
         },
         "byPriority": {
-          "P0": 14,
+          "P0": 9,
           "P1": 23,
           "P2": 56,
           "P3": 12
@@ -14768,7 +14709,7 @@
           "condition-algebra": 8,
           "deterministic-choice": 6,
           "event-scheduling": 1,
-          "event-subscription": 8,
+          "event-subscription": 3,
           "physical-status": 5,
           "presentation": 12,
           "status-lifecycle": 5,
@@ -14788,7 +14729,6 @@
           "ConvertToTargetContext": 1,
           "CurveEvaluateFloat": 6,
           "CustomRootMotionAction": 12,
-          "DoOnceAction": 5,
           "LaunchUpwardAction": 2,
           "ModifyWeaponMountPoint": 2,
           "MoveToAction": 4,
@@ -14951,74 +14891,6 @@
           "characterName": "汤汤",
           "scope": "operator",
           "entityKind": "SkillData",
-          "entityId": "chr_0027_tangtang_normal_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0027_tangtang_normal_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[8][0].actionOnTick[3]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0027_tangtang",
-          "characterName": "汤汤",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0027_tangtang_normal_skill_water_projhit",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0027_tangtang_normal_skill_water_projhit.json",
-          "jsonPath": "actionGroupData.timelineActions[1][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0027_tangtang",
-          "characterName": "汤汤",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0027_tangtang_normal_skill_water_projhit_1",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0027_tangtang_normal_skill_water_projhit_1.json",
-          "jsonPath": "actionGroupData.timelineActions[1][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0027_tangtang",
-          "characterName": "汤汤",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0027_tangtang_normal_skill_water_projhit_2",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0027_tangtang_normal_skill_water_projhit_2.json",
-          "jsonPath": "actionGroupData.timelineActions[1][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0027_tangtang",
-          "characterName": "汤汤",
-          "scope": "operator",
-          "entityKind": "SkillData",
           "entityId": "chr_0027_tangtang_ultimate_skill",
           "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0027_tangtang_ultimate_skill.json",
           "jsonPath": "actionGroupData.timelineActions[10][0]",
@@ -15030,23 +14902,6 @@
           "priority": "P0",
           "capability": "event-scheduling",
           "rationale": "Channel timing determines tick count, hit time, and interruption behavior."
-        },
-        {
-          "characterId": "chr_0027_tangtang",
-          "characterName": "汤汤",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0027_tangtang_ultimate_skill_1",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0027_tangtang_ultimate_skill_1.json",
-          "jsonPath": "actionGroupData.timelineActions[3][0].actionOnTick[2]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
         },
         {
           "characterId": "chr_0027_tangtang",
@@ -33200,25 +33055,25 @@
         "initialSkillCount": 16,
         "discoveredSkillCount": 16,
         "programCount": 22,
-        "buffCount": 77,
+        "buffCount": 80,
         "loadoutEffectCount": 12,
         "intrinsicPassiveCount": 3,
         "missingSkillCount": 0,
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 151,
-        "combatRiskCount": 44,
+        "findingCount": 145,
+        "combatRiskCount": 38,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 15,
+          "combat-blocking": 9,
           "combat-partial": 15,
           "evidence-missing": 14,
           "presentation-only": 41,
           "spatial-assumption": 66
         },
         "byPriority": {
-          "P0": 13,
+          "P0": 7,
           "P1": 29,
           "P2": 68,
           "P3": 41
@@ -33228,7 +33083,7 @@
           "condition-algebra": 2,
           "deterministic-choice": 12,
           "event-scheduling": 1,
-          "event-subscription": 7,
+          "event-subscription": 1,
           "form-state": 1,
           "physical-status": 5,
           "presentation": 41,
@@ -33247,10 +33102,8 @@
           "CheckComboSkillCameraAlphaSetting": 2,
           "CheckSuperArmor": 1,
           "CheckTwoDirectionAngle": 2,
-          "ComboAction": 1,
           "CurveEvaluateFloat": 12,
           "CustomRootMotionAction": 17,
-          "DoOnceAction": 5,
           "FindTargetAction": 10,
           "LaunchUpwardAction": 3,
           "ModifyWeaponMountPoint": 10,
@@ -33342,91 +33195,6 @@
           "characterName": "卡缪",
           "scope": "operator",
           "entityKind": "SkillData",
-          "entityId": "chr_0033_camille_combo_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0033_camille_combo_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[27][0].actionOnTick[1].success[2].success[0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ComboAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for ComboAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0033_camille",
-          "characterName": "卡缪",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0033_camille_combo_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0033_camille_combo_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[27][0].actionOnTick[2]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0033_camille",
-          "characterName": "卡缪",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0033_camille_combo_skill_2",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0033_camille_combo_skill_2.json",
-          "jsonPath": "actionGroupData.timelineActions[40][0].actionOnTick[1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0033_camille",
-          "characterName": "卡缪",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0033_camille_combo_skill_2",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0033_camille_combo_skill_2.json",
-          "jsonPath": "actionGroupData.timelineActions[42][0].actionOnTick[1].success[0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0033_camille",
-          "characterName": "卡缪",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0033_camille_combo_skill_2",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0033_camille_combo_skill_2.json",
-          "jsonPath": "actionGroupData.timelineActions[42][0].actionOnTick[3]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0033_camille",
-          "characterName": "卡缪",
-          "scope": "operator",
-          "entityKind": "SkillData",
           "entityId": "chr_0033_camille_normal_skill_projhit_sub",
           "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0033_camille_normal_skill_projhit_sub.json",
           "jsonPath": "actionGroupData.timelineActions[0][0].success[2]",
@@ -33472,23 +33240,6 @@
           "priority": "P0",
           "capability": "event-scheduling",
           "rationale": "Channel timing determines tick count, hit time, and interruption behavior."
-        },
-        {
-          "characterId": "chr_0033_camille",
-          "characterName": "卡缪",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0033_camille_ultimate_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0033_camille_ultimate_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[27][0].actionOnTick[1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
         },
         {
           "characterId": "chr_0033_camille",
@@ -35854,18 +35605,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 141,
-        "combatRiskCount": 43,
+        "findingCount": 140,
+        "combatRiskCount": 42,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 27,
+          "combat-blocking": 26,
           "combat-partial": 4,
           "evidence-missing": 12,
           "presentation-only": 24,
           "spatial-assumption": 74
         },
         "byPriority": {
-          "P0": 20,
+          "P0": 19,
           "P1": 15,
           "P2": 82,
           "P3": 24
@@ -35877,7 +35628,7 @@
           "derived-state": 3,
           "deterministic-choice": 4,
           "event-scheduling": 5,
-          "event-subscription": 8,
+          "event-subscription": 7,
           "form-state": 1,
           "presentation": 24,
           "status-lifecycle": 1,
@@ -35902,7 +35653,6 @@
           "CreateGlobalBuffAction": 2,
           "CurveEvaluateFloat": 4,
           "CustomRootMotionAction": 11,
-          "DoOnceAction": 1,
           "EnhancedAction": 4,
           "ReceiveMoveInputAction": 3,
           "SaveBuffLifeTime": 1,
@@ -36157,23 +35907,6 @@
           "priority": "P0",
           "capability": "damage-factor",
           "rationale": "The action changes a target-side or source-side damage factor."
-        },
-        {
-          "characterId": "chr_0035_liino",
-          "characterName": "梨诺",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0035_liino_attack5",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0035_liino_attack5.json",
-          "jsonPath": "actionGroupData.timelineActions[5][2]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
         },
         {
           "characterId": "chr_0035_liino",
@@ -45026,18 +44759,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 57,
-        "combatRiskCount": 15,
+        "findingCount": 55,
+        "combatRiskCount": 13,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 9,
+          "combat-blocking": 7,
           "combat-partial": 3,
           "evidence-missing": 3,
           "presentation-only": 2,
           "spatial-assumption": 40
         },
         "byPriority": {
-          "P0": 6,
+          "P0": 4,
           "P1": 8,
           "P2": 41,
           "P3": 2
@@ -45045,7 +44778,7 @@
         "byCapability": {
           "condition-algebra": 3,
           "deterministic-choice": 2,
-          "event-subscription": 3,
+          "event-subscription": 1,
           "form-state": 3,
           "physical-status": 1,
           "presentation": 2,
@@ -45065,7 +44798,6 @@
           "CreateAdditionalBattleShape": 1,
           "CurveEvaluateFloat": 2,
           "CustomRootMotionAction": 11,
-          "DoOnceAction": 2,
           "SaveTargetDistanceAction": 1,
           "Selector": 2,
           "SelfRotateAction": 11,
@@ -45144,40 +44876,6 @@
           "priority": "P0",
           "capability": "form-state",
           "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection."
-        },
-        {
-          "characterId": "chr_0014_aurora",
-          "characterName": "昼雪",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0014_aurora_attack3",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0014_aurora_attack3.json",
-          "jsonPath": "actionGroupData.timelineActions[15][0].actionOnTick[3].success[0].success[2]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0014_aurora",
-          "characterName": "昼雪",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0014_aurora_normal_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0014_aurora_normal_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[25][0].actionOnTick[1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
         },
         {
           "characterId": "chr_0014_aurora",
@@ -49695,18 +49393,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 72,
-        "combatRiskCount": 10,
+        "findingCount": 70,
+        "combatRiskCount": 8,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 3,
+          "combat-blocking": 1,
           "combat-partial": 4,
           "evidence-missing": 3,
           "presentation-only": 12,
           "spatial-assumption": 50
         },
         "byPriority": {
-          "P0": 3,
+          "P0": 1,
           "P1": 6,
           "P2": 51,
           "P3": 12
@@ -49714,7 +49412,6 @@
         "byCapability": {
           "deterministic-choice": 2,
           "event-scheduling": 1,
-          "event-subscription": 2,
           "physical-status": 2,
           "presentation": 12,
           "targeting-scope": 2,
@@ -49732,7 +49429,6 @@
           "CreateAdditionalBattleShape": 1,
           "CurveEvaluateFloat": 2,
           "CustomRootMotionAction": 11,
-          "DoOnceAction": 2,
           "MergeTargetAction": 2,
           "MoveToAction": 1,
           "SaveTargetDistanceAction": 1,
@@ -49746,40 +49442,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0020_meurs",
-          "characterName": "卡契尔",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0020_meurs_attack4",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0020_meurs_attack4.json",
-          "jsonPath": "actionGroupData.timelineActions[6][0].actionOnTick[2].success[2]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0020_meurs",
-          "characterName": "卡契尔",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0020_meurs_normal_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0020_meurs_normal_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[25][0].actionOnTick[1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "DoOnceAction",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for DoOnceAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
         {
           "characterId": "chr_0020_meurs",
           "characterName": "卡契尔",
@@ -52124,23 +51786,23 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 69,
-        "combatRiskCount": 18,
+        "findingCount": 68,
+        "combatRiskCount": 17,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 11,
+          "combat-blocking": 10,
           "evidence-missing": 7,
           "presentation-only": 7,
           "spatial-assumption": 44
         },
         "byPriority": {
           "P0": 5,
-          "P1": 12,
+          "P1": 11,
           "P2": 45,
           "P3": 7
         },
         "byCapability": {
-          "condition-algebra": 6,
+          "condition-algebra": 5,
           "deterministic-choice": 6,
           "event-scheduling": 1,
           "event-subscription": 1,
@@ -52155,7 +51817,6 @@
           "ChannelingCastingAction": 1,
           "CheckComboSkillCameraAlphaSetting": 1,
           "CheckSkillCameraMotionFree": 2,
-          "CheckSpellInflictionType": 1,
           "CheckTwoDirectionAngle": 3,
           "ConvertToTargetContext": 3,
           "CurveEvaluateFloat": 6,
@@ -52258,23 +51919,6 @@
           "priority": "P0",
           "capability": "event-scheduling",
           "rationale": "Channel timing determines tick count, hit time, and interruption behavior."
-        },
-        {
-          "characterId": "chr_0022_bounda",
-          "characterName": "萤石",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0022_bounda_potential_5_cd",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0022_bounda_potential_5_cd.json",
-          "jsonPath": "abilityEventAction[0].actions[0][1]",
-          "code": "AKE_CONDITION_UNSUPPORTED",
-          "sourceType": "CheckSpellInflictionType",
-          "compilerCategory": null,
-          "message": "Condition CheckSpellInflictionType has no safe local evaluator.",
-          "impact": "combat-blocking",
-          "priority": "P1",
-          "capability": "condition-algebra",
-          "rationale": "An unevaluated condition can select the wrong gameplay branch."
         },
         {
           "characterId": "chr_0022_bounda",
@@ -54266,39 +53910,39 @@
   ],
   "sharedDependencies": {
     "summary": {
-      "findingCount": 197,
-      "combatRiskCount": 94,
+      "findingCount": 202,
+      "combatRiskCount": 99,
       "isCombatClosed": false,
       "byImpact": {
-        "combat-blocking": 32,
+        "combat-blocking": 35,
         "combat-partial": 17,
-        "evidence-missing": 45,
+        "evidence-missing": 47,
         "presentation-only": 13,
         "spatial-assumption": 90
       },
       "byPriority": {
-        "P0": 10,
-        "P1": 54,
-        "P2": 120,
+        "P0": 12,
+        "P1": 56,
+        "P2": 121,
         "P3": 13
       },
       "byCapability": {
         "child-action": 2,
-        "condition-algebra": 22,
-        "data-provider": 1,
+        "condition-algebra": 23,
+        "data-provider": 2,
         "deterministic-choice": 14,
         "event-scheduling": 2,
         "event-subscription": 2,
-        "form-state": 3,
+        "form-state": 5,
         "physical-status": 6,
         "presentation": 13,
         "status-lifecycle": 1,
         "targeting-scope": 11,
         "targeting-spatial": 90,
-        "unclassified": 30
+        "unclassified": 31
       },
       "bySourceType": {
-        "AbilityEventAction": 1,
+        "AbilityEventAction": 2,
         "AddDynamicCcsAction": 9,
         "AddTagAction": 2,
         "BreakInteractiveAction": 1,
@@ -54311,7 +53955,7 @@
         "CheckEnemyRank": 2,
         "CheckProjectileIgnoreImmuneLevel": 1,
         "CheckProjectileInPerfectDodgeCd": 1,
-        "CheckSkillCastId": 1,
+        "CheckSkillCastId": 2,
         "CheckSuperArmor": 14,
         "CheckTwoDirectionAngle": 3,
         "ConvertToTargetContext": 5,
@@ -54319,8 +53963,8 @@
         "CreateDynamicBattleShape": 1,
         "CurveEvaluateFloat": 14,
         "CustomRootMotionAction": 14,
-        "DoOnceAction": 1,
         "FindTargetAction": 1,
+        "FinishGlobalBuffAction": 1,
         "FlowTextAction": 3,
         "ForceTriggerWeakness": 1,
         "IgniteBuffTextAction": 9,
@@ -54330,6 +53974,7 @@
         "NotNextCheckAction": 2,
         "PullAction": 6,
         "RaiseTrainLevelEvent": 5,
+        "ReadSkillSettingData": 1,
         "ReceiveMoveInputAction": 3,
         "RecordBattleDetails": 2,
         "RecoverDashEnergy": 2,
@@ -54338,7 +53983,7 @@
         "Selector": 10,
         "SelfRotateAction": 35,
         "SetFirstDashParam": 2,
-        "SkillAffixAction": 1,
+        "SkillAffixAction": 3,
         "SlowAction": 1,
         "SnapToTargetWithRangeAction": 5,
         "TeleportAction": 10,
@@ -54399,6 +54044,63 @@
         "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection.",
         "characters": [
           "chr_0032_lizhiyan"
+        ]
+      },
+      {
+        "scope": "shared-dependency",
+        "entityKind": "BuffData",
+        "entityId": "buff_common_affixes_skillimbue",
+        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_common_affixes_skillimbue.json",
+        "jsonPath": "buffEventAction[0].actions[0][1]",
+        "code": "AKE_ACTION_UNSUPPORTED",
+        "sourceType": "SkillAffixAction",
+        "compilerCategory": "other",
+        "message": "No executable compiler route exists for SkillAffixAction.",
+        "impact": "combat-blocking",
+        "priority": "P0",
+        "capability": "form-state",
+        "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection.",
+        "characters": [
+          "chr_0015_lifeng",
+          "chr_0033_camille"
+        ]
+      },
+      {
+        "scope": "shared-dependency",
+        "entityKind": "BuffData",
+        "entityId": "buff_common_affixes_skillimbue_atk",
+        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_common_affixes_skillimbue_atk.json",
+        "jsonPath": "abilityEventAction[0]",
+        "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
+        "sourceType": "AbilityEventAction",
+        "compilerCategory": null,
+        "message": "Runtime has no proven emitter for OnBeforeCalculateDamage.",
+        "impact": "combat-blocking",
+        "priority": "P0",
+        "capability": "event-subscription",
+        "rationale": "The action controls whether a later gameplay event is observed or emitted.",
+        "characters": [
+          "chr_0015_lifeng",
+          "chr_0033_camille"
+        ]
+      },
+      {
+        "scope": "shared-dependency",
+        "entityKind": "BuffData",
+        "entityId": "buff_common_affixes_skillimbue_atk",
+        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_common_affixes_skillimbue_atk.json",
+        "jsonPath": "buffEventAction[0].actions[0][0]",
+        "code": "AKE_ACTION_UNSUPPORTED",
+        "sourceType": "SkillAffixAction",
+        "compilerCategory": "other",
+        "message": "No executable compiler route exists for SkillAffixAction.",
+        "impact": "combat-blocking",
+        "priority": "P0",
+        "capability": "form-state",
+        "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection.",
+        "characters": [
+          "chr_0015_lifeng",
+          "chr_0033_camille"
         ]
       },
       {
@@ -54478,24 +54180,6 @@
       {
         "scope": "shared-dependency",
         "entityKind": "SkillData",
-        "entityId": "chr_0009_azrila_attack4",
-        "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0009_azrila_attack4.json",
-        "jsonPath": "actionGroupData.timelineActions[7][0].actionOnTick[2].success[2]",
-        "code": "AKE_ACTION_UNSUPPORTED",
-        "sourceType": "DoOnceAction",
-        "compilerCategory": "other",
-        "message": "No executable compiler route exists for DoOnceAction.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "event-subscription",
-        "rationale": "The action controls whether a later gameplay event is observed or emitted.",
-        "characters": [
-          "chr_0031_mifu"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "SkillData",
         "entityId": "chr_0013_aglina_normal_skill",
         "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0013_aglina_normal_skill.json",
         "jsonPath": "actionGroupData.timelineActions[13][0]",
@@ -54563,6 +54247,25 @@
         "rationale": "An unevaluated condition can select the wrong gameplay branch.",
         "characters": [
           "chr_0032_lizhiyan"
+        ]
+      },
+      {
+        "scope": "shared-dependency",
+        "entityKind": "BuffData",
+        "entityId": "buff_common_affixes_skillimbue_atk",
+        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_common_affixes_skillimbue_atk.json",
+        "jsonPath": "damageModifier[0].condition.actionData[0]",
+        "code": "AKE_CONDITION_UNSUPPORTED",
+        "sourceType": "CheckSkillCastId",
+        "compilerCategory": null,
+        "message": "Condition CheckSkillCastId has no safe local evaluator.",
+        "impact": "combat-blocking",
+        "priority": "P1",
+        "capability": "condition-algebra",
+        "rationale": "An unevaluated condition can select the wrong gameplay branch.",
+        "characters": [
+          "chr_0015_lifeng",
+          "chr_0033_camille"
         ]
       },
       {
@@ -55519,6 +55222,25 @@
       {
         "scope": "shared-dependency",
         "entityKind": "BuffData",
+        "entityId": "buff_common_affixes_skillimbue_atk",
+        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_common_affixes_skillimbue_atk.json",
+        "jsonPath": "abilityEventAction[0].actions[0][2].dataList[0]",
+        "code": "AKE_SKILL_SETTING_MISSING",
+        "sourceType": "ReadSkillSettingData",
+        "compilerCategory": null,
+        "message": "Missing runtime SkillSetting value for 连击增伤, column 0.",
+        "impact": "evidence-missing",
+        "priority": "P1",
+        "capability": "data-provider",
+        "rationale": "The raw action depends on data or context that is not present in the assembled evidence closure.",
+        "characters": [
+          "chr_0015_lifeng",
+          "chr_0033_camille"
+        ]
+      },
+      {
+        "scope": "shared-dependency",
+        "entityKind": "BuffData",
         "entityId": "buff_physical_no_guard",
         "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_physical_no_guard.json",
         "jsonPath": "buffEventAction[2].actions[2][0]",
@@ -55799,6 +55521,25 @@
         "rationale": "The branch/value can affect combat, but its sampling or curve semantics require evidence and replay rules.",
         "characters": [
           "chr_0032_lizhiyan"
+        ]
+      },
+      {
+        "scope": "shared-dependency",
+        "entityKind": "BuffData",
+        "entityId": "buff_common_affixes_combo_trigger",
+        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_common_affixes_combo_trigger.json",
+        "jsonPath": "abilityEventAction[0].actions[0][1..][1]",
+        "code": "AKE_ACTION_UNSUPPORTED",
+        "sourceType": "FinishGlobalBuffAction",
+        "compilerCategory": "buff",
+        "message": "No executable compiler route exists for FinishGlobalBuffAction.",
+        "impact": "evidence-missing",
+        "priority": "P2",
+        "capability": "unclassified",
+        "rationale": "The gameplay consequence has not yet been proven; it must not be silently treated as supported.",
+        "characters": [
+          "chr_0015_lifeng",
+          "chr_0033_camille"
         ]
       },
       {

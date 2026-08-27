@@ -3346,8 +3346,10 @@ export class AkeActionCompiler {
                         buffId: mapping.effect.buffId,
                         attachmentBuffIds,
                         target: 'Target',
+                        notifyBeforeOutputSpellInfliction: true,
                         inheritEventBlackboard: false,
-                        reason: type
+                        reason: type,
+                        sourcePath: state.path
                     });
                 } else {
                     result.unresolved.push(this.#unresolved(
@@ -3440,7 +3442,9 @@ export class AkeActionCompiler {
                             blackboardKey: node.inflictionCountBlackboardKey
                         }
                         : descriptor(node.inflictionCount, 1),
-                    reason: type
+                    notifyBeforeOutputSpellInfliction: true,
+                    reason: type,
+                    sourcePath: state.path
                 });
                 break;
             }
@@ -3737,6 +3741,22 @@ export class AkeActionCompiler {
                     left: { type: 'Payload', key: 'damageType' },
                     operator: 'IN',
                     right: damageTypes
+                };
+                break;
+            }
+            case 'CheckSpellInflictionType': {
+                const spellInflictionTypes = String(node.mask ?? 'All')
+                    .split(',')
+                    .map(value => value.trim())
+                    .filter(Boolean);
+                result.condition = {
+                    type: 'SpellInflictionTypeIs',
+                    spellInflictionTypes: spellInflictionTypes.length > 0
+                        ? spellInflictionTypes
+                        : ['All'],
+                    ...(typeof node.savedKey === 'string' && node.savedKey.length > 0
+                        ? { storeKey: node.savedKey }
+                        : {})
                 };
                 break;
             }

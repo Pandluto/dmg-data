@@ -36,8 +36,11 @@ test('public BuffData ability events are measured against concrete runtime produ
 
     assert.equal(counts.size, 82);
     assert.equal([...counts.values()].reduce((sum, count) => sum + count, 0), 953);
-    assert.equal(publicProducerEntries.length, 28);
-    assert.equal(publicProducerEntries.reduce((sum, [, count]) => sum + count, 0), 804);
+    assert.equal(publicProducerEntries.length, 29);
+    assert.equal(publicProducerEntries.reduce((sum, [, count]) => sum + count, 0), 808);
+    assert.ok(RUNTIME_ABILITY_EVENT_TYPES.includes(
+        'OnCharBeforeOutputSpellInfliction'
+    ));
     assert.ok(RUNTIME_ABILITY_EVENT_TYPES.includes('OnRemoveAllPendingComboSkill'));
     assert.ok(RUNTIME_ABILITY_EVENT_TYPES.includes('OnPoiseZero'));
     assert.ok(RUNTIME_ABILITY_EVENT_TYPES.includes('OnPoiseRecover'));

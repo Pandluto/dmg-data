@@ -9,6 +9,7 @@ const PRODUCER_DEFINITIONS = [
     ['OnFinishedBuff', 'combat-runtime-status-lifecycle'],
     ['OnConsumeBuff', 'combat-runtime-status-consumption'],
     ['OnBeforeOutputDamage', 'combat-runtime-damage-transaction'],
+    ['OnCharBeforeOutputSpellInfliction', 'combat-runtime-infliction-transaction'],
     ['OnBeforeTakeDamage', 'combat-runtime-damage-transaction'],
     ['OnOutputDamage', 'combat-runtime-damage-transaction'],
     ['OnTakeDamage', 'combat-runtime-damage-transaction'],

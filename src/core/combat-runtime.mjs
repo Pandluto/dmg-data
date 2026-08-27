@@ -15,6 +15,13 @@ import { AbilityEventListenerRegistry } from './ability-event-listener-registry.
 import { SkillCooldownSystem } from './skill-cooldown-system.mjs';
 
 export const TEAM_COMBO_BUFF_ID = 'buff_common_affixes_combo_trigger';
+export const SPELL_INFLICTION_TYPE_VALUES = Object.freeze({
+    Fire: 0,
+    Pulse: 1,
+    Cryst: 2,
+    Natural: 3
+});
+const BEFORE_OUTPUT_SPELL_INFLICTION_EVENT = 'OnCharBeforeOutputSpellInfliction';
 
 function isRecord(value) {
     return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -2048,6 +2055,31 @@ export class CombatRuntime {
                         : {})
                 };
             },
+            SpellInflictionTypeIs: (condition, eventContext) => {
+                const actual = eventContext.payload?.spellInflictionType
+                    ?? eventContext.payload?.inflictionType
+                    ?? eventContext.payload?.element
+                    ?? null;
+                const expected = Array.isArray(condition.spellInflictionTypes)
+                    ? condition.spellInflictionTypes
+                    : [condition.spellInflictionType ?? condition.value ?? 'All'];
+                const passed = expected.includes('All') || expected.includes(actual);
+                const numericValue = eventContext.payload?.spellInflictionTypeValue
+                    ?? SPELL_INFLICTION_TYPE_VALUES[actual];
+                return {
+                    passed,
+                    actual,
+                    expected: cloneValue(expected),
+                    ...(passed && condition.storeKey
+                        && Number.isFinite(Number(numericValue))
+                        ? {
+                            blackboardWrites: {
+                                [condition.storeKey]: Number(numericValue)
+                            }
+                        }
+                        : {})
+                };
+            },
             ResourceCompare: (condition, eventContext) => {
                 const pool = this.resources.describePool(this.#poolRef(condition, eventContext));
                 const value = condition.ratio
@@ -3665,7 +3697,23 @@ export class CombatRuntime {
                     eventContext,
                     'Target'
                 );
-                return this.enemyMechanics.resolveInfliction(action, eventContext, targetId);
+                const inflictionContext = this.context.createEventContext(eventContext, {
+                    targetId
+                });
+                const beforeAbilityEvents = this.#notifyBeforeOutputSpellInfliction(
+                    action,
+                    inflictionContext,
+                    this.#attribution(action, inflictionContext),
+                    action.element ?? action.inflictionType
+                );
+                const resolution = this.enemyMechanics.resolveInfliction(
+                    action,
+                    inflictionContext,
+                    targetId
+                );
+                return beforeAbilityEvents.length === 0
+                    ? resolution
+                    : { ...cloneValue(resolution), beforeAbilityEvents };
             },
             ForceEnemySpellStatus: (action, eventContext) => {
                 const targetId = this.#entityId(
@@ -3708,13 +3756,33 @@ export class CombatRuntime {
                     damageSourceId: sourceId ?? eventContext.damageSourceId ?? null
                 }, targetId);
             },
-            ApplyInfliction: (action, eventContext) => this.reactions.applyInfliction({
-                ...this.#attribution(action, eventContext),
-                element: action.element ?? action.inflictionType,
-                amount: this.#number(action.amount ?? action.inflictionAmount ?? action.value,
-                    eventContext, 'infliction amount'),
-                definition: action.definition
-            }),
+            ApplyInfliction: (action, eventContext) => {
+                const attribution = this.#attribution(action, eventContext);
+                const inflictionContext = this.context.createEventContext(
+                    eventContext,
+                    attribution
+                );
+                const element = action.element ?? action.inflictionType;
+                const beforeAbilityEvents = this.#notifyBeforeOutputSpellInfliction(
+                    action,
+                    inflictionContext,
+                    attribution,
+                    element
+                );
+                const resolution = this.reactions.applyInfliction({
+                    ...attribution,
+                    element,
+                    amount: this.#number(
+                        action.amount ?? action.inflictionAmount ?? action.value,
+                        eventContext,
+                        'infliction amount'
+                    ),
+                    definition: action.definition
+                });
+                return beforeAbilityEvents.length === 0
+                    ? resolution
+                    : { ...cloneValue(resolution), beforeAbilityEvents };
+            },
             ApplyImpact: (action, eventContext) => this.resilience.applyImpact({
                 ...this.#attribution(action, eventContext),
                 amount: this.#number(action.amount ?? action.value, eventContext, 'impact amount'),
@@ -5240,6 +5308,43 @@ export class CombatRuntime {
         } finally {
             this.abilityNotifyDepth -= 1;
         }
+    }
+
+    #notifyBeforeOutputSpellInfliction(action, eventContext, attribution, element) {
+        if (action.notifyBeforeOutputSpellInfliction !== true) return [];
+        if (eventContext.eventType === BEFORE_OUTPUT_SPELL_INFLICTION_EVENT
+            || eventContext.payload?.spellInflictionEventActive === true) return [];
+        const listenerTargetId = attribution.sourceId ?? attribution.ownerId;
+        if (listenerTargetId === null || listenerTargetId === undefined) return [];
+        const spellInflictionTypeValue = SPELL_INFLICTION_TYPE_VALUES[element];
+        const context = this.context.createEventContext(eventContext, {
+            sourceId: attribution.sourceId,
+            ownerId: attribution.ownerId,
+            targetId: attribution.targetId,
+            skillId: attribution.skillId,
+            rootSkillId: attribution.rootSkillId,
+            castId: attribution.castId,
+            payload: {
+                ...cloneValue(eventContext.payload ?? {}),
+                spellInflictionEventActive: true,
+                spellInflictionType: element,
+                spellInflictionTypeValue: Number.isFinite(spellInflictionTypeValue)
+                    ? spellInflictionTypeValue
+                    : null,
+                inflictionType: element,
+                element,
+                isExtra: action.isExtra === true,
+                originSkillType: eventContext.skillType
+                    ?? eventContext.commandType
+                    ?? eventContext.payload?.skillType
+                    ?? null
+            }
+        });
+        return this.#notifyLifecycleAbilityEvent(
+            BEFORE_OUTPUT_SPELL_INFLICTION_EVENT,
+            context,
+            listenerTargetId
+        );
     }
 
     #onStatusEffectTransition(transition) {

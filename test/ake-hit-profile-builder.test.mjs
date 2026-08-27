@@ -153,6 +153,8 @@ test('level-unlocked talent patches remain visible in generic operator skill det
         .statusEffects.find(effect => effect.id === 'buff_chr_0028_wulfa_normal_bleed');
     assert.ok(bleed, 'Rossi talent status must not be pruned with the baseline skill Blackboard');
     assert.equal(bleed.target, 'target');
+    assert.equal(bleed.effects.some(effect => effect.maxStacks !== undefined), false,
+        'Refresh semantics must not be displayed as a stack count');
     assert.deepEqual(bleed.effects.map(effect => ({
         type: effect.type,
         value: effect.value,

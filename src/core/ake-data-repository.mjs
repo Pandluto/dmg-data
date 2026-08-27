@@ -510,6 +510,24 @@ function childBuffInputs(raw, blackboard) {
     return result;
 }
 
+const COUNTABLE_AKE_STACKING_TYPES = new Set([
+    'Stack',
+    'Enhance',
+    'EnhanceAndRefresh',
+    'EnhanceAndOverwriteDuration',
+    'HighPriorityWithMaxStack'
+]);
+
+function catalogBuffMaxStacks(stacking, blackboard) {
+    if (!COUNTABLE_AKE_STACKING_TYPES.has(stacking?.stackingType)) return 1;
+    const configured = Number(stacking.useMaxStackCntKey && stacking.maxStackCntKey
+        ? blackboard[stacking.maxStackCntKey]
+        : stacking.maxStackCnt);
+    return Number.isFinite(configured) && configured > 1
+        ? Math.floor(configured)
+        : 1;
+}
+
 function effectBlackboard(row) {
     const result = {};
     for (const entry of row?.dataList ?? []) {
@@ -726,9 +744,7 @@ export class AkeDataRepository {
                 ...input.blackboard
             };
             const stacking = raw.stackingSettings ?? {};
-            const maxStacks = Number(stacking.useMaxStackCntKey && stacking.maxStackCntKey
-                ? blackboard[stacking.maxStackCntKey]
-                : stacking.maxStackCnt);
+            const maxStacks = catalogBuffMaxStacks(stacking, blackboard);
             const durationSeconds = Number(akeDescriptorValue(raw.duration, blackboard, Number.NaN));
 
             for (const modifier of raw.attributeModifier?.attributeModifiers ?? []) {
@@ -1088,9 +1104,7 @@ export class AkeDataRepository {
                 ...input.blackboard
             };
             const stacking = raw.stackingSettings ?? {};
-            const maxStacks = Number(stacking.useMaxStackCntKey && stacking.maxStackCntKey
-                ? blackboard[stacking.maxStackCntKey]
-                : stacking.maxStackCnt);
+            const maxStacks = catalogBuffMaxStacks(stacking, blackboard);
             const hasRuntimeTrigger = input.triggered
                 || (raw.buffEventAction ?? []).length > 0
                 || (raw.abilityEventAction ?? []).length > 0

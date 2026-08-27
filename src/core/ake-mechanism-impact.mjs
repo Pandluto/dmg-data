@@ -190,7 +190,9 @@ export function classifyAkeMechanismGap({ sourceType = '', code = '', category =
             'The action changes tags, layers, skill replacement, or a toggle used by form selection.'
         );
     }
-    if (EVENT_TYPES.has(type)) {
+    if (EVENT_TYPES.has(type)
+        || diagnosticCode === 'AKE_ABILITY_EVENT_EMITTER_REQUIRED'
+        || diagnosticCode === 'AKE_ABILITY_EVENT_TYPE_REQUIRED') {
         return result(
             'combat-blocking', 'P0', 'event-subscription',
             'The action controls whether a later gameplay event is observed or emitted.'
@@ -274,4 +276,3 @@ export const AKE_MECHANISM_IMPACTS = Object.freeze([
     'combat-blocking',
     'evidence-missing'
 ]);
-

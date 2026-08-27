@@ -8,6 +8,7 @@ import {
 import {
     AKE_FORCED_SPELL_STATUS_BUFF_IDS
 } from './combat-status-resolver.mjs';
+import { hasRuntimeAbilityEventProducer } from './ability-event-producers.mjs';
 
 const PRESENTATION_TOKENS = [
     'animation', 'animator', 'hurtanim', 'playanim', 'effectaction', 'vfx',
@@ -78,22 +79,6 @@ const SPELL_ABNORMAL_TYPES = new Set([
     'Fire', 'Pulse', 'Cryst', 'Natural', 'Burst'
 ]);
 const CONDITION_PREFIX = /^(Check|Compare|Probablity$|OrCondition|NotNextCheck)/;
-// Keep this list synchronized with CombatRuntime's concrete event emitters.
-// An EventListenerAction may still compile its executable child actions when
-// an emitter is missing, but the compiler must retain that missing boundary as
-// an explicit audit blocker instead of pretending that the listener can fire.
-const RUNTIME_ABILITY_EVENT_TYPES = new Set([
-    'OnBeforeTakeDamage',
-    'OnAddedBuff',
-    'OnOutputBuff',
-    'OnBeforeOutputAirborne',
-    'OnAfterKillEntity',
-    'OnSkillEnd',
-    'OnBeforeAddedBuff',
-    'OnTrulyExitFight',
-    'OnFinishedBuff',
-    'OnRemoveAllPendingComboSkill'
-]);
 const TARGET_ALIASES = new Map([
     ['Source', 'Source'],
     ['ActionSource', 'Source'],
@@ -405,6 +390,14 @@ export class AkeActionCompiler {
         );
         const compileGroups = (groups, eventField, collectionPath) =>
             (groups ?? []).map((group, groupIndex) => {
+                const eventType = group[eventField];
+                const emitterUnresolved = collectionPath === 'abilityEventAction'
+                    ? this.#abilityEventEmitterUnresolved(
+                        eventType,
+                        `${collectionPath}[${groupIndex}]`,
+                        'AbilityEventAction'
+                    )
+                    : [];
                 // Each serialized wrapper is an independent condition/action
                 // branch. Flattening wrappers turns `if A -> X; if B -> Y`
                 // into `if A -> X; if B -> Y` under one outer gate, which made
@@ -421,12 +414,15 @@ export class AkeActionCompiler {
                     })
                 );
                 return {
-                    eventType: group[eventField],
+                    eventType,
                     finishAfterIgnited: Boolean(group.finishAfterIgnited),
                     actions: actionSets.flatMap(compiled => compiled.actions),
                     cleanupActions: actionSets.flatMap(compiled => compiled.cleanupActions),
                     metadata: actionSets.flatMap(compiled => compiled.metadata),
-                    unresolved: actionSets.flatMap(compiled => compiled.unresolved),
+                    unresolved: [
+                        ...emitterUnresolved,
+                        ...actionSets.flatMap(compiled => compiled.unresolved)
+                    ],
                     diagnostics: actionSets.flatMap(compiled => compiled.diagnostics)
                 };
             });
@@ -628,6 +624,7 @@ export class AkeActionCompiler {
         const blackboard = { ...defaults, ...clone(options.blackboard ?? {}) };
         const groups = (raw.actionGroupData?.passiveEventActions ?? []).map(
             (group, groupIndex) => {
+                const eventType = group.abilityEvent;
                 const actionSets = (group.actions ?? []).map((wrapper, actionSetIndex) =>
                     this.compileActions(actionData(wrapper), {
                         path: `actionGroupData.passiveEventActions[${groupIndex}].actions[${actionSetIndex}]`,
@@ -638,11 +635,18 @@ export class AkeActionCompiler {
                     })
                 );
                 return {
-                    eventType: group.abilityEvent,
+                    eventType,
                     actions: actionSets.flatMap(compiled => compiled.actions),
                     cleanupActions: actionSets.flatMap(compiled => compiled.cleanupActions),
                     metadata: actionSets.flatMap(compiled => compiled.metadata),
-                    unresolved: actionSets.flatMap(compiled => compiled.unresolved),
+                    unresolved: [
+                        ...this.#abilityEventEmitterUnresolved(
+                            eventType,
+                            `actionGroupData.passiveEventActions[${groupIndex}]`,
+                            'PassiveEventAction'
+                        ),
+                        ...actionSets.flatMap(compiled => compiled.unresolved)
+                    ],
                     diagnostics: actionSets.flatMap(compiled => compiled.diagnostics)
                 };
             }
@@ -2161,7 +2165,7 @@ export class AkeActionCompiler {
                         ));
                         continue;
                     }
-                    if (!RUNTIME_ABILITY_EVENT_TYPES.has(eventType)) {
+                    if (!hasRuntimeAbilityEventProducer(eventType)) {
                         result.unresolved.push(this.#unresolved(
                             'AKE_ABILITY_EVENT_EMITTER_REQUIRED',
                             type,
@@ -3921,6 +3925,26 @@ export class AkeActionCompiler {
         return this.semanticMappings.find(mapping =>
             mapping.actionType === actionTypeName && predicate(mapping)
         ) ?? null;
+    }
+
+    #abilityEventEmitterUnresolved(eventType, path, sourceType) {
+        if (typeof eventType !== 'string' || eventType.length === 0) {
+            return [this.#unresolved(
+                'AKE_ABILITY_EVENT_TYPE_REQUIRED',
+                sourceType,
+                path,
+                'Ability-event listener requires a non-empty string event type.',
+                { abilityEvent: eventType ?? null }
+            )];
+        }
+        if (hasRuntimeAbilityEventProducer(eventType)) return [];
+        return [this.#unresolved(
+            'AKE_ABILITY_EVENT_EMITTER_REQUIRED',
+            sourceType,
+            path,
+            `Runtime has no proven emitter for ${eventType}.`,
+            { abilityEvent: eventType }
+        )];
     }
 
     #unresolved(code, sourceType, path, message, details = {}) {

@@ -580,6 +580,24 @@ export class AkeSquadScenarioRunner {
                 cancelProgram(state, finished, frame, `Skill${completion}`);
             }
             transition(state, frame, 'Free', `skill-end:${finished.skillId}:${completion}`);
+            runtime.finishSkillActionLifetimes({
+                frame,
+                actorId: state.characterId,
+                skillId: finished.skillId,
+                castId: finished.castId,
+                reason: `Skill${completion}`
+            }, {
+                frame,
+                sourceId: state.characterId,
+                ownerId: state.characterId,
+                targetId: enemyId,
+                skillId: finished.skillId,
+                rootSkillId: finished.skillId,
+                castId: finished.castId,
+                commandType: finished.commandType,
+                skillType: finished.commandType,
+                clockDomainId: state.actorClockDomainId
+            });
             runtime.statusEffects.finish({
                 frame,
                 metadata: { attachedToCastId: finished.castId },
@@ -703,6 +721,27 @@ export class AkeSquadScenarioRunner {
                 frame
             );
             const castId = options.castId ?? `command-cast:${state.memberId}:${token}`;
+            runtime.beginSkillActionLifetimes({
+                frame,
+                actorId: state.characterId,
+                skillId,
+                castId,
+                reason: 'CommandSkillStarted'
+            }, {
+                frame,
+                sourceId: state.characterId,
+                ownerId: state.characterId,
+                targetId: enemyId,
+                mainCharacterId: state.characterId,
+                memberId: state.memberId,
+                commandId,
+                skillId,
+                rootSkillId: skillId,
+                commandType,
+                skillType: commandType,
+                castId,
+                clockDomainId: state.actorClockDomainId
+            });
             runtime.execute({
                 type: 'TriggerStatusEvent',
                 target: state.characterId,
@@ -739,6 +778,7 @@ export class AkeSquadScenarioRunner {
                 skillType: commandType,
                 castId,
                 clockDomainId: state.actorClockDomainId,
+                skillActionLifetimesResolved: true,
                 onTimelineSeek: seek => {
                     if (state.currentSkill?.token !== token) return;
                     state.currentSkill.timelineAnchorFrame = seek.destFrame;

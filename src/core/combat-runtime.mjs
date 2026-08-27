@@ -507,6 +507,34 @@ export class CombatRuntime {
         return this.effects.executeTransaction(actions, context);
     }
 
+    beginSkillActionLifetimes(input, eventContext = {}) {
+        if (!isRecord(input)) {
+            throw new TypeError('beginSkillActionLifetimes requires an input object.');
+        }
+        return this.statusEffects.beginSkillTransition({
+            frame: input.frame ?? eventContext.frame ?? this.currentFrame,
+            actorId: input.actorId ?? eventContext.sourceId,
+            skillId: input.skillId ?? eventContext.skillId,
+            castId: input.castId ?? eventContext.castId,
+            programExecutionId: input.programExecutionId
+                ?? eventContext.programExecutionId,
+            reason: input.reason ?? 'SkillStarted'
+        }, eventContext);
+    }
+
+    finishSkillActionLifetimes(input, eventContext = {}) {
+        if (!isRecord(input)) {
+            throw new TypeError('finishSkillActionLifetimes requires an input object.');
+        }
+        return this.statusEffects.endSkillTransition({
+            frame: input.frame ?? eventContext.frame ?? this.currentFrame,
+            actorId: input.actorId ?? eventContext.sourceId,
+            skillId: input.skillId ?? eventContext.skillId,
+            castId: input.castId ?? eventContext.castId,
+            reason: input.reason ?? 'SkillEnded'
+        }, eventContext);
+    }
+
     scheduleProgram(program, eventContext = {}) {
         if (!isRecord(program) || !Array.isArray(program.timeline)) {
             throw new TypeError('scheduleProgram requires a compiled program with a timeline array.');
@@ -522,6 +550,11 @@ export class CombatRuntime {
         const contextInput = { ...eventContext };
         delete contextInput.onTimelineSeek;
         delete contextInput.onInterruptible;
+        const resolveSkillActionLifetimes =
+            contextInput.resolveSkillActionLifetimes !== false
+            && contextInput.skillActionLifetimesResolved !== true;
+        delete contextInput.resolveSkillActionLifetimes;
+        delete contextInput.skillActionLifetimesResolved;
         const frame = nonNegativeInteger(contextInput.frame ?? this.currentFrame, 'program frame');
         const sequence = this.nextProgramSequence++;
         const skillId = contextInput.skillId ?? program.skillId ?? `program:${sequence}`;
@@ -565,6 +598,16 @@ export class CombatRuntime {
             scheduleFrom: null
         };
         this.programExecutions.set(executionId, execution);
+        if (resolveSkillActionLifetimes && context.sourceId !== null) {
+            this.beginSkillActionLifetimes({
+                frame,
+                actorId: context.sourceId,
+                skillId,
+                castId,
+                programExecutionId: executionId,
+                reason: 'SkillProgramStarted'
+            }, context);
+        }
         const schedulePhase = (group, phase, offset, priority, sourceActions,
             originFrame, timelineOrigin, generation) => {
             if (!Array.isArray(sourceActions) || sourceActions.length === 0) return;
@@ -1276,6 +1319,18 @@ export class CombatRuntime {
         return scope === null || scope === undefined
             ? base
             : `${String(base)}@${String(scope)}`;
+    }
+
+    #actionLifetimeLeaseId(lifetime, eventContext) {
+        if (!isRecord(lifetime)
+            || typeof lifetime.leaseKey !== 'string'
+            || lifetime.leaseKey.length === 0) return null;
+        const owner = eventContext.programExecutionId
+            ?? eventContext.castId
+            ?? eventContext.buffInstanceId
+            ?? eventContext.ruleId;
+        if (owner === null || owner === undefined) return null;
+        return `${lifetime.leaseKey}@${String(owner)}`;
     }
 
     #skillFormSourceKey(action, eventContext) {
@@ -2336,7 +2391,7 @@ export class CombatRuntime {
                                 eventContext
                             );
                         }
-                        const applied = this.statusEffects.apply({
+                        let applied = this.statusEffects.apply({
                             ...attribution,
                             // Buff lifetime/timeline scheduling and the domain
                             // used by its child combat actions are independent.
@@ -2382,6 +2437,33 @@ export class CombatRuntime {
                                     : {})
                             }
                         }, eventContext);
+                        if (applied?.status !== 'Unresolved' && action.actionLifetime) {
+                            const leaseId = this.#actionLifetimeLeaseId(
+                                action.actionLifetime,
+                                eventContext
+                            );
+                            if (leaseId !== null) {
+                                this.statusEffects.claimActionLifetime({
+                                    frame: eventContext.frame,
+                                    instanceId: applied.instanceId,
+                                    leaseId,
+                                    actorId: eventContext.sourceId,
+                                    ownerSkillId: eventContext.skillId,
+                                    ownerCastId: eventContext.castId,
+                                    ownerProgramExecutionId:
+                                        eventContext.programExecutionId,
+                                    inheritSkillIds:
+                                        action.actionLifetime.inheritSkillIds,
+                                    finishByAction:
+                                        action.actionLifetime.finishByAction,
+                                    finishWithNextSkillIfNotInherited:
+                                        action.actionLifetime
+                                            .finishWithNextSkillIfNotInherited,
+                                    reason: action.reason ?? 'CreateBuffAction'
+                                }, eventContext);
+                                applied = this.statusEffects.get(applied.instanceId);
+                            }
+                        }
                         results.push(applied);
                         if (applied?.status !== 'Unresolved') {
                             this.#notifyAddedBuff(applied, eventContext);
@@ -2390,6 +2472,62 @@ export class CombatRuntime {
                     }
                 }
                 return Array.isArray(action.buffs) || count !== 1 ? results : results[0];
+            },
+            InheritBuffActionLifetime: (action, eventContext) => {
+                const leaseId = this.#actionLifetimeLeaseId(action, eventContext);
+                if (leaseId === null) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'BuffActionLifetimeLeaseOwnerMissing',
+                        buffId: action.buffId ?? null
+                    };
+                }
+                return this.statusEffects.inheritActionLifetime({
+                    frame: action.frame ?? eventContext.frame,
+                    targetId: this.#entityId(
+                        action.targetRef ?? action.target ?? action.targetId,
+                        eventContext,
+                        'Target'
+                    ),
+                    buffId: action.buffId,
+                    leaseId,
+                    actorId: eventContext.sourceId,
+                    ownerSkillId: eventContext.skillId,
+                    ownerCastId: eventContext.castId,
+                    ownerProgramExecutionId: eventContext.programExecutionId,
+                    inheritSkillIds: cloneValue(action.inheritSkillIds ?? []),
+                    finishByAction: action.finishByAction !== false,
+                    finishWithNextSkillIfNotInherited:
+                        action.finishWithNextSkillIfNotInherited !== false,
+                    reason: action.reason ?? 'InheritBuffAction'
+                }, eventContext);
+            },
+            ReleaseBuffActionLifetime: (action, eventContext) => {
+                const leaseId = this.#actionLifetimeLeaseId(action, eventContext);
+                if (leaseId === null) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'BuffActionLifetimeLeaseOwnerMissing',
+                        buffId: action.buffId ?? null
+                    };
+                }
+                const dynamicBuffId = action.buffIdBlackboardKey
+                    ? eventContext.blackboard?.[action.buffIdBlackboardKey]
+                        ?? this.entityBlackboards.get(eventContext.sourceId)
+                            ?.[action.buffIdBlackboardKey]
+                        ?? action.buffId
+                    : action.buffId;
+                return this.statusEffects.releaseActionLifetime({
+                    frame: action.frame ?? eventContext.frame,
+                    targetId: this.#entityId(
+                        action.targetRef ?? action.target ?? action.targetId,
+                        eventContext,
+                        'Target'
+                    ),
+                    buffId: dynamicBuffId,
+                    leaseId,
+                    reason: action.reason ?? 'ActionLifetimeReleased'
+                }, eventContext);
             },
             FinishBuff: (action, eventContext) => {
                 const dynamicBuffId = action.buffIdBlackboardKey
@@ -2687,6 +2825,7 @@ export class CombatRuntime {
                     ...cloneValue(eventContext),
                     frame: launchFrame,
                     eventType: 'ChildSkillProgramStarted',
+                    resolveSkillActionLifetimes: false,
                     skillId: action.childSkillId,
                     rootSkillId: eventContext.rootSkillId
                         ?? eventContext.skillId

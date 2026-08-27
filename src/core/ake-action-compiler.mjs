@@ -1869,6 +1869,10 @@ export class AkeActionCompiler {
                     buff.buffId || buff.buffIdBlackboardKey
                 );
                 if (target.ref && executableBuffs.length > 0) {
+                    const actionLifetimeLeaseKey = state.scope === 'skill'
+                        && node.autoFinishByAction === true
+                        ? `ake-skill:${state.path}:buff-action-lifetime`
+                        : null;
                     const applyBuff = {
                         type: 'ApplyBuff',
                         target: 'Target',
@@ -1886,6 +1890,17 @@ export class AkeActionCompiler {
                         triggerEnhancementEvent: true,
                         asChildBuff: Boolean(node.asChildBuff),
                         attachToCurrentSkill: type === 'CreateBuffAttachingSkill',
+                        ...(actionLifetimeLeaseKey === null ? {} : {
+                            actionLifetime: {
+                                leaseKey: actionLifetimeLeaseKey,
+                                inheritSkillIds: (node.inheritSkillIdList ?? [])
+                                    .filter(skillId => typeof skillId === 'string'
+                                        && skillId.length > 0),
+                                finishByAction: true,
+                                finishWithNextSkillIfNotInherited:
+                                    node.finishWithNextSkillIfNotInherited !== false
+                            }
+                        }),
                         reason: type
                     };
                     const directFinderType = selectorSource(targetSettings) === 'InstantSearch'
@@ -1934,12 +1949,17 @@ export class AkeActionCompiler {
                     }
                     if (node.autoFinishByAction === true) {
                         const finishActions = executableBuffs.map(buff => ({
-                            type: 'FinishBuff',
+                            type: actionLifetimeLeaseKey === null
+                                ? 'FinishBuff'
+                                : 'ReleaseBuffActionLifetime',
                             target: 'Target',
                             sourceRef: 'Source',
                             buffId: buff.buffId,
                             buffIdBlackboardKey: buff.buffIdBlackboardKey,
                             childOfCurrentBuff: Boolean(node.asChildBuff),
+                            ...(actionLifetimeLeaseKey === null ? {} : {
+                                leaseKey: actionLifetimeLeaseKey
+                            }),
                             finishAll: true,
                             reason: `${type}:auto-finish`
                         }));
@@ -1956,6 +1976,73 @@ export class AkeActionCompiler {
                                 target: target.ref
                             })));
                         }
+                    }
+                }
+                break;
+            }
+            case 'InheritBuffAction': {
+                const target = this.#targetRef(
+                    node.buffOwner,
+                    state,
+                    'inherited Buff owner'
+                );
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                const buffId = typeof node.targetBuffId === 'string'
+                    && node.targetBuffId.length > 0
+                    ? node.targetBuffId
+                    : null;
+                if (!buffId) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_INHERIT_BUFF_ID_REQUIRED',
+                        type,
+                        state.path,
+                        'InheritBuffAction requires a target Buff id.'
+                    ));
+                }
+                if (!target.ref || !buffId) break;
+                const leaseKey = `ake-skill:${state.path}:inherited-buff-action-lifetime`;
+                const inheritSkillIds = (node.inheritSkillIdList ?? [])
+                    .filter(skillId => typeof skillId === 'string' && skillId.length > 0);
+                const inheritAction = {
+                    type: 'InheritBuffActionLifetime',
+                    target: 'Target',
+                    buffId,
+                    leaseKey,
+                    inheritSkillIds,
+                    finishByAction: node.finishByAction !== false,
+                    finishWithNextSkillIfNotInherited:
+                        node.finishWithNextSkillIfNotInherited !== false,
+                    reason: type
+                };
+                const cleanupAction = {
+                    type: 'ReleaseBuffActionLifetime',
+                    target: 'Target',
+                    buffId,
+                    leaseKey,
+                    reason: `${type}:auto-finish`
+                };
+                if (isRecord(target.ref) && target.ref.type === 'TargetGroup') {
+                    result.actions.push({
+                        type: 'ForEachTarget',
+                        targetGroupKey: target.ref.key,
+                        actions: [inheritAction],
+                        reason: `${type}:TargetGroup`
+                    });
+                    if (node.finishByAction !== false) {
+                        result.cleanupActions.push({
+                            type: 'ForEachTarget',
+                            targetGroupKey: target.ref.key,
+                            actions: [cleanupAction],
+                            reason: `${type}:auto-finish:TargetGroup`
+                        });
+                    }
+                } else {
+                    result.actions.push({ ...inheritAction, target: target.ref });
+                    if (node.finishByAction !== false) {
+                        result.cleanupActions.push({
+                            ...cleanupAction,
+                            target: target.ref
+                        });
                     }
                 }
                 break;

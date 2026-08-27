@@ -422,7 +422,8 @@ export class StatusEffectSystem {
             remainingDurationTicks: null,
             expiryHoldLeaseIds: [],
             expiryHeldAtFrame: null,
-            extensionTriggered: false
+            extensionTriggered: false,
+            actionLifetime: null
         };
         instance.stackSources = [{
             sourceId: attribution.sourceId,
@@ -742,6 +743,278 @@ export class StatusEffectSystem {
             transitions.push(plainClone(transition));
         }
         return transitions;
+    }
+
+    claimActionLifetime(input, eventContext = {}) {
+        if (!input || typeof input !== 'object') {
+            throw new Error('StatusEffectSystem.claimActionLifetime requires an input object.');
+        }
+        if (typeof input.leaseId !== 'string' || input.leaseId.length === 0) {
+            throw new TypeError('StatusEffectSystem.claimActionLifetime requires a leaseId.');
+        }
+        const frame = frameNumber(input.frame ?? eventContext.frame ?? 0);
+        const inheritSkillIds = [...new Set((input.inheritSkillIds ?? [])
+            .filter(skillId => typeof skillId === 'string' && skillId.length > 0))];
+        const matches = this.#select(input).filter(instance => instance.active);
+        const transitions = [];
+        for (const instance of matches) {
+            const previousLifetime = plainClone(instance.actionLifetime);
+            instance.actionLifetime = {
+                leaseId: input.leaseId,
+                actorId: input.actorId ?? eventContext.sourceId ?? null,
+                ownerSkillId: input.ownerSkillId ?? eventContext.skillId ?? null,
+                ownerCastId: input.ownerCastId ?? eventContext.castId ?? null,
+                ownerProgramExecutionId: input.ownerProgramExecutionId
+                    ?? eventContext.programExecutionId
+                    ?? null,
+                inheritSkillIds,
+                finishByAction: input.finishByAction !== false,
+                finishWithNextSkillIfNotInherited:
+                    input.finishWithNextSkillIfNotInherited !== false,
+                awaitingInheritance: false,
+                candidateSkillId: null,
+                candidateCastId: null,
+                candidateProgramExecutionId: null,
+                claimedFrame: frame,
+                releasedFrame: null
+            };
+            const transition = this.#record(
+                instance,
+                frame,
+                previousLifetime === null || previousLifetime === undefined
+                    ? 'StatusEffectActionLifetimeClaimed'
+                    : 'StatusEffectActionLifetimeTransferred',
+                {
+                    reason: input.reason ?? 'ActionLifetimeClaimed',
+                    previousLifetime,
+                    actionLifetime: plainClone(instance.actionLifetime)
+                }
+            );
+            this.trace.push(transition);
+            this.onTransition(plainClone(transition));
+            transitions.push(plainClone(transition));
+        }
+        return transitions;
+    }
+
+    inheritActionLifetime(input, eventContext = {}) {
+        if (!input || typeof input !== 'object') {
+            throw new Error('StatusEffectSystem.inheritActionLifetime requires an input object.');
+        }
+        if (typeof input.leaseId !== 'string' || input.leaseId.length === 0) {
+            throw new TypeError('StatusEffectSystem.inheritActionLifetime requires a leaseId.');
+        }
+        const frame = frameNumber(input.frame ?? eventContext.frame ?? 0);
+        const skillId = input.ownerSkillId ?? eventContext.skillId;
+        const castId = input.ownerCastId ?? eventContext.castId ?? null;
+        const matches = this.#select(input).filter(instance => instance.active);
+        const transitions = [];
+        for (const instance of matches) {
+            const lifetime = instance.actionLifetime;
+            const eligible = lifetime !== null
+                && lifetime !== undefined
+                && typeof skillId === 'string'
+                && lifetime.inheritSkillIds.includes(skillId)
+                && (lifetime.candidateSkillId === null
+                    || lifetime.candidateSkillId === skillId)
+                && (lifetime.candidateCastId === null
+                    || lifetime.candidateCastId === castId);
+            if (!eligible) {
+                const ignored = this.#record(
+                    instance,
+                    frame,
+                    'StatusEffectActionLifetimeInheritanceRejected',
+                    {
+                        reason: input.reason ?? 'InheritBuffActionNotEligible',
+                        requestedSkillId: skillId ?? null,
+                        requestedCastId: castId,
+                        actionLifetime: plainClone(lifetime)
+                    }
+                );
+                this.trace.push(ignored);
+                transitions.push(plainClone(ignored));
+                continue;
+            }
+            transitions.push(...this.claimActionLifetime({
+                ...input,
+                frame,
+                instanceId: instance.instanceId,
+                ownerSkillId: skillId,
+                ownerCastId: castId,
+                reason: input.reason ?? 'InheritBuffAction'
+            }, eventContext));
+        }
+        return transitions;
+    }
+
+    releaseActionLifetime(input, eventContext = {}) {
+        if (!input || typeof input !== 'object') {
+            throw new Error('StatusEffectSystem.releaseActionLifetime requires an input object.');
+        }
+        if (typeof input.leaseId !== 'string' || input.leaseId.length === 0) {
+            throw new TypeError('StatusEffectSystem.releaseActionLifetime requires a leaseId.');
+        }
+        const frame = frameNumber(input.frame ?? eventContext.frame ?? 0);
+        const matches = this.#select(input).filter(instance => instance.active);
+        const results = [];
+        for (const instance of matches) {
+            const lifetime = instance.actionLifetime;
+            if (!lifetime || lifetime.leaseId !== input.leaseId) {
+                const ignored = this.#record(
+                    instance,
+                    frame,
+                    'StatusEffectActionLifetimeReleaseIgnored',
+                    {
+                        reason: input.reason ?? 'ActionLifetimeLeaseMismatch',
+                        requestedLeaseId: input.leaseId,
+                        activeLeaseId: lifetime?.leaseId ?? null
+                    }
+                );
+                this.trace.push(ignored);
+                results.push(plainClone(ignored));
+                continue;
+            }
+            if (!lifetime.finishByAction) {
+                const ignored = this.#record(
+                    instance,
+                    frame,
+                    'StatusEffectActionLifetimeReleaseIgnored',
+                    {
+                        reason: input.reason ?? 'ActionLifetimeDoesNotFinishBuff',
+                        requestedLeaseId: input.leaseId,
+                        activeLeaseId: lifetime.leaseId
+                    }
+                );
+                this.trace.push(ignored);
+                results.push(plainClone(ignored));
+                continue;
+            }
+            if (lifetime.inheritSkillIds.length > 0) {
+                lifetime.awaitingInheritance = true;
+                lifetime.releasedFrame = frame;
+                const transition = this.#record(
+                    instance,
+                    frame,
+                    'StatusEffectActionLifetimeAwaitingInheritance',
+                    {
+                        reason: input.reason ?? 'ActionLifetimeReleased',
+                        actionLifetime: plainClone(lifetime)
+                    }
+                );
+                this.trace.push(transition);
+                this.onTransition(plainClone(transition));
+                results.push(plainClone(transition));
+                continue;
+            }
+            results.push(...this.finish({
+                frame,
+                instanceId: instance.instanceId,
+                reason: input.reason ?? 'ActionLifetimeReleased'
+            }, eventContext));
+        }
+        return results;
+    }
+
+    beginSkillTransition(input, eventContext = {}) {
+        if (!input || typeof input !== 'object') {
+            throw new Error('StatusEffectSystem.beginSkillTransition requires an input object.');
+        }
+        const frame = frameNumber(input.frame ?? eventContext.frame ?? 0);
+        const actorId = requireId(input.actorId ?? eventContext.sourceId, 'actorId');
+        const skillId = requireId(input.skillId ?? eventContext.skillId, 'skillId');
+        const castId = requireId(input.castId ?? eventContext.castId, 'castId');
+        const programExecutionId = input.programExecutionId
+            ?? eventContext.programExecutionId
+            ?? null;
+        const matches = [...this.instances.values()].filter(instance => instance.active
+            && instance.actionLifetime?.actorId === actorId
+            && instance.actionLifetime.ownerCastId !== castId);
+        const results = [];
+        for (const instance of matches) {
+            const lifetime = instance.actionLifetime;
+            if (lifetime.inheritSkillIds.includes(skillId)) {
+                lifetime.candidateSkillId = skillId;
+                lifetime.candidateCastId = castId;
+                lifetime.candidateProgramExecutionId = programExecutionId;
+                const transition = this.#record(
+                    instance,
+                    frame,
+                    'StatusEffectActionLifetimeInheritanceOffered',
+                    {
+                        reason: input.reason ?? 'NextSkillCanInheritBuff',
+                        requestedSkillId: skillId,
+                        requestedCastId: castId,
+                        actionLifetime: plainClone(lifetime)
+                    }
+                );
+                this.trace.push(transition);
+                this.onTransition(plainClone(transition));
+                results.push(plainClone(transition));
+                continue;
+            }
+            if (!lifetime.finishWithNextSkillIfNotInherited) {
+                const retained = this.#record(
+                    instance,
+                    frame,
+                    'StatusEffectActionLifetimeRetained',
+                    {
+                        reason: input.reason ?? 'NextSkillDoesNotForceFinish',
+                        requestedSkillId: skillId,
+                        requestedCastId: castId,
+                        actionLifetime: plainClone(lifetime)
+                    }
+                );
+                this.trace.push(retained);
+                results.push(plainClone(retained));
+                continue;
+            }
+            results.push(...this.finish({
+                frame,
+                instanceId: instance.instanceId,
+                reason: `NextSkillNotInherited:${String(skillId)}`
+            }, {
+                ...plainClone(eventContext),
+                frame,
+                sourceId: actorId,
+                skillId,
+                castId
+            }));
+        }
+        return results;
+    }
+
+    endSkillTransition(input, eventContext = {}) {
+        if (!input || typeof input !== 'object') {
+            throw new Error('StatusEffectSystem.endSkillTransition requires an input object.');
+        }
+        const frame = frameNumber(input.frame ?? eventContext.frame ?? 0);
+        const castId = requireId(input.castId ?? eventContext.castId, 'castId');
+        const matches = [...this.instances.values()].filter(instance => instance.active
+            && (instance.actionLifetime?.ownerCastId === castId
+                || instance.actionLifetime?.candidateCastId === castId));
+        const results = [];
+        for (const instance of matches) {
+            if (!instance.active || !instance.actionLifetime) continue;
+            const lifetime = instance.actionLifetime;
+            if (lifetime.candidateCastId === castId && lifetime.ownerCastId !== castId) {
+                results.push(...this.finish({
+                    frame,
+                    instanceId: instance.instanceId,
+                    reason: `SkillDidNotClaimInheritedBuff:${String(input.skillId
+                        ?? eventContext.skillId
+                        ?? '')}`
+                }, eventContext));
+                continue;
+            }
+            if (lifetime.ownerCastId !== castId || lifetime.awaitingInheritance) continue;
+            results.push(...this.releaseActionLifetime({
+                frame,
+                instanceId: instance.instanceId,
+                leaseId: lifetime.leaseId,
+                reason: input.reason ?? 'SkillActionLifetimeEnded'
+            }, eventContext));
+        }
+        return results;
     }
 
     finish(input, eventContext = {}) {

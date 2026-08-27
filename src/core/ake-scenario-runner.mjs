@@ -394,6 +394,24 @@ export class AkeScenarioRunner {
                 cancelProgram(finished, frame, `Skill${completion}`);
             }
             transition(frame, 'Free', `skill-end:${finished.skillId}:${completion}`);
+            runtime.finishSkillActionLifetimes({
+                frame,
+                actorId: characterId,
+                skillId: finished.skillId,
+                castId: finished.castId,
+                reason: `Skill${completion}`
+            }, {
+                frame,
+                sourceId: characterId,
+                ownerId: characterId,
+                targetId: enemyId,
+                skillId: finished.skillId,
+                rootSkillId: finished.skillId,
+                castId: finished.castId,
+                commandType: finished.commandType,
+                skillType: finished.commandType,
+                clockDomainId: actorClockDomainId
+            });
             runtime.statusEffects.finish({
                 frame,
                 metadata: { attachedToCastId: finished.castId },
@@ -508,6 +526,24 @@ export class AkeScenarioRunner {
                 frame
             );
             const castId = `command-cast:${token}`;
+            runtime.beginSkillActionLifetimes({
+                frame,
+                actorId: characterId,
+                skillId,
+                castId,
+                reason: 'CommandSkillStarted'
+            }, {
+                frame,
+                sourceId: characterId,
+                ownerId: characterId,
+                targetId: enemyId,
+                skillId,
+                rootSkillId: skillId,
+                commandType,
+                skillType: commandType,
+                castId,
+                clockDomainId: actorClockDomainId
+            });
             runtime.execute({
                 type: 'TriggerStatusEvent',
                 target: characterId,
@@ -538,6 +574,7 @@ export class AkeScenarioRunner {
                 skillType: commandType,
                 castId,
                 clockDomainId: actorClockDomainId,
+                skillActionLifetimesResolved: true,
                 onTimelineSeek: seek => {
                     if (currentSkill?.token !== token) return;
                     currentSkill.timelineAnchorFrame = seek.destFrame;

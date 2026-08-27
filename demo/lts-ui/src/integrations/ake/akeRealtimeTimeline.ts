@@ -74,6 +74,8 @@ export type AkeRealtimeHit = {
   launchFrame: number | null;
   kind: AkeTimingHitProfile['kind'];
   hitCount: number;
+  /** The resolved AKE attack multiplier for marker presentation. */
+  multiplier?: number | null;
   damageTypes: string[];
   damageType: string | null;
   hitBuffs: HitBuffEffect[];
@@ -561,6 +563,7 @@ function composeFullAttackProfile(
         hitCount: ordinaryHits.reduce((sum, hit) => sum + hit.hitCount, 0),
         damageTypes: [...new Set(ordinaryHits.flatMap(hit => hit.damageTypes))],
         damageType: settlement.damageType ?? settlement.damageTypes[0] ?? null,
+        observedAtkScale: settlement.observedAtkScale ?? null,
         levels: settlement.levels,
         hitBuffs: ordinaryHits.flatMap(hit => hit.hitBuffs ?? []),
       });
@@ -842,6 +845,9 @@ function hitFromProfile(
       : actualFrame + hit.launchOffsetFrames,
     kind: hit.kind,
     hitCount: hit.hitCount,
+    multiplier: Number.isFinite(Number(hit.observedAtkScale))
+      ? Number(hit.observedAtkScale)
+      : (hit.levels?.M3 ?? hit.levels?.L9 ?? null),
     damageTypes: [...hit.damageTypes],
     damageType: hit.damageType ?? hit.damageTypes[0] ?? null,
     hitBuffs: structuredClone(hit.hitBuffs ?? []) as HitBuffEffect[],

@@ -38,7 +38,10 @@ import {
   type SharedTimelineColumn,
 } from '../../../core/domain/sharedVariableRateTimeline';
 import { resolveInitialControllerLaneId } from '../../../core/domain/operatorControlTimeline';
-import { compactLingeringHitMarkers } from '../lingeringHitProjection';
+import {
+  compactLingeringHitMarkers,
+  isLowMultiplierHitMarker,
+} from '../lingeringHitProjection';
 import type { CanvasDropTarget } from '../hooks/useCanvasDrag';
 
 interface CanvasAreaProps {
@@ -870,7 +873,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           return (
             <div
               key={hit.id}
-              className={`ake-preview-hit-marker is-${hit.kind}${afterBody ? ' is-after-body' : ''}${compactLingering ? ' is-compact' : ''}`}
+              className={`ake-preview-hit-marker is-${hit.kind}${afterBody ? ' is-after-body' : ''}${compactLingering ? ' is-compact' : ''}${isLowMultiplierHitMarker(hit.multiplier) ? ' is-low-multiplier' : ''}`}
               data-command-id={hit.commandId}
               data-hit-frame={hit.frame}
               data-settlement-relation={afterBody ? 'after-body' : 'during-body'}
@@ -894,7 +897,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           return (
             <div
               key={hit.id}
-              className={`ake-hit-marker is-settled${afterBody ? ' is-after-body' : ''}${compactLingering ? ' is-compact' : ''}`}
+              className={`ake-hit-marker is-settled${afterBody ? ' is-after-body' : ''}${compactLingering ? ' is-compact' : ''}${isLowMultiplierHitMarker(hit.multiplier) ? ' is-low-multiplier' : ''}`}
               data-command-id={command?.commandId ?? undefined}
               data-hit-frame={hit.frame}
               data-settlement-relation={afterBody ? 'after-body' : 'during-body'}

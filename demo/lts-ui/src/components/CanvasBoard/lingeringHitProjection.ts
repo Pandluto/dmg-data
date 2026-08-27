@@ -11,6 +11,19 @@ export type LingeringHitMarkerMetadata = {
   lingeringEndFrame?: number;
 };
 
+/**
+ * Low-scale hits are still present in the ledger, but a full diamond makes a
+ * dense timeline read like a wall of damage. Keep the threshold in one place
+ * so preview and settled projections use the same visual rule.
+ */
+export const LOW_MULTIPLIER_MARKER_THRESHOLD = 0.8;
+
+export function isLowMultiplierHitMarker(multiplier: unknown): boolean {
+  if (multiplier === null || multiplier === undefined || multiplier === '') return false;
+  const value = Number(multiplier);
+  return Number.isFinite(value) && value < LOW_MULTIPLIER_MARKER_THRESHOLD;
+}
+
 const DEFAULT_LINGERING_THRESHOLD = 12;
 const DEFAULT_MAX_DOTS = 8;
 
@@ -79,4 +92,3 @@ export function compactLingeringHitMarkers<
         : undefined),
     }));
 }
-

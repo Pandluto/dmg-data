@@ -193,6 +193,13 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
     sourceHitOffsetFrames: 13,
     debounceFrames: 6,
   };
+  const lowScaleSourceProfile = profile({
+    skillId: 'anchor-source-profile',
+    hits: [{
+      ...profile().hits[0],
+      observedAtkScale: 0.79,
+    }],
+  });
   const result = buildAkeRealtimeTimeline({
     timelineData: timeline([
       { characterId: sourceActor.id, buttons: [source] },
@@ -200,11 +207,12 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
     ]),
     selectedCharacters: [sourceActor, followerActor],
     catalog: catalog({
-      [sourceActor.id]: [profile({ skillId: 'anchor-source-profile' })],
+      [sourceActor.id]: [lowScaleSourceProfile],
       [followerActor.id]: [profile({ skillId: 'anchor-follower-profile' })],
     }),
     staffCount: 1,
   });
+  assertEqual(result.hits[0]?.multiplier, 0.79, 'preview hits retain the AKE multiplier for marker density');
   const followerCommand = result.commands.find(command => command.commandId === follower.id)!;
   assertEqual(followerCommand.requestedFrame, 19, 'damage anchor starts after hit plus the 0.2-second buffer');
   assertEqual(followerCommand.actualFrame, 19, 'a free teammate releases directly at the anchored frame');

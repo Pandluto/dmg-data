@@ -3035,6 +3035,26 @@
   white-space: nowrap;
 }
 
+/* A sub-80% hit remains in the runtime ledger and tooltip, but is projected
+ * as a quiet dot so low-scale multi-hit skills do not overpower the timeline. */
+.ake-preview-hit-marker.is-low-multiplier,
+.ake-hit-marker.is-settled.is-low-multiplier {
+  width: 4px;
+  height: 4px;
+  border-width: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.82),
+    0 0 5px rgba(223, 118, 43, 0.72);
+}
+
+.ake-preview-hit-marker.is-low-multiplier span,
+.ake-preview-hit-marker.is-low-multiplier em,
+.ake-hit-marker.is-settled.is-low-multiplier > span {
+  display: none;
+}
+
 .ake-combo-trigger-marker {
   position: absolute;
   z-index: 5;

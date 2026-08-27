@@ -1,7 +1,17 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { compactLingeringHitMarkers } from './lingeringHitProjection';
+import {
+  compactLingeringHitMarkers,
+  isLowMultiplierHitMarker,
+} from './lingeringHitProjection';
+
+test('uses a dot only below the 80% multiplier boundary', () => {
+  assert.equal(isLowMultiplierHitMarker(0.79), true);
+  assert.equal(isLowMultiplierHitMarker(0.8), false);
+  assert.equal(isLowMultiplierHitMarker(1), false);
+  assert.equal(isLowMultiplierHitMarker(null), false);
+});
 
 test('keeps short lingering tails unchanged', () => {
   const candidates = [

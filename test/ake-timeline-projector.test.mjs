@@ -172,3 +172,32 @@ test('AKE timeline projector fuses input, cast, hits, shared ATB segments and co
         ]
     );
 });
+
+test('AKE hit bursts retain the largest same-frame attack multiplier', () => {
+    const projection = projectAkeTimeline({
+        tickRate: 30,
+        durationTicks: 30,
+        damageLog: [
+            {
+                frame: 10,
+                castId: 'cast:multiplier',
+                rootSkillId: 'skill:multiplier',
+                damageType: 'Physical',
+                damageAttributeType: 'Hp',
+                atkScale: 0.79,
+                finalDamage: 10
+            },
+            {
+                frame: 10,
+                castId: 'cast:multiplier',
+                rootSkillId: 'skill:multiplier',
+                damageType: 'Physical',
+                damageAttributeType: 'Poise',
+                atkScale: 0.8,
+                poiseDamage: 2
+            }
+        ]
+    });
+
+    assert.equal(projection.hitBursts[0].multiplier, 0.8);
+});

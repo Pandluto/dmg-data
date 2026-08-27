@@ -73,6 +73,8 @@ export type AkeTimingHitProfile = {
   hitCount: number;
   damageTypes: string[];
   damageType?: string | null;
+  /** AKE probe value used when a timing profile has no per-level table. */
+  observedAtkScale?: number | null;
   levels?: Record<string, number>;
   hitBuffs?: AkeHitBuffProfile[];
   multiplierDerivation?: 'compiled-damage-packet' | 'root-blackboard-fallback' | 'unverified' | string;

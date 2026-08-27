@@ -136,10 +136,17 @@ function projectHitBursts(damageLog, tickRate) {
                 poiseDamage: 0,
                 hpHitCount: 0,
                 poiseHitCount: 0,
+                multiplier: null,
                 hits: []
             });
         }
         const group = groups.get(key);
+        const hitMultiplier = Number(hit.atkScale ?? hit.operands?.atkScale);
+        if (Number.isFinite(hitMultiplier)) {
+            group.multiplier = group.multiplier === null
+                ? hitMultiplier
+                : Math.max(group.multiplier, hitMultiplier);
+        }
         if (hit.damageType && !group.damageTypes.includes(hit.damageType)) {
             group.damageTypes.push(hit.damageType);
         }

@@ -269,6 +269,8 @@ export type AkeTimelineHitBurst = {
   poiseDamage: number;
   hpHitCount: number;
   poiseHitCount: number;
+  /** Maximum attack multiplier in this same-frame burst. */
+  multiplier?: number | null;
   skillId: string | null;
 };
 

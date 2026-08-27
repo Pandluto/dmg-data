@@ -940,3 +940,21 @@ damage before/take events
 6. 固定木桩演示的“不死亡”策略不因此改变；只有真实伤害跨过其 HP 边界时才会产生事件。
 
 契约将覆盖护盾吸收、首个致死 Hit、尸体追加 Hit、复活后再次归零、事件顺序和真实 Buff listener。完成后能力事件审计应只把 `OnOwnerHpZero` 的 105 个消费者转为 complete，`OnOwnerDead` 的 18 个消费者必须原样保留。
+
+### 13.4 HP 归零生产边已经闭环，真死仍保持失败关闭
+
+实现把 `OnOwnerHpZero` 接到 `CombatRuntime` 的公共生命结算边界，而不是任何干员、技能或 Buff 分支。直接 `Damage` 与完整 `ResolveDamagePacket` 都在生命值提交后调用同一个 helper；helper 只接受 `beforeHp > 0 && afterHp === 0`，并把监听 owner 绑定到受击目标。完整伤害事务的可观察顺序现为：
+
+```text
+OnBeforeOutputDamage -> OnBeforeTakeDamage
+-> HP / shield commit
+-> OnOutputDamage -> OnTakeDamage -> critical after-events
+-> OnOwnerHpZero(target)
+-> OnAfterKillEntity(source)
+```
+
+合成契约覆盖了护盾完全吸收、首次致死、尸体追加伤害、允许复活后的第二次归零，以及直接伤害与伤害包两条入口；真实卡米尔 HP-zero listener 已不再带生产者缺口，诀的真实 `OnOwnerDead` listener 则仍然得到 `AKE_ABILITY_EVENT_EMITTER_REQUIRED`。这证明实现没有用当前 `alive=false` 偷换真死、假死或不死仲裁。
+
+重跑全库审计后，84 个事件键和 1072 个消费者组总量不变；已闭环事件由 22 增至 23，complete 消费者由 693 增至 798，缺生产者消费者由 372 降至 267。非法事件值仍为 2 种、7 组。全量 241 项测试和前端严格类型检查通过。
+
+这一步没有修改共享水位、变量斜率、画布排版或 UI 投影。下一组高覆盖公共边沿是 `OnPoiseZero` 与 `OnPoiseRecover`；两者应从同一韧性状态机的“首次进入破韧”和“恢复完成”事务发出，不能从伤害数字或前端图标反推。

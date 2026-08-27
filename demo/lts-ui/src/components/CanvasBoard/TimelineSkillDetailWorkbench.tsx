@@ -122,15 +122,6 @@ function readPanelValue(panelLines: string[], label: string): string {
   return line?.slice(label.length + 1).trim() || '—';
 }
 
-function formatAttackValue(value: number): string {
-  return Number(value.toFixed(3)).toString();
-}
-
-function formatAttackDelta(value: number): string {
-  const sign = value > 0 ? '+' : '';
-  return `${sign}${formatAttackValue(value)}`;
-}
-
 function toDetailLines(lines: string[]): Array<{ label: string; value: string }> {
   return lines.map((line) => {
     const separatorIndex = line.indexOf(':');
@@ -589,23 +580,6 @@ export function TimelineSkillDetailWorkbench({
                   <span>暴击 {formula.critText}</span>
                   <span>非暴 {formula.nonCritText}</span>
                 </div>
-                {formula.attackComparison ? (
-                  <div className="timeline-runtime-attack-compare" aria-label="面板与运行时攻击力对照">
-                    <span>
-                      <small>LTS 面板攻击力</small>
-                      <strong>{formatAttackValue(formula.attackComparison.panel)}</strong>
-                    </span>
-                    <span className="timeline-runtime-attack-arrow" aria-hidden="true">→</span>
-                    <span>
-                      <small>AKE 运行时攻击力</small>
-                      <strong>{formatAttackValue(formula.attackComparison.runtime)}</strong>
-                    </span>
-                    <em>
-                      差值 {formatAttackDelta(formula.attackComparison.delta)}
-                      <small>{formula.attackComparison.sourceCount} 个运行时来源</small>
-                    </em>
-                  </div>
-                ) : null}
                 <div className="timeline-calculation-layout">
                   <article className="timeline-calculation-detail">
                     {selectedCalculationSection ? (

@@ -116,35 +116,6 @@
   font-size: 10px;
 }
 
-.ake-report-loadout .ake-report-runtime-atk {
-  color: #155b54;
-  background: #e8f5f2;
-  font-weight: 700;
-}
-
-.ake-report-runtime-sources {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 10px 7px;
-  border-top: 1px dashed rgba(21, 91, 84, 0.28);
-  background: #fbfdfd;
-}
-
-.ake-report-runtime-sources small {
-  color: #506568;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.ake-report-runtime-sources span {
-  padding: 2px 5px;
-  color: #155b54;
-  background: #eef8f6;
-  font-size: 10px;
-}
-
 .ake-report-command-list { border-top: 1px solid rgba(0, 0, 0, 0.15); }
 .ake-report-command {
   display: grid;

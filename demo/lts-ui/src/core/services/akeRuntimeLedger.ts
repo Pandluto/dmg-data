@@ -704,47 +704,27 @@ function buildRuntimeFormula(
   title: string,
   statusEvents: AkeRuntimeStatusEvent[],
   labels: AkeRuntimeStatusLabelMap,
-  panelAttack?: number,
 ): FormulaViewModel {
   const operands = hit.operands ?? {};
   const factors = hit.factors ?? [];
   const factor = (semanticKey: string) => factors.find((item) => item.semanticKey === semanticKey);
-  const attack = finite(factor('attack')?.multiplier, finite(operands.attack));
   const atkScale = finite(factor('attack-scale')?.multiplier, finite(operands.atkScale, hit.atkScale));
   const defense = finite(operands.defense);
   const defEfficiency = finite(operands.defEfficiency, 0.01);
   const defScale = finite(factor('defense')?.multiplier, finite(operands.defScale, 1));
   const resistance = finite(operands.resistance);
   const resistanceScale = finite(factor('resistance')?.multiplier, finite(operands.resistanceScale, 1));
-  const damageTakenScale = finite(factor('damage-taken')?.multiplier, finite(operands.damageTakenScalar, 1));
-  const weaknessScale = finite(factor('weakness')?.multiplier, finite(operands.weaknessDmgScalar, 1));
-  const shelterScale = finite(factor('shelter')?.multiplier, finite(operands.shelterScale, 1));
   const attackerScale = finite(factor('attacker-zone')?.multiplier, finite(operands.attackerZoneScale, 1));
   const defenderScale = finite(factor('defender-zone')?.multiplier, finite(operands.defenderZoneScale, 1));
   const configuredScale = finite(factor('configured-damage-bonus')?.multiplier, finite(operands.configuredDamageBonusScale, 1));
-  const specialScale = finite(factor('special')?.multiplier, finite(operands.specialScale, 1));
   const vulnerableFactor = factors.find((item) =>
     item.semanticKey.endsWith('-vulnerability') || item.semanticKey.endsWith('-vulnerable'));
-  const vulnerableScale = finite(vulnerableFactor?.multiplier, finite(operands.vulnerableDmgScale, 1));
   const expectedCriticalScale = finite(operands.expectedCriticalScale, 1);
   const allCriticalScale = finite(operands.allCriticalScale, 1);
   const criticalRate = finite(operands.criticalRate);
   const criticalDamageIncrease = finite(operands.criticalDamageIncrease);
-  const attackAttribute = hit.modifierSnapshot.attackAttribute;
-  const attackEvaluation = attackAttribute?.evaluation;
-  const attackBase = finite(attackEvaluation?.rawValue, finite(attackAttribute?.baseValue, attack));
-  const attackAfterBase = finite(attackEvaluation?.afterBase, attackBase);
-  const attackAfterBaseFinal = finite(attackEvaluation?.afterBaseFinal, attackAfterBase);
-  const attackAfterRuntime = finite(attackEvaluation?.afterRuntime, attackAfterBaseFinal);
-  const attackFinal = finite(attackEvaluation?.value, attack);
-  const attackSourceCount = attackAttribute?.contributions?.length ?? 0;
-  const hasPanelAttack = Number.isFinite(panelAttack) && (panelAttack ?? 0) > 0;
   const attackerCombinedScale = attackerScale * configuredScale;
   const buffTags = contributionBuffTags(hit, statusEvents, labels);
-  const nonCritFactors = factors.length > 0
-    ? factors.filter((item) => item.affectsNonCritical !== false).map((item) => item.multiplier)
-    : [attack, atkScale, attackerScale, configuredScale, defScale, resistanceScale,
-      damageTakenScale, vulnerableScale, defenderScale, weaknessScale, shelterScale, specialScale];
   const unavailable = '运行时未提供';
   const rateFormula = (selected: typeof factors[number] | undefined) => selected
     ? `${trimNumber(finite(selected.rawValue), 4)} → ×${trimNumber(selected.multiplier, 4)}`
@@ -757,38 +737,20 @@ function buildRuntimeFormula(
   return {
     title: `${title} 运行时计算过程`,
     panelLines: [
-      `ATK: ${trimNumber(attack)}`,
-      ...(hasPanelAttack ? [`面板ATK: ${trimNumber(panelAttack ?? 0)}`] : []),
       `暴击率: ${percent(criticalRate)}`,
       `暴击伤害: ${percent(criticalDamageIncrease)}`,
       `运行帧: F${hit.frame}`,
     ],
-    attackLines: [
-      ...(hasPanelAttack
-        ? [`LTS 面板攻击力: ${trimNumber(panelAttack ?? 0)}`]
-        : []),
-      ...(attackSourceCount > 0
-        ? [`攻击力属性链: ${[attackBase, attackAfterBase, attackAfterBaseFinal, attackAfterRuntime, attackFinal]
-          .filter((value, index, values) => index === 0 || Math.abs(value - values[index - 1]) > 1e-9)
-          .map(value => trimNumber(value))
-          .join(' → ')}（${attackSourceCount} 个运行时来源）`]
-        : []),
-      `运行时最终攻击力: ${trimNumber(attackFinal)}`,
-      `原始伤害: ${trimNumber(attack)} × ${trimNumber(atkScale, 4)} = ${trimNumber(hit.rawDamage)}`,
-    ],
-    attackComparison: hasPanelAttack
-      ? {
-        panel: panelAttack ?? 0,
-        runtime: attackFinal,
-        delta: attackFinal - (panelAttack ?? 0),
-        sourceCount: attackSourceCount,
-      }
-      : undefined,
+    // Runtime ATK is retained in the engine's raw hit snapshot for later
+    // reconciliation, but it is deliberately not projected into this UI.
+    // The floor/rounding contract is not settled yet, so showing it here
+    // would make an unverified intermediate value look like panel data.
+    attackLines: [],
     buffTags,
     showNoBuff: buffTags.length === 0,
     baseMultiplierText: percent(atkScale, 2),
     multiplierFormulaText: `${percent(atkScale, 2)} = ${trimNumber(atkScale, 4)}`,
-    formulaText: `${trimNumber(attack)} × ${trimNumber(atkScale, 4)} = ${trimNumber(hit.rawDamage)}`,
+    formulaText: `倍率 = ${trimNumber(atkScale, 4)}`,
     elementBonusText: factor('configured-damage-bonus')
       ? percent(finite(factor('configured-damage-bonus')?.rawValue), 1)
       : unavailable,
@@ -806,7 +768,7 @@ function buildRuntimeFormula(
     comboFormulaText: rateFormula(factor('combo-damage')),
     imbalanceFormulaText: rateFormula(factor('imbalance-damage')),
     defenseZoneText: `1 / (1 + ${trimNumber(defense)} × ${trimNumber(defEfficiency, 3)}) = ${trimNumber(defScale)}`,
-    nonCritFormulaText: `${nonCritFactors.map((factor) => trimNumber(factor, 4)).join(' × ')} = ${fixedDamage(hit.nonCriticalDamage)}`,
+    nonCritFormulaText: `运行时结算 = ${fixedDamage(hit.nonCriticalDamage)}`,
     expectedText: `${fixedDamage(hit.expectedDamage)} (×${trimNumber(expectedCriticalScale, 4)})`,
     critText: `${fixedDamage(hit.criticalDamage)} (×${trimNumber(allCriticalScale, 4)})`,
     nonCritText: fixedDamage(hit.nonCriticalDamage),
@@ -978,15 +940,9 @@ export function buildAkeRuntimeCommandLedger(input: {
   const runtimeHits = (report.hits ?? [])
     .filter((hit) => hit.castId === castId && hit.damageAttributeType === 'Hp')
     .sort((left, right) => left.frame - right.frame || left.hitIndex - right.hitIndex);
-  const reportCharacter = report.characters.find((character) => (
-    character.akeCharacterId === command.characterId
-    || character.memberId === command.memberId
-    || character.localCharacterId === command.characterId
-  ));
-  const panelAttack = reportCharacter?.loadout.panelAtk;
   const hits = runtimeHits.map((hit, index) => {
     const title = hitTitle(hit, index, labels, statusEvents);
-    const formula = buildRuntimeFormula(hit, title, statusEvents, labels, panelAttack);
+    const formula = buildRuntimeFormula(hit, title, statusEvents, labels);
     return {
       key: `ake-runtime-hit:${castId}:${hit.hitIndex}`,
       title,

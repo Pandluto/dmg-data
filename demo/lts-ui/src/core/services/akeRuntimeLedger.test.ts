@@ -324,26 +324,6 @@ assert.ok(ledger.hits[0].formula.buffTags.some((buff) => (
 )));
 
 const attackZoneReport = structuredClone(report);
-attackZoneReport.characters = [{
-  localCharacterId: 'actor-a',
-  akeCharacterId: 'actor-a',
-  memberId: 'actor-a',
-  characterName: '测试干员',
-  status: 'calculated',
-  loadout: {
-    level: 90,
-    skillLevel: 12,
-    weaponId: 'weapon-test',
-    weaponName: '测试武器',
-    weaponLevel: 90,
-    equipment: [],
-    potentialEffectIds: [],
-    panelAtk: 3328.938,
-    panelHp: 0,
-    damageBonuses: [],
-  },
-  skippedButtonIds: [],
-}];
 attackZoneReport.hits = [runtimeHit(0, null, 1, false)];
 attackZoneReport.hits[0].modifierSnapshot.attackAttribute = {
   targetId: 'actor-a',
@@ -401,13 +381,12 @@ assert.ok(attackZoneTags.some((buff) => buff.type === 'atkFinalMultiplier' && bu
   'BaseFinalMultiplier must remain a factor instead of a percent');
 assert.ok(attackZoneTags.some((buff) => buff.label === '能力换算' && buff.type === 'atkFinalMultiplier'),
   'internal AKEDatabase derived-ability ids must resolve to a readable source label');
-assert.ok(ledger.hits[0].formula.attackLines?.some((line) => line.includes('840 → 1000')));
-assert.deepEqual(attackZoneLedger?.hits[0].formula.attackComparison, {
-  panel: 3328.938,
-  runtime: 3323.737728,
-  delta: 3323.737728 - 3328.938,
-  sourceCount: 3,
-}, 'the double-click detail must keep LTS panel ATK separate from AKE runtime ATK');
+assert.equal(attackZoneLedger?.hits[0].formula.attackLines?.length, 0,
+  'unverified runtime attack values must not be rendered in the hit detail UI');
+assert.ok(!attackZoneLedger?.hits[0].formula.panelLines.some((line) => line.startsWith('ATK:')),
+  'runtime hit details must not expose the unresolved ATK projection');
+assert.ok(!attackZoneLedger?.hits[0].formula.nonCritFormulaText.includes('1000'),
+  'runtime result formula must not leak the unresolved attack operand');
 assert.ok(ledger.statuses.some((status) => (
   status.title === '天赋·通用叠层 ×2'
   && status.kind.includes('叠层并刷新')

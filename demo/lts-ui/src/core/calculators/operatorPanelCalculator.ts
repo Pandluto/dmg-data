@@ -1129,7 +1129,6 @@ function buildMarkdown(snapshot: Omit<ConfigSnapshot, 'detailMarkdown'>): string
   lines.push(`- 百分比加成 = ${formatPercent(snapshot.panel.display.attackDetail.atkPercent)}`);
   lines.push(`- 最终基础 = ${formatNumber(snapshot.panel.display.baseAtk)}`);
   lines.push(`- 面板攻击（LTS 显示）= ${formatNumber(snapshot.panel.display.atk)}`);
-  lines.push(`- 运行时攻击（AKE floor 规则）= ${formatNumber(snapshot.panel.display.runtimeAtk)}`);
   lines.push('');
   lines.push('## 干员能力值');
   lines.push(`- 力量: ${formatNumber(snapshot.operator.baseAttributes.strength)}`);
@@ -1146,10 +1145,8 @@ function buildMarkdown(snapshot: Omit<ConfigSnapshot, 'detailMarkdown'>): string
   lines.push('## 主副能力换算');
   lines.push(`- 主能力: ${snapshot.operator.mainStat || '-'} ${formatNumber(snapshot.panel.display.abilityDetail.rawMainStat)} × (1 + ${formatPercent(snapshot.panel.display.abilityDetail.mainStatScale)}) × (1 + ${formatPercent(snapshot.panel.display.abilityDetail.allStatScale)}) = ${formatNumber(snapshot.panel.display.abilityDetail.mainStatBeforeRounding)}`);
   lines.push(`- 主能力取整: ${formatNumber(snapshot.panel.display.abilityDetail.mainStatBeforeRounding)} → ${formatNumber(snapshot.panel.display.mainStatFinal)}`);
-  lines.push(`- 主能力攻击换算取整（AKE）: ${formatNumber(snapshot.panel.display.abilityDetail.mainStatBeforeRounding)} → ${formatNumber(snapshot.panel.display.abilityDetail.mainStatForAttack)}`);
   lines.push(`- 副能力: ${snapshot.operator.subStat || '-'} ${formatNumber(snapshot.panel.display.abilityDetail.rawSubStat)} × (1 + ${formatPercent(snapshot.panel.display.abilityDetail.subStatScale)}) × (1 + ${formatPercent(snapshot.panel.display.abilityDetail.allStatScale)}) = ${formatNumber(snapshot.panel.display.abilityDetail.subStatBeforeRounding)}`);
   lines.push(`- 副能力取整: ${formatNumber(snapshot.panel.display.abilityDetail.subStatBeforeRounding)} → ${formatNumber(snapshot.panel.display.subStatFinal)}`);
-  lines.push(`- 副能力攻击换算取整（AKE）: ${formatNumber(snapshot.panel.display.abilityDetail.subStatBeforeRounding)} → ${formatNumber(snapshot.panel.display.abilityDetail.subStatForAttack)}`);
   lines.push(`- 主能力固定加值: ${formatNumber(snapshot.operator.mainStatFlatBonus)}`);
   lines.push(`- 副能力固定加值: ${formatNumber(snapshot.operator.subStatFlatBonus)}`);
   lines.push('');

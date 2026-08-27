@@ -745,7 +745,7 @@ export class AkeDataRepository {
                 for (const processor of modifier.damageProcessors ?? []) {
                     const processorType = serializedAkeType(processor);
                     if (processorType === 'DamageScaleProcessor'
-                        && processor.zoneName === 'NormalCalcZone') {
+                        && ['NormalCalcZone', 'ProdCalcZone'].includes(processor.zoneName)) {
                         const value = Number(akeDescriptorValue(processor.addition, blackboard));
                         // `enableSide` selects which combatant's Buff participates in
                         // the damage event. The processor's own `side` selects the
@@ -753,14 +753,21 @@ export class AkeDataRepository {
                         // therefore be enabled on Attacker while modifying Defender
                         // (for example Endministrator's "现实静滞").
                         const affectedSide = processor.side ?? modifier.enableSide;
+                        const isFinalProductZone = processor.zoneName === 'ProdCalcZone';
                         const type = affectedSide === 'Defender'
-                            ? fragileTypeFromDamageConditions(conditions)
+                            ? isFinalProductZone && value < 0
+                                ? 'damageReduction'
+                                : fragileTypeFromDamageConditions(conditions) ?? 'allFragile'
                             : catalogActivationFromConditions(conditions)?.kind === 'targetImbalanced'
                                 ? 'imbalanceDmgBonus'
                                 : damageBonusTypeFromDamageConditions(conditions)
                                     ?? 'allDmgBonus';
                         if (type) appendEffect(
-                            { type, value, unit: 'percent' },
+                            {
+                                type,
+                                value: type === 'damageReduction' ? Math.abs(value) : value,
+                                unit: 'percent'
+                            },
                             input.buffId,
                             durationSeconds,
                             maxStacks

@@ -231,6 +231,25 @@ test('AKEDatabase build primitives select raw level rows, compatible weapons and
     ]), /exceeds 1 slot/);
 });
 
+test('catalog Buff effects preserve ProdCalcZone damage reduction semantics', () => {
+    const repository = new AkeDataRepository();
+    const effects = repository.catalogBuffEffects('buff_chr_0028_wulfa_normal_defup');
+
+    assert.deepEqual(effects.map(effect => ({
+        sourceBuffId: effect.sourceBuffId,
+        type: effect.type,
+        value: effect.value,
+        unit: effect.unit,
+        durationSeconds: effect.durationSeconds
+    })), [{
+        sourceBuffId: 'buff_chr_0028_wulfa_normal_defup',
+        type: 'damageReduction',
+        value: 0.5,
+        unit: 'percent',
+        durationSeconds: 5
+    }]);
+});
+
 test('AKEDatabase documented four-ability projection reproduces the level-one panel formula', () => {
     const repository = new AkeDataRepository();
     const character = repository.table('CharacterTable').chr_0004_pelica;

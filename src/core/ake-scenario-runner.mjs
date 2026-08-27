@@ -241,11 +241,24 @@ export class AkeScenarioRunner {
         };
 
         const resolver = parameters => {
-            const resolution = this.damageResolver(parameters);
+            const targetId = parameters.eventContext.targetId;
             const targetState = parameters.runtime.poise.hasEntity(
-                parameters.eventContext.targetId
+                targetId
             )
-                ? parameters.runtime.poise.snapshot(parameters.eventContext.targetId)
+                ? parameters.runtime.poise.snapshot(targetId)
+                : null;
+            const executionPacket = parameters.eventContext.rootSkillId
+                === bundle.roles.breakingAttackId
+                && (parameters.action.damageUnits ?? []).some(unit =>
+                    unit.calculationType === 'BreakingAttackCalculation'
+                );
+            const resolution = this.damageResolver(parameters);
+            const execution = executionPacket && targetState?.broken
+                ? parameters.runtime.execute({
+                    type: 'ConsumePoiseExecution',
+                    target: 'Target',
+                    reservationId: parameters.eventContext.castId
+                }, parameters.eventContext)
                 : null;
             const hpHits = (resolution?.hits ?? []).filter(hit =>
                 hit.damageAttributeType === 'Hp'
@@ -254,9 +267,7 @@ export class AkeScenarioRunner {
                 .filter(hit => hit.damageAttributeType === 'Poise')
                 .reduce((sum, hit) => sum + Number(hit.amount ?? hit.finalDamage ?? 0), 0);
             let localClockTrigger = null;
-            if ((parameters.action.damageUnits ?? []).some(unit =>
-                unit.calculationType === 'BreakingAttackCalculation'
-            ) && targetState?.broken) {
+            if (execution !== null) {
                 localClockTrigger = 'ExecutionHit';
             } else if (targetState && !targetState.broken
                 && poiseAmount >= targetState.remaining) {
@@ -486,6 +497,14 @@ export class AkeScenarioRunner {
                 skillType: finished.commandType,
                 clockDomainId: actorClockDomainId
             });
+            if (finished.commandType === 'BreakingAttack') {
+                runtime.poise.releaseExecutionReservation({
+                    targetId: enemyId,
+                    reservationId: finished.castId,
+                    frame,
+                    reason: `Skill${completion}`
+                });
+            }
             currentSkill = null;
             if (completion === 'Completed' && commandsSeen === submittedCommands.length
                 && queuedCommands.size === 0) {
@@ -583,6 +602,22 @@ export class AkeScenarioRunner {
                 frame
             );
             const castId = `command-cast:${token}`;
+            if (commandType === 'BreakingAttack') {
+                const reservation = runtime.poise.reserveExecution({
+                    targetId: enemyId,
+                    reservationId: castId,
+                    frame,
+                    sourceId: characterId,
+                    ownerId: characterId,
+                    skillId,
+                    rootSkillId: skillId,
+                    castId,
+                    commandId
+                });
+                if (reservation === null) {
+                    throw new Error('BreakingAttack lost its poise execution gate before cast start.');
+                }
+            }
             runtime.beginSkillActionLifetimes({
                 frame,
                 actorId: characterId,
@@ -875,7 +910,21 @@ export class AkeScenarioRunner {
                 skillId = forcedSkillId ?? command.skillId ?? bundle.roles.ultimateSkillId;
             } else if (command.commandType === 'BreakingAttack') {
                 skillId = forcedSkillId ?? command.skillId ?? bundle.roles.breakingAttackId;
-                skillSource = 'execution-request';
+                skillSource = 'poise-execution-gate';
+                if (!runtime.poise.canExecute(enemyId)) {
+                    const poiseState = runtime.poise.snapshot(enemyId);
+                    failCommand(
+                        command,
+                        frame,
+                        poiseState.broken
+                            ? (poiseState.executionReservation
+                                ? 'EXECUTION_RESERVED'
+                                : 'EXECUTION_ALREADY_CONSUMED')
+                            : 'TARGET_NOT_BROKEN',
+                        skillId
+                    );
+                    return;
+                }
             } else {
                 failCommand(command, frame, 'UNSUPPORTED_COMMAND');
                 return;

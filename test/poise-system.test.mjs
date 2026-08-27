@@ -125,3 +125,56 @@ test('poise registry rejects duplicate and unknown targets before state mutation
         /Unknown poise entity/);
     assert.equal(system.snapshot().entities.length, 1);
 });
+
+test('execution reservations serialize admission and release without consuming the gate', () => {
+    const system = new PoiseSystem({ targetValidator: targetId => targetId === 'enemy' });
+    system.registerEntity({ targetId: 'enemy', definition: definition(60) });
+    system.applyDamage({ targetId: 'enemy', frame: 0, amount: 60 });
+
+    const reservation = system.reserveExecution({
+        targetId: 'enemy',
+        frame: 1,
+        reservationId: 'cast:first',
+        sourceId: 'operator'
+    });
+    assert.equal(reservation.reservationId, 'cast:first');
+    assert.equal(system.canExecute('enemy'), false,
+        'an admitted execution must block a second command before either Hit settles');
+    assert.equal(system.reserveExecution({
+        targetId: 'enemy',
+        frame: 1,
+        reservationId: 'cast:second'
+    }), null);
+    assert.equal(system.consumeExecution({
+        targetId: 'enemy',
+        frame: 2,
+        reservationId: 'cast:second'
+    }), null, 'a different cast cannot steal the reservation');
+    assert.equal(system.releaseExecutionReservation({
+        targetId: 'enemy',
+        frame: 2,
+        reservationId: 'cast:second'
+    }), false);
+    assert.equal(system.releaseExecutionReservation({
+        targetId: 'enemy',
+        frame: 2,
+        reservationId: 'cast:first',
+        reason: 'InterruptedBeforeHit'
+    }), true);
+    assert.equal(system.canExecute('enemy'), true,
+        'an interrupted cast releases, rather than consumes, the execution gate');
+
+    system.reserveExecution({
+        targetId: 'enemy',
+        frame: 3,
+        reservationId: 'cast:retry'
+    });
+    const consumed = system.consumeExecution({
+        targetId: 'enemy',
+        frame: 4,
+        reservationId: 'cast:retry'
+    });
+    assert.equal(consumed.stage, 'ExecutionConsumed');
+    assert.equal(system.snapshot('enemy').executionAvailable, false);
+    assert.equal(system.snapshot('enemy').executionReservation, null);
+});

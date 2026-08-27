@@ -152,6 +152,7 @@ export class PoiseSystem {
             lastBreakContext: null,
             lastTransition: null,
             pendingBrokenTransition: null,
+            executionReservation: null,
             machine: null
         };
         entry.machine = new PoiseMachine({
@@ -178,7 +179,19 @@ export class PoiseSystem {
                 entry.lastBreakContext = this.#context(entry);
                 this.#publish(entry, 'OnPoiseZero', transition);
             },
-            onRecovered: transition => this.#publish(entry, 'OnPoiseRecover', transition)
+            onRecovered: transition => {
+                if (entry.executionReservation !== null) {
+                    this.trace.push({
+                        ...clone(entry.executionReservation),
+                        frame: transition.frame,
+                        stage: 'PoiseExecutionReservationReleased',
+                        type: 'PoiseExecutionReservationReleased',
+                        reason: 'PoiseRecovered'
+                    });
+                    entry.executionReservation = null;
+                }
+                this.#publish(entry, 'OnPoiseRecover', transition);
+            }
         });
         this.entities.set(key, entry);
         this.trace.push({
@@ -279,13 +292,85 @@ export class PoiseSystem {
     }
 
     canExecute(targetId) {
-        return this.#entry(targetId).machine.canExecute();
+        const entry = this.#entry(targetId);
+        return entry.machine.canExecute() && entry.executionReservation === null;
+    }
+
+    reserveExecution(input = {}) {
+        if (!isObject(input)) throw new TypeError('PoiseSystem reserveExecution requires an object.');
+        const targetId = targetIdFrom(input);
+        const reservationId = identifier(
+            input.reservationId ?? input.castId ?? input.commandId,
+            'poise execution reservationId'
+        );
+        const entry = this.#entry(targetId);
+        if (!entry.machine.canExecute() || entry.executionReservation !== null) return null;
+        const context = clone(input.eventContext ?? input);
+        const reservation = {
+            frame: input.frame ?? context.frame ?? 0,
+            stage: 'PoiseExecutionReserved',
+            type: 'PoiseExecutionReserved',
+            reservationId,
+            sourceId: input.sourceId ?? context.sourceId ?? null,
+            ownerId: input.ownerId ?? context.ownerId ?? null,
+            targetId,
+            skillId: input.skillId ?? context.skillId ?? null,
+            rootSkillId: input.rootSkillId ?? context.rootSkillId ?? null,
+            castId: input.castId ?? context.castId ?? null,
+            commandId: input.commandId ?? context.commandId ?? null,
+            clockDomainId: entry.clockDomainId,
+            cycle: entry.machine.snapshot().cycle,
+            reason: input.reason ?? 'BreakingAttackAdmitted'
+        };
+        entry.executionReservation = reservation;
+        this.trace.push(clone(reservation));
+        return clone(reservation);
+    }
+
+    releaseExecutionReservation(input = {}) {
+        if (!isObject(input)) {
+            throw new TypeError('PoiseSystem releaseExecutionReservation requires an object.');
+        }
+        const targetId = targetIdFrom(input);
+        const entry = this.#entry(targetId);
+        const reservation = entry.executionReservation;
+        if (reservation === null) return false;
+        const requestedId = input.reservationId ?? input.castId ?? input.commandId ?? null;
+        if (requestedId !== null && requestedId !== reservation.reservationId) return false;
+        entry.executionReservation = null;
+        this.trace.push({
+            ...clone(reservation),
+            frame: input.frame ?? reservation.frame,
+            stage: 'PoiseExecutionReservationReleased',
+            type: 'PoiseExecutionReservationReleased',
+            reason: input.reason ?? 'ReservationReleased'
+        });
+        return true;
     }
 
     consumeExecution(input = {}) {
         if (!isObject(input)) throw new TypeError('PoiseSystem consumeExecution requires an object.');
         const targetId = targetIdFrom(input);
-        return this.#entry(targetId).machine.consumeExecution(input);
+        const entry = this.#entry(targetId);
+        const reservation = entry.executionReservation;
+        const requestedId = input.reservationId ?? input.castId ?? input.commandId ?? null;
+        if (reservation !== null && requestedId !== reservation.reservationId) return null;
+        const result = entry.machine.consumeExecution(input);
+        if (result === null) return null;
+        entry.executionReservation = null;
+        const record = {
+            ...clone(result),
+            type: 'PoiseExecutionConsumed',
+            targetId,
+            reservationId: reservation?.reservationId ?? requestedId,
+            sourceId: input.sourceId ?? input.eventContext?.sourceId ?? null,
+            ownerId: input.ownerId ?? input.eventContext?.ownerId ?? null,
+            castId: input.castId ?? input.eventContext?.castId ?? null,
+            commandId: input.commandId ?? input.eventContext?.commandId ?? null,
+            clockDomainId: entry.clockDomainId
+        };
+        this.trace.push(record);
+        return clone(record);
     }
 
     damageZone(targetId) {
@@ -298,6 +383,7 @@ export class PoiseSystem {
             return {
                 targetId: entry.targetId,
                 clockDomainId: entry.clockDomainId,
+                executionReservation: clone(entry.executionReservation),
                 ...entry.machine.snapshot()
             };
         }

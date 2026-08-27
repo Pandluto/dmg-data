@@ -112,6 +112,23 @@ test('AKE poise zero and recovery are target-owned, ordered lifecycle edges', ()
         'fixture:poise-execution-gate',
         'fixture:poise-listener'
     ]);
+    const execution = runtime.execute({
+        type: 'ConsumePoiseExecution',
+        target: 'Target'
+    }, eventContext(11));
+    assert.equal(execution.stage, 'ExecutionConsumed');
+    assert.equal(runtime.poise.canExecute('enemy'), false);
+    assert.deepEqual(runtime.statusEffects.list({ active: true, targetId: 'enemy' })
+        .map(instance => instance.buffId)
+        .filter(buffId => buffId.startsWith('fixture:poise-'))
+        .sort(), [
+        'fixture:poise-break-damage',
+        'fixture:poise-listener'
+    ], 'consuming execution removes only the gate while the break damage zone remains');
+    assert.equal(runtime.execute({
+        type: 'ConsumePoiseExecution',
+        target: 'Target'
+    }, eventContext(12)), null);
     assert.equal(runtime.resilience.snapshot('enemy').resilience, 20,
         'Poise damage cannot mutate control resilience');
     runtime.execute({ type: 'ApplyPoiseDamage', target: 'Target', amount: 10 }, eventContext(20));

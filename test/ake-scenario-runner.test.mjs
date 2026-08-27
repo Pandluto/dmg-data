@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { AkeScenarioAssembler } from '../src/core/ake-scenario-assembler.mjs';
@@ -8,6 +9,10 @@ const baseOptions = Object.freeze({
     characterId: 'chr_0004_pelica',
     enemyId: 'eny_0007_mimicw'
 });
+const poiseOracle = JSON.parse(readFileSync(new URL(
+    '../fixtures/calc/pelica-poise-boundaries.oracle.json',
+    import.meta.url
+), 'utf8'));
 
 function close(actual, expected, epsilon = 1e-10) {
     assert.ok(Math.abs(actual - expected) <= epsilon,
@@ -184,4 +189,55 @@ test('generic runner derives ultimate ATB recovery pause from UltimateTimeAction
     assert.ok(result.resourceTrace.some(entry =>
         entry.stage === 'ResourceRecoveryResumed' && entry.frame === 50
     ));
+});
+
+test('generic runner enforces and consumes the Calc execution gate', () => {
+    const runCase = id => {
+        const oracleCase = poiseOracle.cases.find(entry => entry.id === id);
+        const bundle = new AkeScenarioAssembler().assemble({
+            characterId: 'chr_0004_pelica',
+            enemyId: oracleCase.enemy.id,
+            enemyMaxHp: oracleCase.enemy.maxHp,
+            initialAtb: oracleCase.combatSetting.initialAtb
+        });
+        return new AkeScenarioRunner(bundle).run({
+            commands: oracleCase.commands,
+            endFrame: Math.max(...oracleCase.commands.map(command => command.frame)) + 250
+        });
+    };
+    const belowThreshold = runCase('below-threshold-rejects-execution');
+    assert.deepEqual(belowThreshold.commandTrace.filter(entry =>
+        entry.type === 'CommandExecuted' && entry.commandType === 'BreakingAttack'
+    ).map(entry => [entry.frame, entry.success, entry.reason]), [
+        [340, false, 'TARGET_NOT_BROKEN']
+    ]);
+    assert.equal(belowThreshold.resourceTrace.some(entry =>
+        entry.reason === 'GainBreakingAttackAtb'), false);
+
+    const execution = runCase('execution-consumes-gate-and-refunds-atb');
+    assert.deepEqual(execution.finalState.poise.trace.filter(entry =>
+        entry.stage === 'ExecutionConsumed'
+    ).map(entry => entry.frame), [485]);
+    assert.deepEqual(execution.resourceTrace.filter(entry =>
+        entry.reason === 'GainBreakingAttackAtb'
+    ).map(entry => [entry.frame, entry.requested, entry.actual]), [[485, 25, 25]]);
+    assert.ok(execution.statusTrace.some(entry =>
+        entry.frame === 485
+        && entry.stage === 'StatusEffectFinished'
+        && entry.buffId === 'buff_common_poise_can_be_breaking_attacked'
+        && entry.reason === 'PoiseExecutionConsumed'),
+    'the execution-gate status ends on the committed execution Hit');
+    assert.equal(execution.statusTrace.some(entry =>
+        entry.frame === 485
+        && entry.stage === 'StatusEffectFinished'
+        && entry.buffId === 'buff_common_poise_break_damage_taken_scale'), false,
+    'the broken damage zone must not end when execution is consumed');
+
+    const singleUse = runCase('execution-gate-is-single-use');
+    assert.deepEqual(singleUse.commandTrace.filter(entry =>
+        entry.type === 'CommandExecuted' && entry.commandType === 'BreakingAttack'
+    ).map(entry => [entry.frame, entry.success, entry.reason ?? null]), [
+        [450, true, null],
+        [590, false, 'EXECUTION_ALREADY_CONSUMED']
+    ]);
 });

@@ -3078,6 +3078,34 @@ export class CombatRuntime {
                     ? result
                     : { ...result, abilityEvents };
             },
+            ConsumePoiseExecution: (action, eventContext) => {
+                const attribution = this.#attribution(action, eventContext);
+                const result = this.poise.consumeExecution({
+                    ...attribution,
+                    frame: eventContext.frame,
+                    reservationId: action.reservationId
+                        ?? eventContext.castId
+                        ?? eventContext.commandId,
+                    commandId: eventContext.commandId,
+                    castId: eventContext.castId,
+                    sourceSkillId: action.sourceSkillId ?? eventContext.skillId,
+                    rootSkillId: action.rootSkillId ?? eventContext.rootSkillId,
+                    eventContext
+                });
+                if (result === null) return null;
+                const executionGateBuffId = result.executionGateBuffId;
+                const gateRemoval = executionGateBuffId
+                    && this.statusEffects.getDefinition(executionGateBuffId) !== null
+                    ? this.execute({
+                        type: 'FinishBuff',
+                        target: attribution.targetId,
+                        buffId: executionGateBuffId,
+                        finishAll: true,
+                        reason: 'PoiseExecutionConsumed'
+                    }, eventContext)
+                    : null;
+                return { ...result, gateRemoval };
+            },
             SetResilienceModifier: (action, eventContext) => this.resilience.setModifier({
                 ...this.#attribution(action, eventContext),
                 modifierId: action.modifierId,

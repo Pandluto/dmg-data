@@ -69,6 +69,47 @@ test('same-frame shared ATB contention follows observed lexical member UUID orde
     ]);
 });
 
+test('same-frame squad executions reserve one shared enemy poise gate', () => {
+    const bundle = assemble({
+        enemyId: 'eny_0121_klbud',
+        enemyMaxHp: 100000,
+        initialAtb: 300
+    });
+    const setup = [
+        [0, 'Attack'], [15, 'Attack'], [30, 'Attack'], [45, 'Attack'],
+        [90, 'ComboSkill'], [120, 'NormalSkill'], [150, 'UltimateSkill'],
+        [280, 'NormalSkill'], [340, 'Attack'], [355, 'Attack'],
+        [370, 'Attack'], [385, 'Attack']
+    ].map(([frame, commandType], index) => ({
+        memberId: 'pelica',
+        frame,
+        commandType,
+        commandId: `poise-setup:${index}`
+    }));
+    const result = new AkeSquadScenarioRunner(bundle).run({
+        commands: [
+            ...setup,
+            {
+                memberId: 'pelica', frame: 450, commandType: 'BreakingAttack',
+                commandId: 'execution:pelica'
+            },
+            {
+                memberId: 'chen', frame: 450, commandType: 'BreakingAttack',
+                commandId: 'execution:chen'
+            }
+        ],
+        endFrame: 451
+    });
+    assert.deepEqual(executed(result).filter(entry =>
+        entry.commandType === 'BreakingAttack'
+    ).map(entry => [entry.memberId, entry.success, entry.reason ?? null]), [
+        ['chen', true, null],
+        ['pelica', false, 'EXECUTION_RESERVED']
+    ]);
+    assert.equal(result.finalState.poise.byTargetId['eny_0121_klbud']
+        .executionReservation.sourceId, 'chr_0005_chen');
+});
+
 test('queued commands recheck the shared pool at their actual execution frame', () => {
     const bundle = assemble({ initialAtb: 198 });
     const result = new AkeSquadScenarioRunner(bundle).run({

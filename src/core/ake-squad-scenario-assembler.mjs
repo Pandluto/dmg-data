@@ -188,6 +188,9 @@ export class AkeSquadScenarioAssembler {
                 ...memberRecords.map(member => member.entity),
                 clone(enemy)
             ],
+            skillCooldowns: assembled.flatMap(bundle =>
+                clone(bundle.definitions.skillCooldowns ?? [])
+            ),
             resources: [
                 clone(sharedAtb),
                 ...memberRecords.map(member => member.ultimateSp)

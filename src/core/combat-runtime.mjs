@@ -11,6 +11,7 @@ import { EffectSourceRegistry } from './effect-source-registry.mjs';
 import { SkillFormStateRegistry } from './skill-form-state-registry.mjs';
 import { EnemyMechanicResolver } from './combat-status-resolver.mjs';
 import { AbilityEventListenerRegistry } from './ability-event-listener-registry.mjs';
+import { SkillCooldownSystem } from './skill-cooldown-system.mjs';
 
 function isRecord(value) {
     return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -194,6 +195,10 @@ export class CombatRuntime {
         });
         this.skillForms = new SkillFormStateRegistry({
             targetValidator: targetId => this.context.hasEntity(targetId)
+        });
+        this.cooldowns = new SkillCooldownSystem({
+            tickRate: this.tickRate,
+            skills: definitions.skillCooldowns ?? definitions.cooldowns ?? []
         });
         this.clockDomains = new ClockDomainManager({
             schedule: this.schedule,
@@ -1121,6 +1126,7 @@ export class CombatRuntime {
             abilityEventListeners: this.abilityEventListeners.snapshot(),
             effectSources: this.effectSources.snapshot(),
             skillForms: this.skillForms.snapshot(),
+            cooldowns: this.cooldowns.snapshot(this.currentFrame),
             auras: this.auras.snapshot(),
             reactions: this.reactions.snapshot(),
             resilience: this.resilience.snapshot(),
@@ -3005,6 +3011,30 @@ export class CombatRuntime {
                     listenerTargetId,
                     useEventSourceAsActionSource: action.eventSourceAsActionSource === true
                 });
+            },
+            ModifySkillCooldown: (action, eventContext) => {
+                const actorId = this.#entityId(
+                    action.target ?? action.targetRef ?? action.targetId,
+                    eventContext,
+                    'Owner'
+                );
+                return this.cooldowns.modify({
+                    frame: eventContext.frame,
+                    actorId,
+                    selector: cloneValue(action.selector ?? {}),
+                    operation: action.operation,
+                    isPercentage: action.isPercentage,
+                    value: this.#number(
+                        action.value ?? action.amount ?? 0,
+                        eventContext,
+                        'skill cooldown value'
+                    ),
+                    sourceId: eventContext.sourceId,
+                    ownerId: eventContext.ownerId,
+                    castId: eventContext.castId,
+                    commandId: eventContext.commandId,
+                    reason: action.reason ?? 'ModifySkillCooldown'
+                }, eventContext);
             },
             RegisterAbilityEventListener: (action, eventContext) => {
                 const buffOwned = action.ownerLifetime === 'BuffInstance';

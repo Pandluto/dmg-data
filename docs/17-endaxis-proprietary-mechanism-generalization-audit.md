@@ -513,7 +513,7 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 
 本轮严格按“原始数据证据 → 通用编译原语 → runtime 事务 → 账本/UI 投影 → 逐干员审计”推进，没有修改共享变速水位轴的布局或坐标模型：
 
-1. 已建立 31 名具体干员的逐路径机制审计；当前报告共 3074 条 finding，其中 322 条 combat-blocking、161 条 combat-partial、422 条 evidence-missing、1771 条 spatial-assumption、390 条 presentation-only；
+1. 已建立 31 名具体干员的逐路径机制审计；当前报告共 3048 条 finding，其中 304 条 combat-blocking、161 条 combat-partial、422 条 evidence-missing、1771 条 spatial-assumption、390 条 presentation-only；
 2. `PauseBuffTime` 已进入统一 Buff 生命周期，暂停时同时冻结到期、周期触发和 Buff 时间线，恢复后从剩余本地时间继续；
 3. Blackboard 动态子 Buff、fallback dependency 与 `asChildBuff` 父子所有权已统一，父实例结束只级联回滚自己的子实例；
 4. `VulnerableAction` 已映射为 AKE 的“脆弱”，Defender `NormalCalcZone` 保留为“易伤”，两者进入独立公式区；
@@ -532,12 +532,13 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 17. SkillData 中 16 处 `AddTagAction`（15 处启用、1 处原始数据禁用）均位于明确的 timeline group 内，覆盖 12 份技能文件和 22 个静态 tag。启用动作现按 group 起始帧建立 `SkillActionTag` effect source、按结束帧释放；source key 绑定 cast，正常结束、提前结束和 program cancel 都按 cast 回收，底层 tag 引用计数保证重叠释放与 Buff 自带同名 tag 不会互相误删。逐干员报告因此消除 14 条战斗阻塞，当前降为 335 条；剩余 4 条均来自 BuffData，而不是角色技能时间窗；
 18. 全库动作审计现在保留数据集作用域：SkillData 以 `skill` 生命周期编译，BuffData 以 `buff` 生命周期编译，不再用脱离上下文的 standalone 结果误判生命周期动作。31 处 BuffData `AddTagAction` 仍明确报告 `AKE_TAG_ACTION_LIFETIME_REQUIRED`，等待 Buff/Event listener owner lifetime 证据，未借技能组结束语义错误清理；
 19. SkillData 的 `EventListenerAction` 已进入独立的施放级订阅注册表：订阅以 timeline group 为窗口、以 cast/path 为身份，保留施法 source/owner/target 与自己的 Blackboard；事件中的实际 source/owner/target 另存为 event attribution，因而子动作的 `Target` 可以解析到真实事件目标。正常 group cleanup、时间轴跳出窗口、program cancel 与技能提前结束均主动注销；
-20. 现有 BuffData ability listener 与技能时间窗 listener 已共用同一个 runtime ability-event 入口，但仍保留不同 owner lifetime。17 处 SkillData 声明中已有 15 处能注册；陈千语的一处只包含尚未实现的 `SetSkillCdAtOnce`，狼卫的一处是空 `FinishBuffAdvanced` 选择器，均继续 fail closed；订阅基础设施提交时，缺少生产者的事件仍报告 `AKE_ABILITY_EVENT_EMITTER_REQUIRED`，没有拿“订阅已注册”冒充“事件可触发”；
+20. 现有 BuffData ability listener 与技能时间窗 listener 已共用同一个 runtime ability-event 入口，但仍保留不同 owner lifetime。17 处 SkillData 声明中已有 16 处能注册；陈千语监听内的 `SetSkillCdAtOnce` 已进入公共冷却事务，当前只剩狼卫的一处空 `FinishBuffAdvanced` 选择器继续 fail closed；订阅基础设施提交时，缺少生产者的事件仍报告 `AKE_ABILITY_EVENT_EMITTER_REQUIRED`，没有拿“订阅已注册”冒充“事件可触发”；
 21. SkillData listener 使用的八类事件现在都有公共生产者：已有的受伤前、Buff 加入后、Buff 输出，加上物理状态事务提交前的 `OnBeforeOutputAirborne`、Buff apply 前的 `OnBeforeAddedBuff`、生命值由正数降为零时的 `OnAfterKillEntity`、每个 cast 恰好一次且发生在订阅清理前的 `OnSkillEnd`、场景空闲退出事务发出的 `OnTrulyExitFight`。直接 Damage 与 ResolveDamagePacket 的击杀都走同一生命值边界；Aura Buff 也补齐加入前事件；逐干员 blocker 因此由 330 降至 323；
 22. BuffData 的三处 `EventListenerAction` 现以精确 `buffInstanceId` 拥有订阅：并发同名 Buff 不共享 listener id，回调 Blackboard 写回监听者 Buff 实例，`OnFinishedBuff` 从统一状态结束事务广播，owner Buff 结束后无论正常 cleanup 是否存在都会注销自己的订阅。伊冯击杀恢复标记因此不再是静态 metadata，逐干员 blocker 降至 322；两个训练监听的表现 signal 仍按 presentation-only 处理；
-23. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁。
+23. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁；
+24. 全库 40 处 `SetSkillCdAtOnce` 已收敛为一个角色无关的 `ModifySkillCooldown` 事务，覆盖 Set/Reduce、固定秒数/基础冷却比例、指定 skill id/skill type 四个维度。冷却事实从单人和小队 runner 的局部 Map 提升到共享 `SkillCooldownSystem`，按“角色 × 公共技能组”拥有状态；强化/替换 skill id 因此与原按钮共用冷却。连携触发、command admission、最终状态和 UI cooldown interval 读取同一 end frame；陈千语 `OnBeforeOutputAirborne` 的比例减冷却现可在事件帧修改正在运行的连携冷却。逐干员 blocker 由 322 降至 304，报告中不再存在 `SetSkillCdAtOnce` finding。
 
-322 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。强制异常、异常生命周期、同元素爆发、普通四元素反应、技能时间窗 tag、技能/Buff 事件订阅生命周期与对应事件生产者的公共数据链已经闭合；陈千语监听内的冷却事务和狼卫空 selector 等子动作仍未闭合。仍未证实的 `弭弗特殊猛击` 数值继续保持 evidence-missing，而不是借元素表猜值。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
+304 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。全库仍有一个启用的训练动作被序列化在 `IfElse.conditionAction` 的条件之后，当前继续以 condition/action sequencing gap 明示，不能冒充已执行。强制异常、异常生命周期、同元素爆发、普通四元素反应、技能时间窗 tag、技能/Buff 事件订阅生命周期、对应事件生产者与 `SetSkillCdAtOnce` 公共数据链已经闭合；狼卫空 selector 等子动作仍未闭合。`PauseComboSkillTime`、global-CD 与未见于本动作的 remaining-basis 操作仍是独立冷却能力，不得借本次实现宣称完成。仍未证实的 `弭弗特殊猛击` 数值继续保持 evidence-missing，而不是借元素表猜值。“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
 
 ### 12.1 普通元素链的证据矩阵
 
@@ -595,3 +596,30 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 6. 订阅 ID 必须包含 cast，重叠施放不能互相覆盖或提前清理。
 
 Endaxis 的 `src/simulation/engine/TriggerRegistry.ts` 证明“集中事件注册表 + 明确事件处理器”比把触发逻辑分散到每名角色更稳定，但它的 `onFinalStrike`、`onActionStart`、`onBattleStart` 等 trigger vocabulary 是其手写模型。这里借用的是架构分层，不复制它的角色规则：事件名称、子动作、时间窗和条件仍全部来自 AKE 原始 `abilityActionMap`，缺生产者时由审计阻塞，不从 Endaxis 猜补数据。
+
+### 12.4 `SetSkillCdAtOnce` 的原始矩阵与共享冷却事实
+
+全库 40 处动作使用完全相同的 12 字段结构，分布为 SkillData 9 处、BuffData 31 处。没有任何一个字段需要角色 ID 才能解释：
+
+| operation | 数值模式 | 选择器 | 数量 | 冻结语义 |
+| --- | --- | --- | ---: | --- |
+| Reduce | percentage | skill type | 2 | `baseCooldown × ratio`，再按当前剩余值截断 |
+| Reduce | percentage | skill id | 2 | 同上，但先把 skill id 解析到其公共技能组 |
+| Reduce | fixed | skill id | 6 | 按秒转 Tick，从当前 end frame 扣除并截断到事件帧 |
+| Set | percentage | skill id | 6 | 把剩余冷却设为 `baseCooldown × ratio` |
+| Set | fixed | skill type | 4 | 把该类型技能组的剩余冷却设为指定秒数 |
+| Set | fixed | skill id | 20 | 把 skill id 所属技能组的剩余冷却设为指定秒数 |
+
+这组语义由三类证据交叉约束：AKE 原始 `functionType/isPercentage/useSkillType` 字段；大潘 `cd_reduce=0.5` 与中文说明“恢复 50% 冷却时间”；梨诺 `set_cd=3` 与技能结束后的 3 秒战技冷却。Endaxis 的 `applyCooldownReduction` 也将默认百分比基准放在基础冷却上，但它把连携与其他技能拆成两条手写路径，只能作为语义旁证，不能直接复制为本项目结构。
+
+运行时冻结以下边界：
+
+1. 状态键是 `actorId + cooldownGroupId`，不是 UI 当前按钮或单个形态 skill id；同一技能组的普通/强化/替换形态读写同一 end frame；
+2. catalog 由 AKE `skillGroupMap` 与 `skillSpecification` 生成；未出现在主 skillIdList、但属于同角色同 specification 的 child/alternate SkillData 仍回到公共组；
+3. 百分比值使用 AKE 的 0～1 ratio，不把 0.5 二次解释成 0.5%；固定值统一按秒乘 tickRate；
+4. Reduce 只修改活动冷却；无活动冷却时明确 ignored。Set 可以从 ready 状态建立冷却，也可以清零或延长现有冷却；
+5. 每次修改记录 before/end、base、requested、actual、discarded 与 percentage basis；清零时多余减量进入 discarded，不产生负冷却；
+6. runner 的连携窗口创建、技能释放合法性、最终状态和 cooldown interval 全部读取该状态机，避免“计算已经减 CD、按钮仍显示旧 CD”或反向情况；
+7. 多角色以 actorId 隔离；相同 skill id 不会跨角色串冷却。
+
+当前切片只实现 AKE `SetSkillCdAtOnce` 已出现的语义。`PauseComboSkillTime`、`AddGlobalCDTimer`、`CheckGlobalCDTimerAction` 以及确有原始证据时的 remaining-basis 百分比，继续由审计保留为后续能力，不能在没有字段证据时塞进本动作。

@@ -340,7 +340,6 @@ export class AkeSquadScenarioRunner {
         const commandTrace = [];
         const commandAdmissionTrace = [];
         const centerStateTrace = [];
-        const cooldownTrace = [];
         const comboTrace = [];
         const localClockTriggerTrace = [];
         const seenClockTriggers = new Set();
@@ -352,7 +351,6 @@ export class AkeSquadScenarioRunner {
             roles: member.roles,
             currentSkill: null,
             centerState: 'Free',
-            cooldowns: new Map(),
             nextCastToken: 1,
             nextQueuedCommandToken: 1,
             queuedCommands: new Map()
@@ -505,7 +503,9 @@ export class AkeSquadScenarioRunner {
         );
         const cooldownEnd = skillId => {
             for (const state of states.values()) {
-                if (state.cooldowns.has(skillId)) return state.cooldowns.get(skillId);
+                if (runtime.cooldowns.hasSkill(state.characterId, skillId)) {
+                    return runtime.cooldowns.getEndFrame(state.characterId, skillId);
+                }
             }
             return 0;
         };
@@ -846,16 +846,16 @@ export class AkeSquadScenarioRunner {
                 });
             }
             if (Number(skill.cooldownTicks) > 0) {
-                const cooldownEndFrame = frame + Number(skill.cooldownTicks);
-                state.cooldowns.set(skillId, cooldownEndFrame);
-                cooldownTrace.push({
+                runtime.cooldowns.start({
                     frame,
-                    stage: 'Started',
                     memberId: state.memberId,
-                    characterId: state.characterId,
+                    actorId: state.characterId,
                     skillId,
-                    durationTicks: skill.cooldownTicks,
-                    endFrame: cooldownEndFrame
+                    skillType: commandType === 'Attack' ? 'NormalAttack' : commandType,
+                    durationTicks: Number(skill.cooldownTicks),
+                    commandId,
+                    castId,
+                    reason: 'SkillCast'
                 });
             }
             if (options.traceCommand !== false) {
@@ -1138,7 +1138,10 @@ export class AkeSquadScenarioRunner {
                         skillId,
                         ownerId: state.characterId,
                         targetId: command.targetId ?? enemyId,
-                        cooldownEnd: state.cooldowns.get(skillId) ?? 0,
+                        cooldownEnd: runtime.cooldowns.getEndFrame(
+                            state.characterId,
+                            skillId
+                        ),
                         currentSkillId: state.currentSkill?.skillId ?? null,
                         currentPriority: state.currentSkill?.priority ?? 0,
                         commandId: command.commandId
@@ -1185,7 +1188,10 @@ export class AkeSquadScenarioRunner {
                 skillId
             });
             if (!skill) throw new Error(`Missing compiled SkillData ${skillId}.`);
-            const skillCooldownEnd = state.cooldowns.get(skillId) ?? 0;
+            const skillCooldownEnd = runtime.cooldowns.getEndFrame(
+                state.characterId,
+                skillId
+            );
             if (skillCooldownEnd > frame) {
                 failCommand(state, command, frame, 'COOLDOWN_ACTIVE', skillId, skillSource);
                 return;
@@ -1294,7 +1300,7 @@ export class AkeSquadScenarioRunner {
         }));
         const cooldownsByCharacterId = Object.fromEntries([...states.values()].map(state => [
             state.characterId,
-            Object.fromEntries(state.cooldowns)
+            runtime.cooldowns.endFramesForActor(state.characterId)
         ]));
         return {
             schemaVersion: 3,
@@ -1316,7 +1322,8 @@ export class AkeSquadScenarioRunner {
             commandAdmissionTrace,
             comboTrace,
             centerStateTrace,
-            cooldownTrace,
+            cooldownTrace: runtime.cooldowns.intervals(),
+            cooldownMutationTrace: clone(runtime.cooldowns.trace),
             resourceTrace: clone(runtime.resources.trace),
             statusTrace: clone(runtime.statusEffects.trace),
             clockTrace: clone(runtime.clockDomains.trace),

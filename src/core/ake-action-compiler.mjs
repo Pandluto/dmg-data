@@ -269,6 +269,14 @@ function tagIds(value) {
     return [...new Set(result)];
 }
 
+function skillTypeMaskValues(value) {
+    const entries = Array.isArray(value) ? value : [value];
+    return [...new Set(entries.flatMap(entry => String(entry ?? '')
+        .split(/[|,]/g)
+        .map(type => type.trim())
+        .filter(type => type.length > 0 && type !== 'None')))];
+}
+
 export function isAkeConditionType(type) {
     return CONDITION_PREFIX.test(String(type ?? ''));
 }
@@ -2227,6 +2235,78 @@ export class AkeActionCompiler {
                     reason: skillOwned
                         ? `${type}:timeline-end`
                         : `${type}:buff-end`
+                });
+                break;
+            }
+            case 'SetSkillCdAtOnce': {
+                const target = this.#targetRef(
+                    node.target,
+                    state,
+                    'skill cooldown owner'
+                );
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                const operation = String(node.functionType ?? 'Set');
+                if (!['Set', 'Reduce'].includes(operation)) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_SKILL_COOLDOWN_OPERATION_UNSUPPORTED',
+                        type,
+                        state.path,
+                        `SetSkillCdAtOnce operation ${operation} is not supported.`,
+                        { functionType: operation }
+                    ));
+                    break;
+                }
+                let selector = null;
+                if (node.useSkillType === true) {
+                    const skillTypes = skillTypeMaskValues(node.skillTypeMask);
+                    if (skillTypes.length === 0) {
+                        result.unresolved.push(this.#unresolved(
+                            'AKE_SKILL_COOLDOWN_TYPE_MISSING',
+                            type,
+                            state.path,
+                            'Type-selected SetSkillCdAtOnce has no skillTypeMask.'
+                        ));
+                    } else {
+                        selector = { skillTypes };
+                    }
+                } else if (typeof node.skillId === 'string' && node.skillId.length > 0) {
+                    selector = { skillId: node.skillId };
+                } else {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_SKILL_COOLDOWN_SKILL_MISSING',
+                        type,
+                        state.path,
+                        'Skill-selected SetSkillCdAtOnce has no skillId.'
+                    ));
+                }
+                if (target.ref && selector) result.actions.push({
+                    type: 'ModifySkillCooldown',
+                    target: target.ref,
+                    selector,
+                    operation,
+                    // AKE serializes percentages as ratios (0.5 = 50%).
+                    // Percentage Reduce uses the selected skill group's base
+                    // cooldown, then the runtime clamps it to the remainder.
+                    isPercentage: Boolean(node.isPercentage),
+                    value: descriptor(node.value, 0),
+                    reason: type,
+                    metadata: {
+                        akeSourceAction: type,
+                        akeSourcePath: state.path,
+                        percentageBasis: node.isPercentage
+                            ? 'BaseCooldown'
+                            : null,
+                        valueUnit: node.isPercentage ? 'Ratio' : 'Seconds'
+                    }
+                });
+                result.metadata.push({
+                    type,
+                    path: state.path,
+                    category: 'skill-cooldown',
+                    operation,
+                    selector: clone(selector),
+                    isPercentage: Boolean(node.isPercentage),
+                    value: clone(node.value)
                 });
                 break;
             }

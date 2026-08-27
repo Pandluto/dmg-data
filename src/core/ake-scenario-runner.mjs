@@ -201,10 +201,8 @@ export class AkeScenarioRunner {
         const commandTrace = [];
         const commandAdmissionTrace = [];
         const centerStateTrace = [];
-        const cooldownTrace = [];
         const comboTrace = [];
         const localClockTriggerTrace = [];
-        const cooldowns = new Map();
         let currentSkill = null;
         let centerState = 'Free';
         let nextCastToken = 1;
@@ -354,7 +352,7 @@ export class AkeScenarioRunner {
             ),
             schedule: runtime.schedule,
             trace: comboTrace,
-            getCooldownEnd: skillId => cooldowns.get(skillId) ?? 0
+            getCooldownEnd: skillId => runtime.cooldowns.getEndFrame(characterId, skillId)
         });
         this.lastRuntime = runtime;
         this.lastComboMachine = comboMachine;
@@ -638,14 +636,15 @@ export class AkeScenarioRunner {
                 });
             }
             if (Number(skill.cooldownTicks) > 0) {
-                const end = frame + Number(skill.cooldownTicks);
-                cooldowns.set(skillId, end);
-                cooldownTrace.push({
+                runtime.cooldowns.start({
                     frame,
-                    stage: 'Started',
+                    actorId: characterId,
                     skillId,
-                    durationTicks: skill.cooldownTicks,
-                    endFrame: end
+                    skillType: commandType === 'Attack' ? 'NormalAttack' : commandType,
+                    durationTicks: Number(skill.cooldownTicks),
+                    commandId,
+                    castId,
+                    reason: 'SkillCast'
                 });
             }
             commandTrace.push({
@@ -798,7 +797,7 @@ export class AkeScenarioRunner {
                         skillId,
                         ownerId: characterId,
                         targetId: command.targetId ?? enemyId,
-                        cooldownEnd: cooldowns.get(skillId) ?? 0,
+                        cooldownEnd: runtime.cooldowns.getEndFrame(characterId, skillId),
                         currentSkillId: currentSkill?.skillId ?? null,
                         currentPriority: currentSkill?.priority ?? 0
                     });
@@ -833,6 +832,11 @@ export class AkeScenarioRunner {
                 skillId
             });
             if (!skill) throw new Error(`Missing compiled SkillData ${skillId}.`);
+            const skillCooldownEnd = runtime.cooldowns.getEndFrame(characterId, skillId);
+            if (skillCooldownEnd > frame) {
+                failCommand(command, frame, 'COOLDOWN_ACTIVE', skillId);
+                return;
+            }
             if (!canPay(skill, frame)) {
                 failCommand(command, frame, 'INSUFFICIENT_RESOURCE', skillId);
                 return;
@@ -917,7 +921,8 @@ export class AkeScenarioRunner {
             commandAdmissionTrace,
             comboTrace,
             centerStateTrace,
-            cooldownTrace,
+            cooldownTrace: runtime.cooldowns.intervals(),
+            cooldownMutationTrace: clone(runtime.cooldowns.trace),
             resourceTrace: clone(runtime.resources.trace),
             statusTrace: clone(runtime.statusEffects.trace),
             clockTrace: clone(runtime.clockDomains.trace),
@@ -942,7 +947,7 @@ export class AkeScenarioRunner {
                 targetVital: vital,
                 resources: compactResources(resourceSnapshot),
                 resourcePools: clone(resourceSnapshot.byPoolId),
-                cooldowns: Object.fromEntries(cooldowns),
+                cooldowns: runtime.cooldowns.endFramesForActor(characterId),
                 pendingCombos: comboMachine.snapshot(durationTicks),
                 statuses: runtime.statusEffects.list({ active: true }),
                 resilience: runtime.resilience.snapshot(),

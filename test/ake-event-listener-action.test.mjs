@@ -339,8 +339,8 @@ test('all public SkillData EventListenerAction nodes use the generic compiler ro
     }
 
     assert.equal(rawListenerCount, 17);
-    assert.equal(registerCount, 15,
-        'Chen cooldown reset and Wulfgard empty finish selector remain explicit child gaps');
+    assert.equal(registerCount, 16,
+        'only Wulfgard empty finish selector remains an explicit child gap');
     assert.equal(listenerGaps.some(gap =>
         gap.code === 'AKE_ACTION_UNSUPPORTED'
     ), false, 'the EventListenerAction wrapper itself must never fall through');

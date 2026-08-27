@@ -35,6 +35,23 @@ const PHYSICAL_STATUS_ACTION_BUFFS = Object.freeze({
     AirborneAction: 'buff_physical_try_airborne'
 });
 
+const COOLDOWN_SKILL_TYPES = Object.freeze({
+    normalAttack: 'NormalAttack',
+    normalSkill: 'NormalSkill',
+    ultimateSkill: 'UltimateSkill',
+    comboSkill: 'ComboSkill'
+});
+
+const SKILL_SPECIFICATION_TYPES = Object.freeze({
+    CharacterNormalAttack: 'NormalAttack',
+    CharacterPowerAttack: 'NormalAttack',
+    CharacterPlungingAttack: 'NormalAttack',
+    CharacterDashAttack: 'NormalAttack',
+    CharacterNormalSkill: 'NormalSkill',
+    CharacterUltimateSkill: 'UltimateSkill',
+    CharacterComboSkill: 'ComboSkill'
+});
+
 function isRecord(value) {
     return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
@@ -271,6 +288,41 @@ function roleMap(character) {
         normalSkillId: groups.normalSkill[0] ?? null,
         ultimateSkillId: groups.ultimateSkill[0] ?? null
     };
+}
+
+function skillCooldownDefinitions(characterId, roles, programs) {
+    const catalog = new Map();
+    for (const [role, skillIds] of Object.entries(roles.groups ?? {})) {
+        const skillType = COOLDOWN_SKILL_TYPES[role];
+        if (!skillType) continue;
+        const groupId = `${characterId}:${skillType}`;
+        for (const skillId of skillIds) catalog.set(skillId, { skillType, groupId });
+    }
+    const ownPrefix = `${characterId}_`;
+    return [...programs.entries()]
+        .filter(([skillId]) => String(skillId).startsWith(ownPrefix))
+        .map(([skillId, program]) => {
+            const inferredType = SKILL_SPECIFICATION_TYPES[program.skillSpecification] ?? null;
+            const binding = catalog.get(skillId) ?? (inferredType ? {
+                skillType: inferredType,
+                // Child/alternate SkillData inherits the public command
+                // group's cooldown even when it is absent from skillIdList.
+                groupId: `${characterId}:${inferredType}`
+            } : {
+                skillType: null,
+                groupId: skillId
+            });
+            return {
+                actorId: characterId,
+                skillId,
+                skillType: binding.skillType,
+                groupId: binding.groupId,
+                baseDurationTicks: Number(program.cooldownTicks ?? 0),
+                metadata: {
+                    skillSpecification: program.skillSpecification ?? null
+                }
+            };
+        });
 }
 
 function independentAttributes(enemyTemplate) {
@@ -1020,6 +1072,7 @@ export class AkeScenarioAssembler {
                     }
                 }
             ],
+            skillCooldowns: skillCooldownDefinitions(characterId, roles, programs),
             resources: [
                 {
                     id: 'squad:Atb',

@@ -11,18 +11,18 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3066,
-    "combatRiskCount": 905,
+    "findingCount": 3048,
+    "combatRiskCount": 887,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 322,
+      "combat-blocking": 304,
       "combat-partial": 161,
       "evidence-missing": 422,
       "presentation-only": 390,
       "spatial-assumption": 1771
     },
     "byPriority": {
-      "P0": 181,
+      "P0": 163,
       "P1": 650,
       "P2": 1845,
       "P3": 390
@@ -30,7 +30,7 @@
     "byCapability": {
       "child-action": 41,
       "condition-algebra": 133,
-      "cooldown-window": 25,
+      "cooldown-window": 7,
       "damage-factor": 11,
       "data-provider": 1,
       "dependency-closure": 1,
@@ -139,7 +139,6 @@
       "SetAbilityEntityDuration": 10,
       "SetAbilityEntityTarget": 1,
       "SetIgnoreGlobalTimeScaleAction": 5,
-      "SetSkillCdAtOnce": 18,
       "ShowComboRingQte": 1,
       "SkillAffixAction": 2,
       "SkillAIMoveAction": 7,
@@ -179,25 +178,23 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 122,
-        "combatRiskCount": 20,
+        "findingCount": 120,
+        "combatRiskCount": 18,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 6,
+          "combat-blocking": 4,
           "combat-partial": 4,
           "evidence-missing": 10,
           "presentation-only": 11,
           "spatial-assumption": 91
         },
         "byPriority": {
-          "P0": 2,
           "P1": 16,
           "P2": 93,
           "P3": 11
         },
         "byCapability": {
           "condition-algebra": 4,
-          "cooldown-window": 2,
           "deterministic-choice": 8,
           "physical-status": 1,
           "presentation": 11,
@@ -221,7 +218,6 @@
           "SaveTwoDirectionAngle": 4,
           "Selector": 3,
           "SelfRotateAction": 28,
-          "SetSkillCdAtOnce": 2,
           "SnapToTargetWithRangeAction": 9,
           "TeleportAction": 9,
           "TeleportPosSelectAction": 6,
@@ -229,40 +225,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0002_endminm",
-          "characterName": "管理员",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0003_endminf_potential5",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0003_endminf_potential5.json",
-          "jsonPath": "abilityEventAction[0].actions[0][1..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
-        },
-        {
-          "characterId": "chr_0002_endminm",
-          "characterName": "管理员",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0003_endminf_potential5",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0003_endminf_potential5.json",
-          "jsonPath": "abilityEventAction[0].actions[0][1..][1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
-        },
         {
           "characterId": "chr_0002_endminm",
           "characterName": "管理员",
@@ -2321,25 +2283,23 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 122,
-        "combatRiskCount": 20,
+        "findingCount": 120,
+        "combatRiskCount": 18,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 6,
+          "combat-blocking": 4,
           "combat-partial": 4,
           "evidence-missing": 10,
           "presentation-only": 11,
           "spatial-assumption": 91
         },
         "byPriority": {
-          "P0": 2,
           "P1": 16,
           "P2": 93,
           "P3": 11
         },
         "byCapability": {
           "condition-algebra": 4,
-          "cooldown-window": 2,
           "deterministic-choice": 8,
           "physical-status": 1,
           "presentation": 11,
@@ -2363,7 +2323,6 @@
           "SaveTwoDirectionAngle": 4,
           "Selector": 3,
           "SelfRotateAction": 28,
-          "SetSkillCdAtOnce": 2,
           "SnapToTargetWithRangeAction": 9,
           "TeleportAction": 9,
           "TeleportPosSelectAction": 6,
@@ -2371,40 +2330,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0003_endminf",
-          "characterName": "管理员",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0003_endminf_potential5",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0003_endminf_potential5.json",
-          "jsonPath": "abilityEventAction[0].actions[0][1..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
-        },
-        {
-          "characterId": "chr_0003_endminf",
-          "characterName": "管理员",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0003_endminf_potential5",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0003_endminf_potential5.json",
-          "jsonPath": "abilityEventAction[0].actions[0][1..][1]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
-        },
         {
           "characterId": "chr_0003_endminf",
           "characterName": "管理员",
@@ -8201,25 +8126,25 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 113,
-        "combatRiskCount": 38,
+        "findingCount": 112,
+        "combatRiskCount": 37,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 15,
+          "combat-blocking": 14,
           "combat-partial": 4,
           "evidence-missing": 19,
           "presentation-only": 4,
           "spatial-assumption": 71
         },
         "byPriority": {
-          "P0": 4,
+          "P0": 3,
           "P1": 26,
           "P2": 79,
           "P3": 4
         },
         "byCapability": {
           "condition-algebra": 11,
-          "cooldown-window": 3,
+          "cooldown-window": 2,
           "deterministic-choice": 11,
           "physical-status": 3,
           "presentation": 4,
@@ -8249,7 +8174,6 @@
           "SaveTwoDirectionAngle": 6,
           "Selector": 1,
           "SelfRotateAction": 24,
-          "SetSkillCdAtOnce": 1,
           "SnapToTargetWithRangeAction": 6,
           "TeleportAction": 4,
           "TeleportPosSelectAction": 3,
@@ -8273,23 +8197,6 @@
           "priority": "P0",
           "capability": "status-lifecycle",
           "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0016_laevat",
-          "characterName": "莱万汀",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0016_laevat_show_weapon",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_show_weapon.json",
-          "jsonPath": "buffEventAction[1].actions[0][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
         },
         {
           "characterId": "chr_0016_laevat",
@@ -10196,25 +10103,24 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 104,
-        "combatRiskCount": 25,
+        "findingCount": 103,
+        "combatRiskCount": 24,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 15,
+          "combat-blocking": 14,
           "combat-partial": 3,
           "evidence-missing": 7,
           "presentation-only": 14,
           "spatial-assumption": 65
         },
         "byPriority": {
-          "P0": 3,
+          "P0": 2,
           "P1": 21,
           "P2": 66,
           "P3": 14
         },
         "byCapability": {
           "condition-algebra": 12,
-          "cooldown-window": 1,
           "deterministic-choice": 6,
           "form-state": 2,
           "physical-status": 2,
@@ -10244,7 +10150,6 @@
           "SaveTwoDirectionAngle": 3,
           "Selector": 1,
           "SelfRotateAction": 26,
-          "SetSkillCdAtOnce": 1,
           "SkillAffixAction": 1,
           "SnapToTargetWithRangeAction": 8,
           "TeleportAction": 3,
@@ -10270,23 +10175,6 @@
           "priority": "P0",
           "capability": "form-state",
           "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection."
-        },
-        {
-          "characterId": "chr_0017_yvonne",
-          "characterName": "伊冯",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0017_yvonne_ultimate_skill_end",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0017_yvonne_ultimate_skill_end.json",
-          "jsonPath": "buffEventAction[1].actions[2][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
         },
         {
           "characterId": "chr_0017_yvonne",
@@ -16802,18 +16690,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 343,
-        "combatRiskCount": 200,
+        "findingCount": 339,
+        "combatRiskCount": 196,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 29,
+          "combat-blocking": 25,
           "combat-partial": 8,
           "evidence-missing": 163,
           "presentation-only": 45,
           "spatial-assumption": 98
         },
         "byPriority": {
-          "P0": 11,
+          "P0": 7,
           "P1": 186,
           "P2": 101,
           "P3": 45
@@ -16821,7 +16709,7 @@
         "byCapability": {
           "child-action": 1,
           "condition-algebra": 18,
-          "cooldown-window": 5,
+          "cooldown-window": 1,
           "deterministic-choice": 160,
           "event-scheduling": 1,
           "event-subscription": 3,
@@ -16861,7 +16749,6 @@
           "SaveTwoDirectionAngle": 5,
           "SelfRotateAction": 28,
           "SendBattleSignalToLevel": 1,
-          "SetSkillCdAtOnce": 4,
           "ShowComboRingQte": 1,
           "SnapToTargetWithRangeAction": 5,
           "TeleportAction": 8,
@@ -16872,57 +16759,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0028_wulfa",
-          "characterName": "洛茜",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0028_wulfa_combo_usetimer",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_combo_usetimer.json",
-          "jsonPath": "buffEventAction[0].actions[0][3..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
-        },
-        {
-          "characterId": "chr_0028_wulfa",
-          "characterName": "洛茜",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0028_wulfa_combo_2_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0028_wulfa_combo_2_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[21][1].success[0].failure[4]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
-        },
-        {
-          "characterId": "chr_0028_wulfa",
-          "characterName": "洛茜",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0028_wulfa_combo_2_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0028_wulfa_combo_2_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[21][1].success[0].success[2]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
-        },
         {
           "characterId": "chr_0028_wulfa",
           "characterName": "洛茜",
@@ -16973,23 +16809,6 @@
           "priority": "P0",
           "capability": "child-action",
           "rationale": "The action schedules, mutates, or removes a child skill/entity that can own independent hits."
-        },
-        {
-          "characterId": "chr_0028_wulfa",
-          "characterName": "洛茜",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0028_wulfa_combo_3_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0028_wulfa_combo_3_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[15][2]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
         },
         {
           "characterId": "chr_0028_wulfa",
@@ -25273,18 +25092,18 @@
         "missingBuffCount": 1
       },
       "summary": {
-        "findingCount": 138,
-        "combatRiskCount": 61,
+        "findingCount": 137,
+        "combatRiskCount": 60,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 40,
+          "combat-blocking": 39,
           "combat-partial": 1,
           "evidence-missing": 20,
           "presentation-only": 14,
           "spatial-assumption": 63
         },
         "byPriority": {
-          "P0": 33,
+          "P0": 32,
           "P1": 22,
           "P2": 69,
           "P3": 14
@@ -25292,7 +25111,6 @@
         "byCapability": {
           "child-action": 9,
           "condition-algebra": 7,
-          "cooldown-window": 1,
           "damage-factor": 1,
           "dependency-closure": 1,
           "deterministic-choice": 14,
@@ -25330,7 +25148,6 @@
           "SaveTwoDirectionAngle": 2,
           "SelfRotateAction": 22,
           "SetAbilityEntityDuration": 2,
-          "SetSkillCdAtOnce": 1,
           "SpawnAbilityEntity": 6,
           "TagQueryListenerAction": 1,
           "TeleportAction": 6,
@@ -25492,23 +25309,6 @@
           "priority": "P0",
           "capability": "form-state",
           "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection."
-        },
-        {
-          "characterId": "chr_0030_zhuangfy",
-          "characterName": "庄方宜",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0030_zhuangfy_ult_base",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0030_zhuangfy_ult_base.json",
-          "jsonPath": "buffEventAction[4].actions[0][2]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
         },
         {
           "characterId": "chr_0030_zhuangfy",
@@ -30454,18 +30254,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 172,
-        "combatRiskCount": 70,
+        "findingCount": 171,
+        "combatRiskCount": 69,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 43,
+          "combat-blocking": 42,
           "combat-partial": 10,
           "evidence-missing": 17,
           "presentation-only": 18,
           "spatial-assumption": 84
         },
         "byPriority": {
-          "P0": 35,
+          "P0": 34,
           "P1": 31,
           "P2": 88,
           "P3": 18
@@ -30473,7 +30273,6 @@
         "byCapability": {
           "child-action": 27,
           "condition-algebra": 4,
-          "cooldown-window": 1,
           "damage-factor": 1,
           "derived-state": 4,
           "deterministic-choice": 13,
@@ -30516,7 +30315,6 @@
           "SelfRotateAction": 19,
           "SetAbilityEntityDuration": 8,
           "SetIgnoreGlobalTimeScaleAction": 1,
-          "SetSkillCdAtOnce": 1,
           "SnapToTargetWithRangeAction": 1,
           "SpawnAbilityEntity": 13,
           "TagQueryListenerAction": 1,
@@ -31103,23 +30901,6 @@
           "priority": "P0",
           "capability": "event-scheduling",
           "rationale": "Channel timing determines tick count, hit time, and interruption behavior."
-        },
-        {
-          "characterId": "chr_0032_lizhiyan",
-          "characterName": "诀",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0032_lizhiyan_ultimate_skill2",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0032_lizhiyan_ultimate_skill2.json",
-          "jsonPath": "actionGroupData.timelineActions[20][0].success[0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
         },
         {
           "characterId": "chr_0032_lizhiyan",
@@ -36063,18 +35844,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 138,
-        "combatRiskCount": 40,
+        "findingCount": 136,
+        "combatRiskCount": 38,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 24,
+          "combat-blocking": 22,
           "combat-partial": 4,
           "evidence-missing": 12,
           "presentation-only": 24,
           "spatial-assumption": 74
         },
         "byPriority": {
-          "P0": 17,
+          "P0": 15,
           "P1": 15,
           "P2": 82,
           "P3": 24
@@ -36082,7 +35863,6 @@
         "byCapability": {
           "child-action": 1,
           "condition-algebra": 4,
-          "cooldown-window": 2,
           "damage-factor": 4,
           "derived-state": 3,
           "deterministic-choice": 4,
@@ -36118,7 +35898,6 @@
           "SaveTargetDistanceAction": 2,
           "Selector": 4,
           "SelfRotateAction": 25,
-          "SetSkillCdAtOnce": 2,
           "SkillAIMoveAction": 6,
           "SnapToTargetWithRangeAction": 10,
           "StoreCurSkillExecuteFrame": 3,
@@ -36333,40 +36112,6 @@
           "priority": "P0",
           "capability": "event-scheduling",
           "rationale": "Channel timing determines tick count, hit time, and interruption behavior."
-        },
-        {
-          "characterId": "chr_0035_liino",
-          "characterName": "梨诺",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0035_liino_normal_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0035_liino_normal_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[14][0].abilityActionMap[0].actions[0][1..][2]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
-        },
-        {
-          "characterId": "chr_0035_liino",
-          "characterName": "梨诺",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0035_liino_normal_skill_combo",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0035_liino_normal_skill_combo.json",
-          "jsonPath": "actionGroupData.timelineActions[6][0].abilityActionMap[0].actions[0][1..][2]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
         },
         {
           "characterId": "chr_0035_liino",
@@ -39402,25 +39147,24 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 71,
-        "combatRiskCount": 15,
+        "findingCount": 70,
+        "combatRiskCount": 14,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 5,
+          "combat-blocking": 4,
           "combat-partial": 1,
           "evidence-missing": 9,
           "presentation-only": 4,
           "spatial-assumption": 52
         },
         "byPriority": {
-          "P0": 2,
+          "P0": 1,
           "P1": 10,
           "P2": 55,
           "P3": 4
         },
         "byCapability": {
           "condition-algebra": 3,
-          "cooldown-window": 1,
           "deterministic-choice": 6,
           "event-scheduling": 1,
           "presentation": 4,
@@ -39445,7 +39189,6 @@
           "SaveTwoDirectionAngle": 3,
           "Selector": 1,
           "SelfRotateAction": 14,
-          "SetSkillCdAtOnce": 1,
           "SnapToTargetWithRangeAction": 7,
           "TeleportAction": 3,
           "TeleportPosSelectAction": 2,
@@ -39453,23 +39196,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0005_chen",
-          "characterName": "陈千语",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0005_chen_combo_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0005_chen_combo_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[7][0].abilityActionMap[0].actions[0][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
-        },
         {
           "characterId": "chr_0005_chen",
           "characterName": "陈千语",
@@ -40678,24 +40404,22 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 47,
-        "combatRiskCount": 9,
+        "findingCount": 46,
+        "combatRiskCount": 8,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 2,
+          "combat-blocking": 1,
           "evidence-missing": 7,
           "presentation-only": 3,
           "spatial-assumption": 35
         },
         "byPriority": {
-          "P0": 1,
           "P1": 7,
           "P2": 36,
           "P3": 3
         },
         "byCapability": {
           "condition-algebra": 1,
-          "cooldown-window": 1,
           "deterministic-choice": 6,
           "presentation": 3,
           "targeting-spatial": 35,
@@ -40711,7 +40435,6 @@
           "SaveTargetDistanceAction": 1,
           "SaveTwoDirectionAngle": 5,
           "SelfRotateAction": 11,
-          "SetSkillCdAtOnce": 1,
           "SnapToTargetWithRangeAction": 2,
           "TeleportAction": 4,
           "TeleportPosSelectAction": 3,
@@ -40719,23 +40442,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0006_wolfgd",
-          "characterName": "狼卫",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0006_wolfgd_ultimate_skill",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0006_wolfgd_ultimate_skill.json",
-          "jsonPath": "actionGroupData.timelineActions[1][0].success[0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
-        },
         {
           "characterId": "chr_0006_wolfgd",
           "characterName": "狼卫",
@@ -46225,25 +45931,24 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 60,
-        "combatRiskCount": 12,
+        "findingCount": 59,
+        "combatRiskCount": 11,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 4,
+          "combat-blocking": 3,
           "combat-partial": 2,
           "evidence-missing": 6,
           "presentation-only": 6,
           "spatial-assumption": 42
         },
         "byPriority": {
-          "P0": 2,
+          "P0": 1,
           "P1": 8,
           "P2": 44,
           "P3": 6
         },
         "byCapability": {
           "condition-algebra": 2,
-          "cooldown-window": 1,
           "deterministic-choice": 4,
           "form-state": 1,
           "presentation": 6,
@@ -46265,7 +45970,6 @@
           "SaveTwoDirectionAngle": 1,
           "Selector": 2,
           "SelfRotateAction": 14,
-          "SetSkillCdAtOnce": 1,
           "SkillAffixAction": 1,
           "SnapToTargetWithRangeAction": 4,
           "TeleportAction": 5,
@@ -46274,23 +45978,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0018_dapan",
-          "characterName": "大潘",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0018_dapan_talent_1_cd_reduce",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0018_dapan_talent_1_cd_reduce.json",
-          "jsonPath": "abilityEventAction[0].actions[0][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
-        },
         {
           "characterId": "chr_0018_dapan",
           "characterName": "大潘",
@@ -52340,24 +52027,23 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 69,
-        "combatRiskCount": 18,
+        "findingCount": 68,
+        "combatRiskCount": 17,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 11,
+          "combat-blocking": 10,
           "evidence-missing": 7,
           "presentation-only": 7,
           "spatial-assumption": 44
         },
         "byPriority": {
-          "P0": 5,
+          "P0": 4,
           "P1": 12,
           "P2": 45,
           "P3": 7
         },
         "byCapability": {
           "condition-algebra": 6,
-          "cooldown-window": 1,
           "deterministic-choice": 6,
           "event-scheduling": 1,
           "presentation": 7,
@@ -52381,7 +52067,6 @@
           "SaveTargetDistanceAction": 1,
           "SaveTwoDirectionAngle": 3,
           "SelfRotateAction": 14,
-          "SetSkillCdAtOnce": 1,
           "SlowAction": 3,
           "SnapToTargetWithRangeAction": 3,
           "TeleportAction": 3,
@@ -52390,23 +52075,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0022_bounda",
-          "characterName": "萤石",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0022_bounda_potential_5_cd",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0022_bounda_potential_5_cd.json",
-          "jsonPath": "abilityEventAction[0].actions[0][2..][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "SetSkillCdAtOnce",
-          "compilerCategory": "other",
-          "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "cooldown-window",
-          "rationale": "The action changes cooldown or combo-window admission state."
-        },
         {
           "characterId": "chr_0022_bounda",
           "characterName": "萤石",
@@ -54500,18 +54168,18 @@
   ],
   "sharedDependencies": {
     "summary": {
-      "findingCount": 201,
-      "combatRiskCount": 98,
+      "findingCount": 200,
+      "combatRiskCount": 97,
       "isCombatClosed": false,
       "byImpact": {
-        "combat-blocking": 36,
+        "combat-blocking": 35,
         "combat-partial": 17,
         "evidence-missing": 45,
         "presentation-only": 13,
         "spatial-assumption": 90
       },
       "byPriority": {
-        "P0": 10,
+        "P0": 9,
         "P1": 58,
         "P2": 120,
         "P3": 13
@@ -54519,7 +54187,6 @@
       "byCapability": {
         "child-action": 2,
         "condition-algebra": 26,
-        "cooldown-window": 1,
         "data-provider": 1,
         "deterministic-choice": 14,
         "event-scheduling": 2,
@@ -54573,7 +54240,6 @@
         "Selector": 10,
         "SelfRotateAction": 35,
         "SetFirstDashParam": 2,
-        "SetSkillCdAtOnce": 1,
         "SkillAffixAction": 1,
         "SlowAction": 1,
         "SnapToTargetWithRangeAction": 5,
@@ -54617,24 +54283,6 @@
         "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection.",
         "characters": [
           "chr_0020_meurs"
-        ]
-      },
-      {
-        "scope": "shared-dependency",
-        "entityKind": "BuffData",
-        "entityId": "buff_chr_0016_laevat_show_weapon",
-        "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_show_weapon.json",
-        "jsonPath": "buffEventAction[1].actions[0][0]",
-        "code": "AKE_ACTION_UNSUPPORTED",
-        "sourceType": "SetSkillCdAtOnce",
-        "compilerCategory": "other",
-        "message": "No executable compiler route exists for SetSkillCdAtOnce.",
-        "impact": "combat-blocking",
-        "priority": "P0",
-        "capability": "cooldown-window",
-        "rationale": "The action changes cooldown or combo-window admission state.",
-        "characters": [
-          "chr_0030_zhuangfy"
         ]
       },
       {

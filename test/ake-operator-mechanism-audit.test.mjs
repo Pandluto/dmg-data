@@ -54,10 +54,9 @@ test('operator audit attaches every combat gap to AKE evidence and avoids operat
         finding.sourceType === 'RandomAction'
         && finding.impact === 'evidence-missing'
     ));
-    assert.ok(rossi.findings.some(finding =>
+    assert.equal(rossi.findings.some(finding =>
         finding.sourceType === 'SetSkillCdAtOnce'
-        && finding.capability === 'cooldown-window'
-    ));
+    ), false, 'implemented generic cooldown transactions must leave the unresolved audit');
     assert.equal(rossi.findings.some(finding =>
         finding.sourceType === 'PauseBuffTime'
     ), false, 'implemented generic status time control must leave the unresolved audit');

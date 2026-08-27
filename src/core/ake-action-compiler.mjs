@@ -1998,10 +1998,11 @@ export class AkeActionCompiler {
                     buff.buffId || buff.buffIdBlackboardKey
                 );
                 if (target.ref && executableBuffs.length > 0) {
-                    const followsCurrentSkillCast = node.inheritSourceSkillCastInfo === true
-                        && node.finishWithNextSkillIfNotInherited !== false;
-                    const actionLifetimeLeaseKey = (state.scope === 'skill'
-                        && node.autoFinishByAction === true) || followsCurrentSkillCast
+                    // inheritSourceSkillCastInfo copies cast identity into the
+                    // created Buff; it does not make every such Buff end with
+                    // that cast. Only autoFinishByAction owns this lifecycle.
+                    const actionLifetimeLeaseKey = state.scope === 'skill'
+                        && node.autoFinishByAction === true
                         ? `ake-skill:${state.path}:buff-action-lifetime`
                         : null;
                     const applyBuff = {
@@ -2024,7 +2025,6 @@ export class AkeActionCompiler {
                         ...(actionLifetimeLeaseKey === null ? {} : {
                             actionLifetime: {
                                 leaseKey: actionLifetimeLeaseKey,
-                                actorRef: followsCurrentSkillCast ? 'Owner' : 'Source',
                                 inheritSkillIds: (node.inheritSkillIdList ?? [])
                                     .filter(skillId => typeof skillId === 'string'
                                         && skillId.length > 0),
@@ -2110,6 +2110,37 @@ export class AkeActionCompiler {
                         }
                     }
                 }
+                break;
+            }
+            case 'SkillAffixAction': {
+                if (state.scope !== 'buff') {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_SKILL_AFFIX_BUFF_CONTEXT_REQUIRED',
+                        type,
+                        state.path,
+                        'SkillAffixAction can only bind the Buff that owns the action.'
+                    ));
+                    break;
+                }
+                // SkillAffixAction is the serialized lifetime marker for a
+                // Buff that decorates the skill currently being cast. It is
+                // deliberately narrower than inheritSourceSkillCastInfo:
+                // the latter only copies cast attribution and is also used by
+                // persistent attachments, timers, forms and delayed hits.
+                result.actions.push({
+                    type: 'ClaimCurrentBuffActionLifetime',
+                    target: 'Owner',
+                    actorRef: 'Owner',
+                    leaseKey: `ake-skill-affix:${state.path}`,
+                    finishByAction: true,
+                    finishWithNextSkillIfNotInherited: true,
+                    reason: type
+                });
+                result.metadata.push({
+                    type,
+                    path: state.path,
+                    category: 'skill-affix-lifetime'
+                });
                 break;
             }
             case 'AddTagAction': {

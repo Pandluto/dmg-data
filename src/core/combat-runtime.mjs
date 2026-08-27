@@ -3539,6 +3539,51 @@ export class CombatRuntime {
                     reason: action.reason ?? 'InheritBuffAction'
                 }, eventContext);
             },
+            ClaimCurrentBuffActionLifetime: (action, eventContext) => {
+                if (eventContext.buffInstanceId === null
+                    || eventContext.buffInstanceId === undefined) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'CurrentBuffInstanceMissing'
+                    };
+                }
+                if (eventContext.castId === null
+                    || eventContext.castId === undefined
+                    || eventContext.skillId === null
+                    || eventContext.skillId === undefined) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'SkillAffixCastContextMissing',
+                        buffInstanceId: eventContext.buffInstanceId
+                    };
+                }
+                const leaseId = this.#actionLifetimeLeaseId(action, eventContext);
+                if (leaseId === null) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'BuffActionLifetimeLeaseOwnerMissing',
+                        buffInstanceId: eventContext.buffInstanceId
+                    };
+                }
+                return this.statusEffects.claimActionLifetime({
+                    frame: action.frame ?? eventContext.frame,
+                    instanceId: eventContext.buffInstanceId,
+                    leaseId,
+                    actorId: this.#entityId(
+                        action.actorRef ?? action.target ?? 'Owner',
+                        eventContext,
+                        'Owner'
+                    ),
+                    ownerSkillId: eventContext.skillId,
+                    ownerCastId: eventContext.castId,
+                    ownerProgramExecutionId: eventContext.programExecutionId,
+                    inheritSkillIds: cloneValue(action.inheritSkillIds ?? []),
+                    finishByAction: action.finishByAction !== false,
+                    finishWithNextSkillIfNotInherited:
+                        action.finishWithNextSkillIfNotInherited !== false,
+                    reason: action.reason ?? 'SkillAffixAction'
+                }, eventContext);
+            },
             ReleaseBuffActionLifetime: (action, eventContext) => {
                 const leaseId = this.#actionLifetimeLeaseId(action, eventContext);
                 if (leaseId === null) {

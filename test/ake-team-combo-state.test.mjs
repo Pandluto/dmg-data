@@ -228,6 +228,14 @@ function comboDamageFixture({ count, commandType, damageDecorateMask = 512 }) {
         return [buffId, definition];
     }));
     const comboAttackBuff = buffs.buff_common_affixes_skillimbue_atk;
+    for (const buffId of [
+        'buff_common_affixes_skillimbue',
+        'buff_common_affixes_skillimbue_atk'
+    ]) {
+        assert.equal(buffs[buffId].compiler.unresolved.some(entry =>
+            entry.sourceType === 'SkillAffixAction'
+        ), false);
+    }
     assert.equal(comboAttackBuff.compiler.unresolved.some(entry => [
         'AKE_ABILITY_EVENT_EMITTER_REQUIRED',
         'AKE_SKILL_SETTING_MISSING',

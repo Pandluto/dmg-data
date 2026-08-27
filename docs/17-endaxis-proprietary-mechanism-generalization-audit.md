@@ -908,3 +908,35 @@ OnRemoveAllPendingComboSkill
 operator audit 因此新增的是诚实的 P0 `event-subscription` blocker，而不是运行时回归：例如诀由 42 增至 52、汤汤由 19 增至 23、梨诺由 22 增至 27；佩丽卡仍为 2，艾维文娜仍没有 P0 blocker。全库 239 项行为测试与前端严格类型检查继续通过，说明新增结果只揭示此前被隐藏的不可达监听器，没有删掉现有可执行动作。
 
 下一轮按同一规则先研究 HP 与死亡边沿。必须先确定 `OnOwnerHpZero` 和 `OnOwnerDead` 是同帧前后两个阶段、是否受不死/护盾/过量伤害影响，以及 source/owner/target 的绑定；在这些边界冻结前，不能为了消掉 123 个 listener 把两个事件都粗暴地挂到 `currentHp === 0`。
+
+### 13.3 `OnOwnerHpZero` 可以先闭环，`OnOwnerDead` 不能合并
+
+AKE 语料明确支持把两个名字当作不同阶段，而不是同义词：
+
+- 105 个 `OnOwnerHpZero` listener 广泛用于死亡地面、击杀收益、爆炸、目标 Buff 清理和关卡计数；它描述 HP 从正数落到零的数值边沿；
+- 18 个 `OnOwnerDead` listener 主要处理召唤物/封印清理、真死演出和假死后的实体结束；
+- 公共与敌人专用数据同时存在 undeadable 标签、`OnTriggerUndeadFeature`、fake-dead、reborn 和 real-dead Buff，证明 HP 归零后仍可能进入“不死/假死处理”，而不是立刻完成死亡提交；
+- 同一 Buff 同时监听 `OnTakeDamage` 与 `OnOwnerHpZero` 的样本表明，普通受击结算应先提交，随后才进入 HP-zero 清理；攻击者的 `OnAfterKillEntity` 则依赖目标已经确定落到零。
+
+Endaxis 只计算排轴伤害与面板，没有这套敌方生命/不死提交状态机，因此在这一项只能作为“缺失对照”，不能提供行为真值。当前 clean-room `VitalMachine` 也在一次 `damage()` 中直接把 `currentHp` 夹到 0 并把 `alive` 置为 false，尚无 undead/fake-dead 仲裁层。
+
+本轮只冻结可证明的通用边沿：
+
+```text
+damage before/take events
+  -> shield and HP damage commit
+  -> OnOutputDamage / OnTakeDamage / critical after-events
+  -> if beforeHp > 0 && afterHp == 0: OnOwnerHpZero(target owner)
+  -> OnAfterKillEntity(damage source)
+```
+
+约束如下：
+
+1. 只在 `beforeHp > 0 -> afterHp == 0` 时触发一次；尸体上的追加伤害不重复触发；
+2. 全部被护盾吸收、零伤害或仍有 HP 时不触发；被允许复活并再次从正 HP 落零时可以产生新的边沿；
+3. listener 绑定受击目标，事件上下文继续保留伤害 source/owner、skill、cast、hit 与 overkill 数据；
+4. 直接 `Damage` 原语与完整 `ResolveDamage` 路径必须共用同一通知 helper，避免异常伤害与技能伤害出现两个死亡语义；
+5. `OnOwnerDead`、`OnTriggerUndeadFeature` 保持 emitter-required。实现 HP-zero 不得顺带把 `alive=false` 宣称为已经复刻真死流程；
+6. 固定木桩演示的“不死亡”策略不因此改变；只有真实伤害跨过其 HP 边界时才会产生事件。
+
+契约将覆盖护盾吸收、首个致死 Hit、尸体追加 Hit、复活后再次归零、事件顺序和真实 Buff listener。完成后能力事件审计应只把 `OnOwnerHpZero` 的 105 个消费者转为 complete，`OnOwnerDead` 的 18 个消费者必须原样保留。

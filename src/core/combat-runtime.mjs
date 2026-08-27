@@ -379,7 +379,9 @@ export class CombatRuntime {
         if (definition.poise) {
             this.#registerPoise({
                 targetId: entity.id,
-                clockDomainId: entity.clockDomainId ?? 'global',
+                clockDomainId: definition.poise.clockDomainId
+                    ?? clockDefinition?.id
+                    ?? this.#entityClockDomainId(entity.id, 'global'),
                 ...definition.poise
             });
         }

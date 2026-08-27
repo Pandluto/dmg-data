@@ -104,6 +104,7 @@ test('AKE poise zero and recovery are target-owned, ordered lifecycle edges', ()
     runtime.execute({ type: 'ApplyPoiseDamage', target: 'Target', amount: 65 }, eventContext(10));
     assert.equal(runtime.context.getAttribute('enemy', 'PoiseZeroEvents'), 1);
     assert.equal(runtime.poise.snapshot('enemy').broken, true);
+    assert.equal(runtime.poise.snapshot('enemy').clockDomainId, 'enemy:clock');
     assert.deepEqual(runtime.statusEffects.list({ active: true, targetId: 'enemy' })
         .map(instance => instance.buffId)
         .filter(buffId => buffId.startsWith('fixture:poise-'))

@@ -1210,6 +1210,9 @@
         "trigger": "HpDamageWhileBroken",
         "sourceSkillIds": [
           "chr_0004_pelica_normal_skill"
+        ],
+        "eventTypes": [
+          "SkillTimelineGroupStarted"
         ]
       },
       "effect": {

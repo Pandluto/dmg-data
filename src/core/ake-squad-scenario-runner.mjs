@@ -418,11 +418,12 @@ export class AkeSquadScenarioRunner {
                 .filter(hit => hit.damageAttributeType === 'Poise')
                 .reduce((sum, hit) => sum + Number(hit.amount ?? hit.finalDamage ?? 0), 0);
             let localClockTrigger = null;
+            let deferPoiseBreakTrigger = false;
             if (execution !== null) {
                 localClockTrigger = 'ExecutionHit';
             } else if (targetState && !targetState.broken
                 && poiseAmount >= targetState.remaining) {
-                localClockTrigger = 'PoiseBreak';
+                deferPoiseBreakTrigger = true;
             } else if (hpHits.length > 0 && targetState?.broken) {
                 localClockTrigger = 'HpDamageWhileBroken';
             }
@@ -435,6 +436,29 @@ export class AkeSquadScenarioRunner {
                     seen: seenClockTriggers,
                     trace: localClockTriggerTrace
                 });
+            }
+            if (deferPoiseBreakTrigger) {
+                const breakContext = clone(parameters.eventContext);
+                parameters.runtime.schedule(
+                    parameters.eventContext.frame,
+                    90,
+                    () => {
+                        const committed = parameters.runtime.poise.snapshot(targetId);
+                        if (!targetState.broken
+                            && committed.broken
+                            && committed.cycle === targetState.cycle) {
+                            applyAkeLocalClockTrigger({
+                                trigger: 'PoiseBreak',
+                                eventContext: breakContext,
+                                runtime: parameters.runtime,
+                                semanticMappings: bundle.semanticMappings,
+                                seen: seenClockTriggers,
+                                trace: localClockTriggerTrace
+                            });
+                        }
+                    },
+                    'ake-poise-break-local-clock-trigger'
+                );
             }
             for (const hit of resolution?.hits ?? []) {
                 if (hit.damageAttributeType !== 'Hp') continue;

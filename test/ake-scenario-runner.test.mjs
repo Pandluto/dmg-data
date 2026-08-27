@@ -214,6 +214,23 @@ test('generic runner enforces and consumes the Calc execution gate', () => {
     assert.equal(belowThreshold.resourceTrace.some(entry =>
         entry.reason === 'GainBreakingAttackAtb'), false);
 
+    for (const [id, expectedRecoveryFrame, expectedTriggers] of [
+        ['exact-threshold-breaks', 613, [[426, 'PoiseBreak', 7]]],
+        ['overflow-threshold-breaks', 484, [[293, 'PoiseBreak', 11]]],
+        ['broken-target-damage-scale', 617, [
+            [426, 'PoiseBreak', 7],
+            [463, 'HpDamageWhileBroken', 4]
+        ]]
+    ]) {
+        const result = runCase(id);
+        assert.equal(result.finalState.poise.trace.find(entry =>
+            entry.eventType === 'OnPoiseRecover'
+        )?.frame, expectedRecoveryFrame);
+        assert.deepEqual(result.localClockTriggerTrace.filter(entry =>
+            entry.frame >= 280
+        ).map(entry => [entry.frame, entry.trigger, entry.durationTicks]), expectedTriggers);
+    }
+
     const execution = runCase('execution-consumes-gate-and-refunds-atb');
     assert.deepEqual(execution.finalState.poise.trace.filter(entry =>
         entry.stage === 'ExecutionConsumed'
@@ -221,6 +238,9 @@ test('generic runner enforces and consumes the Calc execution gate', () => {
     assert.deepEqual(execution.resourceTrace.filter(entry =>
         entry.reason === 'GainBreakingAttackAtb'
     ).map(entry => [entry.frame, entry.requested, entry.actual]), [[485, 25, 25]]);
+    assert.equal(execution.finalState.poise.trace.find(entry =>
+        entry.eventType === 'OnPoiseRecover'
+    )?.frame, 620);
     assert.ok(execution.statusTrace.some(entry =>
         entry.frame === 485
         && entry.stage === 'StatusEffectFinished'

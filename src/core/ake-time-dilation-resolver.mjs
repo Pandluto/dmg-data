@@ -237,6 +237,8 @@ export function applyAkeLocalClockTrigger({
             && !mapping.selector.sourceSkillIds.includes(eventContext.skillId)) continue;
         if (mapping.selector?.rootSkillIds
             && !mapping.selector.rootSkillIds.includes(eventContext.rootSkillId)) continue;
+        if (mapping.selector?.eventTypes
+            && !mapping.selector.eventTypes.includes(eventContext.eventType)) continue;
         const key = [
             mapping.id,
             eventContext.frame,

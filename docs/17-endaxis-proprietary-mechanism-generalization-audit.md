@@ -765,3 +765,29 @@ AKE 文本中的触发条件可以归并为少量公共事件，而不是 31 种
 - 生成器只在 `expireFrame > appliedFrame` 时合成有限换槽的删除，禁止制造同帧 apply/remove。
 
 回归直接检查生成目录：洛茜第一段后的 217 帧恢复事件只保留 `apply combo_2_skill`，不再有同帧 remove。这仍未等价于第二段连携已经完整闭环；`TriggerComboSkillAction` 创建接续 pending、接续 pending 的冷却旁路以及 `OnRemoveAllPendingComboSkill` 生命周期仍需在后续步骤单独实现和验证。
+
+### 12.12 `TriggerComboSkillAction` 是接续开窗事务，不是角色特判或冷却重置
+
+公开 AKE 数据共有 6 个 `TriggerComboSkillAction` 节点，分布在洛茜两份 SkillData，以及赛希、艾尔黛拉和梨诺的 BuffData。六处字段结构一致，且全部为 `needTrigger=false`；动作只给出 owner、target 和可选 trigger selector，不携带具体 skill id、窗口长度或冷却组。这说明它不是“指定某角色释放某技能”的完整命令，而是把目标实体当前 `ComboSkill` 槽对应的形态注册为可释放 pending。
+
+洛茜第一段给出了最完整的动作顺序证据：
+
+```text
+frame 37 ChangeSkillAction(ComboSkill -> combo_3_skill, Infinite)
+  -> 同一动作树 TriggerComboSkillAction(owner, smart_target)
+  -> combo_3_skill pending
+  -> 下一次 ComboSkill 输入解析当前槽并消费 pending
+```
+
+这个顺序冻结了以下通用语义：
+
+1. `TriggerComboSkillAction` 先编译成不含角色 ID 的 `TriggerComboPending`；运行时在动作真正提交时解析 owner 的当前 `ComboSkill` override，不能在目录生成期提前绑定基础技能；
+2. action-created skill 在首次开窗后登记为状态机管理对象；此后的输入必须持有 pending，不能因为它没有一条静态 `ComboTriggerRule` 就永久绕过门禁；
+3. 接续形态允许越过已经由上一段启动的同组技能冷却，但该旁路只属于被选中的 pending。它既不清零共享冷却，也不创建第二个冷却组；窗口消费后，下一轮普通连携仍受原冷却约束；
+4. pending 继续使用公共的 owner/target 绑定、replace/refresh、newest/oldest、消费、暂停和严格到期事务。当前动作本身没有 duration 字段，因此采用已经由 Calc 边界冻结、并与 AKE 六秒接续计时一致的 180 Tick 公共窗口；
+5. `ChangeSkillAction` 必须先于同帧 trigger 生效。若换槽目标无法解析，动作返回 `Unresolved`，不得回落到某个角色硬编码技能；
+6. trace 必须保留 `sourceActionType/sourceActionPath` 与 `bypassSkillCooldown`，使 UI 能区分“普通条件开窗”和“技能内部接续开窗”，但二者最终消费同一个 `ComboTriggerMachine` 原语。
+
+核心契约分三层验证：编译洛茜真实 SkillData 的两个目标分支均得到同一 normalized operation；无静态角色规则的原语测试证明接续 pending 可在共享冷却活动时单次放行；小队 runner 真实执行 `combo_2` 后在第 37 帧开窗、第 38 帧解析并释放 `combo_3`，同时 cooldown ledger 只保留第一段启动的原共享组记录。测试没有出现 `if (characterId === wulfa)`，洛茜只作为原始数据完整的 fixture。
+
+这一步仍未关闭 `OnRemoveAllPendingComboSkill`。该事件表示 owner 的 pending 集合从非空变为空后的生命周期通知，应由状态机在 consume、timeout、replace 或显式 clear 事务之后统一发出，再交给 Buff listener 清理计时和换槽；不能只在洛茜二段释放后手动结束某个 Buff。

@@ -1334,6 +1334,13 @@ export class AkeSquadScenarioRunner {
                 failCommand(state, command, frame, 'INSUFFICIENT_RESOURCE', skillId, skillSource);
                 return;
             }
+            runtime.resolveTimedInput({
+                frame,
+                actorId: state.characterId,
+                inputType: command.commandType,
+                skillId,
+                commandId: command.commandId
+            });
             if (command.commandType === 'Attack' && command.attackMode === 'full-combo') {
                 beginFullAttackCombo(state, command, frame, skillId, skillSource);
             } else {
@@ -1460,6 +1467,7 @@ export class AkeSquadScenarioRunner {
             cooldownMutationTrace: clone(runtime.cooldowns.trace),
             resourceTrace: clone(runtime.resources.trace),
             statusTrace: clone(runtime.statusEffects.trace),
+            timedInputWindows: runtime.timedInputWindowSnapshot(durationTicks),
             clockTrace: clone(runtime.clockDomains.trace),
             localClockTriggerTrace,
             loadoutTrace: clone(loadoutManager.trace),

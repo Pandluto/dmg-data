@@ -177,6 +177,8 @@ export class CombatRuntime {
         this.skillLoadoutPatchSources = new Map();
         this.skillLoadoutPatchRevision = 0;
         this.timedMarkers = new Map();
+        this.timedInputWindows = new Map();
+        this.nextTimedInputWindowSequence = 1;
         this.buffConsumeProtections = new Map();
         this.timeDilationSampleGenerations = new Map();
         this.currentFrame = 0;
@@ -1215,6 +1217,7 @@ export class CombatRuntime {
                 ...cloneValue(marker),
                 active: this.#timedMarkerActive(marker, this.currentFrame)
             })),
+            timedInputWindows: this.timedInputWindowSnapshot(this.currentFrame),
             buffConsumeProtections: [...this.buffConsumeProtections.values()]
                 .map(protection => cloneValue(protection)),
             endedSkillCastIds: [...this.endedSkillCastIds],
@@ -1226,6 +1229,94 @@ export class CombatRuntime {
                 label: event.label,
                 sequence: event.sequence
             }))
+        };
+    }
+
+    timedInputWindowSnapshot(frame = this.currentFrame) {
+        const currentFrame = nonNegativeInteger(frame, 'timed input snapshot frame');
+        return [...this.timedInputWindows.values()].map(window => {
+            const elapsedFrames = this.#timedInputWindowElapsed(window, currentFrame);
+            const sourceActive = elapsedFrames !== null;
+            const inActiveInterval = sourceActive
+                && elapsedFrames >= window.earlyDurationTicks
+                && elapsedFrames < window.earlyDurationTicks + window.activeDurationTicks;
+            const { triggeredActions: _triggeredActions, eventContext: _eventContext, ...publicWindow } = window;
+            return {
+                ...cloneValue(publicWindow),
+                elapsedFrames,
+                sourceActive,
+                inActiveInterval,
+                activeStartFrame: window.createdFrame + window.earlyDurationTicks,
+                activeEndFrameExclusive: window.createdFrame
+                    + window.earlyDurationTicks
+                    + window.activeDurationTicks
+            };
+        });
+    }
+
+    resolveTimedInput(input = {}) {
+        if (!isRecord(input)) throw new TypeError('resolveTimedInput requires an input object.');
+        const frame = nonNegativeInteger(input.frame ?? this.currentFrame, 'timed input frame');
+        const actorId = identifier(input.actorId ?? input.ownerId, 'timed input actor');
+        const inputType = identifier(
+            input.inputType ?? input.commandType,
+            'timed input type'
+        );
+        const matched = [];
+        for (const window of this.timedInputWindows.values()) {
+            if (window.state !== 'open'
+                || window.ownerId !== actorId
+                || !window.inputTypes.includes(inputType)) continue;
+            const elapsedFrames = this.#timedInputWindowElapsed(window, frame);
+            if (elapsedFrames === null) {
+                window.state = 'expired';
+                window.expiredFrame = frame;
+                continue;
+            }
+            const activeStart = window.earlyDurationTicks;
+            const activeEnd = activeStart + window.activeDurationTicks;
+            if (elapsedFrames < activeStart || elapsedFrames >= activeEnd) continue;
+            const transaction = this.effects.executeTransaction(window.triggeredActions, {
+                ...cloneValue(window.eventContext),
+                frame,
+                eventType: 'TimedInputWindowResolved',
+                commandId: input.commandId ?? null,
+                commandType: inputType,
+                skillId: input.skillId ?? window.eventContext.skillId ?? null,
+                blackboard: this.#runtimeBlackboard(
+                    window.eventContext.sourceId,
+                    window.eventContext.blackboard
+                ),
+                payload: {
+                    ...cloneValue(window.eventContext.payload ?? {}),
+                    timedInputWindowId: window.id,
+                    inputType
+                }
+            });
+            window.state = 'resolved';
+            window.resolvedFrame = frame;
+            window.resolvedCommandId = input.commandId ?? null;
+            const record = this.#record('TimedInputWindowResolved', {
+                ...cloneValue(window.eventContext),
+                frame,
+                commandId: input.commandId ?? null,
+                commandType: inputType,
+                skillId: input.skillId ?? null
+            }, {
+                timedInputWindowId: window.id,
+                elapsedFrames,
+                activeStartOffset: activeStart,
+                activeEndOffsetExclusive: activeEnd,
+                transactionId: transaction.eventContext.transactionId ?? null
+            });
+            matched.push(record);
+        }
+        return {
+            status: matched.length > 0 ? 'Resolved' : 'NoActiveWindow',
+            frame,
+            actorId,
+            inputType,
+            matched
         };
     }
 
@@ -1695,6 +1786,23 @@ export class CombatRuntime {
         return frame < marker.expiresFrame;
     }
 
+    #timedInputWindowElapsed(window, frame) {
+        if (window.buffInstanceId !== null && window.buffInstanceId !== undefined) {
+            const instance = this.statusEffects.get(window.buffInstanceId);
+            if (!instance?.active) return null;
+            if (instance.timePaused && Number.isFinite(instance.remainingDurationTicks)
+                && Number.isFinite(instance.durationTicks)) {
+                return Math.max(0, instance.durationTicks - instance.remainingDurationTicks);
+            }
+            if (Number.isFinite(instance.expireFrame)
+                && Number.isFinite(instance.durationTicks)) {
+                return Math.max(0, instance.durationTicks
+                    - Math.max(0, instance.expireFrame - frame));
+            }
+        }
+        return Math.max(0, frame - window.createdFrame);
+    }
+
     #defaultHandlers() {
         return {
             BitMaskCompare: (condition, eventContext) => {
@@ -2013,6 +2121,72 @@ export class CombatRuntime {
                     discarded: 0,
                     after: cloneValue(marker)
                 };
+            },
+            RegisterTimedInputWindow: (action, eventContext) => {
+                const ownerId = this.#entityId(
+                    action.owner ?? action.ownerRef ?? action.ownerId,
+                    eventContext,
+                    'Owner'
+                );
+                const earlyDurationSeconds = Math.max(0, this.#number(
+                    action.earlyDurationSeconds ?? 0,
+                    eventContext,
+                    'timed input warning duration'
+                ));
+                const activeDurationSeconds = Math.max(0, this.#number(
+                    action.activeDurationSeconds ?? 0,
+                    eventContext,
+                    'timed input active duration'
+                ));
+                const earlyDurationTicks = Math.max(
+                    0,
+                    Math.round(earlyDurationSeconds * this.tickRate)
+                );
+                const activeDurationTicks = Math.max(
+                    1,
+                    Math.round(activeDurationSeconds * this.tickRate)
+                );
+                const inputTypes = [...new Set(
+                    (Array.isArray(action.inputTypes) ? action.inputTypes : ['ComboSkill'])
+                        .map(value => identifier(value, 'timed input type'))
+                )];
+                const id = `timed-input:${this.nextTimedInputWindowSequence++}`;
+                const window = {
+                    id,
+                    ownerId,
+                    inputTypes,
+                    createdFrame: eventContext.frame,
+                    earlyDurationTicks,
+                    activeDurationTicks,
+                    boundary: action.boundary ?? 'start-inclusive-end-exclusive',
+                    state: 'open',
+                    resolvedFrame: null,
+                    resolvedCommandId: null,
+                    expiredFrame: null,
+                    buffInstanceId: eventContext.buffInstanceId ?? null,
+                    sourceId: eventContext.sourceId ?? null,
+                    sourceSkillId: eventContext.skillId ?? null,
+                    rootSkillId: eventContext.rootSkillId ?? null,
+                    castId: eventContext.castId ?? null,
+                    reason: action.reason ?? 'RegisterTimedInputWindow',
+                    metadata: cloneValue(action.metadata ?? {}),
+                    triggeredActions: cloneValue(action.triggeredActions ?? []),
+                    eventContext: cloneValue(eventContext)
+                };
+                this.timedInputWindows.set(id, window);
+                this.#record('TimedInputWindowRegistered', eventContext, {
+                    timedInputWindowId: id,
+                    ownerId,
+                    inputTypes,
+                    earlyDurationTicks,
+                    activeDurationTicks,
+                    boundary: window.boundary
+                });
+                return cloneValue({
+                    ...window,
+                    triggeredActions: undefined,
+                    eventContext: undefined
+                });
             },
             ReadBuffBlackboardCondition: (condition, eventContext) => {
                 if (condition.eventBuffContext === true) {

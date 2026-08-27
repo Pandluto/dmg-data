@@ -274,6 +274,7 @@ export function classifyAkeActionType(type) {
     if ([
         'AddGlobalCDTimer',
         'ChangeSkillAction',
+        'ShowComboRingQte',
         'SwitchModeAction',
         'TriggerComboSkillAction'
     ].includes(name)) {
@@ -2427,6 +2428,75 @@ export class AkeActionCompiler {
                         akeSourceAction: type,
                         akeSourcePath: state.path
                     }
+                });
+                break;
+            }
+            case 'ShowComboRingQte': {
+                const owner = this.#targetRef(
+                    node.owner,
+                    state,
+                    'timed combo input owner'
+                );
+                if (owner.unresolved) result.unresolved.push(owner.unresolved);
+                const earlyDurationSeconds = Number(resolveValue(
+                    node.earlyDuration,
+                    state.blackboard,
+                    Number.NaN
+                ));
+                const activeDurationSeconds = Number(resolveValue(
+                    node.activeDuration,
+                    state.blackboard,
+                    Number.NaN
+                ));
+                if (!Number.isFinite(earlyDurationSeconds)
+                    || earlyDurationSeconds < 0
+                    || !Number.isFinite(activeDurationSeconds)
+                    || activeDurationSeconds <= 0) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_TIMED_INPUT_WINDOW_DURATION_INVALID',
+                        type,
+                        state.path,
+                        'ShowComboRingQte requires non-negative warning and positive active durations.',
+                        { earlyDurationSeconds, activeDurationSeconds }
+                    ));
+                    break;
+                }
+                const triggered = this.#compileSequence(actionData(node.triggeredAction), {
+                    ...state,
+                    path: `${state.path}.triggeredAction`
+                });
+                result.cleanupActions.push(...triggered.cleanupActions);
+                result.metadata.push(...triggered.metadata);
+                result.unresolved.push(...triggered.unresolved);
+                result.diagnostics.push(...triggered.diagnostics);
+                if (owner.ref) result.actions.push({
+                    type: 'RegisterTimedInputWindow',
+                    owner: owner.ref,
+                    inputTypes: ['ComboSkill'],
+                    earlyDurationSeconds: descriptor(node.earlyDuration, 0),
+                    activeDurationSeconds: descriptor(node.activeDuration, 0),
+                    nominalEarlyDurationTicks: Math.round(
+                        earlyDurationSeconds * this.tickRate
+                    ),
+                    nominalActiveDurationTicks: Math.round(
+                        activeDurationSeconds * this.tickRate
+                    ),
+                    triggeredActions: triggered.actions,
+                    boundary: 'start-inclusive-end-exclusive',
+                    reason: type,
+                    metadata: {
+                        akeSourceAction: type,
+                        akeSourcePath: state.path
+                    }
+                });
+                result.metadata.push({
+                    type,
+                    path: state.path,
+                    category: 'timed-input-window',
+                    inputTypes: ['ComboSkill'],
+                    earlyDurationTicks: Math.round(earlyDurationSeconds * this.tickRate),
+                    activeDurationTicks: Math.round(activeDurationSeconds * this.tickRate),
+                    boundary: 'start-inclusive-end-exclusive'
                 });
                 break;
             }

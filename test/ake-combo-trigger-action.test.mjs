@@ -51,6 +51,41 @@ test('TriggerComboSkillAction compiles to one generic pending operation', () => 
     ), false);
 });
 
+test('ShowComboRingQte compiles the AKE warning and precise intervals as a timed input window', () => {
+    assert.deepEqual(classifyAkeActionType('ShowComboRingQte'), {
+        category: 'logic',
+        disposition: 'compiler'
+    });
+    const compiler = new AkeActionCompiler({
+        semanticMappings: readJson('spec/engine-semantic-mappings.json')
+    });
+    const definition = compiler.compileBuff(readJson(
+        'reference/public-data/akedata/Json/BuffData/'
+        + 'buff_chr_0028_wulfa_combo_2_qte_timerlistening.json'
+    ));
+    const windows = collectActions(definition, 'RegisterTimedInputWindow');
+
+    assert.equal(windows.length, 1);
+    assert.deepEqual({
+        inputTypes: windows[0].inputTypes,
+        earlyDurationTicks: windows[0].nominalEarlyDurationTicks,
+        activeDurationTicks: windows[0].nominalActiveDurationTicks,
+        boundary: windows[0].boundary
+    }, {
+        inputTypes: ['ComboSkill'],
+        earlyDurationTicks: 15,
+        activeDurationTicks: 15,
+        boundary: 'start-inclusive-end-exclusive'
+    });
+    assert.ok(windows[0].triggeredActions.some(action => (
+        action.type === 'ModifyEntityBlackboard'
+        && action.key === 'EntityBB_Combo_QTE_Trigger'
+    )));
+    assert.equal(definition.compiler.unresolved.some(entry => (
+        entry.actionType === 'ShowComboRingQte'
+    )), false);
+});
+
 test('action-created combo pending owns its gate and can admit a chained stage', () => {
     const trace = [];
     const machine = new ComboTriggerMachine({
@@ -158,6 +193,49 @@ test('real Wulfa combo 2 changes the slot and opens combo 3 without clearing coo
     ).map(entry => entry.skillId), [COMBO_2],
     'the first-stage group cooldown remains authoritative after the chained stage');
     assert.ok(result.cooldownTrace[0].endFrame > 38);
+});
+
+test('real Wulfa chained combo remains legal outside precision but only resolves QTE in its subwindow', () => {
+    const assembled = new AkeSquadScenarioAssembler().assemble({
+        enemyId: ENEMY,
+        members: [{ memberId: 'wulfa', characterId: WULFA }],
+        initialAtb: 300
+    });
+    const bundle = {
+        ...assembled,
+        semanticMappings: assembled.semanticMappings.filter(mapping =>
+            mapping.actionType !== 'ComboTriggerRule'
+        )
+    };
+    const runAt = frame => new AkeSquadScenarioRunner(bundle).run({
+        commands: [{
+            memberId: 'wulfa',
+            frame: 0,
+            commandType: 'ComboSkill',
+            skillId: COMBO_2,
+            commandId: 'wulfa-combo-2'
+        }, {
+            memberId: 'wulfa',
+            frame,
+            commandType: 'ComboSkill',
+            commandId: 'wulfa-combo-3'
+        }],
+        endFrame: 100
+    });
+
+    const early = runAt(38);
+    const precise = runAt(53);
+    assert.equal(early.commandTrace.find(entry => (
+        entry.commandId === 'wulfa-combo-3'
+        && entry.type === 'CommandExecuted'
+    ))?.success, true, 'the broad chained-stage window remains legal before precision');
+    assert.equal(early.timedInputWindows[0].resolvedFrame, null);
+    assert.equal(precise.commandTrace.find(entry => (
+        entry.commandId === 'wulfa-combo-3'
+        && entry.type === 'CommandExecuted'
+    ))?.success, true);
+    assert.equal(precise.timedInputWindows[0].resolvedFrame, 53);
+    assert.equal(precise.timedInputWindows[0].resolvedCommandId, 'wulfa-combo-3');
 });
 
 test('real Wulfa use-timer ends when its final chained pending times out', () => {

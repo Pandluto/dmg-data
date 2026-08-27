@@ -324,6 +324,55 @@ assert.ok(ledger.hits[0].formula.buffTags.some((buff) => (
 )));
 
 const attackZoneReport = structuredClone(report);
+attackZoneReport.characters = [{
+  localCharacterId: 'actor-a',
+  akeCharacterId: 'actor-a',
+  memberId: 'actor-a',
+  characterName: '测试干员',
+  status: 'calculated',
+  loadout: {
+    level: 90,
+    skillLevel: 12,
+    weaponId: 'weapon-test',
+    weaponName: '测试武器',
+    weaponLevel: 90,
+    equipment: [],
+    potentialEffectIds: [],
+    panelAtk: 3328.938,
+    panelHp: 0,
+    panelAttackTrace: {
+      characterAttack: 840,
+      weaponAttack: 505,
+      attackPercent: 0.256,
+      flatAttack: 0,
+      baseAttack: 1689.32,
+      panelAttack: 3328.938,
+      abilityBonus: 0.97056,
+      mainAbility: {
+        label: '智识',
+        rawValue: 1024.4,
+        statScale: 0,
+        allStatScale: 0,
+        valueBeforeRounding: 1024.4,
+        finalValue: 1024,
+        attackCoefficient: 0.005,
+        attackBonus: 5.12,
+      },
+      subAbility: {
+        label: '意志',
+        rawValue: 229.8,
+        statScale: 0,
+        allStatScale: 0,
+        valueBeforeRounding: 229.8,
+        finalValue: 230,
+        attackCoefficient: 0.002,
+        attackBonus: 0.46,
+      },
+    },
+    damageBonuses: [],
+  },
+  skippedButtonIds: [],
+}];
 attackZoneReport.hits = [runtimeHit(0, null, 1, false)];
 attackZoneReport.hits[0].modifierSnapshot.attackAttribute = {
   targetId: 'actor-a',
@@ -381,12 +430,22 @@ assert.ok(attackZoneTags.some((buff) => buff.type === 'atkFinalMultiplier' && bu
   'BaseFinalMultiplier must remain a factor instead of a percent');
 assert.ok(attackZoneTags.some((buff) => buff.label === '能力换算' && buff.type === 'atkFinalMultiplier'),
   'internal AKEDatabase derived-ability ids must resolve to a readable source label');
-assert.equal(attackZoneLedger?.hits[0].formula.attackLines?.length, 0,
-  'unverified runtime attack values must not be rendered in the hit detail UI');
-assert.ok(!attackZoneLedger?.hits[0].formula.panelLines.some((line) => line.startsWith('ATK:')),
-  'runtime hit details must not expose the unresolved ATK projection');
+assert.ok(attackZoneLedger?.hits[0].formula.panelLines.includes('ATK: 3328.938'),
+  'the attack section header must use the trusted LTS/DEF panel value');
+assert.ok(attackZoneLedger?.hits[0].formula.attackLines?.some((line) => line.startsWith('角色攻击: 840')),
+  'the hit detail must retain the character attack row');
+assert.ok(attackZoneLedger?.hits[0].formula.attackLines?.some((line) => line.startsWith('武器攻击: 505')),
+  'the hit detail must retain the weapon attack row');
+assert.ok(attackZoneLedger?.hits[0].formula.attackLines?.some((line) => line.includes('主能力取整')),
+  'the hit detail must retain the ability rounding row');
+assert.ok(attackZoneLedger?.hits[0].formula.attackLines?.some((line) => line.includes('最终面板攻击力')),
+  'the hit detail must retain the final panel attack formula');
+assert.ok(!attackZoneLedger?.hits[0].formula.attackLines?.some((line) => line.includes('3323.737728')),
+  'the unresolved runtime operand must not masquerade as panel attack');
 assert.ok(!attackZoneLedger?.hits[0].formula.nonCritFormulaText.includes('1000'),
   'runtime result formula must not leak the unresolved attack operand');
+assert.ok((attackZoneLedger?.hits[0].formula.sectionLines?.result?.length ?? 0) >= 6,
+  'the runtime result zone must preserve the factor chain, validation, and all result rows');
 assert.ok(ledger.statuses.some((status) => (
   status.title === '天赋·通用叠层 ×2'
   && status.kind.includes('叠层并刷新')

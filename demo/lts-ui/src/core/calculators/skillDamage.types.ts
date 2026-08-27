@@ -183,10 +183,30 @@ export interface AppliedBuffTagViewModel {
   isCountable?: boolean;
 }
 
+export type FormulaSectionKey =
+  | 'attack'
+  | 'multiplier'
+  | 'crit'
+  | 'damageBonus'
+  | 'defense'
+  | 'resistance'
+  | 'amplify'
+  | 'fragile'
+  | 'vulnerability'
+  | 'combo'
+  | 'imbalance'
+  | 'result';
+
 export interface FormulaViewModel {
   title: string;
   panelLines: string[];
   attackLines?: string[];
+  /**
+   * Runtime engines can expose more than one audit row per calculation zone.
+   * Manual calculations keep using the legacy scalar fields below; the
+   * workbench prefers these rows when a runtime report supplies them.
+   */
+  sectionLines?: Partial<Record<FormulaSectionKey, string[]>>;
   buffTags: AppliedBuffTagViewModel[];
   showNoBuff: boolean;
   baseMultiplierText: string;

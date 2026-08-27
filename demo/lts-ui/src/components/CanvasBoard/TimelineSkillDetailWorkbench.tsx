@@ -2,8 +2,13 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { HitResistanceInput, SkillButtonBuff } from '../../types/storage';
-import type { AppliedBuffTagViewModel, FormulaViewModel } from '../../core/calculators/skillDamage.types';
+import type {
+  AppliedBuffTagViewModel,
+  FormulaSectionKey,
+  FormulaViewModel,
+} from '../../core/calculators/skillDamage.types';
 import { getBuffTypeRegistryEntry } from '../../core/domain/buffTypeRegistry';
+import { getBuffTypeLabel } from '../../core/domain/buffTypeMetadata';
 import { OptionalLiquidTideSurfaceEffects } from '../../platform/theme/OptionalLiquidTideEffects';
 import { TimelineHitTuningPanel } from './TimelineHitTuningPanel';
 import { TimelineInfoPanel } from './TimelineInfoPanel';
@@ -90,19 +95,7 @@ interface TimelineSkillDetailWorkbenchProps {
   infoLines: string[];
 }
 
-type CalculationSectionKey =
-  | 'attack'
-  | 'multiplier'
-  | 'crit'
-  | 'damageBonus'
-  | 'defense'
-  | 'resistance'
-  | 'amplify'
-  | 'fragile'
-  | 'vulnerability'
-  | 'combo'
-  | 'imbalance'
-  | 'result';
+type CalculationSectionKey = FormulaSectionKey;
 
 interface CalculationSection {
   key: CalculationSectionKey;
@@ -152,29 +145,15 @@ const ATTACK_BUFF_TYPES = new Set([
   'willBoost',
 ]);
 
-const BUFF_TYPE_LABELS: Record<string, string> = {
-  atkPercentBoost: '攻击力加成',
-  flatAtk: '固定攻击力',
+const BUFF_TYPE_LABEL_OVERRIDES: Record<string, string> = {
   atkFinalMultiplier: '攻击力最终乘区',
-  physicalFragile: '物理易伤',
-  magicFragile: '法术易伤',
-  physicalVulnerability: '物理易伤',
-  magicVulnerability: '法术易伤',
-  fireVulnerability: '灼热易伤',
-  electricVulnerability: '电磁易伤',
-  iceVulnerability: '寒冷易伤',
-  natureVulnerability: '自然易伤',
-  allDmgBonus: '全伤害加成',
-  physicalDmgBonus: '物理伤害加成',
-  fireDmgBonus: '灼热伤害加成',
-  electricDmgBonus: '电磁伤害加成',
-  iceDmgBonus: '寒冷伤害加成',
-  natureDmgBonus: '自然伤害加成',
 };
 
 function formatBuffTypeLabel(type: string | undefined): string {
-  if (!type) return '未分类';
-  return BUFF_TYPE_LABELS[type] ?? type;
+  return getBuffTypeLabel(type, {
+    emptyLabel: '未分类',
+    overrides: BUFF_TYPE_LABEL_OVERRIDES,
+  });
 }
 
 const CRIT_BUFF_TYPES = new Set(['critRateBoost', 'critDmgBonusBoost']);
@@ -242,111 +221,117 @@ function formatBuffEffect(buff: AppliedBuffTagViewModel): string {
 }
 
 function buildCalculationSections(formula: FormulaViewModel): CalculationSection[] {
+  const linesFor = (key: CalculationSectionKey, fallback: string[]) => (
+    toDetailLines(formula.sectionLines?.[key] ?? fallback)
+  );
   return [
     {
       key: 'attack',
       label: '攻击',
       value: readPanelValue(formula.panelLines, 'ATK'),
-      lines: toDetailLines(formula.attackLines ?? [`最终攻击力: ${readPanelValue(formula.panelLines, 'ATK')}`]),
+      lines: linesFor(
+        'attack',
+        formula.attackLines ?? [`最终攻击力: ${readPanelValue(formula.panelLines, 'ATK')}`],
+      ),
       buffs: getSectionBuffs(formula, 'attack'),
     },
     {
       key: 'multiplier',
       label: '倍率',
       value: readFormulaResult(formula.formulaText),
-      lines: [
-        { label: '基础倍率', value: formula.baseMultiplierText },
-        { label: '倍率计算', value: formula.formulaText },
-      ],
+      lines: linesFor('multiplier', [
+        `基础倍率: ${formula.baseMultiplierText}`,
+        `倍率计算: ${formula.formulaText}`,
+      ]),
       buffs: getSectionBuffs(formula, 'multiplier'),
     },
     {
       key: 'crit',
       label: '暴击',
       value: formula.critText,
-      lines: [
-        { label: '暴击率', value: readPanelValue(formula.panelLines, '暴击率') },
-        { label: '暴击伤害', value: readPanelValue(formula.panelLines, '暴击伤害') },
-        { label: '非暴击伤害', value: formula.nonCritText },
-        { label: '暴击伤害', value: formula.critText },
-        { label: '期望伤害', value: formula.expectedText },
-      ],
+      lines: linesFor('crit', [
+        `暴击率: ${readPanelValue(formula.panelLines, '暴击率')}`,
+        `暴击伤害: ${readPanelValue(formula.panelLines, '暴击伤害')}`,
+        `非暴击伤害: ${formula.nonCritText}`,
+        `暴击伤害结果: ${formula.critText}`,
+        `期望伤害: ${formula.expectedText}`,
+      ]),
       buffs: getSectionBuffs(formula, 'crit'),
     },
     {
       key: 'damageBonus',
       label: '加成',
       value: formula.damageBonusRateText,
-      lines: [
-        { label: '元素伤害加成', value: formula.elementBonusText },
-        { label: '技能伤害加成', value: formula.skillBonusText },
-        { label: '全伤害加成', value: formula.allDamageBonusText },
-        { label: '加成区计算', value: formula.damageBonusFormulaText },
-      ],
+      lines: linesFor('damageBonus', [
+        `元素伤害加成: ${formula.elementBonusText}`,
+        `技能伤害加成: ${formula.skillBonusText}`,
+        `全伤害加成: ${formula.allDamageBonusText}`,
+        `加成区计算: ${formula.damageBonusFormulaText}`,
+      ]),
       buffs: getSectionBuffs(formula, 'damageBonus'),
     },
     {
       key: 'defense',
       label: '防御',
       value: readFormulaResult(formula.defenseZoneText),
-      lines: [{ label: '防御区系数', value: formula.defenseZoneText }],
+      lines: linesFor('defense', [`防御区系数: ${formula.defenseZoneText}`]),
       buffs: getSectionBuffs(formula, 'defense'),
     },
     {
       key: 'resistance',
       label: '抗性',
       value: readFormulaResult(formula.resistanceFormulaText),
-      lines: [
-        { label: '有效抗性', value: formula.resistanceEffectiveText },
-        { label: '抗性区计算', value: formula.resistanceFormulaText },
-      ],
+      lines: linesFor('resistance', [
+        `有效抗性: ${formula.resistanceEffectiveText}`,
+        `抗性区计算: ${formula.resistanceFormulaText}`,
+      ]),
       buffs: getSectionBuffs(formula, 'resistance'),
     },
     {
       key: 'amplify',
       label: '增幅',
       value: readFormulaResult(formula.amplifyFormulaText),
-      lines: [{ label: '增幅区计算', value: formula.amplifyFormulaText }],
+      lines: linesFor('amplify', [`增幅区计算: ${formula.amplifyFormulaText}`]),
       buffs: getSectionBuffs(formula, 'amplify'),
     },
     {
       key: 'fragile',
       label: '易伤',
       value: readFormulaResult(formula.fragileFormulaText),
-      lines: [{ label: '易伤区计算', value: formula.fragileFormulaText }],
+      lines: linesFor('fragile', [`易伤区计算: ${formula.fragileFormulaText}`]),
       buffs: getSectionBuffs(formula, 'fragile'),
     },
     {
       key: 'vulnerability',
       label: '脆弱',
       value: readFormulaResult(formula.vulnerabilityFormulaText),
-      lines: [{ label: '脆弱区计算', value: formula.vulnerabilityFormulaText }],
+      lines: linesFor('vulnerability', [`脆弱区计算: ${formula.vulnerabilityFormulaText}`]),
       buffs: getSectionBuffs(formula, 'vulnerability'),
     },
     {
       key: 'combo',
       label: '连击',
       value: readFormulaResult(formula.comboFormulaText),
-      lines: [{ label: '连击区计算', value: formula.comboFormulaText }],
+      lines: linesFor('combo', [`连击区计算: ${formula.comboFormulaText}`]),
       buffs: getSectionBuffs(formula, 'combo'),
     },
     {
       key: 'imbalance',
       label: '失衡',
       value: readFormulaResult(formula.imbalanceFormulaText),
-      lines: [{ label: '失衡区计算', value: formula.imbalanceFormulaText }],
+      lines: linesFor('imbalance', [`失衡区计算: ${formula.imbalanceFormulaText}`]),
       buffs: getSectionBuffs(formula, 'imbalance'),
     },
     {
       key: 'result',
       label: '结果',
       value: formula.nonCritText,
-      lines: [
-        { label: '非暴击全链路', value: formula.nonCritFormulaText },
-        { label: '期望伤害', value: formula.expectedText },
-        { label: '暴击伤害', value: formula.critText },
-        { label: '非暴击伤害', value: formula.nonCritText },
-      ],
+      lines: linesFor('result', [
+        `非暴击全链路: ${formula.nonCritFormulaText}`,
+        `期望伤害: ${formula.expectedText}`,
+        `暴击伤害: ${formula.critText}`,
+        `非暴击伤害: ${formula.nonCritText}`,
+      ]),
       buffs: [],
     },
   ];

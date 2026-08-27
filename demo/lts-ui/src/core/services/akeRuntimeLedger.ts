@@ -1,7 +1,10 @@
 import type { FormulaViewModel, AppliedBuffTagViewModel } from '../calculators/skillDamage.types';
 import type {
   AkeCommandSettlement,
+  AkePanelAttackTrace,
+  AkeRuntimeDamageFactor,
   AkeRuntimeHit,
+  AkeRuntimeModifierContribution,
   AkeRuntimeStatusEvent,
   AkeTeamReport,
 } from '../../integrations/ake/akeProvider';
@@ -530,6 +533,8 @@ const DAMAGE_TYPE_BUFF_PREFIX: Record<string, string> = {
 };
 
 const RUNTIME_SOURCE_LABELS: Record<string, string> = {
+  BaseAttribute: '基础属性',
+  Skill: '技能数据',
   WeaponPassive: '武器被动',
   Weapon: '武器属性',
   AttributeTalent: '属性天赋',
@@ -699,11 +704,137 @@ function contributionBuffTags(
   });
 }
 
+function buildPanelAttackLines(
+  panelAttack: number | undefined,
+  trace: AkePanelAttackTrace | undefined,
+): string[] {
+  if (!trace) {
+    return Number.isFinite(panelAttack) && Number(panelAttack) > 0
+      ? [
+        `最终面板攻击力: ${trimNumber(Number(panelAttack))}`,
+        '配置计算链: 旧报告未包含攻击区快照，请重新计算时间轴',
+      ]
+      : ['面板攻击力: 当前报告未包含角色配置快照'];
+  }
+
+  const abilityLines = (kind: '主' | '副', ability: AkePanelAttackTrace['mainAbility']) => {
+    if (!ability) return [];
+    const additiveScale = (1 + ability.statScale) * (1 + ability.allStatScale);
+    return [
+      `${kind}能力（${ability.label}）原始值: ${trimNumber(ability.rawValue)}`,
+      `${kind}能力加算: (1 + ${percent(ability.statScale)}) × (1 + ${percent(ability.allStatScale)}) = ×${trimNumber(additiveScale, 4)}`,
+      `${kind}能力结算: ${trimNumber(ability.rawValue)} × ${trimNumber(additiveScale, 4)} = ${trimNumber(ability.valueBeforeRounding)}`,
+      `${kind}能力取整: ${trimNumber(ability.valueBeforeRounding)} → ${trimNumber(ability.finalValue)}`,
+      `${kind}能力攻击转换: ${trimNumber(ability.finalValue)} × ${trimNumber(ability.attackCoefficient, 3)} = ${trimNumber(ability.attackBonus, 4)}`,
+    ];
+  };
+
+  return [
+    `角色攻击: ${trimNumber(trace.characterAttack)}`,
+    `武器攻击: ${trimNumber(trace.weaponAttack)}`,
+    `攻击力百分比加成: ${percent(trace.attackPercent)}`,
+    `固定攻击项: ${trimNumber(trace.flatAttack)}`,
+    `攻击基础值: (${trimNumber(trace.characterAttack)} + ${trimNumber(trace.weaponAttack)}) × (1 + ${percent(trace.attackPercent)}) + ${trimNumber(trace.flatAttack)} = ${trimNumber(trace.baseAttack)}`,
+    ...abilityLines('主', trace.mainAbility),
+    ...abilityLines('副', trace.subAbility),
+    `能力值总攻击加成: ${(trace.mainAbility?.attackBonus !== undefined || trace.subAbility?.attackBonus !== undefined)
+      ? `${trimNumber(trace.mainAbility?.attackBonus ?? 0, 4)} + ${trimNumber(trace.subAbility?.attackBonus ?? 0, 4)} = `
+      : ''}${trimNumber(trace.abilityBonus, 4)}`,
+    `最终面板攻击力: ${trimNumber(trace.baseAttack)} × (1 + ${trimNumber(trace.abilityBonus, 4)}) = ${trimNumber(trace.panelAttack)}`,
+  ];
+}
+
+function runtimeContributionLabel(contribution: AkeRuntimeModifierContribution): string {
+  return readableContributionName(contribution.sourceMetadata)
+    || readableContributionName(contribution.metadata)
+    || RUNTIME_SOURCE_LABELS[String(contribution.sourceType ?? '')]
+    || RUNTIME_SOURCE_LABELS[String(contribution.sourceCategory ?? '')]
+    || ATTRIBUTE_LABELS[String(contribution.attribute ?? contribution.rawField ?? '')]
+    || '运行时来源';
+}
+
+function runtimeContributionValue(contribution: AkeRuntimeModifierContribution): string {
+  const value = finite(
+    contribution.resolvedValue ?? contribution.value ?? contribution.addition,
+    0,
+  );
+  const zone = String(contribution.zone ?? contribution.semanticKey ?? '');
+  const attribute = String(contribution.attribute ?? contribution.rawField ?? '');
+  if (contribution.rawField === 'scale'
+    || String(contribution.semanticKey ?? '').includes('attack-scale')) {
+    return `×${trimNumber(value, 4)}`;
+  }
+  if (/FinalMultiplier$/.test(zone)) return `×${trimNumber(value, 4)}`;
+  if (/Multiplier$/.test(zone) || (attribute !== 'Atk' && Math.abs(value) <= 2)) {
+    return `${value >= 0 ? '+' : ''}${percent(value)}`;
+  }
+  return `${value >= 0 ? '+' : ''}${trimNumber(value, 4)}`;
+}
+
+function factorRawText(rawValue: unknown): string {
+  if (typeof rawValue === 'number') return trimNumber(rawValue, 4);
+  if (Array.isArray(rawValue)) {
+    const zones = rawValue.flatMap((entry) => {
+      if (!isRecord(entry)) return [];
+      const name = String(entry.zoneName ?? entry.name ?? '加成');
+      const addition = finite(entry.addition ?? entry.value, 0);
+      return [`${name} ${addition >= 0 ? '+' : ''}${percent(addition)}`];
+    });
+    return zones.length > 0 ? zones.join('，') : '无额外来源';
+  }
+  if (isRecord(rawValue)) {
+    const fields = Object.entries(rawValue).flatMap(([key, value]) => (
+      typeof value === 'number' && Number.isFinite(value)
+        ? [`${key}=${trimNumber(value, 4)}`]
+        : []
+    ));
+    return fields.length > 0 ? fields.join('，') : '运行时对象';
+  }
+  return rawValue == null ? '未提供' : String(rawValue);
+}
+
+function factorAuditLines(
+  label: string,
+  selected: AkeRuntimeDamageFactor | undefined,
+  fallbackFormula?: string,
+): string[] {
+  if (!selected) {
+    return [`${label}计算: ${fallbackFormula ?? '运行时未提供'}`];
+  }
+  const contributions = (selected.contributions ?? []).filter((contribution) => {
+    if (contribution.sourceCategory === 'BaseAttribute') return false;
+    const value = finite(
+      contribution.resolvedValue ?? contribution.value ?? contribution.addition,
+      0,
+    );
+    return contribution.sourceType !== 'ConfiguredAttribute' || Math.abs(value) > 1e-12;
+  });
+  return [
+    `${label}原始值: ${factorRawText(selected.rawValue)}`,
+    ...contributions.map((contribution, index) => (
+      `${label}来源 ${index + 1} · ${runtimeContributionLabel(contribution)}: ${runtimeContributionValue(contribution)}`
+    )),
+    `${label}最终系数: ×${trimNumber(selected.multiplier, 4)}`,
+  ];
+}
+
+function nonCriticalFactorChain(factors: AkeRuntimeDamageFactor[]): string {
+  const active = factors.filter((item) => item.affectsNonCritical !== false);
+  if (active.length === 0) return '';
+  return active.map((item) => (
+    item.semanticKey === 'attack'
+      ? '攻击力'
+      : `${item.displayName} ×${trimNumber(item.multiplier, 4)}`
+  )).join(' × ');
+}
+
 function buildRuntimeFormula(
   hit: AkeRuntimeHit,
   title: string,
   statusEvents: AkeRuntimeStatusEvent[],
   labels: AkeRuntimeStatusLabelMap,
+  panelAttack?: number,
+  panelAttackTrace?: AkePanelAttackTrace,
 ): FormulaViewModel {
   const operands = hit.operands ?? {};
   const factors = hit.factors ?? [];
@@ -719,38 +850,105 @@ function buildRuntimeFormula(
   const configuredScale = finite(factor('configured-damage-bonus')?.multiplier, finite(operands.configuredDamageBonusScale, 1));
   const vulnerableFactor = factors.find((item) =>
     item.semanticKey.endsWith('-vulnerability') || item.semanticKey.endsWith('-vulnerable'));
+  const damageTakenFactor = factor('damage-taken');
+  const defenderFactor = factor('defender-zone');
+  const criticalFactor = factor('critical');
   const expectedCriticalScale = finite(operands.expectedCriticalScale, 1);
   const allCriticalScale = finite(operands.allCriticalScale, 1);
   const criticalRate = finite(operands.criticalRate);
   const criticalDamageIncrease = finite(operands.criticalDamageIncrease);
   const attackerCombinedScale = attackerScale * configuredScale;
   const buffTags = contributionBuffTags(hit, statusEvents, labels);
+  const attackLines = buildPanelAttackLines(panelAttack, panelAttackTrace);
   const unavailable = '运行时未提供';
   const rateFormula = (selected: typeof factors[number] | undefined) => selected
-    ? `${trimNumber(finite(selected.rawValue), 4)} → ×${trimNumber(selected.multiplier, 4)}`
+    ? `${factorRawText(selected.rawValue)} → ×${trimNumber(selected.multiplier, 4)} = ${trimNumber(selected.multiplier, 4)}`
     : unavailable;
   const fragileFormula = factor('defender-zone')
-    ? trimNumber(defenderScale, 4)
+    ? `1 + ${percent(defenderScale - 1)} = ${trimNumber(defenderScale, 4)}`
     : operands.defenderZoneScale !== undefined
       ? `1 + ${percent(defenderScale - 1)} = ${trimNumber(defenderScale)}`
       : unavailable;
+  const fullFactorChain = nonCriticalFactorChain(factors);
+  const nonCritFormula = fullFactorChain
+    ? `${fullFactorChain} = ${fixedDamage(hit.nonCriticalDamage)}`
+    : `攻击力 × ${trimNumber(atkScale, 4)} × ${trimNumber(attackerCombinedScale, 4)} × ${trimNumber(defScale, 4)} × ${trimNumber(resistanceScale, 4)} × ${trimNumber(defenderScale, 4)} = ${fixedDamage(hit.nonCriticalDamage)}`;
+  const factorValidation = hit.factorValidation;
+  const validationText = factorValidation
+    ? `${factorValidation.valid ? 'PASS' : 'FAIL'} · 重建 ${fixedDamage(factorValidation.reconstructedNonCritical)} · 目标 ${fixedDamage(factorValidation.expectedNonCritical)} · 差值 ${trimNumber(factorValidation.delta, 8)}`
+    : '旧报告未提供乘区重建校验';
+  const configuredFactor = factor('configured-damage-bonus');
+  const attackerFactor = factor('attacker-zone');
+  const comboFactor = factor('combo-damage');
+  const imbalanceFactor = factor('imbalance-damage');
+  const neutralComboFormula = '1 + 0.0% = 1';
+  const neutralImbalanceFormula = '1 + 0.0% = 1';
   return {
     title: `${title} 运行时计算过程`,
     panelLines: [
+      `ATK: ${Number.isFinite(panelAttack) && Number(panelAttack) > 0 ? trimNumber(Number(panelAttack)) : '—'}`,
       `暴击率: ${percent(criticalRate)}`,
       `暴击伤害: ${percent(criticalDamageIncrease)}`,
       `运行帧: F${hit.frame}`,
     ],
-    // Runtime ATK is retained in the engine's raw hit snapshot for later
-    // reconciliation, but it is deliberately not projected into this UI.
-    // The floor/rounding contract is not settled yet, so showing it here
-    // would make an unverified intermediate value look like panel data.
-    attackLines: [],
+    attackLines,
+    sectionLines: {
+      attack: [
+        ...attackLines,
+        `当前 Hit 攻击区来源: ${buffTags.filter((buff) => ['flatAtk', 'atkPercentBoost', 'atkFinalMultiplier', 'mainStatBoost', 'subStatBoost', 'allStatBoost'].includes(buff.type ?? '')).length} 项（逐项见下方 Buff）`,
+      ],
+      multiplier: factorAuditLines('技能倍率', factor('attack-scale'), `${percent(atkScale)} = ×${trimNumber(atkScale, 4)}`),
+      crit: [
+        `暴击率: ${percent(criticalRate)}`,
+        `暴击伤害加成: ${percent(criticalDamageIncrease)}`,
+        `暴击倍率: 1 + ${percent(criticalDamageIncrease)} = ${trimNumber(allCriticalScale, 4)}`,
+        `期望暴击系数: 1 + ${percent(criticalRate)} × ${percent(criticalDamageIncrease)} = ${trimNumber(expectedCriticalScale, 4)}`,
+        ...(criticalFactor?.contributions ?? [])
+          .filter((contribution) => contribution.sourceCategory !== 'BaseAttribute')
+          .map((contribution, index) => (
+            `暴击来源 ${index + 1} · ${runtimeContributionLabel(contribution)}: ${runtimeContributionValue(contribution)}`
+          )),
+        `非暴击伤害: ${fixedDamage(hit.nonCriticalDamage)}`,
+        `暴击伤害: ${fixedDamage(hit.criticalDamage)}（×${trimNumber(allCriticalScale, 4)}）`,
+        `期望伤害: ${fixedDamage(hit.expectedDamage)}（×${trimNumber(expectedCriticalScale, 4)}）`,
+      ],
+      damageBonus: [
+        ...factorAuditLines('攻击方增伤区', attackerFactor, `×${trimNumber(attackerScale, 4)}`),
+        ...factorAuditLines('配置增伤区', configuredFactor, `×${trimNumber(configuredScale, 4)}`),
+        `加成区合并: ${trimNumber(attackerScale, 4)} × ${trimNumber(configuredScale, 4)} = ${trimNumber(attackerCombinedScale, 4)}`,
+      ],
+      defense: [
+        `敌方防御: ${trimNumber(defense)}`,
+        `防御效率: ${trimNumber(defEfficiency, 4)}`,
+        ...factorAuditLines('防御区', factor('defense'), `1 / (1 + ${trimNumber(defense)} × ${trimNumber(defEfficiency, 4)}) = ×${trimNumber(defScale, 4)}`),
+      ],
+      resistance: [
+        `有效抗性: ${trimNumber(resistance, 4)}%`,
+        ...factorAuditLines('抗性区', factor('resistance'), `1 - ${trimNumber(resistance, 4)}% = ×${trimNumber(resistanceScale, 4)}`),
+      ],
+      amplify: factorAuditLines('增幅区', damageTakenFactor, rateFormula(damageTakenFactor)),
+      fragile: factorAuditLines('易伤区', defenderFactor, fragileFormula),
+      vulnerability: factorAuditLines('脆弱区', vulnerableFactor, rateFormula(vulnerableFactor)),
+      combo: comboFactor
+        ? factorAuditLines('连击区', comboFactor, rateFormula(comboFactor))
+        : ['连击伤害加成: 当前 Hit 无额外来源（按 0%）', `连击区计算: ${neutralComboFormula}`],
+      imbalance: imbalanceFactor
+        ? factorAuditLines('失衡区', imbalanceFactor, rateFormula(imbalanceFactor))
+        : ['失衡伤害加成: 当前 Hit 无额外来源（按 0%）', `失衡区计算: ${neutralImbalanceFormula}`],
+      result: [
+        `非暴击乘区顺序: ${fullFactorChain || '运行时未提供结构化因子'}`,
+        `非暴击全链路: ${nonCritFormula}`,
+        `乘区重建校验: ${validationText}`,
+        `非暴击伤害: ${fixedDamage(hit.nonCriticalDamage)}`,
+        `暴击伤害: ${fixedDamage(hit.criticalDamage)}`,
+        `期望伤害: ${fixedDamage(hit.expectedDamage)}`,
+      ],
+    },
     buffTags,
     showNoBuff: buffTags.length === 0,
     baseMultiplierText: percent(atkScale, 2),
     multiplierFormulaText: `${percent(atkScale, 2)} = ${trimNumber(atkScale, 4)}`,
-    formulaText: `倍率 = ${trimNumber(atkScale, 4)}`,
+    formulaText: `${percent(atkScale, 2)} = ${trimNumber(atkScale, 4)}`,
     elementBonusText: factor('configured-damage-bonus')
       ? percent(finite(factor('configured-damage-bonus')?.rawValue), 1)
       : unavailable,
@@ -765,10 +963,10 @@ function buildRuntimeFormula(
     amplifyFormulaText: rateFormula(factor('damage-taken')),
     fragileFormulaText: fragileFormula,
     vulnerabilityFormulaText: rateFormula(vulnerableFactor),
-    comboFormulaText: rateFormula(factor('combo-damage')),
-    imbalanceFormulaText: rateFormula(factor('imbalance-damage')),
+    comboFormulaText: comboFactor ? rateFormula(comboFactor) : neutralComboFormula,
+    imbalanceFormulaText: imbalanceFactor ? rateFormula(imbalanceFactor) : neutralImbalanceFormula,
     defenseZoneText: `1 / (1 + ${trimNumber(defense)} × ${trimNumber(defEfficiency, 3)}) = ${trimNumber(defScale)}`,
-    nonCritFormulaText: `运行时结算 = ${fixedDamage(hit.nonCriticalDamage)}`,
+    nonCritFormulaText: nonCritFormula,
     expectedText: `${fixedDamage(hit.expectedDamage)} (×${trimNumber(expectedCriticalScale, 4)})`,
     critText: `${fixedDamage(hit.criticalDamage)} (×${trimNumber(allCriticalScale, 4)})`,
     nonCritText: fixedDamage(hit.nonCriticalDamage),
@@ -940,9 +1138,23 @@ export function buildAkeRuntimeCommandLedger(input: {
   const runtimeHits = (report.hits ?? [])
     .filter((hit) => hit.castId === castId && hit.damageAttributeType === 'Hp')
     .sort((left, right) => left.frame - right.frame || left.hitIndex - right.hitIndex);
+  const reportCharacter = report.characters.find((character) => (
+    character.akeCharacterId === command.characterId
+    || character.memberId === command.memberId
+    || character.localCharacterId === command.characterId
+  ));
+  const panelAttack = reportCharacter?.loadout.panelAtk;
+  const panelAttackTrace = reportCharacter?.loadout.panelAttackTrace;
   const hits = runtimeHits.map((hit, index) => {
     const title = hitTitle(hit, index, labels, statusEvents);
-    const formula = buildRuntimeFormula(hit, title, statusEvents, labels);
+    const formula = buildRuntimeFormula(
+      hit,
+      title,
+      statusEvents,
+      labels,
+      panelAttack,
+      panelAttackTrace,
+    );
     return {
       key: `ake-runtime-hit:${castId}:${hit.hitIndex}`,
       title,

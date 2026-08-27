@@ -207,6 +207,29 @@ export type AkeRuntimeHit = {
   confidence?: string;
 };
 
+export type AkePanelAbilityTrace = {
+  label: string;
+  rawValue: number;
+  statScale: number;
+  allStatScale: number;
+  valueBeforeRounding: number;
+  finalValue: number;
+  attackCoefficient: number;
+  attackBonus: number;
+};
+
+export type AkePanelAttackTrace = {
+  characterAttack: number;
+  weaponAttack: number;
+  attackPercent: number;
+  flatAttack: number;
+  baseAttack: number;
+  panelAttack: number;
+  abilityBonus: number;
+  mainAbility?: AkePanelAbilityTrace;
+  subAbility?: AkePanelAbilityTrace;
+};
+
 export type AkeRuntimeStatusEvent = {
   eventId?: string | null;
   sequence?: number;
@@ -439,6 +462,8 @@ export type AkeCharacterReport = {
     potentialEffectIds: string[];
     panelAtk: number;
     panelHp: number;
+    /** Trusted LTS/DEF panel formula, kept apart from AKE hit-time operands. */
+    panelAttackTrace?: AkePanelAttackTrace;
     /** The UI panel is a display projection; keep the engine value separate. */
     runtimeAtk?: number;
     runtimeAttackSources?: AkeRuntimeModifierContribution[];
@@ -659,6 +684,12 @@ function prepareMember(input: {
     skill2: Math.max(1, Math.min(9, Number(snapshot?.weapon.config.skillLevels.skill2) || 9)),
     skill3: Math.max(1, Math.min(9, Number(snapshot?.weapon.config.skillLevels.skill3) || 4)),
   };
+  const mainAbilityLabel = snapshot?.operator.mainStat
+    || catalogCharacter?.mainAttributeLabel
+    || '主能力';
+  const subAbilityLabel = snapshot?.operator.subStat
+    || catalogCharacter?.subAttributeLabel
+    || '副能力';
   const reportLoadout: AkeCharacterReport['loadout'] = {
     level,
     skillLevel,
@@ -672,6 +703,37 @@ function prepareMember(input: {
       ?.filter(item => item.level <= characterPotentialLevel).map(item => item.effectId) ?? [],
     panelAtk: Number(snapshot?.panel.display.atk) || 0,
     panelHp: Number(snapshot?.panel.display.hp) || 0,
+    panelAttackTrace: snapshot ? {
+      characterAttack: snapshot.panel.calc.operatorAtk,
+      weaponAttack: snapshot.panel.calc.weaponAtk,
+      attackPercent: snapshot.panel.display.attackDetail.atkPercent,
+      flatAttack: snapshot.panel.display.attackDetail.flatAtk,
+      baseAttack: snapshot.panel.display.attackDetail.baseAtk,
+      panelAttack: snapshot.panel.display.attackDetail.panelAtk,
+      abilityBonus: snapshot.panel.display.abilityBonus,
+      mainAbility: snapshot.panel.display.abilityDetail.rawMainStat !== 0
+        || snapshot.panel.display.abilityDetail.mainStatBeforeRounding !== 0 ? {
+        label: mainAbilityLabel,
+        rawValue: snapshot.panel.display.abilityDetail.rawMainStat,
+        statScale: snapshot.panel.display.abilityDetail.mainStatScale,
+        allStatScale: snapshot.panel.display.abilityDetail.allStatScale,
+        valueBeforeRounding: snapshot.panel.display.abilityDetail.mainStatBeforeRounding,
+        finalValue: snapshot.panel.display.mainStatFinal,
+        attackCoefficient: 0.005,
+        attackBonus: snapshot.panel.display.abilityDetail.mainAtkBonus,
+      } : undefined,
+      subAbility: snapshot.panel.display.abilityDetail.rawSubStat !== 0
+        || snapshot.panel.display.abilityDetail.subStatBeforeRounding !== 0 ? {
+        label: subAbilityLabel,
+        rawValue: snapshot.panel.display.abilityDetail.rawSubStat,
+        statScale: snapshot.panel.display.abilityDetail.subStatScale,
+        allStatScale: snapshot.panel.display.abilityDetail.allStatScale,
+        valueBeforeRounding: snapshot.panel.display.abilityDetail.subStatBeforeRounding,
+        finalValue: snapshot.panel.display.subStatFinal,
+        attackCoefficient: 0.002,
+        attackBonus: snapshot.panel.display.abilityDetail.subAtkBonus,
+      } : undefined,
+    } : undefined,
     runtimeAtk: 0,
     runtimeAttackSources: [],
     damageBonuses: configuredDamageBonuses(snapshot),

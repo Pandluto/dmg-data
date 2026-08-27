@@ -117,6 +117,8 @@ export class PoiseSystem {
             clockDomainId: entry.clockDomainId,
             reason: transition.reason ?? eventType,
             cycle: transition.cycle ?? null,
+            breakDamageBuffId: entry.definition.breakDamageBuffId ?? null,
+            executionGateBuffId: entry.definition.executionGateBuffId ?? null,
             transition: clone(transition)
         };
         this.trace.push(record);

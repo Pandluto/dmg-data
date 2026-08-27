@@ -244,7 +244,7 @@ export class CombatRuntime {
             targetValidator: targetId => this.context.hasEntity(targetId),
             onTransition: transition => {
                 if (transition.eventType === 'OnPoiseRecover') {
-                    this.#notifyPoiseLifecycleEvent(transition.eventType, transition);
+                    this.#projectPoiseLifecycle(transition);
                 }
             },
             onKnot: transition => this.#onPoiseKnot(transition)
@@ -3067,8 +3067,7 @@ export class CombatRuntime {
                         attribution.targetId
                     ),
                     ...(result.transition
-                        ? this.#notifyPoiseLifecycleEvent(
-                            'OnPoiseZero',
+                        ? this.#projectPoiseLifecycle(
                             result.transition,
                             { ...hit, result },
                             eventContext
@@ -3678,8 +3677,7 @@ export class CombatRuntime {
                         ));
                         if (applied.damageAttributeType === 'Poise'
                             && applied.result?.transition) {
-                            takeEvents.push(...this.#notifyPoiseLifecycleEvent(
-                                'OnPoiseZero',
+                            takeEvents.push(...this.#projectPoiseLifecycle(
                                 applied.result.transition,
                                 applied,
                                 damageEventContext
@@ -4080,6 +4078,62 @@ export class CombatRuntime {
             buffId: transition.buffId,
             durationTicks: transition.durationTicks
         }, context);
+    }
+
+    #projectPoiseLifecycle(transition, hit = null, eventContext = null) {
+        const detail = transition.transition ?? {};
+        if (transition.eventType !== 'OnPoiseZero'
+            && transition.eventType !== 'OnPoiseRecover') return [];
+        const targetId = transition.targetId ?? eventContext?.targetId ?? null;
+        if (targetId === null || targetId === undefined) return [];
+        const context = this.context.createEventContext({
+            frame: transition.frame,
+            eventType: transition.eventType,
+            sourceId: targetId,
+            ownerId: targetId,
+            targetId,
+            skillId: transition.skillId,
+            rootSkillId: transition.rootSkillId,
+            castId: transition.castId,
+            clockDomainId: transition.clockDomainId,
+            payload: {
+                poiseCycle: transition.cycle ?? detail.cycle ?? null,
+                hitId: hit?.hitId ?? transition.hitId ?? null,
+                causalSourceId: transition.sourceId ?? eventContext?.sourceId ?? null,
+                causalOwnerId: transition.ownerId ?? eventContext?.ownerId ?? null
+            }
+        });
+        const breakBuffIds = [
+            transition.breakDamageBuffId ?? detail.breakDamageBuffId,
+            transition.executionGateBuffId ?? detail.executionGateBuffId
+        ].filter(buffId => buffId
+            && this.statusEffects.getDefinition(buffId) !== null);
+        if (transition.eventType === 'OnPoiseZero') {
+            for (const buffId of breakBuffIds) {
+                this.execute({
+                    type: 'ApplyBuff',
+                    target: targetId,
+                    buffId,
+                    reason: 'PoiseBroken'
+                }, context);
+            }
+        } else {
+            for (const buffId of breakBuffIds) {
+                this.execute({
+                    type: 'FinishBuff',
+                    target: targetId,
+                    buffId,
+                    finishAll: true,
+                    reason: 'PoiseRecovered'
+                }, context);
+            }
+        }
+        return this.#notifyPoiseLifecycleEvent(
+            transition.eventType,
+            transition,
+            hit,
+            eventContext
+        );
     }
 
     #notifyPoiseLifecycleEvent(eventType, transition, hit = null, eventContext = null) {

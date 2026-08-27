@@ -1026,3 +1026,50 @@ Poise DamageUnit
 6. 最后把 runtime ledger 的 Poise 快照映射给 UI，并验证布局、水位求解、技能合法性完全不变。
 
 本节先冻结架构和可证伪边界；下一提交才开始第 1 步实现。
+
+### 14.4 Poise 双状态机迁移已经完成
+
+迁移没有在 `ResilienceMachine` 上追加补丁，而是恢复 `PoiseMachine` 的独立职责，并通过多目标 `PoiseSystem` 接入 `CombatRuntime`。当前实现边界如下：
+
+1. 每个可失衡目标持有独立 Poise 实例、cycle、敌方 clock domain、节点和恢复 timer；多个敌人互不共享数值或计时器；
+2. `damageAttributeType=Poise` 只进入 PoiseSystem，`damageAttributeType=Resilience` 与 `ApplyImpact` 仍只进入控制韧性；
+3. 直接 `ApplyPoiseDamage` 与 `ResolveDamagePacket` 共用同一个 settled-state 生命周期投影；
+4. AKE assembler 从敌人属性和模板传入 `maxPoise`、`poiseRecTime`、节点阈值/Buff、失衡易伤、处决门票、处决倍率、ATB 返还和有证据的快速破韧 profile；
+5. 失衡时真实应用 `buff_common_poise_break_damage_taken_scale` 与 `buff_common_poise_can_be_breaking_attacked`，恢复时统一移除；前者已经通过真实 AKE DamageModifier 回归证明把同一击从 100 放大到 130，并在恢复后回到 100；
+6. `OnPoiseZero` 与 `OnPoiseRecover` 都绑定目标 owner，同时在 payload 中保留破韧者、技能、cast 与 Hit 的因果来源；
+7. 处决门票增加 cast reservation：同一敌人的门票不能被两名干员同帧重复预订，命中时才消费；命中前中断只释放 reservation，不消费门票；命中消费只移除可处决状态，失衡易伤继续保留到恢复；
+8. demo 服务与前端报告不再截断 `finalState.poise`；技能详情账本可直接显示“失衡”和“失衡易伤”，旧缓存缺字段时回退为空快照。
+
+完整可观察顺序现为：
+
+```text
+OnBeforeOutputPoiseDamage -> OnBeforeTakePoiseDamage
+-> Poise 数值/节点/Broken/recovery timer commit
+-> OnTakePoiseDamage
+-> 失衡易伤与可处决状态进入
+-> OnPoiseZero(target)
+
+BreakingAttack admit -> reserve one target gate
+-> execution Hit commit -> consume gate -> remove execution-gate Buff
+-> interrupted before Hit -> release reservation, gate remains
+
+enemy local-clock recovery timer complete
+-> clear accumulated/nodes/execution gate
+-> remove break Buffs
+-> OnPoiseRecover(target)
+```
+
+通用 runner 还修正了两个此前被旧模拟器掩盖的时钟错误：实体注册时丢失敌方 `clockDomainId`，以及破韧停顿早于 Poise commit、导致恢复 timer 尚未创建。修复后同一套通用运行时对齐冻结的四个 Calc 恢复边界：attack4 恰好破韧 `613`、战技溢出破韧 `484`、失衡中战技命中 `617`、处决命中 `620`。元素异常子 Hit 不再借用普通战技主 Hit 的局部停顿规则。
+
+能力事件审计现为 84 个事件键、1072 个消费者组；complete 事件 25 种、866 组，缺生产者 57 种、199 组，非法值 2 种、7 组。`OnPoiseZero=49` 与 `OnPoiseRecover=19` 已从缺生产者转为 complete。根运行时全量 249 项测试通过，前端严格类型检查与 runtime ledger 测试通过。
+
+### 14.5 仍然保持失败关闭的 Poise 边界
+
+本节完成不等于所有敌人韧性机制都可以宣称完成。以下内容仍保留显式证据边界：
+
+- `OnPoiseKnotBreak` 仍有 4 组消费者，但不能在没有原始事件边界或 Calc 探针时把每个普通 knot callback 都直接命名为该事件；
+- 快速破韧保护目前由 PoiseMachine 内部唯一应用。对应公开 Buff 若同时进入通用 StatusEffect damage modifier，会把同一倍率乘两次；下一步必须先冻结“核心标量”与“可见 Buff”谁拥有数值、谁只负责展示；
+- 敌人部位韧性、不可破韧、阶段切换、复数韧性条和特殊 boss 节点仍需逐模板审计，不得套用普通敌人的 profile；
+- `OnOwnerDead`、假死、不死与真死提交仍属于生命状态机，不因 Poise 生命周期完成而被顺带标记 complete。
+
+上述实现没有修改共享变速求解、强边界分组、水位列、技能按钮、光标或伤害点坐标。UI 只新增已有 runtime ledger 的字段与状态投影，水位轴仍是同一套前端特色。

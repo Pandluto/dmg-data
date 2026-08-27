@@ -1254,6 +1254,39 @@
           "observation": "After the 7-tick attack4 break pause, the execution hit moves recovery from 613 to 620: 7 additional ticks."
         }
       ]
+    },
+    {
+      "id": "akedata.entity-blackboard.wulfa-combo-qte-prototype",
+      "actionType": "EntityBlackboardDefault",
+      "selector": {
+        "characterIds": [
+          "chr_0028_wulfa"
+        ],
+        "skillIds": [
+          "chr_0028_wulfa_combo_1_skill",
+          "chr_0028_wulfa_combo_2_skill",
+          "chr_0028_wulfa_combo_3_skill"
+        ],
+        "blackboardKey": "EntityBB_Combo_qte_proto_use"
+      },
+      "effect": {
+        "operation": "InitializeEntityBlackboard",
+        "value": 1
+      },
+      "confidence": "public-data-inferred",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0028_wulfa_combo_3_skill.json",
+          "observation": "The exported combo-3 timeline gates its QTE-success/fallback seek on EntityBB_Combo_qte_proto_use, but SkillData does not carry the entity prefab Blackboard value. The branch must be enabled for the serialized combo timeline to reach its AirborneAction phase."
+        },
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0028_wulfa_combo_1_skill.json",
+          "observation": "The same entity-level key gates the first combo prototype path, confirming that it is a shared entity configuration input rather than a per-hit counter."
+        }
+      ],
+      "notes": "This mapping fills an omitted entity-prefab value through the generic assembler mapping layer. It is intentionally scoped by compiled skill evidence; the runtime does not branch on Wulfa or on a hard-coded skill id."
     }
   ]
 }

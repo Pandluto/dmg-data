@@ -86,6 +86,41 @@ test('ShowComboRingQte compiles the AKE warning and precise intervals as a timed
     )), false);
 });
 
+test('FinishOwnerAction resolves owner-spawned InstantSearch without targeting the enemy', () => {
+    const compiler = new AkeActionCompiler({
+        semanticMappings: readJson('spec/engine-semantic-mappings.json')
+    });
+    const compiled = compiler.compileAction({
+        $type: 'Beyond.Gameplay.Core.FinishOwnerAction+Data, Gameplay.Beyond',
+        owner: {
+            targetSource: 'InstantSearch',
+            selectorOwner: 'ActionOwner',
+            selectorData: {
+                finderData: {
+                    $type: 'Beyond.Gameplay.Core.Selector+OwnerSpawnedEntityFinder+Data, Gameplay.Beyond'
+                },
+                validatorData: [],
+                postProcessorData: []
+            }
+        }
+    });
+    assert.equal(compiled.status, 'executable');
+    assert.deepEqual(compiled.actions.map(action => action.type), [
+        'FindTargets',
+        'DeactivateEntity'
+    ]);
+    assert.equal(compiled.actions[0].finderMode, 'OwnerSpawnedEntities');
+    assert.equal(compiled.actions[0].ownerRef, 'Owner');
+    assert.deepEqual(compiled.actions[1].target, {
+        type: 'TargetGroup',
+        key: 'finish-owner:$',
+        index: 0,
+        fallback: null,
+        all: true
+    });
+    assert.equal(compiled.unresolved.length, 0);
+});
+
 test('Wulfa combo 3 uses the generic tag stack query to consume spell attachment layers', () => {
     const assembled = new AkeSquadScenarioAssembler().assemble({
         enemyId: ENEMY,
@@ -97,6 +132,12 @@ test('Wulfa combo 3 uses the generic tag stack query to consume spell attachment
     });
     const combo3 = assembled.programs.get(COMBO_3);
     assert.ok(combo3, 'the real combo 3 program should be assembled');
+    assert.equal(
+        assembled.members.find(member => member.characterId === WULFA)
+            .entity.blackboard.EntityBB_Combo_qte_proto_use,
+        1,
+        'the omitted AKE entity Blackboard default must enable the serialized QTE branch'
+    );
     assert.equal(combo3.compiler.unresolved.some(entry => (
         entry.sourceType === 'CheckBuffStackNumByTag'
     )), false, 'tag stack conditions must be executable');
@@ -151,6 +192,14 @@ test('Wulfa combo 3 uses the generic tag stack query to consume spell attachment
         && entry.damageAttributeType === 'Hp'
         && entry.damageDecorateMask !== 0
     )), 'the layer-driven combo hit must be emitted by the runtime');
+    const noGuard = result.finalState.statuses.find(entry => (
+        entry.targetId === ENEMY
+        && entry.buffId === 'buff_physical_no_guard'
+    ));
+    assert.equal(noGuard?.stackCount, 2,
+        'the combo AirborneAction must add one physical layer after consuming attachments');
+    assert.equal(result.finalState.targetVital.alive, true,
+        'finishing spawned entities must not deactivate the hostile target');
 });
 
 test('action-created combo pending owns its gate and can admit a chained stage', () => {

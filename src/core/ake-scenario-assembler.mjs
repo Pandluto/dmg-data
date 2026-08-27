@@ -352,6 +352,40 @@ function namedAttributes(rawAttributes) {
 }
 
 /**
+ * Resolve entity-level Blackboard values that are omitted from the exported
+ * SkillData but are required by an AKE selector branch.  These are data
+ * mappings, not engine branches: a mapping may scope a default to the
+ * character and/or to the compiled skills that prove the value is relevant.
+ * Explicit caller values win over inferred defaults.
+ */
+function entityBlackboardDefaults(mappings, programs, characterId, overrides = {}) {
+    const defaults = {};
+    for (const mapping of mappings ?? []) {
+        if (mapping?.actionType !== 'EntityBlackboardDefault') continue;
+        const selector = mapping.selector ?? {};
+        const characterIds = Array.isArray(selector.characterIds)
+            ? selector.characterIds
+            : selector.characterId ? [selector.characterId] : [];
+        if (characterIds.length > 0 && !characterIds.includes(characterId)) continue;
+        const skillIds = Array.isArray(selector.skillIds)
+            ? selector.skillIds
+            : selector.skillId ? [selector.skillId] : [];
+        if (skillIds.length > 0 && !skillIds.some(skillId => programs.has(skillId))) continue;
+        const key = selector.blackboardKey ?? mapping.effect?.blackboardKey;
+        if (typeof key !== 'string' || key.length === 0) continue;
+        const value = mapping.effect?.value ?? mapping.effect?.initialValue;
+        if (value === undefined) continue;
+        if (!Object.prototype.hasOwnProperty.call(defaults, key)) {
+            defaults[key] = clone(value);
+        }
+    }
+    return {
+        ...defaults,
+        ...(isRecord(overrides) ? clone(overrides) : {})
+    };
+}
+
+/**
  * Joins version-pinned AKEDatabase tables and exported action JSON into one
  * auditable runtime bundle. Calc snapshots are deliberately not data inputs;
  * they are retained only as independent behavior oracles in comparison tests.
@@ -885,6 +919,13 @@ export class AkeScenarioAssembler {
             drainBuffs();
         }
 
+        const runtimeEntityBlackboard = entityBlackboardDefaults(
+            semanticFile.value.mappings ?? [],
+            programs,
+            characterId,
+            options.entityBlackboard ?? options.entityBlackboardDefaults ?? {}
+        );
+
         // Some built-in engine Buffs are referenced by exported weapon skills
         // but are absent from AKEDatabase's BuffData corpus. Keep the direct
         // exported attribute modifiers executable and remove only unavailable
@@ -1078,6 +1119,9 @@ export class AkeScenarioAssembler {
                     team: 'ally',
                     clockDomainId: `${characterId}:clock`,
                     metadata: { isMainCharacter: true },
+                    ...(Object.keys(runtimeEntityBlackboard).length > 0
+                        ? { blackboard: clone(runtimeEntityBlackboard) }
+                        : {}),
                     attributes: characterAttributes,
                     attributeComponents: runtimeCharacterAttributeComponents,
                     vital: characterAttributes.MaxHp
@@ -1236,6 +1280,7 @@ export class AkeScenarioAssembler {
                     mechanicsReference:
                         'reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md'
                 },
+                entityBlackboardDefaults: clone(runtimeEntityBlackboard),
                 enemyAttributes: clone(enemyAttributes),
                 enemyAttributeCalculations: {
                     source: 'AKEDatabase.EnemyAttributeTemplateTable',

@@ -3142,7 +3142,58 @@ export class AkeActionCompiler {
                 break;
             }
             case 'FinishOwnerAction': {
-                const target = this.#targetRef(node.owner, state, 'finished entity owner');
+                const ownerSelector = node.owner;
+                const directFinderType = selectorSource(ownerSelector) === 'InstantSearch'
+                    ? finderType(ownerSelector)
+                    : null;
+                if (directFinderType === 'OwnerSpawnedEntityFinder') {
+                    // InstantSearch is a selector protocol, not an alias for
+                    // the combat target.  FinishOwnerAction uses it to retire
+                    // the ability entities spawned by its ActionOwner.  Resolve
+                    // the finder into a local group first so an empty result is
+                    // a no-op and can never deactivate the hostile target.
+                    const owner = this.#targetRef(
+                        ownerSelector?.selectorOwner ?? ownerSelector?.target ?? 'Owner',
+                        state,
+                        'finished spawned-entity owner'
+                    );
+                    if (owner.unresolved) result.unresolved.push(owner.unresolved);
+                    if (owner.ref) {
+                        const targetGroupKey = `finish-owner:${state.path}`;
+                        result.actions.push({
+                            type: 'FindTargets',
+                            targetGroupKey,
+                            finderMode: 'OwnerSpawnedEntities',
+                            ownerRef: owner.ref,
+                            excludeOwner: false,
+                            tagIds: [],
+                            continuous: false,
+                            rawFinderType: directFinderType,
+                            reason: `${type}:InstantSearch`
+                        });
+                        result.actions.push({
+                            type: 'DeactivateEntity',
+                            target: {
+                                type: 'TargetGroup',
+                                key: targetGroupKey,
+                                index: 0,
+                                fallback: null,
+                                all: true
+                            },
+                            reason: type
+                        });
+                        result.metadata.push({
+                            type,
+                            path: state.path,
+                            category: 'target-group',
+                            targetGroupKey,
+                            finderMode: 'OwnerSpawnedEntities',
+                            rawFinderType: directFinderType
+                        });
+                    }
+                    break;
+                }
+                const target = this.#targetRef(ownerSelector, state, 'finished entity owner');
                 if (target.unresolved) result.unresolved.push(target.unresolved);
                 if (target.ref) result.actions.push({
                     type: 'DeactivateEntity',

@@ -11,18 +11,18 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3074,
-    "combatRiskCount": 913,
+    "findingCount": 3068,
+    "combatRiskCount": 907,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 330,
+      "combat-blocking": 324,
       "combat-partial": 161,
       "evidence-missing": 422,
       "presentation-only": 390,
       "spatial-assumption": 1771
     },
     "byPriority": {
-      "P0": 189,
+      "P0": 183,
       "P1": 650,
       "P2": 1845,
       "P3": 390
@@ -36,7 +36,7 @@
       "derived-state": 8,
       "deterministic-choice": 347,
       "event-scheduling": 28,
-      "event-subscription": 57,
+      "event-subscription": 51,
       "form-state": 30,
       "physical-status": 77,
       "presentation": 390,
@@ -47,7 +47,7 @@
       "unclassified": 74
     },
     "bySourceType": {
-      "AbilityEventAction": 36,
+      "AbilityEventAction": 30,
       "AddAIMarkerAction": 3,
       "AddDynamicCcsAction": 286,
       "AddTagAction": 4,
@@ -8140,18 +8140,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 112,
-        "combatRiskCount": 37,
+        "findingCount": 111,
+        "combatRiskCount": 36,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 14,
+          "combat-blocking": 13,
           "combat-partial": 4,
           "evidence-missing": 19,
           "presentation-only": 4,
           "spatial-assumption": 71
         },
         "byPriority": {
-          "P0": 3,
+          "P0": 2,
           "P1": 26,
           "P2": 79,
           "P3": 4
@@ -8159,7 +8159,7 @@
         "byCapability": {
           "condition-algebra": 11,
           "deterministic-choice": 11,
-          "event-subscription": 2,
+          "event-subscription": 1,
           "physical-status": 3,
           "presentation": 4,
           "status-lifecycle": 1,
@@ -8168,7 +8168,7 @@
           "unclassified": 8
         },
         "bySourceType": {
-          "AbilityEventAction": 2,
+          "AbilityEventAction": 1,
           "BlowOffAction": 3,
           "BreakInteractiveAction": 7,
           "CheckComboSkillCameraAlphaSetting": 1,
@@ -8223,23 +8223,6 @@
           "sourceType": "AbilityEventAction",
           "compilerCategory": null,
           "message": "Runtime has no proven emitter for OnEnemyBeforeTakeSpellInfliction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0016_laevat",
-          "characterName": "莱万汀",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0016_laevat_passive_enemy",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_passive_enemy.json",
-          "jsonPath": "abilityEventAction[1]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "AbilityEventAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnOwnerHpZero.",
           "impact": "combat-blocking",
           "priority": "P0",
           "capability": "event-subscription",
@@ -10116,18 +10099,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 105,
-        "combatRiskCount": 26,
+        "findingCount": 103,
+        "combatRiskCount": 24,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 16,
+          "combat-blocking": 14,
           "combat-partial": 3,
           "evidence-missing": 7,
           "presentation-only": 14,
           "spatial-assumption": 65
         },
         "byPriority": {
-          "P0": 4,
+          "P0": 2,
           "P1": 21,
           "P2": 66,
           "P3": 14
@@ -10135,7 +10118,6 @@
         "byCapability": {
           "condition-algebra": 12,
           "deterministic-choice": 6,
-          "event-subscription": 2,
           "form-state": 2,
           "physical-status": 2,
           "presentation": 14,
@@ -10144,7 +10126,6 @@
           "unclassified": 1
         },
         "bySourceType": {
-          "AbilityEventAction": 2,
           "AddDynamicCcsAction": 11,
           "BlowOffEnemyAction": 1,
           "CheckBuffStackNumByTag": 4,
@@ -10190,40 +10171,6 @@
           "priority": "P0",
           "capability": "form-state",
           "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection."
-        },
-        {
-          "characterId": "chr_0017_yvonne",
-          "characterName": "伊冯",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0017_yvonne_ultimate_skill",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0017_yvonne_ultimate_skill.json",
-          "jsonPath": "abilityEventAction[0]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "AbilityEventAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnOwnerHpZero.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0017_yvonne",
-          "characterName": "伊冯",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0017_yvonne_ultimate_skill_end",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0017_yvonne_ultimate_skill_end.json",
-          "jsonPath": "abilityEventAction[0]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "AbilityEventAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnOwnerHpZero.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
         },
         {
           "characterId": "chr_0017_yvonne",
@@ -14945,18 +14892,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 106,
-        "combatRiskCount": 39,
+        "findingCount": 105,
+        "combatRiskCount": 38,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 23,
+          "combat-blocking": 22,
           "combat-partial": 9,
           "evidence-missing": 7,
           "presentation-only": 12,
           "spatial-assumption": 55
         },
         "byPriority": {
-          "P0": 15,
+          "P0": 14,
           "P1": 23,
           "P2": 56,
           "P3": 12
@@ -14965,7 +14912,7 @@
           "condition-algebra": 8,
           "deterministic-choice": 6,
           "event-scheduling": 1,
-          "event-subscription": 9,
+          "event-subscription": 8,
           "physical-status": 5,
           "presentation": 12,
           "status-lifecycle": 5,
@@ -14974,7 +14921,7 @@
           "unclassified": 1
         },
         "bySourceType": {
-          "AbilityEventAction": 4,
+          "AbilityEventAction": 3,
           "AddDynamicCcsAction": 7,
           "BlowOffAction": 2,
           "ChannelingCastingAction": 1,
@@ -15104,23 +15051,6 @@
           "sourceType": "AbilityEventAction",
           "compilerCategory": null,
           "message": "Runtime has no proven emitter for OnBeforeDamageAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0027_tangtang",
-          "characterName": "汤汤",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0027_tangtang_ultskill_buff",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0027_tangtang_ultskill_buff.json",
-          "jsonPath": "abilityEventAction[2]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "AbilityEventAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnOwnerHpZero.",
           "impact": "combat-blocking",
           "priority": "P0",
           "capability": "event-subscription",
@@ -25213,18 +25143,18 @@
         "missingBuffCount": 1
       },
       "summary": {
-        "findingCount": 139,
-        "combatRiskCount": 62,
+        "findingCount": 138,
+        "combatRiskCount": 61,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 41,
+          "combat-blocking": 40,
           "combat-partial": 1,
           "evidence-missing": 20,
           "presentation-only": 14,
           "spatial-assumption": 63
         },
         "byPriority": {
-          "P0": 34,
+          "P0": 33,
           "P1": 22,
           "P2": 69,
           "P3": 14
@@ -25235,7 +25165,7 @@
           "damage-factor": 1,
           "dependency-closure": 1,
           "deterministic-choice": 14,
-          "event-subscription": 2,
+          "event-subscription": 1,
           "form-state": 21,
           "physical-status": 1,
           "presentation": 14,
@@ -25243,7 +25173,7 @@
           "unclassified": 6
         },
         "bySourceType": {
-          "AbilityEventAction": 2,
+          "AbilityEventAction": 1,
           "AddDynamicCcsAction": 11,
           "AddTagToEntities": 1,
           "BlockMoveInterruptSkill": 4,
@@ -25296,23 +25226,6 @@
           "priority": "P0",
           "capability": "dependency-closure",
           "rationale": "A referenced SkillData or BuffData document is absent from the runtime closure."
-        },
-        {
-          "characterId": "chr_0030_zhuangfy",
-          "characterName": "庄方宜",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0030_zhuangfy_normal_skill_trigger_sword_tar",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0030_zhuangfy_normal_skill_trigger_sword_tar.json",
-          "jsonPath": "abilityEventAction[0]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "AbilityEventAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnOwnerHpZero.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
         },
         {
           "characterId": "chr_0030_zhuangfy",
@@ -33541,18 +33454,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 149,
-        "combatRiskCount": 42,
+        "findingCount": 148,
+        "combatRiskCount": 41,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 15,
+          "combat-blocking": 14,
           "combat-partial": 13,
           "evidence-missing": 14,
           "presentation-only": 41,
           "spatial-assumption": 66
         },
         "byPriority": {
-          "P0": 13,
+          "P0": 12,
           "P1": 27,
           "P2": 68,
           "P3": 41
@@ -33562,7 +33475,7 @@
           "condition-algebra": 2,
           "deterministic-choice": 12,
           "event-scheduling": 1,
-          "event-subscription": 7,
+          "event-subscription": 6,
           "form-state": 1,
           "physical-status": 5,
           "presentation": 41,
@@ -33572,7 +33485,6 @@
           "unclassified": 2
         },
         "bySourceType": {
-          "AbilityEventAction": 1,
           "AddDynamicCcsAction": 28,
           "BlowOffAction": 2,
           "BoneAttachAction": 1,
@@ -33636,23 +33548,6 @@
           "priority": "P0",
           "capability": "form-state",
           "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection."
-        },
-        {
-          "characterId": "chr_0033_camille",
-          "characterName": "卡缪",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0033_camille_normal_skill_listen_target_dead",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0033_camille_normal_skill_listen_target_dead.json",
-          "jsonPath": "abilityEventAction[0]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "AbilityEventAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnOwnerHpZero.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
         },
         {
           "characterId": "chr_0033_camille",

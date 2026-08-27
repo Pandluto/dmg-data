@@ -13,6 +13,7 @@ const PRODUCER_DEFINITIONS = [
     ['OnTakeDamage', 'combat-runtime-damage-transaction'],
     ['OnOutputCriticalDamage', 'combat-runtime-damage-transaction'],
     ['OnTakeCriticalDamage', 'combat-runtime-damage-transaction'],
+    ['OnOwnerHpZero', 'combat-runtime-vital-zero-edge'],
     ['OnAfterKillEntity', 'combat-runtime-damage-transaction'],
     ['OnTakePoiseDamage', 'combat-runtime-damage-transaction'],
     ['OnBeforeOutputAirborne', 'combat-runtime-status-transaction'],

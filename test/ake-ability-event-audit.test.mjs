@@ -26,6 +26,9 @@ test('ability-event audit aggregates every listener channel by producer status',
     ).status, 'complete');
     assert.equal(audit.events.find(entry =>
         entry.eventType === 'OnOwnerHpZero'
+    ).status, 'complete');
+    assert.equal(audit.events.find(entry =>
+        entry.eventType === 'OnOwnerDead'
     ).status, 'emitter-required');
     assert.ok(audit.events.some(entry =>
         entry.status === 'invalid-type' && entry.serializedValue === 32

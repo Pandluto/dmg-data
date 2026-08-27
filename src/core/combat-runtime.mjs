@@ -2538,21 +2538,25 @@ export class CombatRuntime {
                     return result;
                 }
                 const sequence = this.nextDamageHitSequence++;
-                const abilityEvents = this.#notifyDamageEvent(
-                    'OnAfterKillEntity',
-                    {
-                        ...cloneValue(action),
-                        hitId: action.hitId ?? `runtime-hit:${sequence}`,
-                        sequence,
-                        damageUnitIndex: action.damageUnitIndex ?? null,
-                        damageAttributeType: action.damageAttributeType ?? 'Hp',
-                        amount,
-                        targetId: attribution.targetId
-                    },
-                    result,
-                    damageContext,
-                    attribution.sourceId ?? attribution.ownerId
-                );
+                const hit = {
+                    ...cloneValue(action),
+                    hitId: action.hitId ?? `runtime-hit:${sequence}`,
+                    sequence,
+                    damageUnitIndex: action.damageUnitIndex ?? null,
+                    damageAttributeType: action.damageAttributeType ?? 'Hp',
+                    amount,
+                    targetId: attribution.targetId
+                };
+                const abilityEvents = [
+                    ...this.#notifyOwnerHpZero(hit, result, damageContext),
+                    ...this.#notifyDamageEvent(
+                        'OnAfterKillEntity',
+                        hit,
+                        result,
+                        damageContext,
+                        attribution.sourceId ?? attribution.ownerId
+                    )
+                ];
                 return abilityEvents.length === 0
                     ? result
                     : { ...result, abilityEvents };
@@ -3596,6 +3600,11 @@ export class CombatRuntime {
                         }
                         if (Number(applied.result?.before ?? 0) > 0
                             && Number(applied.result?.after ?? 0) === 0) {
+                            takeEvents.push(...this.#notifyOwnerHpZero(
+                                applied,
+                                applied.result,
+                                damageEventContext
+                            ));
                             outputEvents.push(...this.#notifyDamageEvent(
                                 'OnAfterKillEntity',
                                 applied,
@@ -3971,6 +3980,18 @@ export class CombatRuntime {
         } finally {
             this.abilityNotifyDepth -= 1;
         }
+    }
+
+    #notifyOwnerHpZero(hit, appliedResult, eventContext) {
+        if (Number(appliedResult?.before ?? 0) <= 0
+            || Number(appliedResult?.after ?? 0) !== 0) return [];
+        return this.#notifyDamageEvent(
+            'OnOwnerHpZero',
+            hit,
+            appliedResult,
+            eventContext,
+            eventContext.targetId
+        );
     }
 
     #notifyAddedBuff(instance, eventContext) {

@@ -27,6 +27,7 @@ const TIMELINE_RESOLVER_TYPES = new Set([
     'MarkCanInterrupt', 'SpawnAbilityEntity',
     'ChannelingAction', 'ChannelingCastingAction', 'UltimateTimeAction'
 ]);
+const TEAM_COMBO_BUFF_ID = 'buff_common_affixes_combo_trigger';
 const SPATIAL_TYPES = new Set([
     'MergeTargetAction', 'MoveToAction', 'TeleportAction',
     'TeleportPosSelectAction', 'CustomRootMotionAction', 'SelfRotateAction',
@@ -274,6 +275,8 @@ export function classifyAkeActionType(type) {
     if ([
         'AddGlobalCDTimer',
         'ChangeSkillAction',
+        'ComboAction',
+        'DoOnceAction',
         'ShowComboRingQte',
         'SwitchModeAction',
         'TriggerComboSkillAction'
@@ -1416,6 +1419,32 @@ export class AkeActionCompiler {
                 );
                 break;
             }
+            case 'DoOnceAction': {
+                const children = this.#compileSequence(
+                    actionData(node.sequenceActionData ?? node.action ?? node.actions),
+                    { ...state, path: `${state.path}.sequenceActionData` }
+                );
+                result.metadata.push(...children.metadata, {
+                    type,
+                    path: state.path,
+                    category: 'execution-gate',
+                    policy: 'once-per-owner-lifetime'
+                });
+                result.unresolved.push(...children.unresolved);
+                result.diagnostics.push(...children.diagnostics);
+                result.cleanupActions.push(...children.cleanupActions);
+                if (children.actions.length > 0) result.actions.push({
+                    type: 'ExecuteOnce',
+                    onceKey: `ake-do-once:${state.path}`,
+                    actions: children.actions,
+                    reason: type,
+                    metadata: {
+                        akeSourceAction: type,
+                        akeSourcePath: state.path
+                    }
+                });
+                break;
+            }
             case 'ForEachAction': {
                 const target = this.#targetRef(node.target, state, 'foreach target');
                 if (target.unresolved) result.unresolved.push(target.unresolved);
@@ -2338,6 +2367,34 @@ export class AkeActionCompiler {
                     leaseKey,
                     timelineStartFrame: Number(state.timelineStartFrame ?? 0),
                     timelineEndFrame: Number(state.timelineEndFrame)
+                });
+                break;
+            }
+            case 'ComboAction': {
+                const source = this.#targetRef(node.source, state, 'team combo source');
+                if (source.unresolved) result.unresolved.push(source.unresolved);
+                if (source.ref) result.actions.push({
+                    type: 'GrantTeamCombo',
+                    sourceRef: source.ref,
+                    buffId: TEAM_COMBO_BUFF_ID,
+                    durationSeconds: descriptor(node.duration, 0),
+                    count: descriptor(node.count, 1),
+                    sourceKey: `ake-combo:${state.path}`,
+                    reason: type,
+                    metadata: {
+                        akeSourceAction: type,
+                        akeSourcePath: state.path,
+                        sharedScope: 'AlliedCharacters',
+                        consumeBy: ['NormalSkill', 'UltimateSkill']
+                    }
+                });
+                result.metadata.push({
+                    type,
+                    path: state.path,
+                    category: 'shared-team-state',
+                    buffId: TEAM_COMBO_BUFF_ID,
+                    duration: clone(node.duration),
+                    count: clone(node.count)
                 });
                 break;
             }

@@ -14,6 +14,8 @@ import { EnemyMechanicResolver } from './combat-status-resolver.mjs';
 import { AbilityEventListenerRegistry } from './ability-event-listener-registry.mjs';
 import { SkillCooldownSystem } from './skill-cooldown-system.mjs';
 
+export const TEAM_COMBO_BUFF_ID = 'buff_common_affixes_combo_trigger';
+
 function isRecord(value) {
     return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
@@ -171,6 +173,8 @@ export class CombatRuntime {
         this.nextIntervalSequence = 1;
         this.nextAbilityEntitySequence = 1;
         this.nextDamageHitSequence = 1;
+        this.nextTeamComboGrantSequence = 1;
+        this.onceActionExecutions = new Set();
         this.programExecutions = new Map();
         this.endedSkillCastIds = new Set();
         this.entityBlackboards = new Map();
@@ -588,6 +592,101 @@ export class CombatRuntime {
     executeTransaction(actions, eventContext = {}) {
         const context = this.context.createEventContext(eventContext);
         return this.effects.executeTransaction(actions, context);
+    }
+
+    consumeTeamComboState(input = {}, eventContext = {}) {
+        if (!isRecord(input)) {
+            throw new TypeError('consumeTeamComboState requires an input object.');
+        }
+        const frame = nonNegativeInteger(
+            input.frame ?? eventContext.frame ?? this.currentFrame,
+            'team combo consume frame'
+        );
+        const consumerId = identifier(
+            input.consumerId ?? input.actorId ?? eventContext.sourceId,
+            'team combo consumerId'
+        );
+        const consumer = this.context.getEntity(consumerId);
+        const alliedIds = new Set(this.context.listEntities(entity => (
+            entity.kind === 'Character'
+            && (consumer.team === null || consumer.team === undefined
+                || entity.team === consumer.team)
+        )).map(entity => entity.id));
+        const active = this.statusEffects.list({
+            active: true,
+            buffId: input.buffId ?? TEAM_COMBO_BUFF_ID
+        }).filter(instance => alliedIds.has(instance.targetId));
+        const groups = new Map();
+        for (const instance of active) {
+            const grantId = instance.metadata?.teamComboGrantId
+                ?? `legacy:${String(instance.sourceId)}:${instance.startFrame}`;
+            if (!groups.has(grantId)) groups.set(grantId, []);
+            groups.get(grantId).push(instance);
+        }
+        const selected = [...groups.entries()].sort((left, right) => {
+            const leftInstance = left[1].find(instance => instance.targetId === consumerId)
+                ?? left[1][0];
+            const rightInstance = right[1].find(instance => instance.targetId === consumerId)
+                ?? right[1][0];
+            const leftExpiry = leftInstance.expireFrame ?? Number.POSITIVE_INFINITY;
+            const rightExpiry = rightInstance.expireFrame ?? Number.POSITIVE_INFINITY;
+            return leftExpiry - rightExpiry
+                || leftInstance.startFrame - rightInstance.startFrame
+                || String(left[0]).localeCompare(String(right[0]));
+        })[0] ?? null;
+        if (!selected) {
+            return {
+                status: 'Empty',
+                frame,
+                consumerId,
+                buffId: input.buffId ?? TEAM_COMBO_BUFF_ID,
+                consumedStacks: 0,
+                targetIds: []
+            };
+        }
+        const [grantId, instances] = selected;
+        const context = this.context.createEventContext(eventContext, {
+            frame,
+            sourceId: consumerId,
+            ownerId: consumerId,
+            targetId: input.targetId ?? eventContext.targetId,
+            skillId: input.skillId ?? eventContext.skillId,
+            rootSkillId: input.rootSkillId ?? eventContext.rootSkillId
+                ?? input.skillId ?? eventContext.skillId,
+            castId: input.castId ?? eventContext.castId,
+            commandType: input.commandType ?? eventContext.commandType,
+            skillType: input.skillType ?? eventContext.skillType,
+            payload: {
+                ...cloneValue(eventContext.payload ?? {}),
+                commandType: input.commandType ?? eventContext.commandType,
+                skillType: input.skillType ?? eventContext.skillType
+            }
+        });
+        const transitions = instances.flatMap(instance => this.statusEffects.finish({
+            frame,
+            instanceId: instance.instanceId,
+            finishAll: false,
+            stackCount: 1,
+            consumption: instance.targetId === consumerId,
+            consumerId,
+            consumeKind: 'Consume',
+            reason: input.reason ?? 'TeamComboConsumedBySkill'
+        }, {
+            ...context,
+            targetId: instance.targetId
+        }));
+        const record = {
+            status: 'Consumed',
+            frame,
+            consumerId,
+            buffId: input.buffId ?? TEAM_COMBO_BUFF_ID,
+            grantId,
+            consumedStacks: 1,
+            targetIds: instances.map(instance => instance.targetId),
+            transitions
+        };
+        this.#record('TeamComboStateConsumed', context, record);
+        return cloneValue(record);
     }
 
     notifyAbilityEvent(eventContext = {}) {
@@ -2459,6 +2558,94 @@ export class CombatRuntime {
                     results.push({ targetId, result: transaction.result });
                 }
                 return { status: 'Resolved', count: results.length, results };
+            },
+            ExecuteOnce: (action, eventContext) => {
+                const lifetimeId = eventContext.castId
+                    ?? eventContext.buffInstanceId
+                    ?? eventContext.programExecutionId
+                    ?? `source:${String(eventContext.sourceId ?? eventContext.ownerId)}`;
+                const onceKey = `${identifier(action.onceKey, 'once action key')}:${String(lifetimeId)}`;
+                if (this.onceActionExecutions.has(onceKey)) {
+                    return { status: 'Ignored', reason: 'AlreadyExecuted', onceKey };
+                }
+                this.onceActionExecutions.add(onceKey);
+                const transaction = this.effects.executeTransaction(action.actions ?? [], {
+                    ...cloneValue(eventContext),
+                    blackboard: cloneValue(eventContext.blackboard)
+                });
+                eventContext.blackboard = cloneValue(transaction.eventContext.blackboard);
+                return {
+                    status: 'Executed',
+                    onceKey,
+                    result: transaction.result
+                };
+            },
+            GrantTeamCombo: (action, eventContext) => {
+                const sourceId = this.#entityId(
+                    action.sourceRef ?? action.source ?? 'Source',
+                    eventContext,
+                    'team combo source'
+                );
+                const source = this.context.getEntity(sourceId);
+                const count = nonNegativeInteger(
+                    Math.trunc(this.#number(action.count ?? 1, eventContext, 'team combo count')),
+                    'team combo count'
+                );
+                const durationSeconds = Math.max(0, this.#number(
+                    action.durationSeconds ?? 0,
+                    eventContext,
+                    'team combo duration seconds'
+                ));
+                if (count === 0) {
+                    return {
+                        status: 'Ignored',
+                        reason: 'ZeroComboCount',
+                        sourceId,
+                        count,
+                        durationSeconds
+                    };
+                }
+                const grantId = `${String(action.sourceKey ?? 'team-combo')}:${String(
+                    eventContext.castId ?? eventContext.buffInstanceId ?? 'runtime'
+                )}:${eventContext.frame}:${this.nextTeamComboGrantSequence++}`;
+                const recipients = this.context.listEntities(entity => (
+                    entity.kind === 'Character'
+                    && (source.team === null || source.team === undefined
+                        || entity.team === source.team)
+                ));
+                const results = recipients.map(recipient => this.execute({
+                    type: 'ApplyBuff',
+                    target: recipient.id,
+                    buffId: action.buffId ?? TEAM_COMBO_BUFF_ID,
+                    durationSeconds,
+                    stackCount: count,
+                    maxStacks: Math.max(99, count),
+                    stackingPolicy: 'Independent',
+                    inheritEventBlackboard: false,
+                    metadata: {
+                        ...cloneValue(action.metadata ?? {}),
+                        teamComboGrantId: grantId,
+                        teamComboSourceId: sourceId,
+                        teamComboCount: count
+                    },
+                    reason: action.reason ?? 'ComboAction'
+                }, {
+                    ...cloneValue(eventContext),
+                    sourceId,
+                    ownerId: eventContext.ownerId ?? sourceId,
+                    targetId: recipient.id,
+                    eventType: 'TeamComboGranted'
+                }));
+                return {
+                    status: recipients.length > 0 ? 'Applied' : 'Empty',
+                    grantId,
+                    sourceId,
+                    buffId: action.buffId ?? TEAM_COMBO_BUFF_ID,
+                    count,
+                    durationSeconds,
+                    targetIds: recipients.map(recipient => recipient.id),
+                    results
+                };
             },
             ModifyEntityBlackboard: (action, eventContext) => {
                 const entityId = this.#entityId(

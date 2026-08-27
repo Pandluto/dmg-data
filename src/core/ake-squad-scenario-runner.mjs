@@ -1362,6 +1362,19 @@ export class AkeSquadScenarioRunner {
                     command.commandId
                 );
             }
+            if (['NormalSkill', 'UltimateSkill'].includes(command.commandType)) {
+                runtime.consumeTeamComboState({
+                    frame,
+                    consumerId: state.characterId,
+                    targetId: command.targetId ?? enemyId,
+                    commandType: command.commandType,
+                    skillType: command.commandType,
+                    skillId: state.currentSkill?.skillId ?? skillId,
+                    rootSkillId: state.currentSkill?.rootSkillId ?? skillId,
+                    castId: state.currentSkill?.castId ?? null,
+                    reason: 'TeamComboConsumedBySkill'
+                });
+            }
             if (command.commandType === 'ComboSkill' && comboGate?.pending) {
                 comboMachine.consume({
                     frame,

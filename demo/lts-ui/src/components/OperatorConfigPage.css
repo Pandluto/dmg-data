@@ -1341,37 +1341,122 @@
   font-weight: 700;
 }
 
-.operator-config-page-skill-hit-buffs {
+.operator-config-page-skill-status-summary {
   display: grid;
-  gap: 6px;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(91, 128, 157, 0.2);
+  gap: 8px;
+  padding: 10px;
+  background: #eef6fb;
+  box-shadow: inset 3px 0 0 #4d94bd;
 }
 
-.operator-config-page-skill-hit-buff {
+.operator-config-page-skill-status-summary-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: #173d56;
+}
+
+.operator-config-page-skill-status-summary-header strong {
+  font-size: 13px;
+}
+
+.operator-config-page-skill-status-summary-header span {
+  color: #607787;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.operator-config-page-skill-status-grid {
   display: grid;
-  gap: 3px;
-  padding: 7px 8px;
-  border-radius: 6px;
-  background: rgba(231, 246, 255, 0.72);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 7px;
+}
+
+.operator-config-page-skill-status-card {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px 9px;
+  background: rgba(255, 255, 255, 0.82);
   color: #31546d;
 }
 
-.operator-config-page-skill-hit-buff-heading {
+.operator-config-page-skill-status-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.operator-config-page-skill-status-icon,
+.operator-config-page-skill-status-icon-fallback {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+}
+
+.operator-config-page-skill-status-icon {
+  display: block;
+  object-fit: contain;
+}
+
+.operator-config-page-skill-status-icon-fallback {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #d8ebf6;
+  color: #1e5d7d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.operator-config-page-skill-status-heading {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
+  min-width: 0;
+  flex: 1;
 }
 
-.operator-config-page-skill-hit-buff-heading strong {
+.operator-config-page-skill-status-heading strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: #173d56;
+  font-size: 12px;
 }
 
-.operator-config-page-skill-hit-buff small {
+.operator-config-page-skill-status-heading span {
+  flex: 0 0 auto;
   color: #607787;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.operator-config-page-skill-status-values {
+  display: grid;
+  gap: 3px;
+  padding-left: 36px;
+}
+
+.operator-config-page-skill-status-values span {
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.operator-config-page-skill-status-values small,
+.operator-config-page-skill-status-internal-note {
+  color: #607787;
+  font-size: 10px;
   line-height: 1.4;
+}
+
+.operator-config-page-skill-hit-status-ref {
+  color: #2f769d;
+  font-weight: 700;
 }
 
 .operator-config-page-skill-empty-hit {

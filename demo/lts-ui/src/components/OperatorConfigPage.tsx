@@ -7,7 +7,7 @@ import { adaptRuntimeTemplateToLegacyCharacter, loadLocalOperatorCharacters } fr
 import { persistentLocalStorage } from '../platform/storage/persistentStorage';
 import { buildConfigSnapshot } from '../core/calculators/operatorPanelCalculator';
 import type { ConfigSnapshot, EquipmentPieceInput, EquipmentSetBuffInput, OperatorPanelInput } from '../core/calculators/operatorPanelCalculator';
-import type { Character, HitBuffEffect, HitSkillType } from '../types';
+import type { Character, HitBuffEffect } from '../types';
 import type {
   OperatorConfigPageCache,
   OperatorConfigPageCharacterConfig,
@@ -36,6 +36,12 @@ import {
   type EquipmentThreePieceBuff,
 } from '../core/services/operatorEquipmentLibrary';
 import DeferredNumberInput from './DeferredNumberInput';
+import {
+  buildSkillDetailGroups,
+  visibleSkillHitBuffs,
+  type OperatorSkillKey,
+  type SkillDetailGroup,
+} from './operatorSkillDetailModel';
 import { loadAkeCatalog } from '../integrations/ake/akeProvider';
 
 type AttributeItem = {
@@ -82,24 +88,8 @@ interface WeaponData {
   };
 }
 
-type OperatorSkillKey = 'A' | 'B' | 'E' | 'Q' | 'Dot';
 type CharacterAttributeKey = keyof Character['attributes'];
 type RawWeaponLibrary = Record<string, Partial<WeaponData> & { id?: string; imgUrl?: string }>;
-type SkillHitDetail = {
-  key: string;
-  displayName: string;
-  value: number | string;
-  element: string;
-  skillType: HitSkillType;
-  hitBuffs: HitBuffEffect[];
-};
-type SkillDetailGroup = {
-  id: string;
-  displayName: string;
-  buttonType: OperatorSkillKey;
-  iconUrl?: string;
-  hits: SkillHitDetail[];
-};
 type OperatorConfigPageDraftMap = Record<string, OperatorConfigPageCharacterConfig>;
 
 const SKILL_ITEMS = [
@@ -879,87 +869,11 @@ function stageToSkillMode(stage: number): string {
   return `M${stage - SLOT_COUNT}`;
 }
 
-function resolveHitValue(hit: { multiplier?: number; levels?: Record<string, number> }, levelKey: string): number | string {
-  const leveledValue = hit.levels?.[levelKey];
-  if (typeof leveledValue === 'number') {
-    return leveledValue;
-  }
-  if (typeof hit.multiplier === 'number') {
-    return hit.multiplier;
-  }
-  return '-';
-}
-
 function formatHitBuffEffectValue(value: number, unit?: string): string {
   if (unit === 'percent') {
     return `+${Number((value * 100).toFixed(2))}%`;
   }
   return `${value >= 0 ? '+' : ''}${Number(value.toFixed(4))}`;
-}
-
-function buildFallbackSkillDetails(
-  skillKey: OperatorSkillKey,
-  skill: Character['skills'][keyof Character['skills']] | undefined,
-  levelKey: string
-): SkillDetailGroup[] {
-  if (!skill) {
-    return [];
-  }
-
-  const multiplier = skill.multipliers[levelKey] ?? skill.multipliers.M3 ?? {};
-  const hits = Object.entries(multiplier)
-    .filter(([, value]) => typeof value === 'number')
-    .map(([hitKey, value]) => ({
-      key: hitKey,
-      displayName: hitKey,
-      value: value ?? '-',
-      element: 'unknown',
-      skillType: skillKey,
-      hitBuffs: [],
-    }));
-
-  return [{
-    id: skillKey,
-    displayName: skill.name || skillKey,
-    buttonType: skillKey,
-    hits,
-  }];
-}
-
-function buildSkillDetailGroups(character: Partial<Character>, skillKey: OperatorSkillKey, levelKey: string): SkillDetailGroup[] {
-  const sandboxSkills = character.sandboxSkills ?? [];
-  const sandboxGroups = sandboxSkills
-    .filter((skill) => skill.buttonType === skillKey)
-    .map((skill) => ({
-      id: skill.id,
-      displayName: skill.displayName || skill.id,
-      buttonType: skillKey,
-      iconUrl: skill.iconUrl,
-      hits: (skill.customHits ?? []).map((hit) => {
-        const hitWithLevels = hit as typeof hit & { levels?: Record<string, number> };
-        return {
-          key: hit.key,
-          displayName: hit.displayName || hit.key,
-          value: resolveHitValue(hitWithLevels, levelKey),
-          element: hit.element,
-          skillType: hit.skillType,
-          hitBuffs: hit.hitBuffs ?? [],
-        };
-      }),
-    }));
-
-  if (sandboxGroups.length > 0) {
-    return sandboxGroups;
-  }
-
-  const fallbackByKey: Record<OperatorSkillKey, Character['skills'][keyof Character['skills']] | undefined> = {
-    A: character.skills?.normalAttack,
-    B: character.skills?.skill,
-    E: character.skills?.chainSkill,
-    Q: character.skills?.ultimate,
-    Dot: undefined,
-  };
-  return buildFallbackSkillDetails(skillKey, fallbackByKey[skillKey], levelKey);
 }
 
 type SkillTrackRowProps = {
@@ -1136,6 +1050,60 @@ function SkillDetailModal({
   groups: SkillDetailGroup[];
   onClose: () => void;
 }) {
+  const readableBuffDescription = (buff: HitBuffEffect) => {
+    const description = String(buff.description ?? '').trim();
+    return description
+      && !description.startsWith('AKE ')
+      && !/\bbuff_[a-z0-9_]+\b/i.test(description)
+      ? description
+      : '';
+  };
+
+  const formatHitValue = (value: number | string) => (
+    typeof value === 'number' ? Number(value.toFixed(4)) : value
+  );
+
+  const renderBuff = (buff: HitBuffEffect, key: string) => {
+    const statusValue = buff.statusValueLevels?.[levelKey] ?? buff.statusValue;
+    const description = readableBuffDescription(buff);
+    return (
+      <div key={key} className="operator-config-page-skill-status-card">
+        <div className="operator-config-page-skill-status-main">
+          {buff.iconUrl ? (
+            <img
+              className="operator-config-page-skill-status-icon"
+              src={normalizeAssetUrl(buff.iconUrl)}
+              alt=""
+            />
+          ) : (
+            <span className="operator-config-page-skill-status-icon-fallback" aria-hidden="true">
+              {buff.displayName.slice(0, 1) || '状'}
+            </span>
+          )}
+          <div className="operator-config-page-skill-status-heading">
+            <strong>{buff.displayName || buff.id}</strong>
+            <span>{buff.targetLabel || buff.target}</span>
+          </div>
+        </div>
+        <div className="operator-config-page-skill-status-values">
+          {typeof statusValue === 'number' ? <span>{`状态值 ${statusValue}`}</span> : null}
+          {(buff.effects ?? []).map((effect) => (
+            <span key={`${buff.id}-${effect.id}`}>
+              {[
+                `${getBuffTypeLabel(effect.type)} ${formatHitBuffEffectValue(effect.value, effect.unit)}`,
+                typeof effect.durationSeconds === 'number' ? `${effect.durationSeconds} 秒` : '',
+                typeof effect.maxStacks === 'number' && effect.maxStacks > 1
+                  ? `最多 ${effect.maxStacks} 层`
+                  : '',
+              ].filter(Boolean).join(' · ')}
+            </span>
+          ))}
+          {description ? <small>{description}</small> : null}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="operator-config-page-skill-modal-backdrop" onClick={onClose}>
       <div
@@ -1167,47 +1135,49 @@ function SkillDetailModal({
                   )}
                   <div className="operator-config-page-skill-card-meta">
                     <strong>{group.displayName}</strong>
-                    <span>{`${group.buttonType} / ${group.hits.length} hit`}</span>
+                    <span>{`${group.buttonType} / ${group.hits.length} 个主动命中`}</span>
                   </div>
+                </div>
+                <div className="operator-config-page-skill-status-summary">
+                  <div className="operator-config-page-skill-status-summary-header">
+                    <strong>命中状态</strong>
+                    <span>{`${group.buffs.length} 项可见效果`}</span>
+                  </div>
+                  {group.buffs.length > 0 ? (
+                    <div className="operator-config-page-skill-status-grid">
+                      {group.buffs.map((buff, buffIndex) => renderBuff(
+                        buff,
+                        `${group.id}-summary-${buff.id}-${buff.target}-${buffIndex}`,
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="operator-config-page-skill-empty-hit">该技能没有已解析的命中状态。</p>
+                  )}
+                  {group.hiddenBuffCount > 0 ? (
+                    <small className="operator-config-page-skill-status-internal-note">
+                      {`另有 ${group.hiddenBuffCount} 个状态机控制标记，仅参与机制判断，不作为玩家 Buff 展示。`}
+                    </small>
+                  ) : null}
                 </div>
                 <div className="operator-config-page-skill-hit-grid">
                   {group.hits.length === 0 ? (
                     <p className="operator-config-page-skill-empty-hit">无 hit 数据</p>
                   ) : (
-                    group.hits.map((hit) => (
-                      <div key={`${group.id}-${hit.key}`} className="operator-config-page-skill-hit-card">
-                        <span className="operator-config-page-skill-hit-key">{hit.key}</span>
-                        <strong>{hit.displayName}</strong>
-                        <span>{`${hit.value} | ${hit.element} | ${hit.skillType}`}</span>
-                        {hit.hitBuffs.length > 0 ? (
-                          <div className="operator-config-page-skill-hit-buffs">
-                            {hit.hitBuffs.map((buff, buffIndex) => {
-                              const statusValue = buff.statusValueLevels?.[levelKey] ?? buff.statusValue;
-                              return (
-                                <div
-                                  key={`${group.id}-${hit.key}-${buff.id}-${buffIndex}`}
-                                  className="operator-config-page-skill-hit-buff"
-                                >
-                                  <div className="operator-config-page-skill-hit-buff-heading">
-                                    <strong>{buff.displayName || buff.id}</strong>
-                                    <span>{buff.targetLabel || buff.target}</span>
-                                  </div>
-                                  {typeof statusValue === 'number' ? (
-                                    <span>{`状态值 ${statusValue}`}</span>
-                                  ) : null}
-                                  {(buff.effects ?? []).map((effect) => (
-                                    <span key={`${buff.id}-${effect.id}`}>
-                                      {`${getBuffTypeLabel(effect.type)} ${formatHitBuffEffectValue(effect.value, effect.unit)}`}
-                                    </span>
-                                  ))}
-                                  {buff.description ? <small>{buff.description}</small> : null}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : null}
-                      </div>
-                    ))
+                    group.hits.map((hit) => {
+                      const visibleBuffs = visibleSkillHitBuffs(hit.hitBuffs);
+                      return (
+                        <div key={`${group.id}-${hit.key}`} className="operator-config-page-skill-hit-card">
+                          <span className="operator-config-page-skill-hit-key">{hit.key}</span>
+                          <strong>{hit.displayName}</strong>
+                          <span>{`${formatHitValue(hit.value)} | ${hit.element} | ${hit.skillType}`}</span>
+                          {visibleBuffs.length > 0 ? (
+                            <span className="operator-config-page-skill-hit-status-ref">
+                              {`施加：${visibleBuffs.map((buff) => buff.displayName).join('、')}`}
+                            </span>
+                          ) : null}
+                        </div>
+                      );
+                    })
                   )}
                 </div>
               </section>

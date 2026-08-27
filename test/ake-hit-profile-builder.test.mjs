@@ -47,7 +47,7 @@ test('compiled AKE hit profiles resolve Pelica projectile inheritance and all sk
         target: 'self'
     }, {
         id: 'ake_status_poise_damage',
-        displayName: '失衡值 10',
+        displayName: '失衡值',
         target: 'target'
     }]);
     assert.equal(comboSkill.hits[0].levels.L1, 0.8);

@@ -228,7 +228,10 @@ function poiseHitBuffs(action, blackboard) {
     }, 0);
     return [{
         id: 'ake_status_poise_damage',
-        displayName: amount > 0 ? `失衡值 ${amount}` : '失衡值',
+        // The numeric value is level-dependent and lives in statusValueLevels.
+        // Keeping the L1 probe value in the label made M3 show contradictory
+        // text such as “失衡值 2.5 / 状态值 3.75”.
+        displayName: '失衡值',
         target: 'target',
         targetLabel: '目标',
         kind: 'status',

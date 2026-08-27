@@ -32,7 +32,9 @@ const CATALOG_REVISION_KEY = 'def.ake-catalog.revision.v1';
 // anchor because they only had the coarse `lingering` classification.
 // v28 keeps callback/DoT settlements in the realtime timing catalog but no
 // longer expands them into the player's A/B/E/Q skill hit template.
-const CATALOG_ADAPTER_VERSION = 28;
+// v29 persists catalog-wide Buff presentation (Chinese names, icons and
+// player-visible/internal classification) into the local operator library.
+const CATALOG_ADAPTER_VERSION = 29;
 
 const LEVEL_KEYS = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'M1', 'M2', 'M3'] as const;
 

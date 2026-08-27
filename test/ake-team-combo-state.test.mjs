@@ -5,6 +5,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { AkeActionCompiler } from '../src/core/ake-action-compiler.mjs';
+import { createAkeDamageResolver } from '../src/core/ake-damage-resolver.mjs';
 import { AkeSquadScenarioAssembler } from '../src/core/ake-squad-scenario-assembler.mjs';
 import { AkeSquadScenarioRunner } from '../src/core/ake-squad-scenario-runner.mjs';
 import { CombatRuntime, TEAM_COMBO_BUFF_ID } from '../src/core/combat-runtime.mjs';
@@ -14,6 +15,7 @@ const readJson = relativePath => JSON.parse(fs.readFileSync(
     path.join(root, relativePath),
     'utf8'
 ));
+const semanticMappings = readJson('spec/engine-semantic-mappings.json');
 
 function actionTree(actions) {
     return (actions ?? []).flatMap(action => [
@@ -207,4 +209,150 @@ test('squad runner consumes a shared combo only after another member starts a le
     assert.deepEqual(consumed.filter(entry => entry.consumption).map(entry => (
         [entry.targetId, entry.consumerId, entry.triggerCommandType]
     )), [['chr_0005_chen', 'chr_0005_chen', 'NormalSkill']]);
+});
+
+function comboDamageFixture({ count, commandType, damageDecorateMask = 512 }) {
+    const compiler = new AkeActionCompiler({
+        semanticMappings,
+        capabilities: { damageResolver: true }
+    });
+    const buffIds = [
+        TEAM_COMBO_BUFF_ID,
+        'buff_common_affixes_skillimbue',
+        'buff_common_affixes_skillimbue_atk'
+    ];
+    const buffs = Object.fromEntries(buffIds.map(buffId => {
+        const definition = compiler.compileBuff(readJson(
+            `reference/public-data/akedata/Json/BuffData/${buffId}.json`
+        ));
+        return [buffId, definition];
+    }));
+    const comboAttackBuff = buffs.buff_common_affixes_skillimbue_atk;
+    assert.equal(comboAttackBuff.compiler.unresolved.some(entry => [
+        'AKE_ABILITY_EVENT_EMITTER_REQUIRED',
+        'AKE_SKILL_SETTING_MISSING',
+        'AKE_CONDITION_UNSUPPORTED'
+    ].includes(entry.code)), false);
+
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [
+                { id: 'provider', kind: 'Character', team: 'ally', attributes: { Atk: 100 } },
+                { id: 'consumer', kind: 'Character', team: 'ally', attributes: { Atk: 100 } },
+                {
+                    id: 'enemy', kind: 'Enemy', team: 'enemy', attributes: { Def: 0 },
+                    maxHp: 999999, currentHp: 999999
+                }
+            ],
+            buffs
+        },
+        damageResolver: createAkeDamageResolver()
+    });
+    const grant = runtime.execute({
+        type: 'GrantTeamCombo',
+        sourceRef: 'Source',
+        count,
+        durationSeconds: 15,
+        sourceKey: 'test:combo-damage'
+    }, {
+        frame: 0,
+        sourceId: 'provider',
+        ownerId: 'provider',
+        targetId: 'enemy'
+    });
+    const skillId = commandType === 'NormalSkill' ? 'consumer_normal' : 'consumer_ultimate';
+    const castId = `cast:${commandType}:${count}:${damageDecorateMask}`;
+    const context = {
+        frame: 10,
+        sourceId: 'consumer',
+        ownerId: 'consumer',
+        targetId: 'enemy',
+        skillId,
+        rootSkillId: skillId,
+        castId,
+        commandType,
+        skillType: commandType,
+        payload: { commandType, skillType: commandType }
+    };
+    runtime.beginSkillActionLifetimes({
+        frame: 10, actorId: 'consumer', skillId, castId
+    }, context);
+    runtime.execute({
+        type: 'TriggerStatusEvent',
+        target: 'Source',
+        eventType: 'OnBeforeCastSkill'
+    }, context);
+    const consumed = runtime.consumeTeamComboState({
+        frame: 10,
+        consumerId: 'consumer',
+        targetId: 'enemy',
+        skillId,
+        castId,
+        commandType,
+        skillType: commandType
+    }, context);
+    const resolved = runtime.execute({
+        type: 'ResolveDamagePacket',
+        damageUnits: [{
+            damageType: 'Physical',
+            damageAttributeType: 'Hp',
+            damageDecorateMask,
+            scale: 1,
+            calculationType: 'SimpleAtkScaleCalculation'
+        }]
+    }, context);
+    const hit = resolved.hits[0];
+    const comboZone = hit.modifierSnapshot.attackerZone.zones.find(zone =>
+        zone.zoneName === 'ComboCalcZone'
+    );
+    runtime.finishSkillActionLifetimes({
+        frame: 20, actorId: 'consumer', skillId, castId
+    }, context);
+    return { runtime, grant, consumed, hit, comboZone };
+}
+
+test('shared combo enters the real ComboCalcZone for B/Q and clears all layers atomically', () => {
+    const expected = {
+        NormalSkill: [0.3, 0.45, 0.6, 0.75],
+        UltimateSkill: [0.2, 0.3, 0.4, 0.5]
+    };
+    for (const [commandType, totals] of Object.entries(expected)) {
+        totals.forEach((addition, index) => {
+            const count = index + 1;
+            const { runtime, grant, consumed, hit, comboZone } = comboDamageFixture({
+                count,
+                commandType
+            });
+            assert.equal(grant.appliedCount, count);
+            assert.equal(consumed.consumedStacks, count);
+            assert.equal(runtime.statusEffects.list({
+                active: true,
+                buffId: TEAM_COMBO_BUFF_ID
+            }).length, 0);
+            assert.ok(Math.abs(comboZone.addition - addition) < 1e-12);
+            assert.ok(Math.abs(hit.finalDamage - 100 * (1 + addition)) < 1e-10);
+            assert.equal(runtime.statusEffects.list({ active: true }).some(instance =>
+                instance.buffId.includes('skillimbue')
+            ), false);
+        });
+    }
+});
+
+test('shared combo caps at four layers and the decorated hit uses the serialized 1.5 scale', () => {
+    const capped = comboDamageFixture({
+        count: 6,
+        commandType: 'NormalSkill'
+    });
+    assert.equal(capped.grant.appliedCount, 4);
+    assert.equal(capped.grant.discardedCount, 2);
+    assert.equal(capped.consumed.consumedStacks, 4);
+    assert.ok(Math.abs(capped.comboZone.addition - 0.75) < 1e-12);
+
+    const decorated = comboDamageFixture({
+        count: 1,
+        commandType: 'NormalSkill',
+        damageDecorateMask: 256
+    });
+    assert.ok(Math.abs(decorated.comboZone.addition - 0.45) < 1e-12);
+    assert.ok(Math.abs(decorated.hit.finalDamage - 145) < 1e-10);
 });

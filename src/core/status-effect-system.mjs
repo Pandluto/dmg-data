@@ -165,6 +165,7 @@ export class StatusEffectSystem {
         tickRate = 30,
         executeActions = () => [],
         onTransition = () => {},
+        onBlackboardChange = () => {},
         canConsumeBuff = () => ({ allowed: true })
     } = {}) {
         if (schedule !== null && typeof schedule !== 'function') {
@@ -176,6 +177,9 @@ export class StatusEffectSystem {
         if (typeof onTransition !== 'function') {
             throw new Error('onTransition must be a function.');
         }
+        if (typeof onBlackboardChange !== 'function') {
+            throw new Error('onBlackboardChange must be a function.');
+        }
         if (typeof canConsumeBuff !== 'function') {
             throw new Error('canConsumeBuff must be a function.');
         }
@@ -186,6 +190,7 @@ export class StatusEffectSystem {
         if (this.tickRate === 0) throw new Error('tickRate must be greater than zero.');
         this.executeActions = executeActions;
         this.onTransition = onTransition;
+        this.onBlackboardChange = onBlackboardChange;
         this.canConsumeBuff = canConsumeBuff;
         this.instances = new Map();
         this.trace = [];
@@ -1242,6 +1247,11 @@ export class StatusEffectSystem {
         }
         const before = plainClone(instance.blackboard);
         instance.blackboard = plainClone(input.blackboard);
+        this.onBlackboardChange(this.#publicInstance(instance), {
+            before,
+            after: plainClone(instance.blackboard),
+            eventContext: plainClone(eventContext)
+        });
         const transition = this.#record(
             instance,
             frameNumber(input.frame ?? eventContext.frame ?? 0),
@@ -1625,6 +1635,7 @@ export class StatusEffectSystem {
 
     #executeLifecycle(actions, instance, frame, eventType, incomingContext = {}) {
         if (!Array.isArray(actions) || actions.length === 0) return [];
+        const beforeBlackboard = plainClone(instance.blackboard);
         const actionSourceId = incomingContext.useEventSourceAsActionSource === true
             ? incomingContext.sourceId ?? instance.sourceId
             : instance.sourceId;
@@ -1680,6 +1691,13 @@ export class StatusEffectSystem {
             && execution.eventContext?.blackboard
             && typeof execution.eventContext.blackboard === 'object') {
             instance.blackboard = plainClone(execution.eventContext.blackboard);
+            this.onBlackboardChange(this.#publicInstance(instance), {
+                before: beforeBlackboard,
+                after: plainClone(instance.blackboard),
+                eventContext: plainClone(incomingContext),
+                eventType,
+                frame
+            });
         }
         return execution?.result ?? execution;
     }

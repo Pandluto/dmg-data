@@ -15,6 +15,7 @@ import { AbilityEventListenerRegistry } from './ability-event-listener-registry.
 import { SkillCooldownSystem } from './skill-cooldown-system.mjs';
 
 export const TEAM_COMBO_BUFF_ID = 'buff_common_affixes_combo_trigger';
+export const TEAM_COMBO_MAX_STACKS = 4;
 export const SPELL_INFLICTION_TYPE_VALUES = Object.freeze({
     Fire: 0,
     Pulse: 1,
@@ -271,6 +272,18 @@ export class CombatRuntime {
             onTransition: transition => {
                 this.#onStatusEffectTransition(transition);
                 onStatusTransition?.(transition);
+            },
+            onBlackboardChange: (instance, change) => {
+                this.effectSources.updateBlackboard({
+                    buffInstanceId: instance.instanceId
+                }, instance.blackboard, {
+                    ...(change.eventContext ?? {}),
+                    frame: change.frame ?? this.currentFrame,
+                    sourceId: instance.sourceId,
+                    ownerId: instance.ownerId,
+                    targetId: instance.targetId,
+                    buffInstanceId: instance.instanceId
+                });
             },
             canConsumeBuff: request => this.#canConsumeBuff(request),
             executeActions: (actions, eventContext) => this.effects.executeTransaction(
@@ -640,8 +653,8 @@ export class CombatRuntime {
             return leftExpiry - rightExpiry
                 || leftInstance.startFrame - rightInstance.startFrame
                 || String(left[0]).localeCompare(String(right[0]));
-        })[0] ?? null;
-        if (!selected) {
+        });
+        if (selected.length === 0) {
             return {
                 status: 'Empty',
                 frame,
@@ -651,7 +664,8 @@ export class CombatRuntime {
                 targetIds: []
             };
         }
-        const [grantId, instances] = selected;
+        const grantIds = selected.map(([grantId]) => grantId);
+        const instances = selected.flatMap(([, groupedInstances]) => groupedInstances);
         const context = this.context.createEventContext(eventContext, {
             frame,
             sourceId: consumerId,
@@ -672,8 +686,7 @@ export class CombatRuntime {
         const transitions = instances.flatMap(instance => this.statusEffects.finish({
             frame,
             instanceId: instance.instanceId,
-            finishAll: false,
-            stackCount: 1,
+            finishAll: true,
             consumption: instance.targetId === consumerId,
             consumerId,
             consumeKind: 'Consume',
@@ -687,9 +700,12 @@ export class CombatRuntime {
             frame,
             consumerId,
             buffId: input.buffId ?? TEAM_COMBO_BUFF_ID,
-            grantId,
-            consumedStacks: 1,
-            targetIds: instances.map(instance => instance.targetId),
+            grantId: grantIds[0] ?? null,
+            grantIds,
+            consumedStacks: Math.max(0, ...[...alliedIds].map(targetId => instances
+                .filter(instance => instance.targetId === targetId)
+                .reduce((sum, instance) => sum + instance.stackCount, 0))),
+            targetIds: [...new Set(instances.map(instance => instance.targetId))],
             transitions
         };
         this.#record('TeamComboStateConsumed', context, record);
@@ -1936,6 +1952,15 @@ export class CombatRuntime {
                     default: return false;
                 }
             },
+            SkillCastIdMatchesEffectSource: (_condition, eventContext) => {
+                const effectSourceCastId = eventContext.effectSourceCastId
+                    ?? eventContext.payload?.effectSourceCastId;
+                return effectSourceCastId !== null
+                    && effectSourceCastId !== undefined
+                    && eventContext.castId !== null
+                    && eventContext.castId !== undefined
+                    && effectSourceCastId === eventContext.castId;
+            },
             TargetsEqual: (condition, eventContext) => {
                 const eventTargetId = eventContext.payload?.eventTargetId;
                 const resolve = (ref, useEventTarget) => useEventTarget
@@ -2637,46 +2662,66 @@ export class CombatRuntime {
                         durationSeconds
                     };
                 }
-                const grantId = `${String(action.sourceKey ?? 'team-combo')}:${String(
-                    eventContext.castId ?? eventContext.buffInstanceId ?? 'runtime'
-                )}:${eventContext.frame}:${this.nextTeamComboGrantSequence++}`;
                 const recipients = this.context.listEntities(entity => (
                     entity.kind === 'Character'
                     && (source.team === null || source.team === undefined
                         || entity.team === source.team)
                 ));
-                const results = recipients.map(recipient => this.execute({
-                    type: 'ApplyBuff',
-                    target: recipient.id,
-                    buffId: action.buffId ?? TEAM_COMBO_BUFF_ID,
-                    durationSeconds,
-                    stackCount: count,
-                    maxStacks: Math.max(99, count),
-                    stackingPolicy: 'Independent',
-                    inheritEventBlackboard: false,
-                    metadata: {
-                        ...cloneValue(action.metadata ?? {}),
-                        teamComboGrantId: grantId,
-                        teamComboSourceId: sourceId,
-                        teamComboCount: count
-                    },
-                    reason: action.reason ?? 'ComboAction'
-                }, {
-                    ...cloneValue(eventContext),
-                    sourceId,
-                    ownerId: eventContext.ownerId ?? sourceId,
-                    targetId: recipient.id,
-                    eventType: 'TeamComboGranted'
-                }));
+                const buffId = action.buffId ?? TEAM_COMBO_BUFF_ID;
+                const activeCount = recipients.reduce((maximum, recipient) => Math.max(
+                    maximum,
+                    this.statusEffects.list({
+                        active: true,
+                        targetId: recipient.id,
+                        buffId
+                    }).reduce((sum, instance) => sum + instance.stackCount, 0)
+                ), 0);
+                const appliedCount = Math.min(count, Math.max(
+                    0,
+                    TEAM_COMBO_MAX_STACKS - activeCount
+                ));
+                const grants = Array.from({ length: appliedCount }, (_, layerIndex) => {
+                    const grantId = `${String(action.sourceKey ?? 'team-combo')}:${String(
+                        eventContext.castId ?? eventContext.buffInstanceId ?? 'runtime'
+                    )}:${eventContext.frame}:${this.nextTeamComboGrantSequence++}`;
+                    const results = recipients.map(recipient => this.execute({
+                        type: 'ApplyBuff',
+                        target: recipient.id,
+                        buffId,
+                        durationSeconds,
+                        stackCount: 1,
+                        maxStacks: 1,
+                        stackingPolicy: 'Independent',
+                        inheritEventBlackboard: false,
+                        metadata: {
+                            ...cloneValue(action.metadata ?? {}),
+                            teamComboGrantId: grantId,
+                            teamComboSourceId: sourceId,
+                            teamComboCount: count,
+                            teamComboLayerIndex: activeCount + layerIndex + 1
+                        },
+                        reason: action.reason ?? 'ComboAction'
+                    }, {
+                        ...cloneValue(eventContext),
+                        sourceId,
+                        ownerId: eventContext.ownerId ?? sourceId,
+                        targetId: recipient.id,
+                        eventType: 'TeamComboGranted'
+                    }));
+                    return { grantId, results };
+                });
                 return {
-                    status: recipients.length > 0 ? 'Applied' : 'Empty',
-                    grantId,
+                    status: recipients.length > 0 && appliedCount > 0 ? 'Applied' : 'Empty',
+                    grantId: grants[0]?.grantId ?? null,
+                    grantIds: grants.map(grant => grant.grantId),
                     sourceId,
-                    buffId: action.buffId ?? TEAM_COMBO_BUFF_ID,
+                    buffId,
                     count,
+                    appliedCount,
+                    discardedCount: count - appliedCount,
                     durationSeconds,
                     targetIds: recipients.map(recipient => recipient.id),
-                    results
+                    results: grants.flatMap(grant => grant.results)
                 };
             },
             ModifyEntityBlackboard: (action, eventContext) => {
@@ -2815,7 +2860,14 @@ export class CombatRuntime {
                         `SkillSetting ${String(entry.lookupKey)} column`,
                         1
                     ));
-                    const values = entry.values ?? {};
+                    const skillType = eventContext.skillType
+                        ?? eventContext.commandType
+                        ?? eventContext.payload?.skillType
+                        ?? eventContext.payload?.commandType
+                        ?? null;
+                    const values = entry.valuesBySkillType?.[skillType]
+                        ?? entry.values
+                        ?? {};
                     const available = Object.keys(values)
                         .map(Number)
                         .filter(Number.isFinite)
@@ -3426,7 +3478,13 @@ export class CombatRuntime {
                                     frame: eventContext.frame,
                                     instanceId: applied.instanceId,
                                     leaseId,
-                                    actorId: eventContext.sourceId,
+                                    actorId: action.actionLifetime.actorRef
+                                        ? this.#entityId(
+                                            action.actionLifetime.actorRef,
+                                            eventContext,
+                                            'action lifetime actor'
+                                        )
+                                        : eventContext.sourceId,
                                     ownerSkillId: eventContext.skillId,
                                     ownerCastId: eventContext.castId,
                                     ownerProgramExecutionId:
@@ -4335,11 +4393,19 @@ export class CombatRuntime {
                             damageDecorateMask: Number(unit.damageDecorateMask ?? 0)
                         };
                         if (pendingHit.damageAttributeType === 'Resilience') {
-                            return { damageUnitIndex, output: [], take: [] };
+                            return { damageUnitIndex, calculate: [], output: [], take: [] };
                         }
                         const poise = pendingHit.damageAttributeType === 'Poise';
+                        const calculate = poise ? [] : this.#notifyDamageEvent(
+                            'OnBeforeCalculateDamage',
+                            pendingHit,
+                            null,
+                            damageEventContext,
+                            sourceListenerId
+                        );
                         return {
                             damageUnitIndex,
+                            calculate,
                             output: this.#notifyDamageEvent(
                                 poise ? 'OnBeforeOutputPoiseDamage' : 'OnBeforeOutputDamage',
                                 pendingHit,

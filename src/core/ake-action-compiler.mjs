@@ -1732,12 +1732,16 @@ export class AkeActionCompiler {
                     );
                     if (tableMapping) {
                         const values = clone(tableMapping.effect.values ?? {});
+                        const valuesBySkillType = clone(
+                            tableMapping.effect.valuesBySkillType ?? {}
+                        );
                         if (dynamicColumn || tableMapping.effect.enhancementMode) {
                             runtimeEntries.push({
                                 key: read.storeKey,
                                 lookupKey: read.dataKey,
                                 column: descriptor(read.column, 1),
                                 values,
+                                valuesBySkillType,
                                 clamp: tableMapping.effect.clamp !== false,
                                 enhancementMode: tableMapping.effect.enhancementMode ?? null
                             });
@@ -1994,8 +1998,10 @@ export class AkeActionCompiler {
                     buff.buffId || buff.buffIdBlackboardKey
                 );
                 if (target.ref && executableBuffs.length > 0) {
-                    const actionLifetimeLeaseKey = state.scope === 'skill'
-                        && node.autoFinishByAction === true
+                    const followsCurrentSkillCast = node.inheritSourceSkillCastInfo === true
+                        && node.finishWithNextSkillIfNotInherited !== false;
+                    const actionLifetimeLeaseKey = (state.scope === 'skill'
+                        && node.autoFinishByAction === true) || followsCurrentSkillCast
                         ? `ake-skill:${state.path}:buff-action-lifetime`
                         : null;
                     const applyBuff = {
@@ -2018,6 +2024,7 @@ export class AkeActionCompiler {
                         ...(actionLifetimeLeaseKey === null ? {} : {
                             actionLifetime: {
                                 leaseKey: actionLifetimeLeaseKey,
+                                actorRef: followsCurrentSkillCast ? 'Owner' : 'Source',
                                 inheritSkillIds: (node.inheritSkillIdList ?? [])
                                     .filter(skillId => typeof skillId === 'string'
                                         && skillId.length > 0),
@@ -3831,6 +3838,11 @@ export class AkeActionCompiler {
                 };
                 break;
             }
+            case 'CheckSkillCastId':
+                // This condition has no serialized operands. AKE compares the
+                // cast captured by the Buff source with the current hit cast.
+                result.condition = { type: 'SkillCastIdMatchesEffectSource' };
+                break;
             case 'CheckBuffIdInContext': {
                 const checkType = node.checkType ?? 'Id';
                 if (checkType === 'Id') {

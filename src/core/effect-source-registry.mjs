@@ -373,6 +373,36 @@ export class EffectSourceRegistry {
         return this.remove({ ownerId, frame });
     }
 
+    updateBlackboard(selector = {}, blackboard = {}, eventContext = {}) {
+        if (!isRecord(selector) || !isRecord(blackboard)) {
+            throw new TypeError('EffectSourceRegistry.updateBlackboard requires objects.');
+        }
+        const matches = [...this.sources.values()].filter(source =>
+            (selector.sourceKey === undefined || source.sourceKey === selector.sourceKey)
+            && (selector.buffInstanceId === undefined
+                || source.buffInstanceId === selector.buffInstanceId)
+            && (selector.targetId === undefined || source.targetId === selector.targetId)
+        );
+        const affected = new Map();
+        for (const source of matches) {
+            source.blackboard = cloneValue(blackboard);
+            for (const modifier of source.modifiers ?? []) {
+                affected.set(statKey(source.targetId, modifier.attribute), {
+                    targetId: source.targetId,
+                    attribute: modifier.attribute
+                });
+            }
+        }
+        const recomputed = [...affected.values()].map(({ targetId, attribute }) =>
+            this.#recompute(targetId, attribute, eventContext)
+        );
+        return {
+            updated: matches.map(cloneValue),
+            recomputed,
+            count: matches.length
+        };
+    }
+
     damageZone({ targetId, side, damageType, attackerId, defenderId }, eventContext = {}) {
         identifier(targetId, 'damage-zone targetId');
         attackerId ??= eventContext.sourceId ?? null;
@@ -392,10 +422,12 @@ export class EffectSourceRegistry {
                 if (!modifier.conditionsExecutable) continue;
                 const modifierContext = {
                     ...eventContext,
+                    effectSourceCastId: source.castId,
                     blackboard: source.blackboard,
                     payload: {
                         ...cloneValue(source.payload),
                         ...cloneValue(eventContext.payload ?? {}),
+                        effectSourceCastId: source.castId,
                         damageType
                     },
                     effectSourceTargetId: targetId

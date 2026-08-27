@@ -1012,6 +1012,34 @@
       }]
     },
     {
+      "id": "global.team-combo-damage",
+      "actionType": "ReadSkillSettingData",
+      "selector": { "lookupKey": "连击增伤" },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": { "1": 0.3, "2": 0.225, "3": 0.2, "4": 0.1875 },
+        "valuesBySkillType": {
+          "NormalSkill": { "1": 0.3, "2": 0.225, "3": 0.2, "4": 0.1875 },
+          "UltimateSkill": { "1": 0.2, "2": 0.15, "3": 0.13333333333333333, "4": 0.125 }
+        },
+        "clamp": true
+      },
+      "confidence": "public-data-and-reference",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_common_affixes_skillimbue_atk.json",
+          "observation": "Each independent skill-imbue instance counts all active instances, reads 连击增伤 by that count, and contributes the result to attacker ComboCalcZone. The per-instance table therefore divides the documented total by the active instance count."
+        },
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "The documented total NormalSkill bonuses are 30/45/60/75 percent and UltimateSkill bonuses are 20/30/40/50 percent for one through four combo layers."
+        }
+      ],
+      "notes": "Values are per independent buff instance. EffectSourceRegistry sums N equal ComboCalcZone additions, reproducing the documented total without a character branch."
+    },
+    {
       "id": "global.poise.damage",
       "actionType": "PoiseDamageRule",
       "selector": {

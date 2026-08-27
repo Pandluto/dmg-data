@@ -311,7 +311,12 @@ export function createAkeDamageResolver({
                 damageType: unit.damageType
             }, {
                 ...eventContext,
-                payload: { ...eventContext.payload, damageType: unit.damageType }
+                payload: {
+                    ...eventContext.payload,
+                    damageType: unit.damageType,
+                    damageTypeMask: unit.damageTypeMask ?? null,
+                    damageDecorateMask: Number(unit.damageDecorateMask ?? 0)
+                }
             });
             const attackerZone = mergeDamageZone(
                 registeredAttackerZone,
@@ -330,7 +335,12 @@ export function createAkeDamageResolver({
                 damageType: unit.damageType
             }, {
                 ...eventContext,
-                payload: { ...eventContext.payload, damageType: unit.damageType }
+                payload: {
+                    ...eventContext.payload,
+                    damageType: unit.damageType,
+                    damageTypeMask: unit.damageTypeMask ?? null,
+                    damageDecorateMask: Number(unit.damageDecorateMask ?? 0)
+                }
             });
             const commandType = eventContext.commandType
                 ?? eventContext.payload?.commandType

@@ -212,14 +212,14 @@ test('cross-operator audit keeps real multipliers, compact bodies and stable sta
 
     const wulfaCombo2 = profile('chr_0028_wulfa', 'chr_0028_wulfa_combo_2_skill');
     const restoredCombo = wulfaCombo2.formEvents.filter(event => (
-        event.offsetFrames === 217
+        event.offsetFrames === 216
         && event.skillSlot === 'ComboSkill'
         && event.targetSkillId === 'chr_0028_wulfa_combo_2_skill'
     ));
     assert.deepEqual(
         restoredCombo.map(event => event.operation),
         ['apply'],
-        'an infinite override created by OnBuffFinish must survive instead of removing itself'
+        'the pending-empty event restores the infinite base override at the settled expiry edge'
     );
     assert.deepEqual(
         wulfaCombo2.comboPendingEvents.map(event => ({

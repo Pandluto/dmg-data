@@ -9810,7 +9810,7 @@
               "targetSkillId": "chr_0028_wulfa_combo_3_skill"
             },
             {
-              "offsetFrames": 217,
+              "offsetFrames": 216,
               "operation": "apply",
               "kind": "override",
               "stateKey": "override:ake:buffEventAction[0].actions[0][1]:skill-override:ComboSkill",

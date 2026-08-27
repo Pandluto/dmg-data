@@ -6,6 +6,9 @@ const OPERATOR_LIBRARY_KEY = 'def.operator-editor.library.v1';
 const WEAPON_LIBRARY_KEY = 'def.weapon-sheet.library.v1';
 const EQUIPMENT_LIBRARY_KEY = 'def.equipment-sheet.library.v1';
 const CATALOG_REVISION_KEY = 'def.ake-catalog.revision.v1';
+// v25 picks up the owner pending-empty lifecycle, so chained form restoration
+// follows the pending expiry boundary instead of the later fallback Buff timer.
+// Existing browsers must discard v24 catalogs or retain the stale restore frame.
 // v24 projects action-created chained combo pending from the settled runtime.
 // Existing browsers must discard v23 catalogs because a changed ComboSkill
 // form could otherwise appear while its matching release window is absent.
@@ -22,7 +25,7 @@ const CATALOG_REVISION_KEY = 'def.ake-catalog.revision.v1';
 // and Originium were present in SkillData but absent from the visible hit.
 // Keep this revision in sync with adapter output changes so an existing browser
 // cannot retain a pre-state-machine catalog.
-const CATALOG_ADAPTER_VERSION = 24;
+const CATALOG_ADAPTER_VERSION = 25;
 
 const LEVEL_KEYS = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'M1', 'M2', 'M3'] as const;
 

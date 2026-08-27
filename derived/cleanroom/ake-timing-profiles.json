@@ -7095,7 +7095,7 @@
             },
             {
               "offsetFrames": 52,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "projectile",
@@ -7180,7 +7180,7 @@
             },
             {
               "offsetFrames": 82,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "projectile",
@@ -7192,7 +7192,7 @@
             },
             {
               "offsetFrames": 92,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "projectile",
@@ -7204,7 +7204,7 @@
             },
             {
               "offsetFrames": 95,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7216,7 +7216,7 @@
             },
             {
               "offsetFrames": 98,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7228,7 +7228,7 @@
             },
             {
               "offsetFrames": 101,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7240,7 +7240,7 @@
             },
             {
               "offsetFrames": 112,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7252,7 +7252,7 @@
             },
             {
               "offsetFrames": 122,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7264,7 +7264,7 @@
             },
             {
               "offsetFrames": 125,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7276,7 +7276,7 @@
             },
             {
               "offsetFrames": 128,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7288,7 +7288,7 @@
             },
             {
               "offsetFrames": 131,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7300,7 +7300,7 @@
             },
             {
               "offsetFrames": 142,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7312,7 +7312,7 @@
             },
             {
               "offsetFrames": 152,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7324,7 +7324,7 @@
             },
             {
               "offsetFrames": 155,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7336,7 +7336,7 @@
             },
             {
               "offsetFrames": 158,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7348,7 +7348,7 @@
             },
             {
               "offsetFrames": 161,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7360,7 +7360,7 @@
             },
             {
               "offsetFrames": 172,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7372,7 +7372,7 @@
             },
             {
               "offsetFrames": 182,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7384,7 +7384,7 @@
             },
             {
               "offsetFrames": 185,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7396,7 +7396,7 @@
             },
             {
               "offsetFrames": 188,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7408,7 +7408,7 @@
             },
             {
               "offsetFrames": 191,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7420,7 +7420,7 @@
             },
             {
               "offsetFrames": 202,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7432,7 +7432,7 @@
             },
             {
               "offsetFrames": 212,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7444,7 +7444,7 @@
             },
             {
               "offsetFrames": 215,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7456,7 +7456,7 @@
             },
             {
               "offsetFrames": 218,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",
@@ -7468,7 +7468,7 @@
             },
             {
               "offsetFrames": 221,
-              "launchOffsetFrames": 230,
+              "launchOffsetFrames": null,
               "sourceSkillId": "chr_0028_wulfa_normal_skill_projhit2",
               "rootSkillId": "chr_0028_wulfa_normal_skill",
               "kind": "lingering",

@@ -74,7 +74,7 @@ function compiledHitFrames(programs, rootSkillId) {
     return hits.sort((left, right) => left.offsetFrames - right.offsetFrames);
 }
 
-function launchOffsetFor(programs, rootSkillId, targetSkillId) {
+function launchOffsetFor(programs, rootSkillId, targetSkillId, effectOffsetFrames) {
     const candidates = [];
     const visit = (skillId, baseFrame, stack) => {
         if (stack.has(skillId)) return;
@@ -92,7 +92,16 @@ function launchOffsetFor(programs, rootSkillId, targetSkillId) {
         }
     };
     visit(rootSkillId, 0, new Set());
-    return candidates.length > 0 ? Math.min(...candidates) : null;
+    // A child SkillData can also be started by a Buff/status program that is
+    // not a direct descendant of the root SkillData.  A static root traversal
+    // must therefore never assign a later, unrelated launch to an earlier
+    // observed hit.  Preserve the existing earliest-launch projection when it
+    // is causal; otherwise the launch remains unknown and the hit itself
+    // becomes the conservative commit.
+    const earliestLaunch = candidates.length > 0 ? Math.min(...candidates) : null;
+    return earliestLaunch !== null && earliestLaunch <= effectOffsetFrames
+        ? earliestLaunch
+        : null;
 }
 
 function forcedBundle(bundle, commandType, skillId) {
@@ -324,7 +333,12 @@ function simulateProfile(
             return {
                 offsetFrames: Number(hit.frame ?? 0),
                 launchOffsetFrames: hit.skillId && hit.skillId !== skillId
-                    ? launchOffsetFor(bundle.programs, skillId, hit.skillId)
+                    ? launchOffsetFor(
+                        bundle.programs,
+                        skillId,
+                        hit.skillId,
+                        Number(hit.frame ?? 0)
+                    )
                     : null,
                 sourceSkillId: hit.skillId ?? skillId,
                 rootSkillId: hit.rootSkillId ?? skillId,

@@ -101,8 +101,9 @@ function PageLoadingFallback() {
 }
 
 function PageLoadFailure({ message }: { message: string }) {
+  const isModuleTransferFailure = /requested module|module script|dynamically imported module|does not provide an export|loading chunk|failed to fetch dynamically imported module/i.test(message);
   const handleRecover = () => {
-    if (window.__DMG_RECOVER_STARTUP__) {
+    if (isModuleTransferFailure && window.__DMG_RECOVER_STARTUP__) {
       window.__DMG_RECOVER_STARTUP__();
       return;
     }
@@ -112,9 +113,11 @@ function PageLoadFailure({ message }: { message: string }) {
   return (
     <main className="web-entry-screen app-route-loading" role="alert">
       <div className="boot-indicator">
-        <p>工作区模块没有完整载入</p>
+        <p>{isModuleTransferFailure ? '工作区模块没有完整载入' : '工作区计算出现错误'}</p>
         <small>{message}</small>
-        <button type="button" onClick={handleRecover}>检查并重新载入</button>
+        <button type="button" onClick={handleRecover}>
+          {isModuleTransferFailure ? '检查并重新载入' : '重新载入演示页'}
+        </button>
       </div>
     </main>
   );

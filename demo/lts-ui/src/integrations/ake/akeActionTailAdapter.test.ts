@@ -130,6 +130,40 @@ function baseProfile(overrides: Partial<AkeTimingSkillProfile>): AkeTimingSkillP
 }
 
 {
+  const nonCausalProjectile = baseProfile({
+    skillId: 'child-effect-before-unrelated-launch',
+    hits: [{
+      offsetFrames: 82,
+      launchOffsetFrames: 230,
+      sourceSkillId: 'child-skill',
+      rootSkillId: 'child-effect-before-unrelated-launch',
+      kind: 'projectile',
+      hitCount: 1,
+      damageTypes: ['Physical'],
+    }],
+  });
+  const contract = akeProfileToActionTailContract({
+    actionId: 'non-causal-projectile',
+    profile: nonCausalProjectile,
+  });
+  assert.equal(contract.commitEvidence, 'unverified');
+  assert.equal(contract.tailCancelable, false);
+  assert.deepEqual(contract.commitEvents[0], {
+    id: 'child-effect-before-unrelated-launch:hit:1',
+    kind: 'hit',
+    commitOffsetFrames: 82,
+    effectOffsetFrames: 82,
+  });
+  const transition = resolveActionTailTransition({
+    predecessor: contract,
+    successor: akeProfileToTailSuccessor('next-action', baseProfile({})),
+    boundary: 'append',
+    debounceFrames: 6,
+  });
+  assert.equal(transition.status, 'unverified');
+}
+
+{
   const ultimate = baseProfile({
     commandType: 'UltimateSkill',
     skillId: 'ultimate-with-early-hit',

@@ -40,14 +40,27 @@ function hitEvents(profile: AkeTimingSkillProfile): ActionCommitEvent[] {
       ? null
       : finiteFrame(hit.launchOffsetFrames);
     const effect = finiteFrame(hit.offsetFrames);
+    // Generated or cached timing data may know that a child SkillData was
+    // involved without knowing the launch that caused this particular hit.
+    // A launch after the observed effect is not causal evidence.  Quarantine
+    // it instead of constructing an impossible commit contract that crashes
+    // the whole timeline route.
+    const causalLaunch = launch !== null && launch <= effect ? launch : null;
     const stageIndex = basicStages.indexOf(hit.rootSkillId);
     return {
       id: eventId(`${profile.skillId}:hit`, index),
-      kind: launch !== null && launch <= effect ? 'projectile-launch' : 'hit',
-      commitOffsetFrames: launch ?? effect,
+      kind: causalLaunch !== null ? 'projectile-launch' : 'hit',
+      commitOffsetFrames: causalLaunch ?? effect,
       effectOffsetFrames: effect,
       ...(stageIndex >= 0 ? { basicStageOrdinal: stageIndex + 1 } : {}),
     };
+  });
+}
+
+function hasNonCausalLaunch(profile: AkeTimingSkillProfile): boolean {
+  return profile.hits.some((hit) => {
+    if (hit.launchOffsetFrames === null || hit.launchOffsetFrames === undefined) return false;
+    return finiteFrame(hit.launchOffsetFrames) > finiteFrame(hit.offsetFrames);
   });
 }
 
@@ -101,6 +114,7 @@ export function akeProfileToActionTailContract(input: {
   );
   const commitEvidence = profile.derivation === 'isolated-runtime-probe'
     && commits.length > 0
+    && !hasNonCausalLaunch(profile)
     ? 'verified'
     : 'unverified';
   const kind = actionKind(profile);

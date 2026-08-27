@@ -2854,6 +2854,14 @@ export class CombatRuntime {
                             : this.#entityId(targetRef, eventContext)
                     };
                 }
+                const consumption = action.consumption === true;
+                const consumerId = consumption
+                    ? this.#entityId(
+                        action.consumerRef ?? action.consumeSourceRef ?? 'Source',
+                        eventContext,
+                        'Source'
+                    )
+                    : null;
                 return this.statusEffects.finish({
                     frame: action.frame ?? eventContext.frame,
                     instanceId: selectedInstanceId,
@@ -2880,6 +2888,11 @@ export class CombatRuntime {
                     stackCount: action.stackCount === undefined
                         ? undefined
                         : this.#number(action.stackCount, eventContext, 'finished buff stack count'),
+                    consumption,
+                    consumerId,
+                    consumeKind: action.consumeKind
+                        ?? (action.isAbsorbed === true ? 'Absorb' : 'Consume'),
+                    isAbsorbed: action.isAbsorbed === true,
                     reason: action.reason ?? 'FinishBuff'
                 }, eventContext);
             },

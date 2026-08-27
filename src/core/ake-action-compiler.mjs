@@ -2618,6 +2618,12 @@ export class AkeActionCompiler {
             case 'FinishBuffByTag': {
                 const target = this.#targetRef(node.buffOwner ?? node.targetSource, state);
                 if (target.unresolved) result.unresolved.push(target.unresolved);
+                const consumer = this.#targetRef(
+                    node.finishSource ?? 'Source',
+                    state,
+                    'Buff consumer'
+                );
+                if (consumer.unresolved) result.unresolved.push(consumer.unresolved);
                 const ids = type === 'FinishBuffAction'
                     ? (node.buffIds ?? []).map(entry => typeof entry === 'string' ? entry : entry.buffId)
                     : (node.buffIds ?? node.buffSettings?.buffIdList ?? []);
@@ -2651,6 +2657,15 @@ export class AkeActionCompiler {
                         sourceRef,
                         finishAll: node.finishAll !== false,
                         stackCount: descriptor(node.finishLayerCount ?? node.finishLayerCnt, 1),
+                        // Serialized FinishBuff actions are AKE's active
+                        // consume primitive. Runtime-owned expiry, replacement
+                        // and lifetime cleanup call the same storage method but
+                        // deliberately omit this semantic marker.
+                        consumption: true,
+                        consumerRef: consumer.ref ?? 'Source',
+                        consumeKind: node.isAbsorbed === true ? 'Absorb' : 'Consume',
+                        isAbsorbed: node.isAbsorbed === true,
+                        isFinishedEarly: node.isFinishedEarly === true,
                         reason: type
                     };
                     if (checkType === 'Id') {

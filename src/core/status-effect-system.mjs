@@ -1029,6 +1029,12 @@ export class StatusEffectSystem {
             triggerSkillId: eventContext.skillId ?? null,
             triggerRootSkillId: eventContext.rootSkillId ?? null,
             triggerCastId: eventContext.castId ?? null,
+            triggerCommandType: eventContext.commandType
+                ?? eventContext.payload?.commandType
+                ?? null,
+            triggerSkillType: eventContext.skillType
+                ?? eventContext.payload?.skillType
+                ?? null,
             triggerTransactionId: eventContext.transactionId ?? null,
             triggerParentEventId: eventContext.parentEventId ?? null,
             triggerParentHitId: eventContext.parentHitId ?? null,
@@ -1048,8 +1054,26 @@ export class StatusEffectSystem {
                 ? {}
                 : { hitEventPhase: eventContext.hitEventPhase })
         };
+        const consumption = input.consumption === true;
+        const consumptionAttribution = consumption ? {
+            consumption: true,
+            consumerId: input.consumerId
+                ?? eventContext.consumerId
+                ?? eventContext.sourceId
+                ?? eventContext.ownerId
+                ?? null,
+            consumeKind: input.consumeKind
+                ?? (input.isAbsorbed === true ? 'Absorb' : 'Consume'),
+            isAbsorbed: input.isAbsorbed === true,
+            consumedBuffBlackboard: null
+        } : {
+            consumption: false
+        };
         const matches = this.#select(input).filter(instance => instance.active);
         for (const instance of matches) {
+            const consumedBuffBlackboard = consumption
+                ? plainClone(instance.blackboard ?? {})
+                : undefined;
             const requestedLayers = input.finishAll === false
                 ? Math.max(1, Math.trunc(Number(input.stackCount ?? 1)))
                 : instance.stackCount;
@@ -1065,6 +1089,10 @@ export class StatusEffectSystem {
                     actual: requestedLayers,
                     consumedStacks: requestedLayers,
                     bySource,
+                    ...consumptionAttribution,
+                    ...(consumption
+                        ? { consumedBuffBlackboard }
+                        : {}),
                     discarded: 0,
                     after: instance.stackCount
                 });
@@ -1096,6 +1124,10 @@ export class StatusEffectSystem {
                 actual: instance.stackCount,
                 consumedStacks: instance.stackCount,
                 bySource,
+                ...consumptionAttribution,
+                ...(consumption
+                    ? { consumedBuffBlackboard }
+                    : {}),
                 discarded: 0,
                 after: 0
             });

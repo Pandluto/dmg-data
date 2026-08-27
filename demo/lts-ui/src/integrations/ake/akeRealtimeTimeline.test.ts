@@ -1602,6 +1602,215 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
 }
 
 {
+  const wulfa = character('standalone-status-owner');
+  const inflictor = character('standalone-status-inflictor');
+  const opener = button('standalone-physical-opener', wulfa.id, 0, 'B');
+  opener.runtimeSkillId = 'standalone-physical-skill';
+  const attachment = button('standalone-attachment', inflictor.id, 0, 'B');
+  attachment.runtimeSkillId = 'standalone-attachment-skill';
+  const firstCombo = button('standalone-combo-stage-1', wulfa.id, 1, 'E');
+  firstCombo.runtimeSkillId = 'standalone-combo-1';
+  firstCombo.releaseAnchor = {
+    schemaVersion: 1,
+    kind: 'action-end',
+    sourceButtonId: opener.id,
+    debounceFrames: 0,
+  };
+  const secondCombo = button('standalone-combo-stage-2', wulfa.id, 2, 'E');
+  secondCombo.runtimeSkillId = 'standalone-combo-1';
+  secondCombo.releaseAnchor = {
+    schemaVersion: 1,
+    kind: 'action-end',
+    sourceButtonId: firstCombo.id,
+    debounceFrames: 0,
+  };
+  const openerProfile = profile({
+    skillId: opener.runtimeSkillId,
+    bodyEndOffset: 94,
+    tailEndOffset: 94,
+    exclusiveFrames: 94,
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+    statusEffects: [{
+      id: 'ake_status_physical_airborne',
+      displayName: '击飞',
+      target: 'target',
+      kind: 'status',
+      statusKey: 'airborne',
+      offsetFrames: 35,
+    }],
+    hits: [{
+      offsetFrames: 50,
+      sourceSkillId: opener.runtimeSkillId,
+      rootSkillId: opener.runtimeSkillId,
+      kind: 'direct',
+      hitCount: 1,
+      damageTypes: ['Physical'],
+    }],
+  });
+  const attachmentProfile = profile({
+    skillId: attachment.runtimeSkillId,
+    bodyEndOffset: 18,
+    tailEndOffset: 18,
+    exclusiveFrames: 18,
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+    hits: [{
+      offsetFrames: 12,
+      sourceSkillId: attachment.runtimeSkillId,
+      rootSkillId: attachment.runtimeSkillId,
+      kind: 'direct',
+      hitCount: 1,
+      damageTypes: ['Fire'],
+      hitBuffs: [{
+        id: 'buff_common_energy_shard_attached_fire',
+        displayName: '灼热附着',
+        target: 'Target',
+        kind: 'attachment',
+        statusKey: 'attachment-fire',
+        statusValue: 1,
+      }],
+    }],
+  });
+  const sharedComboGroup = `${wulfa.id}:ComboSkill`;
+  const firstComboProfile = profile({
+    commandType: 'ComboSkill',
+    skillId: firstCombo.runtimeSkillId,
+    variantIndex: 0,
+    bodyEndOffset: 65,
+    tailEndOffset: 65,
+    exclusiveFrames: 65,
+    cooldownFrames: 180,
+    cooldownGroupId: sharedComboGroup,
+    cooldownSkillType: 'ComboSkill',
+    costType: null,
+    costValue: 0,
+    allowNext: [{
+      startOffsetFrames: 37,
+      endOffsetFrames: 65,
+      allowedSkillIds: ['standalone-combo-2'],
+    }],
+    commandMappings: [{ commandType: 'ComboSkill', skillId: 'standalone-combo-2' }],
+    formEvents: [{
+      offsetFrames: 37,
+      operation: 'apply',
+      kind: 'override',
+      stateKey: 'standalone-combo-override',
+      skillSlot: 'ComboSkill',
+      targetSkillId: 'standalone-combo-2',
+    }],
+    comboPendingEvents: [{
+      offsetFrames: 37,
+      operation: 'trigger',
+      ruleId: 'standalone-combo-stage-trigger',
+      ownerCharacterId: wulfa.id,
+      triggerTargetId: 'fixed-dummy',
+      skillSlot: 'ComboSkill',
+      targetSkillId: 'standalone-combo-2',
+      pendingDurationFrames: 180,
+      requireComboOffCooldown: false,
+      bypassSkillCooldown: true,
+      pendingPolicy: 'replace-all',
+      selectionPolicy: 'newest',
+      consumePolicy: 'selected',
+      sourceActionType: 'TriggerComboSkillAction',
+      precisionWindow: {
+        startAfterTriggerFrames: 15,
+        endAfterTriggerFramesExclusive: 27,
+        activeDurationFrames: 12,
+        boundary: 'start-inclusive-end-exclusive',
+        sourceActionType: 'ShowComboRingQte',
+        sourceBuffId: 'standalone-precision-listener',
+      },
+    }],
+    hits: [{
+      offsetFrames: 20,
+      sourceSkillId: firstCombo.runtimeSkillId,
+      rootSkillId: firstCombo.runtimeSkillId,
+      kind: 'direct',
+      hitCount: 1,
+      damageTypes: ['Physical'],
+    }],
+  });
+  const secondComboProfile = profile({
+    commandType: 'ComboSkill',
+    skillId: 'standalone-combo-2',
+    variantIndex: 1,
+    bodyEndOffset: 30,
+    tailEndOffset: 30,
+    exclusiveFrames: 30,
+    cooldownFrames: 180,
+    cooldownGroupId: sharedComboGroup,
+    cooldownSkillType: 'ComboSkill',
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+    hits: [{
+      offsetFrames: 10,
+      sourceSkillId: 'standalone-combo-2',
+      rootSkillId: 'standalone-combo-2',
+      kind: 'direct',
+      hitCount: 1,
+      damageTypes: ['Physical'],
+    }],
+  });
+  const initialComboTrigger: AkeTimingComboTrigger = {
+    id: 'standalone.no-guard-with-attachment',
+    eventType: 'StatusEffectApplied',
+    eventTypes: ['StatusEffectApplied', 'StatusEffectRefreshed'],
+    rootSkillIds: [],
+    sourceSkillIds: [],
+    statusBuffIds: ['buff_physical_no_guard'],
+    sourceCommandTypes: [],
+    requireSourceOtherThanOwner: false,
+    conditions: [{
+      type: 'BuffStackCompare',
+      target: 'Target',
+      buffIds: ['buff_common_energy_shard_attached_fire'],
+      operator: 'GE',
+      value: 1,
+    }],
+    damageAttributeType: null,
+    occurrence: 'every-event',
+    comboSkillId: firstComboProfile.skillId,
+    pendingDurationFrames: 180,
+    ownerBinding: 'fixed',
+    ownerId: wulfa.id,
+    requireComboOffCooldown: true,
+    bypassSkillCooldown: false,
+    pendingPolicy: 'replace-all',
+    selectionPolicy: 'newest',
+    consumePolicy: 'all-for-owner-and-skill',
+    confidence: 'confirmed-for-test',
+  };
+  const result = buildAkeRealtimeTimeline({
+    timelineData: timeline([
+      { characterId: wulfa.id, buttons: [opener, firstCombo, secondCombo] },
+      { characterId: inflictor.id, buttons: [attachment] },
+    ]),
+    selectedCharacters: [wulfa, inflictor],
+    catalog: catalog({
+      [wulfa.id]: [openerProfile, firstComboProfile, secondComboProfile],
+      [inflictor.id]: [attachmentProfile],
+    }, {
+      [wulfa.id]: { comboTriggers: [initialComboTrigger] },
+    }),
+    staffCount: 1,
+  });
+  const first = result.commands.find(command => command.commandId === firstCombo.id)!;
+  const second = result.commands.find(command => command.commandId === secondCombo.id)!;
+  assertEqual(result.comboWindows[0]?.createdFrame, 35, 'standalone physical state opens the initial combo window at its AKE frame');
+  assertEqual(first.success, true, 'standalone status events participate in generic combo admission');
+  assertEqual(first.profile.comboStage?.index, 1, 'the admitted first intent exposes stage one');
+  assertEqual(second.success, true, 'the action-created pending admits the second intent');
+  assertEqual(second.profile.skillId, secondComboProfile.skillId, 'the second intent resolves through the generic form override');
+  assertEqual(second.profile.comboStage?.index, 2, 'the resolved follow-up exposes stage two');
+  assertEqual(second.precisionVerdict, 'missed', 'action-end remains legal but is outside the exclusive precision window');
+}
+
+{
   const zhuang = character('zhuang');
   const pelica = character('pelica');
   const source = button('zhuang-full-attack', zhuang.id, 0, 'A');

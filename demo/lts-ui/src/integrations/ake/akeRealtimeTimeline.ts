@@ -237,6 +237,15 @@ type PendingResourceEvent = {
   reason: string | null;
 };
 
+type PendingTargetStatusEvent = {
+  frame: number;
+  commandId: string;
+  characterId: string;
+  sourceSkillId: string;
+  rootSkillId: string;
+  effects: HitBuffEffect[];
+};
+
 type PendingCombo = AkeRealtimeComboWindow & {
   rule: AkeTimingComboTrigger;
 };
@@ -846,6 +855,7 @@ function pruneFutureCommandEvents(
   frame: number,
   pendingResources: Map<number, PendingResourceEvent[]>,
   pendingHits: Map<number, AkeRealtimeHit[]>,
+  pendingTargetStatuses: Map<number, PendingTargetStatusEvent[]>,
   pendingForms: Map<number, PendingFormEvent[]>,
   pendingComboActions: Map<number, PendingComboActionEvent[]>,
 ) {
@@ -881,6 +891,12 @@ function pruneFutureCommandEvents(
     ));
     if (remaining.length > 0) pendingHits.set(eventFrame, remaining);
     else pendingHits.delete(eventFrame);
+  }
+  for (const [eventFrame, events] of pendingTargetStatuses) {
+    if (eventFrame < frame) continue;
+    const remaining = events.filter(event => event.commandId !== command.commandId);
+    if (remaining.length > 0) pendingTargetStatuses.set(eventFrame, remaining);
+    else pendingTargetStatuses.delete(eventFrame);
   }
   for (const [eventFrame, events] of pendingForms) {
     if (eventFrame < frame) continue;
@@ -977,6 +993,7 @@ function simulateAkeRealtimeTimeline(
   const queuedFrames = new Map<number, ScheduledInput[]>();
   const pendingResources = new Map<number, PendingResourceEvent[]>();
   const pendingHits = new Map<number, AkeRealtimeHit[]>();
+  const pendingTargetStatuses = new Map<number, PendingTargetStatusEvent[]>();
   const pendingForms = new Map<number, PendingFormEvent[]>();
   const pendingComboActions = new Map<number, PendingComboActionEvent[]>();
   const pauseWindows: Array<{ start: number; end: number; commandId: string }> = [];
@@ -1010,6 +1027,9 @@ function simulateAkeRealtimeTimeline(
     .flatMap(([, character]) => character.profiles.flatMap(profile => [
       profile.tailEndOffset,
       ...profile.hits.map(hit => hit.offsetFrames),
+      ...(profile.statusEffects ?? [])
+        .map(effect => finite(effect.offsetFrames, -1))
+        .filter(offsetFrames => offsetFrames >= 0),
       ...profile.resourceEvents.map(event => event.offsetFrames),
       ...(profile.formEvents ?? []).map(event => event.offsetFrames),
       ...(profile.comboPendingEvents ?? []).map(event => event.offsetFrames),
@@ -1476,43 +1496,44 @@ function simulateAkeRealtimeTimeline(
     }
   };
 
-  const observeHitForCombos = (hit: AkeRealtimeHit, frame: number) => {
-    if (hit.hitCount <= 0) return;
-    const sourceCommand = commandById.get(hit.commandId);
-    const stages = sourceCommand?.profile.comboStageSkillIds ?? [];
-    const rootSkillRoles = stages[stages.length - 1] === hit.rootSkillId ? ['heavy-attack'] : [];
-    observeForCombos({
-      eventType: 'BeforeHpDamage',
-      frame,
-      characterId: hit.characterId,
-      commandId: hit.commandId,
-      sourceSkillId: hit.sourceSkillId,
-      rootSkillId: hit.rootSkillId,
-      rootSkillRoles,
-      sourceCommandType: sourceCommand?.commandType ?? '',
-      targetId: 'fixed-dummy',
-      damageAttributeType: 'Hp',
-      buffId: null,
-    });
+  type TargetStatusObservationContext = {
+    frame: number;
+    characterId: string;
+    commandId: string;
+    sourceSkillId: string;
+    rootSkillId: string;
+    rootSkillRoles: string[];
+    sourceCommandType: string;
+  };
 
-    const observeTargetBuffApplication = (buffId: string, before: number, after: number) => {
-      if (after <= 0) return;
-      observeForCombos({
-        eventType: before > 0 ? 'StatusEffectRefreshed' : 'StatusEffectApplied',
-        frame,
-        characterId: hit.characterId,
-        commandId: hit.commandId,
-        sourceSkillId: hit.sourceSkillId,
-        rootSkillId: hit.rootSkillId,
-        rootSkillRoles,
-        sourceCommandType: sourceCommand?.commandType ?? '',
-        targetId: 'fixed-dummy',
-        damageAttributeType: null,
-        buffId,
-      });
-    };
+  const observeTargetBuffApplication = (
+    context: TargetStatusObservationContext,
+    buffId: string,
+    before: number,
+    after: number,
+  ) => {
+    if (after <= 0) return;
+    observeForCombos({
+      eventType: before > 0 ? 'StatusEffectRefreshed' : 'StatusEffectApplied',
+      ...context,
+      targetId: 'fixed-dummy',
+      damageAttributeType: null,
+      buffId,
+    });
+  };
+
+  /**
+   * Apply target state through one observer regardless of whether AKE stores
+   * the action beside DamageAction or as a standalone timed status action.
+   * This is deliberately event-shaped: attachment and physical state are
+   * global fixed-dummy facts, not character-specific combo shortcuts.
+   */
+  const applyTargetStatusEffectsForCombos = (
+    effects: readonly HitBuffEffect[],
+    context: TargetStatusObservationContext,
+  ) => {
     const processedTargetBuffs = new Set<string>();
-    for (const hitBuff of hit.hitBuffs ?? []) {
+    for (const hitBuff of effects) {
       if (String(hitBuff.target).toLowerCase() !== 'target') continue;
       const buffId = String(hitBuff.id ?? '');
       if (!buffId || processedTargetBuffs.has(buffId)) continue;
@@ -1528,7 +1549,7 @@ function simulateAkeRealtimeTimeline(
         }
         const after = Math.min(4, before + Math.max(1, finite(hitBuff.statusValue, 1)));
         previewTargetBuffStacks.set(buffId, after);
-        observeTargetBuffApplication(buffId, before, after);
+        observeTargetBuffApplication(context, buffId, before, after);
         continue;
       }
       if (buffId === PREVIEW_NO_GUARD_BUFF_ID
@@ -1537,13 +1558,13 @@ function simulateAkeRealtimeTimeline(
       const before = previewTargetBuffStacks.get(buffId) ?? 0;
       const after = Math.max(before, Math.max(1, finite(hitBuff.statusValue, 1)));
       previewTargetBuffStacks.set(buffId, after);
-      observeTargetBuffApplication(buffId, before, after);
+      observeTargetBuffApplication(context, buffId, before, after);
     }
 
     const beforeNoGuard = previewTargetBuffStacks.get(PREVIEW_NO_GUARD_BUFF_ID) ?? 0;
     let afterNoGuard = beforeNoGuard;
     let appliedNoGuard = false;
-    const statusKeys = new Set(hit.hitBuffs.map(effect => effect.statusKey).filter(Boolean));
+    const statusKeys = new Set(effects.map(effect => effect.statusKey).filter(Boolean));
     // A physical attempt and its explicit result can coexist in one profile.
     // The attempt is the transaction root, so the result must not be replayed
     // as a second stack in preview.
@@ -1567,8 +1588,62 @@ function simulateAkeRealtimeTimeline(
       previewTargetBuffStacks.delete(PREVIEW_NO_GUARD_BUFF_ID);
     }
     if (appliedNoGuard) {
-      observeTargetBuffApplication(PREVIEW_NO_GUARD_BUFF_ID, beforeNoGuard, afterNoGuard);
+      observeTargetBuffApplication(
+        context,
+        PREVIEW_NO_GUARD_BUFF_ID,
+        beforeNoGuard,
+        afterNoGuard,
+      );
     }
+  };
+
+  const comboObservationContext = (
+    commandId: string,
+    characterId: string,
+    sourceSkillId: string,
+    rootSkillId: string,
+    frame: number,
+  ): TargetStatusObservationContext => {
+    const sourceCommand = commandById.get(commandId);
+    const stages = sourceCommand?.profile.comboStageSkillIds ?? [];
+    return {
+      frame,
+      characterId,
+      commandId,
+      sourceSkillId,
+      rootSkillId,
+      rootSkillRoles: stages[stages.length - 1] === rootSkillId ? ['heavy-attack'] : [],
+      sourceCommandType: sourceCommand?.commandType ?? '',
+    };
+  };
+
+  const observeHitForCombos = (hit: AkeRealtimeHit, frame: number) => {
+    if (hit.hitCount <= 0) return;
+    const context = comboObservationContext(
+      hit.commandId,
+      hit.characterId,
+      hit.sourceSkillId,
+      hit.rootSkillId,
+      frame,
+    );
+    observeForCombos({
+      eventType: 'BeforeHpDamage',
+      ...context,
+      targetId: 'fixed-dummy',
+      damageAttributeType: 'Hp',
+      buffId: null,
+    });
+    applyTargetStatusEffectsForCombos(hit.hitBuffs ?? [], context);
+  };
+
+  const observeStandaloneTargetStatusForCombos = (event: PendingTargetStatusEvent) => {
+    applyTargetStatusEffectsForCombos(event.effects, comboObservationContext(
+      event.commandId,
+      event.characterId,
+      event.sourceSkillId,
+      event.rootSkillId,
+      event.frame,
+    ));
   };
 
   const selectComboPending = (
@@ -1771,6 +1846,7 @@ function simulateAkeRealtimeTimeline(
         frame,
         pendingResources,
         pendingHits,
+        pendingTargetStatuses,
         pendingForms,
         pendingComboActions,
       );
@@ -1788,9 +1864,52 @@ function simulateAkeRealtimeTimeline(
     }
 
     for (const hit of command.hits) {
-      const entries = pendingHits.get(hit.frame) ?? [];
-      entries.push(hit);
-      pendingHits.set(hit.frame, entries);
+      if (hit.frame === frame) {
+        observeHitForCombos(hit, frame);
+      } else {
+        const entries = pendingHits.get(hit.frame) ?? [];
+        entries.push(hit);
+        pendingHits.set(hit.frame, entries);
+      }
+    }
+
+    const statusEffectIdentity = (effect: HitBuffEffect) => (
+      `${String(effect.target).toLowerCase()}:${effect.statusKey || effect.id}`
+    );
+    const projectedStatusEffects = new Set(profile.hits.flatMap(hit => (
+      (hit.hitBuffs ?? []).map(effect => (
+        `${Math.round(hit.offsetFrames)}:${statusEffectIdentity(effect as HitBuffEffect)}`
+      ))
+    )));
+    const standaloneStatusEffectsByFrame = new Map<number, HitBuffEffect[]>();
+    for (const statusEffect of profile.statusEffects ?? []) {
+      const offsetFrames = finite(statusEffect.offsetFrames, -1);
+      if (offsetFrames < 0 || String(statusEffect.target).toLowerCase() !== 'target') continue;
+      const roundedOffsetFrames = Math.round(offsetFrames);
+      if (projectedStatusEffects.has(
+        `${roundedOffsetFrames}:${statusEffectIdentity(statusEffect as HitBuffEffect)}`,
+      )) continue;
+      const eventFrame = frame + roundedOffsetFrames;
+      const effects = standaloneStatusEffectsByFrame.get(eventFrame) ?? [];
+      effects.push(structuredClone(statusEffect) as HitBuffEffect);
+      standaloneStatusEffectsByFrame.set(eventFrame, effects);
+    }
+    for (const [eventFrame, effects] of standaloneStatusEffectsByFrame) {
+      const event: PendingTargetStatusEvent = {
+        frame: eventFrame,
+        commandId: command.commandId,
+        characterId: command.characterId ?? '',
+        sourceSkillId: profile.skillId,
+        rootSkillId: profile.skillId,
+        effects,
+      };
+      if (eventFrame === frame) {
+        observeStandaloneTargetStatusForCombos(event);
+      } else {
+        const entries = pendingTargetStatuses.get(eventFrame) ?? [];
+        entries.push(event);
+        pendingTargetStatuses.set(eventFrame, entries);
+      }
     }
 
     for (const event of profile.resourceEvents) {
@@ -1962,6 +2081,8 @@ function simulateAkeRealtimeTimeline(
       addAtb(recoveryPerFrame, 'Gain');
     }
     for (const hit of pendingHits.get(frame) ?? []) observeHitForCombos(hit, frame);
+    const targetStatusEvents = pendingTargetStatuses.get(frame) ?? [];
+    for (const event of targetStatusEvents) observeStandaloneTargetStatusForCombos(event);
 
     const frameEvents: Array<{
       kind: 'queued' | 'input';
@@ -2017,13 +2138,17 @@ function simulateAkeRealtimeTimeline(
         plannedEnd,
         pendingResources,
         pendingHits,
+        pendingTargetStatuses,
         pendingForms,
         pendingComboActions,
       );
       actor.basicComboCursor = null;
       actor.active = null;
     }
-    if (resourceEvents.length > 0 || frameEvents.length > 0 || frame % nodeFrameScale === 0) {
+    if (resourceEvents.length > 0
+      || targetStatusEvents.length > 0
+      || frameEvents.length > 0
+      || frame % nodeFrameScale === 0) {
       point(frame, resourceEvents.length > 0 ? 'Gain' : 'Sample');
     }
   }

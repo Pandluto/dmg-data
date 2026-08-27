@@ -2614,6 +2614,60 @@ export class AkeActionCompiler {
                 }
                 break;
             }
+            case 'PreventBuffConsumeAction': {
+                const checkType = node.checkType ?? 'Id';
+                const buffIds = (node.buffIdList ?? [])
+                    .map(entry => typeof entry === 'string' ? entry : entry?.buffId)
+                    .filter(Boolean);
+                const queryTagIds = tagIds(node.query?.tags);
+                if (!['Id', 'Tag'].includes(checkType)) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_BUFF_CONSUME_GUARD_SELECTOR_UNSUPPORTED',
+                        type,
+                        state.path,
+                        `Buff consumption guard selector ${String(checkType)} is unsupported.`,
+                        { checkType }
+                    ));
+                    break;
+                }
+                if ((checkType === 'Id' && buffIds.length === 0)
+                    || (checkType === 'Tag' && queryTagIds.length === 0)) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_BUFF_CONSUME_GUARD_SELECTOR_EMPTY',
+                        type,
+                        state.path,
+                        'Buff consumption guard requires at least one Buff id or tag.',
+                        { checkType }
+                    ));
+                    break;
+                }
+                const common = {
+                    target: 'Target',
+                    guardKey: `ake:${state.path}:buff-consume-prevention`,
+                    checkType,
+                    buffIds,
+                    tagIds: queryTagIds,
+                    tagQueryType: node.query?.queryType ?? 'HasAny',
+                    reason: type
+                };
+                if (node.isEnable === false) {
+                    result.actions.push({
+                        ...common,
+                        type: 'RemoveBuffConsumePrevention'
+                    });
+                } else {
+                    result.actions.push({
+                        ...common,
+                        type: 'SetBuffConsumePrevention'
+                    });
+                    result.cleanupActions.push({
+                        ...common,
+                        type: 'RemoveBuffConsumePrevention',
+                        reason: `${type}:cleanup`
+                    });
+                }
+                break;
+            }
             case 'FinishBuffAction':
             case 'FinishBuffAdvanced':
             case 'FinishBuffByTag': {

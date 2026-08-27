@@ -445,3 +445,123 @@ test('equipment listener reads Blackboard from the consumed Buff snapshot', () =
         targetId: 'enemy', buffId: consumedId
     }), false, 'the consumed instance must already be inactive when its snapshot is read');
 });
+
+test('real AKE consume prevention is a source-leased pre-commit guard', () => {
+    const compiler = new AkeActionCompiler();
+    const guardId = 'buff_eny_0114_jzmking_hdg024';
+    const guard = compiler.compileBuff(readBuff(guardId));
+    const enableGroup = guard.eventActions.find(group =>
+        group.eventType === 'DuringBuffEnable'
+    );
+    const setGuard = enableGroup.actions.find(action =>
+        action.type === 'SetBuffConsumePrevention'
+    );
+    const removeGuard = guard.endActions.find(action =>
+        action.type === 'RemoveBuffConsumePrevention'
+    );
+    assert.deepEqual(enableGroup.unresolved, []);
+    assert.deepEqual(setGuard.tagIds, [1474064594, -430063731]);
+    assert.equal(setGuard.tagQueryType, 'HasAny');
+    assert.equal(removeGuard.guardKey, setGuard.guardKey);
+
+    const protectedId = 'buff.fixture.protected';
+    const otherId = 'buff.fixture.other';
+    const observerId = 'buff.fixture.consume-observer';
+    const runtime = new CombatRuntime({
+        definitions: {
+            entities: [
+                { id: 'actor', kind: 'Character', team: 'ally' },
+                { id: 'enemy', kind: 'Enemy', team: 'enemy' }
+            ],
+            buffs: {
+                [guardId]: guard,
+                [protectedId]: {
+                    stackingPolicy: 'AddStack',
+                    maxStacks: 4,
+                    tagIds: [-430063731],
+                    blackboard: { count: 7 }
+                },
+                [otherId]: { tagIds: [123456789] },
+                [observerId]: {
+                    blackboard: { count: 0 },
+                    abilityEventActions: [{
+                        eventType: 'OnConsumeBuff',
+                        actions: [{
+                            type: 'ModifyBlackboard',
+                            key: 'count',
+                            operation: 'Add',
+                            value: 1
+                        }]
+                    }]
+                }
+            }
+        }
+    });
+    const actorContext = frame => ({
+        frame, sourceId: 'actor', ownerId: 'actor', targetId: 'actor'
+    });
+    const enemyContext = frame => ({
+        frame, sourceId: 'enemy', ownerId: 'enemy', targetId: 'enemy'
+    });
+    const consume = (frame, buffId, finishAll = true) => runtime.execute({
+        type: 'FinishBuff',
+        target: 'enemy',
+        buffId,
+        finishAll,
+        stackCount: 1,
+        consumption: true,
+        consumerRef: 'Source'
+    }, {
+        ...actorContext(frame),
+        targetId: 'enemy',
+        skillId: 'skill.consume',
+        skillType: 'NormalSkill'
+    });
+    const observerCount = () => runtime.statusEffects.list({
+        active: true, targetId: 'actor', buffId: observerId
+    })[0].blackboard.count;
+
+    runtime.execute({
+        type: 'ApplyBuff', target: 'enemy', buffId: guardId
+    }, enemyContext(0));
+    runtime.execute({
+        type: 'ApplyBuff', target: 'actor', buffId: observerId
+    }, actorContext(1));
+    runtime.execute({
+        type: 'ApplyBuff', target: 'enemy', buffId: protectedId
+    }, enemyContext(2));
+    runtime.execute({
+        type: 'ApplyBuff', target: 'enemy', buffId: protectedId
+    }, enemyContext(3));
+    runtime.execute({
+        type: 'ApplyBuff', target: 'enemy', buffId: otherId
+    }, enemyContext(4));
+
+    consume(5, otherId);
+    assert.equal(observerCount(), 1, 'a non-matching Buff remains consumable');
+    consume(6, protectedId, false);
+    const protectedInstance = runtime.statusEffects.list({
+        active: true, targetId: 'enemy', buffId: protectedId
+    })[0];
+    const prevented = runtime.statusEffects.trace.find(event =>
+        event.stage === 'StatusEffectConsumptionPrevented'
+        && event.buffId === protectedId
+    );
+    assert.equal(protectedInstance.stackCount, 2);
+    assert.deepEqual(protectedInstance.blackboard, { count: 7 });
+    assert.equal(prevented.actual, 0);
+    assert.equal(prevented.discarded, 1);
+    assert.equal(prevented.consumptionGuards.length, 1);
+    assert.equal(observerCount(), 1, 'a prevented transaction emits no consume event');
+
+    runtime.execute({
+        type: 'FinishBuff', target: 'enemy', buffId: guardId
+    }, enemyContext(7));
+    assert.deepEqual(runtime.snapshot().buffConsumeProtections, []);
+    consume(8, protectedId, false);
+    assert.equal(runtime.statusEffects.list({
+        active: true, targetId: 'enemy', buffId: protectedId
+    })[0].stackCount, 1);
+    assert.equal(observerCount(), 2,
+        'the same consumption resumes after its guard lease ends');
+});

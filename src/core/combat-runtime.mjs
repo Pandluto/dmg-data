@@ -177,6 +177,7 @@ export class CombatRuntime {
         this.skillLoadoutPatchSources = new Map();
         this.skillLoadoutPatchRevision = 0;
         this.timedMarkers = new Map();
+        this.buffConsumeProtections = new Map();
         this.timeDilationSampleGenerations = new Map();
         this.currentFrame = 0;
         this.ownsScheduler = schedule === null;
@@ -258,6 +259,7 @@ export class CombatRuntime {
                 this.#onStatusEffectTransition(transition);
                 onStatusTransition?.(transition);
             },
+            canConsumeBuff: request => this.#canConsumeBuff(request),
             executeActions: (actions, eventContext) => this.effects.executeTransaction(
                 actions,
                 {
@@ -1213,6 +1215,8 @@ export class CombatRuntime {
                 ...cloneValue(marker),
                 active: this.#timedMarkerActive(marker, this.currentFrame)
             })),
+            buffConsumeProtections: [...this.buffConsumeProtections.values()]
+                .map(protection => cloneValue(protection)),
             endedSkillCastIds: [...this.endedSkillCastIds],
             effectTrace: cloneValue(this.effects.trace),
             trace: cloneValue(this.trace),
@@ -1636,6 +1640,50 @@ export class CombatRuntime {
 
     #timedMarkerKey(entityId, markerId) {
         return JSON.stringify([entityId, markerId]);
+    }
+
+    #buffConsumeProtectionKey(targetId, leaseOwnerId, guardKey) {
+        return JSON.stringify([targetId, leaseOwnerId, guardKey]);
+    }
+
+    #buffConsumeProtectionLeaseOwner(action, eventContext) {
+        return action.leaseOwnerId
+            ?? action.sourceKey
+            ?? eventContext.buffInstanceId
+            ?? eventContext.castId
+            ?? eventContext.programExecutionId
+            ?? eventContext.ruleId
+            ?? null;
+    }
+
+    #canConsumeBuff({ instance }) {
+        const definition = this.statusEffects.getDefinition(instance.buffId);
+        const activeTags = new Set([
+            ...(definition?.tagIds ?? []),
+            ...(instance.extensionTriggered ? definition?.extendTagIds ?? [] : [])
+        ]);
+        const guards = [...this.buffConsumeProtections.values()].filter(protection => {
+            if (protection.targetId !== instance.targetId) return false;
+            if (protection.checkType === 'Id') {
+                return protection.buffIds.includes(instance.buffId);
+            }
+            const flags = protection.tagIds.map(tagId => activeTags.has(tagId));
+            if (protection.tagQueryType === 'HasAll') return flags.every(Boolean);
+            if (protection.tagQueryType === 'HasNone') return flags.every(flag => !flag);
+            return flags.some(Boolean);
+        });
+        return {
+            allowed: guards.length === 0,
+            guards: guards.map(protection => ({
+                protectionId: protection.protectionId,
+                sourceKey: protection.sourceKey,
+                targetId: protection.targetId,
+                checkType: protection.checkType,
+                buffIds: cloneValue(protection.buffIds),
+                tagIds: cloneValue(protection.tagIds),
+                tagQueryType: protection.tagQueryType
+            }))
+        };
     }
 
     #timedMarkerActive(marker, frame) {
@@ -2680,6 +2728,102 @@ export class CombatRuntime {
                 return abilityEvents.length === 0
                     ? result
                     : { ...result, abilityEvents };
+            },
+            SetBuffConsumePrevention: (action, eventContext) => {
+                const targetId = this.#entityId(
+                    action.targetRef ?? action.target ?? action.targetId,
+                    eventContext,
+                    'Target'
+                );
+                const leaseOwnerId = this.#buffConsumeProtectionLeaseOwner(
+                    action,
+                    eventContext
+                );
+                if (leaseOwnerId === null || leaseOwnerId === undefined) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'BuffConsumeProtectionLeaseOwnerMissing',
+                        targetId
+                    };
+                }
+                const guardKey = identifier(
+                    action.guardKey ?? action.id ?? 'buff-consume-prevention',
+                    'Buff consumption guard key'
+                );
+                const protectionId = this.#buffConsumeProtectionKey(
+                    targetId,
+                    leaseOwnerId,
+                    guardKey
+                );
+                const before = cloneValue(
+                    this.buffConsumeProtections.get(protectionId) ?? null
+                );
+                const protection = {
+                    protectionId,
+                    targetId,
+                    sourceKey: leaseOwnerId,
+                    guardKey,
+                    checkType: action.checkType ?? 'Id',
+                    buffIds: Array.isArray(action.buffIds)
+                        ? action.buffIds.filter(Boolean)
+                        : [],
+                    tagIds: Array.isArray(action.tagIds)
+                        ? action.tagIds.filter(tagId =>
+                            tagId !== null && tagId !== undefined
+                        )
+                        : [],
+                    tagQueryType: action.tagQueryType ?? 'HasAny',
+                    frame: eventContext.frame,
+                    buffInstanceId: eventContext.buffInstanceId ?? null
+                };
+                this.buffConsumeProtections.set(protectionId, protection);
+                return {
+                    status: before ? 'Refreshed' : 'Created',
+                    before,
+                    requested: cloneValue(protection),
+                    actual: 1,
+                    discarded: 0,
+                    after: cloneValue(protection)
+                };
+            },
+            RemoveBuffConsumePrevention: (action, eventContext) => {
+                const targetId = this.#entityId(
+                    action.targetRef ?? action.target ?? action.targetId,
+                    eventContext,
+                    'Target'
+                );
+                const leaseOwnerId = this.#buffConsumeProtectionLeaseOwner(
+                    action,
+                    eventContext
+                );
+                if (leaseOwnerId === null || leaseOwnerId === undefined) {
+                    return {
+                        status: 'Ignored',
+                        reason: 'BuffConsumeProtectionLeaseOwnerMissing',
+                        targetId
+                    };
+                }
+                const guardKey = identifier(
+                    action.guardKey ?? action.id ?? 'buff-consume-prevention',
+                    'Buff consumption guard key'
+                );
+                const protectionId = this.#buffConsumeProtectionKey(
+                    targetId,
+                    leaseOwnerId,
+                    guardKey
+                );
+                const before = cloneValue(
+                    this.buffConsumeProtections.get(protectionId) ?? null
+                );
+                const removed = this.buffConsumeProtections.delete(protectionId);
+                return {
+                    status: removed ? 'Removed' : 'Ignored',
+                    before,
+                    requested: protectionId,
+                    actual: removed ? 1 : 0,
+                    discarded: removed ? 0 : 1,
+                    after: null
+                };
             },
             ApplyBuff: (action, eventContext) => {
                 const candidates = Array.isArray(action.buffs)

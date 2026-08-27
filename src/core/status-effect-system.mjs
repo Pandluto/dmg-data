@@ -164,7 +164,8 @@ export class StatusEffectSystem {
         clockDomains = null,
         tickRate = 30,
         executeActions = () => [],
-        onTransition = () => {}
+        onTransition = () => {},
+        canConsumeBuff = () => ({ allowed: true })
     } = {}) {
         if (schedule !== null && typeof schedule !== 'function') {
             throw new Error('schedule must be a function when provided.');
@@ -175,6 +176,9 @@ export class StatusEffectSystem {
         if (typeof onTransition !== 'function') {
             throw new Error('onTransition must be a function.');
         }
+        if (typeof canConsumeBuff !== 'function') {
+            throw new Error('canConsumeBuff must be a function.');
+        }
         this.definitions = definitions;
         this.schedule = schedule;
         this.clockDomains = clockDomains;
@@ -182,6 +186,7 @@ export class StatusEffectSystem {
         if (this.tickRate === 0) throw new Error('tickRate must be greater than zero.');
         this.executeActions = executeActions;
         this.onTransition = onTransition;
+        this.canConsumeBuff = canConsumeBuff;
         this.instances = new Map();
         this.trace = [];
         this.nextInstanceId = 1;
@@ -1077,6 +1082,42 @@ export class StatusEffectSystem {
             const requestedLayers = input.finishAll === false
                 ? Math.max(1, Math.trunc(Number(input.stackCount ?? 1)))
                 : instance.stackCount;
+            if (consumption) {
+                const guard = this.canConsumeBuff({
+                    frame,
+                    instance: this.#publicInstance(instance),
+                    input: plainClone(input),
+                    eventContext: plainClone(eventContext)
+                });
+                const allowed = typeof guard === 'boolean'
+                    ? guard
+                    : guard?.allowed !== false;
+                if (!allowed) {
+                    const blockedLayers = Math.min(requestedLayers, instance.stackCount);
+                    const transition = this.#record(
+                        instance,
+                        frame,
+                        'StatusEffectConsumptionPrevented',
+                        {
+                            reason: input.reason ?? 'ConsumptionPrevented',
+                            ...triggerAttribution,
+                            before: instance.stackCount,
+                            requested: blockedLayers,
+                            actual: 0,
+                            consumedStacks: 0,
+                            bySource: [],
+                            ...consumptionAttribution,
+                            consumedBuffBlackboard,
+                            consumptionGuards: plainClone(guard?.guards ?? []),
+                            discarded: blockedLayers,
+                            after: instance.stackCount
+                        }
+                    );
+                    this.trace.push(transition);
+                    this.onTransition(plainClone(transition));
+                    continue;
+                }
+            }
             if (input.finishAll === false && requestedLayers < instance.stackCount) {
                 const before = instance.stackCount;
                 instance.stackCount -= requestedLayers;

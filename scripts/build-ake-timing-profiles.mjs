@@ -203,9 +203,17 @@ function formEventsFromRunner(runner, characterId) {
         ...(snapshot.skillForms.modes ?? [])
     ]) {
         const status = statusByInstanceId.get(entry.buffInstanceId);
-        if (status?.expireFrame !== null
+        // Infinite overrides created by an OnBuffFinish action are the
+        // replacement state itself.  Removing them again at the just-finished
+        // owner's expire frame collapses a real restore into an apply/remove
+        // pair at the same tick (Rossi's second combo is the minimal case).
+        // Finite/FinishByAction entries may still need this projection when
+        // their owner remains active beyond the isolated probe horizon.
+        if (entry.lifeTimeType !== 'Infinite'
+            && status?.expireFrame !== null
             && status?.expireFrame !== undefined
-            && Number.isFinite(Number(status.expireFrame))) {
+            && Number.isFinite(Number(status.expireFrame))
+            && Number(status.expireFrame) > Number(entry.appliedFrame ?? -1)) {
             pushEntry('remove', entry, Number(status.expireFrame));
         }
     }

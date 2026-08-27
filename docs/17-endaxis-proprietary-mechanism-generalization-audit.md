@@ -752,3 +752,16 @@ AKE 文本中的触发条件可以归并为少量公共事件，而不是 31 种
 6. pending 的创建、过期、冷却抑制、选择与消费仍沿用通用连携生命周期；水位分组、每列斜率、命中点位置和按钮布局均未修改。
 
 回归包含一条正例和一条反例：同一命中依次提交火附着与破防时，洛茜窗口在该命中帧创建并由锚定按钮消费；只有破防而没有任何元素附着时，按钮保持 `COMBO_TRIGGER_MISSING`。这验证的是公共条件和目标状态投影，不是洛茜角色分支。真实状态持续时间和完整 Buff 生命周期仍以 settled runtime ledger 为最终事实；后续若把动态 runtime mutation 直接流式投影到画布，应删除对应的轻量预演状态，而不是保留两份长期真值。
+
+### 12.11 `OnBuffFinish` 创建的无限换槽不能自我撤销
+
+重建洛茜时还暴露了一个独立的投影错误：`buff_chr_0028_wulfa_combo_usetimer` 到期后，在自己的 `OnBuffFinish` 中执行无限期 `ChangeSkillAction`，把连携槽恢复为 `combo_2_skill`。核心注册表正确记录了这次恢复，但时序生成器又根据 owner Buff 的 `expireFrame` 合成了一条同帧 remove，最终目录变成“217 帧 apply 后立刻 remove”，画布因此继续停留在旧的 `combo_3_skill` overlay。
+
+修复依据不是角色 ID，而是动作生命周期：
+
+- `lifeTimeType=Infinite` 的换槽是新的持久状态，不能随产生它的回调 Buff 再次结束；
+- `SpecificTime` 由核心本地时钟定时器负责撤销；
+- `FinishByAction` 继续由动作/owner cleanup 撤销，只有隔离探针尚未走到明确结束帧时才允许生成器补充未来 remove；
+- 生成器只在 `expireFrame > appliedFrame` 时合成有限换槽的删除，禁止制造同帧 apply/remove。
+
+回归直接检查生成目录：洛茜第一段后的 217 帧恢复事件只保留 `apply combo_2_skill`，不再有同帧 remove。这仍未等价于第二段连携已经完整闭环；`TriggerComboSkillAction` 创建接续 pending、接续 pending 的冷却旁路以及 `OnRemoveAllPendingComboSkill` 生命周期仍需在后续步骤单独实现和验证。

@@ -210,6 +210,18 @@ test('cross-operator audit keeps real multipliers, compact bodies and stable sta
         'a frame-29 AirborneAction must not be copied onto all nine damage hits'
     );
 
+    const wulfaCombo2 = profile('chr_0028_wulfa', 'chr_0028_wulfa_combo_2_skill');
+    const restoredCombo = wulfaCombo2.formEvents.filter(event => (
+        event.offsetFrames === 217
+        && event.skillSlot === 'ComboSkill'
+        && event.targetSkillId === 'chr_0028_wulfa_combo_2_skill'
+    ));
+    assert.deepEqual(
+        restoredCombo.map(event => event.operation),
+        ['apply'],
+        'an infinite override created by OnBuffFinish must survive instead of removing itself'
+    );
+
     const catalogStatusKeys = new Set(Object.values(enriched.characters)
         .flatMap(character => character.profiles)
         .flatMap(candidate => [

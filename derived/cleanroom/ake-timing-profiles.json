@@ -9812,14 +9812,6 @@
               "stateKey": "override:ake:buffEventAction[0].actions[0][1]:skill-override:ComboSkill",
               "skillSlot": "ComboSkill",
               "targetSkillId": "chr_0028_wulfa_combo_2_skill"
-            },
-            {
-              "offsetFrames": 217,
-              "operation": "remove",
-              "kind": "override",
-              "stateKey": "override:ake:buffEventAction[0].actions[0][1]:skill-override:ComboSkill",
-              "skillSlot": "ComboSkill",
-              "targetSkillId": "chr_0028_wulfa_combo_2_skill"
             }
           ],
           "derivation": "isolated-runtime-probe"

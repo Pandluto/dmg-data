@@ -837,3 +837,16 @@ owner pending count: N > 0
 7. 第一轮契约覆盖 `consume final`、`expire final`、多 pending 部分删除、replace/refresh 不误发，以及真实洛茜第二段消费后 use-timer 由原始 Buff listener 提前结束。洛茜只是端到端 fixture，不是实现分支。
 
 这一步不改变水位列、变量斜率、按钮坐标或伤害点投影。它只补上核心状态事务缺少的生命周期出口；若后续画布需要直接显示该事件，应从同一 runtime ledger 投影，而不是在前端另算一次 pending 是否为空。
+
+### 12.16 pending 清空事件的实现闭环与下一项审计盲区
+
+实现按 12.15 的集合边沿契约落在公共 `ComboTriggerMachine`：消费或超时先提交既有 removal trace，再按 owner 检查最终集合；只有该 owner 从有 pending 变为空时，才把 `OnRemoveAllPendingComboSkill` 同步交给现有能力事件分发。单角色与小队 runner 使用相同 callback，编译器事件词表也登记了该生产者。核心没有出现洛茜、use-timer Buff 或恢复技能 ID。
+
+两类真实边界证明链路不是偶然命中角色已有清理动作：
+
+- 第二段在第 38 帧消费最后 pending 时，`buff_chr_0028_wulfa_combo_usetimer` 的原始 ability listener 收到事件；
+- 不释放第二段时，pending 在第 216 帧到期，listener 同帧用 `FinishBuffAdvanced` 结束 use-timer，早于其自己的第 217 帧兜底计时器。由 `OnBuffFinish` 产生的基础连携槽恢复因此也从 217 帧收敛到 216 帧。
+
+时序目录只更新这一处 settled 差异，catalog adapter 升至 v25 以清除旧缓存；水位分组、变量斜率、列宽、按钮与伤害点布局没有修改。核心全库 235 项测试、前端严格类型检查、命中目录契约和生产构建均通过。
+
+重跑现有 action/operator 审计没有产生文件差异，原因不是该事件仍缺失，而是审计器存在一个更大的结构性盲区：严格的 `AKE_ABILITY_EVENT_EMITTER_REQUIRED` 目前只检查 Skill 内嵌 `EventListenerAction`，没有检查 BuffData 顶层 `abilityEventAction`。公开 BuffData 实际使用 81 种能力事件；只验证 listener 子动作可编译，会把“消费者存在但生产者不存在”误报为可执行。所以下一项不是再挑一个角色补丁，而是建立运行时事件生产者清单，并把顶层 Buff listener 也纳入同一 fail-closed 审计。`OnRemoveAllPendingComboSkill` 应在该新审计中保持 complete，其他没有源码生产者或边界探针的事件必须显式暴露。

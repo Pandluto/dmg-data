@@ -791,3 +791,19 @@ frame 37 ChangeSkillAction(ComboSkill -> combo_3_skill, Infinite)
 核心契约分三层验证：编译洛茜真实 SkillData 的两个目标分支均得到同一 normalized operation；无静态角色规则的原语测试证明接续 pending 可在共享冷却活动时单次放行；小队 runner 真实执行 `combo_2` 后在第 37 帧开窗、第 38 帧解析并释放 `combo_3`，同时 cooldown ledger 只保留第一段启动的原共享组记录。测试没有出现 `if (characterId === wulfa)`，洛茜只作为原始数据完整的 fixture。
 
 这一步仍未关闭 `OnRemoveAllPendingComboSkill`。该事件表示 owner 的 pending 集合从非空变为空后的生命周期通知，应由状态机在 consume、timeout、replace 或显式 clear 事务之后统一发出，再交给 Buff listener 清理计时和换槽；不能只在洛茜二段释放后手动结束某个 Buff。
+
+### 12.13 动作创建的 pending 必须作为运行时事实投影到画布
+
+只在核心 runner 支持 `TriggerComboPending` 仍会造成“计算能放、画布判红”的双真值问题。时序目录 schema v6 因此不再让前端从 `ChangeSkillAction` 或技能名字猜接续窗口，而是从隔离运行结果的 `comboTrace` 导出 `comboPendingEvents`。每条事件保留动作提交帧、owner、技能槽、核心已解析的目标技能、窗口长度、pending/选择/消费策略、冷却旁路和原始 action path；目录适配器版本升至 v24，旧浏览器缓存必须失效。
+
+实时预演冻结以下顺序和合法性：
+
+1. 同帧先应用 `formEvents`，再提交 `comboPendingEvents`，然后处理命中和玩家输入；这与核心中 `ChangeSkillAction -> TriggerComboSkillAction -> 下一输入` 的动作顺序一致；
+2. 提交动作时重新读取 owner 当前技能槽，目录中的 `targetSkillId` 只是核心探针给出的校验回退，不允许绕过已经发生的形态变化；
+3. action-created rule 从首次触发后持续登记为“由状态机管理的技能”。pending 被消费后再次按同一按钮必须报 `COMBO_TRIGGER_MISSING`，不能退回“未验证所以放行”；
+4. `bypassSkillCooldown` 只跟随被选中的 pending 进入两道冷却门禁。pending 缺失、过期或已消费时，共享冷却仍正常阻止释放；
+5. 技能在动作帧前被中断时，尚未提交的 pending event 与资源、Hit、有限换槽事件一起被取消；同帧已经提交的事件不倒退；
+6. `verifiedComboSkills` 同时包含静态条件规则和已经由动作创建的动态规则，使共享水位求解器得到同一释放结论；
+7. 本轮没有修改列宽、变量斜率、组水位、节点坐标、光标或能量轨道，只扩充画布预演消费的状态事实。
+
+前端契约用同一共享冷却组的两段合成技能验证：第一段换槽并创建 pending，第二段在活动冷却中被单次放行；第三次重复输入因 pending 已消费而明确失败。真实目录契约另断言洛茜 `combo_2` 在 37 帧导出目标为 `combo_3` 的 180 帧窗口。

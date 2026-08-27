@@ -108,6 +108,11 @@ test('Wulfa combo 3 uses the generic tag stack query to consume spell attachment
             commandType: 'NormalSkill',
             frame: 0
         }, {
+            commandId: 'pelica-normal-2',
+            memberId: 'pelica',
+            commandType: 'NormalSkill',
+            frame: 45
+        }, {
             commandId: 'wulfa-normal',
             memberId: 'wulfa',
             commandType: 'NormalSkill',
@@ -133,12 +138,12 @@ test('Wulfa combo 3 uses the generic tag stack query to consume spell attachment
         && entry.consumerId === WULFA
     ));
     assert.ok(consumedAttachment, 'combo 3 must consume the target attachment through FinishBuff');
-    assert.equal(consumedAttachment.consumedStacks, 1);
+    assert.equal(consumedAttachment.consumedStacks, 2, 'all available attachment layers must be consumed');
     assert.ok(result.statusTrace.some(entry => (
-        entry.stage === 'StatusEffectApplied'
+        ['StatusEffectApplied', 'StatusEffectRefreshed'].includes(entry.stage)
         && entry.buffId === 'buff_chr_0028_wulfa_combo_inflictnum'
         && entry.targetId === ENEMY
-        && entry.stackCount === 1
+        && entry.after === 2
     )), 'the consumed layer must be recorded for the combo damage formula');
     assert.ok(result.damageLog.some(entry => (
         entry.skillId === COMBO_3

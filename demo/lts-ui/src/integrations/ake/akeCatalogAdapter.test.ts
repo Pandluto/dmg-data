@@ -29,6 +29,8 @@ function profile(
     tailEndOffset: 29,
     exclusiveFrames: 30,
     cooldownFrames: 0,
+    cooldownGroupId: `test:${commandType}`,
+    cooldownSkillType: commandType,
     costType: null,
     costValue: 0,
     priority: 0,

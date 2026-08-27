@@ -193,7 +193,13 @@ test('cross-operator audit keeps real multipliers, compact bodies and stable sta
     )), false, 'an indefinite form Buff must not become a synthetic frame-zero removal');
 
     const dapanUltimate = profile('chr_0018_dapan', 'chr_0018_dapan_ultimate_skill');
-    assert.ok(statusKeys(dapanUltimate.hits[0].hitBuffs).has('knockdown'));
+    const dapanKnockdownHits = dapanUltimate.hits
+        .filter(hit => statusKeys(hit.hitBuffs).has('knockdown'));
+    assert.deepEqual(
+        dapanKnockdownHits.map(hit => hit.offsetFrames),
+        [81],
+        'the frame-80 KnockDownAction belongs only to its frame-81 settlement, not the preceding ticks'
+    );
 
     const wulfaCombo3 = profile('chr_0028_wulfa', 'chr_0028_wulfa_combo_3_skill');
     assert.deepEqual(

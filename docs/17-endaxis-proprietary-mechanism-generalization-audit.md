@@ -623,3 +623,13 @@ Endaxis 的 `src/simulation/engine/TriggerRegistry.ts` 证明“集中事件注�
 7. 多角色以 actorId 隔离；相同 skill id 不会跨角色串冷却。
 
 当前切片只实现 AKE `SetSkillCdAtOnce` 已出现的语义。`PauseComboSkillTime`、`AddGlobalCDTimer`、`CheckGlobalCDTimerAction` 以及确有原始证据时的 remaining-basis 百分比，继续由审计保留为后续能力，不能在没有字段证据时塞进本动作。
+
+### 12.5 实时画布的共享冷却投影
+
+核心状态机完成后，实时画布仍曾保留一份旧 `Map<skillId, endFrame>`。这不是样式问题，而是第二份相互矛盾的合法性模型：基础技能开始冷却后，强化或替换 SkillData 会因 id 不同而绕过冷却；连携窗口在触发帧也只检查规则中那个具体 id，无法看见同组其他形态已经启动的冷却。
+
+时序目录 schema v4 现在把 assembler 从 AKE `skillGroupMap + skillSpecification` 归一得到的 `cooldownGroupId/cooldownSkillType` 写入每个 profile。实时画布只用 `cooldownGroupId` 建立、读取和检查冷却；连携触发检查也先把 `comboSkillId` 解析回同一个组。目录适配器版本升至 v22，强制已有浏览器丢弃缺少共享组的旧缓存。回归测试以不包含角色特例的“基础形态施放后切到强化形态”验证：形态解析仍选中强化 SkillData，但释放被同组 end frame 拒绝。
+
+这一步没有改变共享变速水位轴的列宽、投影斜率、关系求解或节点布局。当前前端离线预演只闭合“冷却开始与同组合法性”；技能中途发生的 `SetSkillCdAtOnce` 动态修改仍以服务端 runtime ledger 为最终事实，不能把默认配装的隔离探针结果静态烘焙成所有配装都适用的 UI 事件。后续应将 runtime 冷却 mutation ledger 直接投影给画布，或让预演执行同一 normalized operation，而不是再维护一套简化公式。
+
+全量重建同时暴露了旧生成物掩盖的逐 Hit 回归：大潘终结技现在保留 43～50 帧的八次前置伤害与 81 帧结算，AKE 原始 `KnockDownAction` 位于 80 帧动作组，因此倒地只属于 81 帧 Hit。契约测试已从“首个 Hit 有倒地”改为断言“只有 81 帧 Hit 有倒地”，避免多段技能恢复真实命中后把状态错误复制到开头或全部 Hit。

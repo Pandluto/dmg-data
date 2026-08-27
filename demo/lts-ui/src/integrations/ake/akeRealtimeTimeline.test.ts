@@ -28,6 +28,8 @@ function profile(overrides: Partial<AkeTimingSkillProfile> = {}): AkeTimingSkill
     tailEndOffset: 59,
     exclusiveFrames: 30,
     cooldownFrames: 0,
+    cooldownGroupId: 'actor-a:NormalSkill',
+    cooldownSkillType: 'NormalSkill',
     costType: 'Atb',
     costValue: 100,
     priority: 2,
@@ -1104,6 +1106,57 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
   assertEqual(second.success, false, 'skill cannot be recast during cooldown');
   assertEqual(second.releaseReason, 'COOLDOWN_ACTIVE', 'cooldown rejection is explicit');
   assertEqual(second.cooldownEndFrame, 60, 'cooldown end frame is exposed');
+}
+
+{
+  const actor = character('actor-a');
+  const sharedGroup = 'actor-a:NormalSkill';
+  const baseSkill = profile({
+    skillId: 'normal-skill-base',
+    variantIndex: 0,
+    bodyEndOffset: 1,
+    tailEndOffset: 1,
+    exclusiveFrames: 1,
+    cooldownFrames: 60,
+    cooldownGroupId: sharedGroup,
+    formEvents: [{
+      offsetFrames: 0,
+      operation: 'apply',
+      kind: 'override',
+      stateKey: 'enhanced-form',
+      skillSlot: 'NormalSkill',
+      targetSkillId: 'normal-skill-enhanced',
+    }],
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+  });
+  const enhancedSkill = profile({
+    skillId: 'normal-skill-enhanced',
+    variantIndex: 1,
+    bodyEndOffset: 1,
+    tailEndOffset: 1,
+    exclusiveFrames: 1,
+    cooldownFrames: 60,
+    cooldownGroupId: sharedGroup,
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+  });
+  const result = buildAkeRealtimeTimeline({
+    timelineData: timeline([{ characterId: actor.id, buttons: [
+      button('base-cast', actor.id, 0),
+      button('enhanced-cast', actor.id, 1),
+    ] }]),
+    selectedCharacters: [actor],
+    catalog: catalog({ [actor.id]: [baseSkill, enhancedSkill] }),
+    staffCount: 1,
+  });
+  const second = result.commands.find(command => command.commandId === 'enhanced-cast')!;
+  assertEqual(second.profile.skillId, 'normal-skill-enhanced', 'form resolver selects the alternate SkillData');
+  assertEqual(second.success, false, 'alternate form cannot bypass the base form cooldown');
+  assertEqual(second.releaseReason, 'COOLDOWN_ACTIVE', 'shared group rejection is explicit');
+  assertEqual(second.cooldownEndFrame, 60, 'alternate form exposes the shared cooldown end');
 }
 
 {

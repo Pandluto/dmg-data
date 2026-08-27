@@ -16,6 +16,8 @@ function baseProfile(overrides: Partial<AkeTimingSkillProfile>): AkeTimingSkillP
     tailEndOffset: 99,
     exclusiveFrames: 30,
     cooldownFrames: 0,
+    cooldownGroupId: 'actor-a:NormalSkill',
+    cooldownSkillType: 'NormalSkill',
     costType: 'Atb',
     costValue: 100,
     priority: 2,

@@ -154,6 +154,18 @@ function roleProfiles(bundle) {
     });
 }
 
+function cooldownBinding(bundle, skillId) {
+    const definition = (bundle.definitions?.skillCooldowns ?? [])
+        .find(entry => entry.skillId === skillId);
+    return {
+        // The assembler has already normalized public and alternate SkillData
+        // into one actor-local group. Falling back to the concrete id keeps a
+        // profile fail-closed when a future dataset omits that evidence.
+        cooldownGroupId: definition?.groupId ?? skillId,
+        cooldownSkillType: definition?.skillType ?? null
+    };
+}
+
 function normalizedFormSourceKey(value) {
     return String(value ?? '')
         .replace(/@status:\d+$/, '')
@@ -407,6 +419,7 @@ for (const character of catalog.characters.filter(entry => entry.id !== 'chr_900
     const admission = new CommandAdmissionProvider({ semanticMappings: bundle.semanticMappings });
     const profiles = roleProfiles(bundle).map(({ commandType, skillId, variantIndex }) => {
         const program = bundle.programs.get(skillId);
+        const cooldown = cooldownBinding(bundle, skillId);
         const probe = simulateProfile(
             bundle,
             emptyUspBundle,
@@ -424,6 +437,8 @@ for (const character of catalog.characters.filter(entry => entry.id !== 'chr_900
             tailEndOffset: probe.tailEndOffset,
             exclusiveFrames: Number(program?.exclusiveFrames ?? 0),
             cooldownFrames: Number(program?.cooldownTicks ?? 0),
+            cooldownGroupId: cooldown.cooldownGroupId,
+            cooldownSkillType: cooldown.cooldownSkillType,
             costType: program?.costType ?? null,
             costValue: Number(program?.costValue ?? 0),
             priority: admission.profile(commandType).priority,
@@ -464,7 +479,7 @@ const atbRule = JSON.parse(fs.readFileSync(
 ))?.effect;
 
 const output = {
-    schemaVersion: 3,
+    schemaVersion: 4,
     tickRate: 30,
     nodeFrameScale: 15,
     source: {

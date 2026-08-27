@@ -172,6 +172,7 @@ type ActorState = {
   maxUltimateSp: number;
   initialUltimateSp: number;
   ultimateSpPoints: AkeRealtimeEnergyPoint[];
+  /** End frame by AKE cooldown group, never by the current skill form id. */
   cooldowns: Map<string, number>;
   skillOverrides: Map<string, {
     skillSlot: string;
@@ -239,6 +240,8 @@ function fallbackProfile(commandType: string): AkeTimingSkillProfile {
     tailEndOffset: DEFAULT_NODE_FRAMES,
     exclusiveFrames: DEFAULT_NODE_FRAMES,
     cooldownFrames: 0,
+    cooldownGroupId: `fallback:${commandType}`,
+    cooldownSkillType: null,
     costType: null,
     costValue: 0,
     priority: 0,
@@ -293,6 +296,23 @@ function inputsFromTimeline(
 
 function characterProfiles(timing: AkeTimingCatalog | undefined, characterId: string) {
   return timing?.characters[characterId]?.profiles ?? [];
+}
+
+function cooldownGroupForProfile(profile: AkeTimingSkillProfile): string {
+  // Keep a defensive fallback for an in-memory v21 catalog while the adapter
+  // revision invalidates persisted data. New generated profiles always carry
+  // the normalized AKE group.
+  return profile.cooldownGroupId || profile.skillId;
+}
+
+function cooldownGroupForSkill(
+  timing: AkeTimingCatalog | undefined,
+  characterId: string,
+  skillId: string,
+): string {
+  const profile = characterProfiles(timing, characterId)
+    .find(candidate => candidate.skillId === skillId);
+  return profile ? cooldownGroupForProfile(profile) : skillId;
 }
 
 function withResolution(
@@ -1034,7 +1054,12 @@ function simulateAkeRealtimeTimeline(
     frame: number,
   ) => {
     const actor = actorFor(ownerCharacterId);
-    const cooldownEnd = actor.cooldowns.get(rule.comboSkillId) ?? 0;
+    const cooldownGroupId = cooldownGroupForSkill(
+      timing,
+      ownerCharacterId,
+      rule.comboSkillId,
+    );
+    const cooldownEnd = actor.cooldowns.get(cooldownGroupId) ?? 0;
     const id = `combo:${rule.id}:${comboSequence++}`;
     if (rule.requireComboOffCooldown && cooldownEnd > frame) {
       const suppressed: PendingCombo = {
@@ -1292,7 +1317,8 @@ function simulateAkeRealtimeTimeline(
     const comboPending = comboRules.length > 0
       ? selectComboPending(command.characterId ?? '', profile.skillId, comboRules, frame)
       : null;
-    const cooldownEnd = actor.cooldowns.get(profile.skillId) ?? 0;
+    const cooldownGroupId = cooldownGroupForProfile(profile);
+    const cooldownEnd = actor.cooldowns.get(cooldownGroupId) ?? 0;
 
     const fail = (state: string, reason: string, releaseReason = reason) => {
       command.state = state;
@@ -1383,7 +1409,7 @@ function simulateAkeRealtimeTimeline(
 
     if (profile.cooldownFrames > 0) {
       command.cooldownEndFrame = frame + profile.cooldownFrames;
-      actor.cooldowns.set(profile.skillId, command.cooldownEndFrame);
+      actor.cooldowns.set(cooldownGroupId, command.cooldownEndFrame);
     }
     if (comboPending) consumeComboPending(comboPending, frame, command.commandId);
     if (comboUnverified) {

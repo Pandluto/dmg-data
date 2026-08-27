@@ -322,6 +322,7 @@ export class StatusEffectSystem {
             existing.actionClockDomainId = actionClockDomainId;
             this.#scheduleExpiry(existing);
             this.#schedulePeriodicTrigger(existing, frame);
+            this.#restoreTimerPauseState(existing, frame, 'StatusEffectRefreshedWhileHeld');
             const transition = this.#record(existing, frame, 'StatusEffectRefreshed', {
                 before,
                 requested: before + (stacking.policy === 'AddStack'
@@ -418,7 +419,10 @@ export class StatusEffectSystem {
             processingEnhancement: false,
             timePaused: false,
             timePausedAtFrame: null,
-            remainingDurationTicks: null
+            remainingDurationTicks: null,
+            expiryHoldLeaseIds: [],
+            expiryHeldAtFrame: null,
+            extensionTriggered: false
         };
         instance.stackSources = [{
             sourceId: attribution.sourceId,
@@ -588,6 +592,13 @@ export class StatusEffectSystem {
                         `Cannot ${input.isPaused ? 'pause' : 'resume'} status-effect time without clock domains.`
                     );
                 }
+                // Releasing a full Buff-time pause must not release an active
+                // ExtendBuffAction expiry lease. Periodic and timeline timers
+                // resume, while the lifetime timer stays held.
+                if (!input.isPaused && reference.kind === 'expiry'
+                    && (instance.expiryHoldLeaseIds?.length ?? 0) > 0) {
+                    continue;
+                }
                 const changed = input.isPaused
                     ? this.clockDomains.pauseTimer(
                         reference.domainId,
@@ -608,10 +619,10 @@ export class StatusEffectSystem {
             const expiryTimer = instance.timerId === null || !this.clockDomains
                 ? null
                 : this.clockDomains.timer(instance.clockDomainId, instance.timerId);
-            instance.remainingDurationTicks = input.isPaused
-                ? expiryTimer?.remainingTicks ?? null
+            instance.remainingDurationTicks = expiryTimer?.paused
+                ? expiryTimer.remainingTicks ?? null
                 : null;
-            instance.expireFrame = input.isPaused
+            instance.expireFrame = expiryTimer?.paused
                 ? null
                 : expiryTimer?.deadlineFrame ?? previousExpireFrame;
             const transition = this.#record(
@@ -627,6 +638,103 @@ export class StatusEffectSystem {
                     previousExpireFrame,
                     remainingDurationTicks: instance.remainingDurationTicks,
                     timerTransitions
+                }
+            );
+            this.trace.push(transition);
+            this.onTransition(plainClone(transition));
+            transitions.push(plainClone(transition));
+        }
+        return transitions;
+    }
+
+    setExpiryHeld(input, eventContext = {}) {
+        if (!input || typeof input !== 'object') {
+            throw new Error('StatusEffectSystem.setExpiryHeld requires an input object.');
+        }
+        if (typeof input.isHeld !== 'boolean') {
+            throw new TypeError('StatusEffectSystem.setExpiryHeld requires boolean isHeld.');
+        }
+        if (typeof input.leaseId !== 'string' || input.leaseId.length === 0) {
+            throw new TypeError('StatusEffectSystem.setExpiryHeld requires a leaseId.');
+        }
+        const frame = frameNumber(input.frame ?? eventContext.frame ?? 0);
+        const matches = this.#select(input).filter(instance => instance.active);
+        const transitions = [];
+        for (const instance of matches) {
+            const beforeLeases = [...(instance.expiryHoldLeaseIds ?? [])];
+            const leases = new Set(beforeLeases);
+            if (input.isHeld) leases.add(input.leaseId);
+            else leases.delete(input.leaseId);
+            const afterLeases = [...leases].sort();
+            const beforeHeld = beforeLeases.length > 0;
+            const afterHeld = afterLeases.length > 0;
+            instance.expiryHoldLeaseIds = afterLeases;
+            instance.expiryHeldAtFrame = afterHeld
+                ? (instance.expiryHeldAtFrame ?? frame)
+                : null;
+
+            let timerTransition = null;
+            if (beforeHeld !== afterHeld && instance.timerId !== null) {
+                if (!this.clockDomains) {
+                    throw new Error('Cannot hold a finite status-effect expiry without clock domains.');
+                }
+                if (afterHeld) {
+                    timerTransition = this.clockDomains.pauseTimer(
+                        instance.clockDomainId,
+                        instance.timerId,
+                        frame,
+                        input.reason ?? 'ExtendBuffAction'
+                    );
+                } else if (!instance.timePaused) {
+                    timerTransition = this.clockDomains.resumeTimer(
+                        instance.clockDomainId,
+                        instance.timerId,
+                        frame,
+                        input.reason ?? 'ExtendBuffActionReleased'
+                    );
+                }
+            }
+
+            const expiryTimer = instance.timerId === null || !this.clockDomains
+                ? null
+                : this.clockDomains.timer(instance.clockDomainId, instance.timerId);
+            instance.remainingDurationTicks = expiryTimer?.paused
+                ? expiryTimer.remainingTicks ?? instance.remainingDurationTicks
+                : null;
+            instance.expireFrame = expiryTimer?.paused
+                ? null
+                : expiryTimer?.deadlineFrame ?? instance.expireFrame;
+
+            const firstExtension = input.isHeld && !instance.extensionTriggered;
+            if (firstExtension) {
+                instance.extensionTriggered = true;
+                this.#executeLifecycle(
+                    [{
+                        type: 'RefreshCurrentBuffEffectSource',
+                        reason: 'ExtendBuffAction:activate-after-extend-tags'
+                    }],
+                    instance,
+                    frame,
+                    'OnBuffExtended',
+                    eventContext
+                );
+            }
+
+            const transition = this.#record(
+                instance,
+                frame,
+                afterHeld ? 'StatusEffectExpiryHeld' : 'StatusEffectExpiryReleased',
+                {
+                    reason: input.reason ?? 'ExtendBuffAction',
+                    leaseId: input.leaseId,
+                    requestedHeld: input.isHeld,
+                    beforeHeld,
+                    afterHeld,
+                    beforeLeaseIds: beforeLeases,
+                    afterLeaseIds: afterLeases,
+                    remainingDurationTicks: instance.remainingDurationTicks,
+                    timerTransition,
+                    extensionTriggered: instance.extensionTriggered
                 }
             );
             this.trace.push(transition);
@@ -857,7 +965,12 @@ export class StatusEffectSystem {
             .filter(instance => selector.buffId === undefined || instance.buffId === selector.buffId)
             .filter(instance => {
                 if (!Array.isArray(selector.tagIds) || selector.tagIds.length === 0) return true;
-                const activeTags = new Set(instance.definition.tagIds ?? []);
+                const activeTags = new Set([
+                    ...(instance.definition.tagIds ?? []),
+                    ...(instance.extensionTriggered
+                        ? instance.definition.extendTagIds ?? []
+                        : [])
+                ]);
                 const matches = selector.tagIds.map(tagId => activeTags.has(tagId));
                 switch (selector.tagQueryType ?? 'HasAny') {
                     case 'HasAll': return matches.every(Boolean);
@@ -898,6 +1011,32 @@ export class StatusEffectSystem {
             'trigger'
         );
         return references.map(({ key: _key, ...reference }) => reference);
+    }
+
+    #restoreTimerPauseState(instance, frame, reason) {
+        if (!this.clockDomains) return;
+        for (const reference of this.#timerReferences(instance)) {
+            const shouldPause = instance.timePaused === true
+                || (reference.kind === 'expiry'
+                    && (instance.expiryHoldLeaseIds?.length ?? 0) > 0);
+            if (shouldPause) {
+                this.clockDomains.pauseTimer(
+                    reference.domainId,
+                    reference.timerId,
+                    frame,
+                    reason
+                );
+            }
+        }
+        const expiryTimer = instance.timerId === null
+            ? null
+            : this.clockDomains.timer(instance.clockDomainId, instance.timerId);
+        instance.remainingDurationTicks = expiryTimer?.paused
+            ? expiryTimer.remainingTicks ?? null
+            : null;
+        instance.expireFrame = expiryTimer?.paused
+            ? null
+            : expiryTimer?.deadlineFrame ?? instance.expireFrame;
     }
 
     #scheduleExpiry(instance) {

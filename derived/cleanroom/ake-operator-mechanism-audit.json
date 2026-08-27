@@ -11,18 +11,18 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3162,
-    "combatRiskCount": 1005,
+    "findingCount": 3156,
+    "combatRiskCount": 999,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 423,
+      "combat-blocking": 417,
       "combat-partial": 160,
       "evidence-missing": 422,
       "presentation-only": 390,
       "spatial-assumption": 1767
     },
     "byPriority": {
-      "P0": 282,
+      "P0": 276,
       "P1": 649,
       "P2": 1841,
       "P3": 390
@@ -42,7 +42,7 @@
       "physical-status": 77,
       "presentation": 390,
       "resource-transaction": 1,
-      "status-lifecycle": 94,
+      "status-lifecycle": 88,
       "targeting-scope": 83,
       "targeting-spatial": 1767,
       "unclassified": 74
@@ -101,7 +101,6 @@
       "DoOnceAction": 16,
       "EnhancedAction": 11,
       "EventListenerAction": 17,
-      "ExtendBuffAction": 6,
       "FindTargetAction": 24,
       "FinishBuffAdvanced": 9,
       "ForceSpellStatusAction": 7,
@@ -25738,18 +25737,18 @@
         "missingBuffCount": 1
       },
       "summary": {
-        "findingCount": 147,
-        "combatRiskCount": 70,
+        "findingCount": 141,
+        "combatRiskCount": 64,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 49,
+          "combat-blocking": 43,
           "combat-partial": 1,
           "evidence-missing": 20,
           "presentation-only": 14,
           "spatial-assumption": 63
         },
         "byPriority": {
-          "P0": 42,
+          "P0": 36,
           "P1": 22,
           "P2": 69,
           "P3": 14
@@ -25764,7 +25763,7 @@
           "form-state": 23,
           "physical-status": 1,
           "presentation": 14,
-          "status-lifecycle": 7,
+          "status-lifecycle": 1,
           "targeting-spatial": 63,
           "unclassified": 6
         },
@@ -25784,7 +25783,6 @@
           "CurveEvaluateFloat": 6,
           "CustomRootMotionAction": 16,
           "EnhancedAction": 1,
-          "ExtendBuffAction": 6,
           "ForceTargetInFightAction": 1,
           "InheritBuffAction": 1,
           "MissingDependency": 1,
@@ -25809,23 +25807,6 @@
         }
       },
       "findings": [
-        {
-          "characterId": "chr_0030_zhuangfy",
-          "characterName": "庄方宜",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0030_zhuangfy_air_attack_ult_extend_buff",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0030_zhuangfy_air_attack_ult_extend_buff.json",
-          "jsonPath": "buffEventAction[0].actions[0][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ExtendBuffAction",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for ExtendBuffAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
         {
           "characterId": "chr_0030_zhuangfy",
           "characterName": "庄方宜",
@@ -26054,23 +26035,6 @@
           "entityKind": "SkillData",
           "entityId": "chr_0030_zhuangfy_attack1_ult",
           "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0030_zhuangfy_attack1_ult.json",
-          "jsonPath": "actionGroupData.timelineActions[5][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ExtendBuffAction",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for ExtendBuffAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0030_zhuangfy",
-          "characterName": "庄方宜",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0030_zhuangfy_attack1_ult",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0030_zhuangfy_attack1_ult.json",
           "jsonPath": "actionGroupData.timelineActions[4][0]",
           "code": "AKE_ACTION_UNSUPPORTED",
           "sourceType": "TogglableAction",
@@ -26088,23 +26052,6 @@
           "entityKind": "SkillData",
           "entityId": "chr_0030_zhuangfy_attack2_ult",
           "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0030_zhuangfy_attack2_ult.json",
-          "jsonPath": "actionGroupData.timelineActions[10][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ExtendBuffAction",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for ExtendBuffAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
-        },
-        {
-          "characterId": "chr_0030_zhuangfy",
-          "characterName": "庄方宜",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0030_zhuangfy_attack2_ult",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0030_zhuangfy_attack2_ult.json",
           "jsonPath": "actionGroupData.timelineActions[4][0]",
           "code": "AKE_ACTION_UNSUPPORTED",
           "sourceType": "TogglableAction",
@@ -26114,23 +26061,6 @@
           "priority": "P0",
           "capability": "form-state",
           "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection."
-        },
-        {
-          "characterId": "chr_0030_zhuangfy",
-          "characterName": "庄方宜",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0030_zhuangfy_attack3_ult",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0030_zhuangfy_attack3_ult.json",
-          "jsonPath": "actionGroupData.timelineActions[8][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ExtendBuffAction",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for ExtendBuffAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
         },
         {
           "characterId": "chr_0030_zhuangfy",
@@ -26199,23 +26129,6 @@
           "priority": "P0",
           "capability": "form-state",
           "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection."
-        },
-        {
-          "characterId": "chr_0030_zhuangfy",
-          "characterName": "庄方宜",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0030_zhuangfy_combo_skill_ult",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0030_zhuangfy_combo_skill_ult.json",
-          "jsonPath": "actionGroupData.timelineActions[16][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ExtendBuffAction",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for ExtendBuffAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
         },
         {
           "characterId": "chr_0030_zhuangfy",
@@ -26352,23 +26265,6 @@
           "priority": "P0",
           "capability": "form-state",
           "rationale": "The action changes tags, layers, skill replacement, or a toggle used by form selection."
-        },
-        {
-          "characterId": "chr_0030_zhuangfy",
-          "characterName": "庄方宜",
-          "scope": "operator",
-          "entityKind": "SkillData",
-          "entityId": "chr_0030_zhuangfy_normal_skill_ult",
-          "sourcePath": "reference/public-data/akedata/Json/SkillData/chr_0030_zhuangfy_normal_skill_ult.json",
-          "jsonPath": "actionGroupData.timelineActions[15][0]",
-          "code": "AKE_ACTION_UNSUPPORTED",
-          "sourceType": "ExtendBuffAction",
-          "compilerCategory": "buff",
-          "message": "No executable compiler route exists for ExtendBuffAction.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "status-lifecycle",
-          "rationale": "The action changes status application, duration, stacks, inheritance, consumption, or removal."
         },
         {
           "characterId": "chr_0030_zhuangfy",

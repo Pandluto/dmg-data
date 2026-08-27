@@ -513,13 +513,14 @@ UI 不再根据技能名、前序按钮或固定木桩副本重建状态。
 
 本轮严格按“原始数据证据 → 通用编译原语 → runtime 事务 → 账本/UI 投影 → 逐干员审计”推进，没有修改共享变速水位轴的布局或坐标模型：
 
-1. 已建立 31 名具体干员的逐路径机制审计；当前报告共 3162 条 finding，其中 423 条 combat-blocking、160 条 combat-partial、422 条 evidence-missing、1767 条 spatial-assumption、390 条 presentation-only；
+1. 已建立 31 名具体干员的逐路径机制审计；当前报告共 3156 条 finding，其中 417 条 combat-blocking、160 条 combat-partial、422 条 evidence-missing、1767 条 spatial-assumption、390 条 presentation-only；
 2. `PauseBuffTime` 已进入统一 Buff 生命周期，暂停时同时冻结到期、周期触发和 Buff 时间线，恢复后从剩余本地时间继续；
 3. Blackboard 动态子 Buff、fallback dependency 与 `asChildBuff` 父子所有权已统一，父实例结束只级联回滚自己的子实例；
 4. `VulnerableAction` 已映射为 AKE 的“脆弱”，Defender `NormalCalcZone` 保留为“易伤”，两者进入独立公式区；
 5. `WeakAction` 的五份公开数据已全部走公共 `buff_common_affixes_weak`：正数减伤幅度转换为有符号 `FinalMultiplier`，并从伤害来源实体读取，因此只降低携带者造成的伤害；父 Buff 结束后自动回滚；
 6. `ShelterAction` 的七份公开数据已全部走公共 `buff_common_affixes_shelter`，从受击者实时读取 `ShelterDmgScalar`，只降低携带者承受的伤害，并随父 Buff 精确回滚；
-7. `VulnerableAction`、`WeakAction` 与 `ShelterAction` 已不再出现在逐干员 unresolved source type 中；本轮新增能力没有角色 ID、技能 ID 或队伍模板分支；
-8. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁。
+7. `ExtendBuffAction` 的六处公开机制已实现为引用计数的“到期计时租约”：只延后 Buff 到期，不冻结周期动作或内部时间线；重叠技能分别持有/释放租约，并在首次触发时激活 `tagsAfterTriggerExtendBuffAction`；
+8. `VulnerableAction`、`WeakAction`、`ShelterAction` 与 `ExtendBuffAction` 已不再出现在逐干员 unresolved source type 中；本轮新增能力没有角色 ID、技能 ID 或队伍模板分支；
+9. 核心测试、相关前端契约、TypeScript 严格检查和 AKE demo 构建继续作为提交门禁。
 
-423 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。下一阶段优先进入 `InheritBuffAction`、`ExtendBuffAction` 和 `FinishBuffAdvanced` 的生命周期事务；“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。
+417 条 blocker 明确说明当前结果只是第一轮可审计收敛，不代表全干员机制已经闭包。下一阶段优先进入 `InheritBuffAction` 和 `FinishBuffAdvanced` 的生命周期事务；“按护盾值派生额外伤害”仍属于独立的命中快照问题，不能因为 `ShelterAction` 已执行就宣称完成。

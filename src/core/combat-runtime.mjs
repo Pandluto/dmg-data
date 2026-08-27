@@ -2479,6 +2479,45 @@ export class CombatRuntime {
                     reason: action.reason ?? 'PauseBuffTime'
                 }, eventContext);
             },
+            SetBuffExpiryHeld: (action, eventContext) => {
+                const leaseOwner = eventContext.buffInstanceId
+                    ?? eventContext.castId
+                    ?? eventContext.programExecutionId;
+                if (leaseOwner === undefined || leaseOwner === null) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'BuffExpiryLeaseOwnerMissing',
+                        leaseKey: action.leaseKey ?? null
+                    };
+                }
+                const targetId = this.#entityId(
+                    action.targetRef ?? action.target ?? action.targetId,
+                    eventContext,
+                    'Target'
+                );
+                const leaseId = `${String(action.leaseKey ?? 'extend-buff')}:${String(leaseOwner)}`;
+                const common = {
+                    frame: action.frame ?? eventContext.frame,
+                    targetId,
+                    leaseId,
+                    isHeld: action.isHeld === true,
+                    reason: action.reason ?? 'ExtendBuffAction'
+                };
+                const buffIds = Array.isArray(action.buffIds)
+                    ? action.buffIds.filter(Boolean)
+                    : [];
+                if (buffIds.length > 0) {
+                    return buffIds.map(buffId => this.statusEffects.setExpiryHeld({
+                        ...common,
+                        buffId
+                    }, eventContext));
+                }
+                return this.statusEffects.setExpiryHeld({
+                    ...common,
+                    tagIds: cloneValue(action.tagIds),
+                    tagQueryType: action.tagQueryType
+                }, eventContext);
+            },
             ApplyCombatStatus: (action, eventContext) => {
                 const targetId = this.#entityId(
                     action.targetRef ?? action.target ?? action.targetId,
@@ -2975,7 +3014,12 @@ export class CombatRuntime {
                 }
                 const modifiers = definition.persistentModifiers ?? [];
                 const damageModifiers = definition.persistentDamageModifiers ?? [];
-                const tags = definition.persistentTags ?? [];
+                const tags = [
+                    ...(definition.persistentTags ?? []),
+                    ...(currentBuff?.extensionTriggered
+                        ? definition.persistentExtendTags ?? []
+                        : [])
+                ];
                 if (modifiers.length === 0 && damageModifiers.length === 0
                     && tags.length === 0) {
                     return {

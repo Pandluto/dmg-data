@@ -441,6 +441,8 @@ export class AkeActionCompiler {
             }
         }));
         const persistentTags = tagIds(raw.applyTags).map(tagId => `ake-tag:${tagId}`);
+        const extendTagIds = tagIds(raw.tagsAfterTriggerExtendBuffAction);
+        const persistentExtendTags = extendTagIds.map(tagId => `ake-tag:${tagId}`);
         const damageModifierConditionResults = (raw.damageModifier ?? []).map(
             (modifier, modifierIndex) => (modifier.condition?.actionData ?? []).map(
                 (condition, conditionIndex) => this.#compileCondition(condition, {
@@ -499,6 +501,7 @@ export class AkeActionCompiler {
             firstTriggerDelayTicks: triggerTimingMapping?.effect?.firstTriggerDelayTicks
                 ?? null,
             tagIds: tagIds(raw.applyTags),
+            extendTagIds,
             eventActions,
             abilityEventActions,
             igniteEventActions,
@@ -513,6 +516,7 @@ export class AkeActionCompiler {
             persistentModifiers,
             persistentDamageModifiers,
             persistentTags,
+            persistentExtendTags,
             endActions: [
                 ...actionsFor(eventActions, 'OnBuffFinish'),
                 ...cleanup,
@@ -2086,6 +2090,72 @@ export class AkeActionCompiler {
                             'Tag-based Buff finishing has no tag IDs.'
                         ));
                     }
+                }
+                break;
+            }
+            case 'ExtendBuffAction': {
+                const target = this.#targetRef(
+                    node.buffOwner,
+                    state,
+                    'extended Buff owner'
+                );
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                const settings = node.buffSettings ?? {};
+                const checkType = settings.checkType ?? 'Id';
+                const buffIds = checkType === 'Id'
+                    ? (settings.buffIdList ?? []).filter(Boolean)
+                    : [];
+                const extendTagIds = checkType === 'Tag'
+                    ? tagIds(settings.tagQuery?.tags)
+                    : [];
+                if (!['Id', 'Tag'].includes(checkType)) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_EXTEND_BUFF_SELECTOR_PROVIDER_REQUIRED',
+                        type,
+                        state.path,
+                        `ExtendBuffAction selector type ${checkType} requires an external provider.`,
+                        { checkType }
+                    ));
+                    break;
+                }
+                if ((checkType === 'Id' && buffIds.length === 0)
+                    || (checkType === 'Tag' && extendTagIds.length === 0)) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_EXTEND_BUFF_SELECTOR_EMPTY',
+                        type,
+                        state.path,
+                        'ExtendBuffAction requires at least one Buff id or tag.'
+                    ));
+                    break;
+                }
+                if (target.ref) {
+                    const leaseKey = `ake:${state.scope}:${state.path}:extend-buff`;
+                    const hold = {
+                        type: 'SetBuffExpiryHeld',
+                        target: target.ref,
+                        buffIds,
+                        tagIds: extendTagIds,
+                        tagQueryType: settings.tagQuery?.queryType ?? 'HasAny',
+                        leaseKey,
+                        isHeld: true,
+                        reason: type
+                    };
+                    result.actions.push(hold);
+                    result.cleanupActions.push({
+                        ...hold,
+                        isHeld: false,
+                        reason: `${type}:cleanup`
+                    });
+                    result.metadata.push({
+                        type,
+                        path: state.path,
+                        category: 'status-lifecycle',
+                        operation: 'hold-expiry',
+                        checkType,
+                        buffIds,
+                        tagIds: extendTagIds,
+                        leaseKey
+                    });
                 }
                 break;
             }

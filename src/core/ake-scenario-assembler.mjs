@@ -642,6 +642,9 @@ export class AkeScenarioAssembler {
                 }
             }
         }
+        for (const buffId of enemyTemplate.poiseKnotBuffList ?? []) {
+            if (/^(?:buff_|global_buff_)/.test(buffId ?? '')) referencedBuffIds.add(buffId);
+        }
 
         const loadoutCompiler = new AkeLoadoutCompiler({
             attributeTypeMappings: Object.fromEntries(
@@ -960,6 +963,9 @@ export class AkeScenarioAssembler {
         const poiseMapping = (semanticFile.value.mappings ?? []).find(mapping =>
             mapping.actionType === 'EnemyPoiseTemplateRule'
         );
+        const poiseBreakMapping = (semanticFile.value.mappings ?? []).find(mapping =>
+            mapping.actionType === 'PoiseBreakRule'
+        );
         const maxPoiseType = String(poiseMapping?.effect?.maxPoiseAttributeType ?? 20);
         const recoveryType = String(poiseMapping?.effect?.recoverySecondsAttributeType ?? 21);
         const executionType = String(
@@ -1005,6 +1011,36 @@ export class AkeScenarioAssembler {
                 ?? 0,
             'enemy max resilience'
         );
+        const poiseRecoverySeconds = nonNegativeNumber(
+            options.enemyPoiseRecoverySeconds
+                ?? independent[recoveryType]
+                ?? 0,
+            'enemy poise recovery seconds'
+        );
+        const executionDamageScalar = Number(independent[executionType] ?? 1);
+        const executionAtbGain = Number(enemyTemplate.breakingAttackedAtbObtain ?? 0);
+        const rapidBreakMapping = (semanticFile.value.mappings ?? []).find(mapping =>
+            mapping.actionType === 'RapidPoiseBreakRule'
+            && Number(mapping.selector?.executionDamageScalar) === executionDamageScalar
+            && Number(mapping.selector?.breakingAttackedAtbObtain) === executionAtbGain
+        );
+        const breakDamageBuffId = poiseBreakMapping?.effect?.breakDamageBuffId ?? null;
+        const breakDamageBuff = breakDamageBuffId === null
+            ? null
+            : buffs.get(breakDamageBuffId);
+        const breakDamageProcessor = breakDamageBuff?.damageModifiers
+            ?.filter(modifier => modifier.side === 'Defender')
+            .flatMap(modifier => modifier.processors ?? [])
+            .find(processor => processor.zoneName === 'ProdCalcZone');
+        const breakAdditionDescriptor = breakDamageProcessor?.addition;
+        const brokenDamageAddition = breakAdditionDescriptor?.useBlackboardKey
+            ? Number(breakDamageBuff?.blackboard?.[breakAdditionDescriptor.blackboardKey] ?? 0)
+            : Number(breakAdditionDescriptor?.value ?? 0);
+        const knotBuffIds = clone(enemyTemplate.poiseKnotBuffList ?? []);
+        const knotDurationTicksByBuffId = Object.fromEntries(knotBuffIds.map(buffId => [
+            buffId,
+            Number(buffs.get(buffId)?.durationTicks ?? 0)
+        ]));
         const enemyAttributes = {
             ...namedAttributes(independent),
             ...namedAttributes(dependent),
@@ -1019,8 +1055,8 @@ export class AkeScenarioAssembler {
             WeaknessDmgScalar: 1,
             ShelterDmgScalar: 0,
             PoiseDamageTakenScalar: 1,
-            ExecutionDamageScalar: independent[executionType] ?? 1,
-            BreakingAttackedAtbObtain: Number(enemyTemplate.breakingAttackedAtbObtain ?? 0),
+            ExecutionDamageScalar: executionDamageScalar,
+            BreakingAttackedAtbObtain: executionAtbGain,
             ...(options.enemyAttributes ?? {})
         };
         const enemyAttributeComponents = buildAkeAttributeComponents(enemyAttributes);
@@ -1069,6 +1105,29 @@ export class AkeScenarioAssembler {
                         currentResilience: maxResilience,
                         recoveryPerTick: 0,
                         superArmorLevel: Number(enemyTemplate.initialSuperArmor ?? 0)
+                    },
+                    poise: {
+                        enabled: maxResilience > 0,
+                        maxPoise: maxResilience,
+                        recoverySeconds: poiseRecoverySeconds,
+                        executionDamageScalar,
+                        executionAtbGain,
+                        knotPercentages: clone(enemyTemplate.poiseKnotPctList ?? []),
+                        knotBuffIds,
+                        knotDurationTicksByBuffId,
+                        brokenDamageScale: 1 + brokenDamageAddition,
+                        breakDamageBuffId,
+                        executionGateBuffId:
+                            poiseBreakMapping?.effect?.executionGateBuffId ?? null,
+                        recoveryTimingModel:
+                            poiseBreakMapping?.effect?.recoveryTimingModel,
+                        rapidBreakPolicy: rapidBreakMapping
+                            ? {
+                                enabled: true,
+                                profileId: rapidBreakMapping.id,
+                                ...clone(rapidBreakMapping.effect)
+                            }
+                            : { enabled: false }
                     }
                 }
             ],
@@ -1186,7 +1245,9 @@ export class AkeScenarioAssembler {
                 },
                 enemyMaxHp: maxHp,
                 enemyMaxResilience: maxResilience,
-                enemyResilienceRecoverySeconds: independent[recoveryType] ?? null,
+                enemyResilienceRecoverySeconds: poiseRecoverySeconds,
+                enemyMaxPoise: maxResilience,
+                enemyPoiseRecoverySeconds: poiseRecoverySeconds,
                 weapon: {
                     ...clone(weapon),
                     build: clone(weaponBuild)

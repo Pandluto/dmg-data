@@ -107,6 +107,8 @@ function canonicalType(type) {
         spellinfliction: 'ApplyInfliction',
         applyimpact: 'ApplyImpact',
         applyimpactaction: 'ApplyImpact',
+        applypoisedamage: 'ApplyPoiseDamage',
+        recoverpoise: 'RecoverPoise',
         setresiliencemodifier: 'SetResilienceModifier',
         removeresiliencemodifier: 'RemoveResilienceModifier',
         resolvedamagepacket: 'ResolveDamagePacket',

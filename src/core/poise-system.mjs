@@ -203,13 +203,46 @@ export class PoiseSystem {
     applyDamage(input = {}) {
         if (!isObject(input)) throw new TypeError('PoiseSystem applyDamage requires an object.');
         const targetId = targetIdFrom(input);
+        const requested = finite(
+            input.basePoise ?? input.amount ?? input.value,
+            'poise damage amount'
+        );
+        if (!this.hasEntity(targetId)) {
+            if (requested !== 0) {
+                throw new Error(`Unknown poise entity: ${String(targetId)}.`);
+            }
+            const ignored = {
+                frame: input.frame ?? input.eventContext?.frame ?? 0,
+                stage: 'PoiseDamageIgnored',
+                type: 'PoiseDamageIgnored',
+                sourceId: input.sourceId ?? input.eventContext?.sourceId ?? null,
+                ownerId: input.ownerId ?? input.eventContext?.ownerId ?? null,
+                targetId,
+                skillId: input.skillId ?? input.eventContext?.skillId ?? null,
+                rootSkillId: input.rootSkillId ?? input.eventContext?.rootSkillId ?? null,
+                castId: input.castId ?? input.eventContext?.castId ?? null,
+                reason: 'TargetHasNoPoise',
+                enabled: false,
+                basePoise: 0,
+                finalPoiseDamage: 0,
+                actualPoiseDamage: 0,
+                overflow: 0,
+                before: 0,
+                after: 0,
+                broken: false,
+                broke: false,
+                transition: null
+            };
+            this.trace.push(ignored);
+            return clone(ignored);
+        }
         const entry = this.#entry(targetId);
         entry.activeContext = clone(input.eventContext ?? input);
         entry.pendingBrokenTransition = null;
         try {
             const result = entry.machine.applyDamage({
                 frame: input.frame ?? entry.activeContext.frame ?? 0,
-                basePoise: input.basePoise ?? input.amount ?? input.value,
+                basePoise: requested,
                 outputScalar: input.outputScalar ?? 1,
                 takenScalar: input.takenScalar ?? 1,
                 sourceSkillId: input.sourceSkillId ?? input.skillId ?? entry.activeContext.skillId ?? null,

@@ -11,18 +11,18 @@
   },
   "auditedCharacterCount": 31,
   "summary": {
-    "findingCount": 3068,
-    "combatRiskCount": 907,
+    "findingCount": 3067,
+    "combatRiskCount": 906,
     "isCombatClosed": false,
     "byImpact": {
-      "combat-blocking": 324,
+      "combat-blocking": 323,
       "combat-partial": 161,
       "evidence-missing": 422,
       "presentation-only": 390,
       "spatial-assumption": 1771
     },
     "byPriority": {
-      "P0": 183,
+      "P0": 182,
       "P1": 650,
       "P2": 1845,
       "P3": 390
@@ -36,7 +36,7 @@
       "derived-state": 8,
       "deterministic-choice": 347,
       "event-scheduling": 28,
-      "event-subscription": 51,
+      "event-subscription": 50,
       "form-state": 30,
       "physical-status": 77,
       "presentation": 390,
@@ -47,7 +47,7 @@
       "unclassified": 74
     },
     "bySourceType": {
-      "AbilityEventAction": 30,
+      "AbilityEventAction": 29,
       "AddAIMarkerAction": 3,
       "AddDynamicCcsAction": 286,
       "AddTagAction": 4,
@@ -30287,18 +30287,18 @@
         "missingBuffCount": 0
       },
       "summary": {
-        "findingCount": 181,
-        "combatRiskCount": 79,
+        "findingCount": 180,
+        "combatRiskCount": 78,
         "isCombatClosed": false,
         "byImpact": {
-          "combat-blocking": 52,
+          "combat-blocking": 51,
           "combat-partial": 10,
           "evidence-missing": 17,
           "presentation-only": 18,
           "spatial-assumption": 84
         },
         "byPriority": {
-          "P0": 44,
+          "P0": 43,
           "P1": 31,
           "P2": 88,
           "P3": 18
@@ -30310,7 +30310,7 @@
           "derived-state": 4,
           "deterministic-choice": 13,
           "event-scheduling": 2,
-          "event-subscription": 10,
+          "event-subscription": 9,
           "form-state": 1,
           "physical-status": 3,
           "presentation": 18,
@@ -30320,7 +30320,7 @@
           "unclassified": 4
         },
         "bySourceType": {
-          "AbilityEventAction": 10,
+          "AbilityEventAction": 9,
           "AddDynamicCcsAction": 8,
           "CastSkill": 6,
           "ChannelingCastingAction": 2,
@@ -30660,23 +30660,6 @@
           "sourceType": "AbilityEventAction",
           "compilerCategory": null,
           "message": "Runtime has no proven emitter for OnCollectOutputBuffBbValue.",
-          "impact": "combat-blocking",
-          "priority": "P0",
-          "capability": "event-subscription",
-          "rationale": "The action controls whether a later gameplay event is observed or emitted."
-        },
-        {
-          "characterId": "chr_0032_lizhiyan",
-          "characterName": "诀",
-          "scope": "operator",
-          "entityKind": "BuffData",
-          "entityId": "buff_chr_0032_lizhiyan_ultimate_skill_inaura",
-          "sourcePath": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_ultimate_skill_inaura.json",
-          "jsonPath": "abilityEventAction[1]",
-          "code": "AKE_ABILITY_EVENT_EMITTER_REQUIRED",
-          "sourceType": "AbilityEventAction",
-          "compilerCategory": null,
-          "message": "Runtime has no proven emitter for OnPoiseZero.",
           "impact": "combat-blocking",
           "priority": "P0",
           "capability": "event-subscription",

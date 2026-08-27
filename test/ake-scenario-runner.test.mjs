@@ -21,6 +21,23 @@ test('AKE scenario assembler joins versioned AKEDatabase tables and dependency c
     assert.equal(bundle.parameters.characterAttributes.Atk, 83.851);
     assert.equal(bundle.parameters.enemyMaxHp, 692);
     assert.equal(bundle.parameters.enemyAttributes.Def, 100);
+    assert.deepEqual(bundle.definitions.entities.find(entity =>
+        entity.id === baseOptions.enemyId
+    ).poise, {
+        enabled: true,
+        maxPoise: 160,
+        recoverySeconds: 7,
+        executionDamageScalar: 1.25,
+        executionAtbGain: 35,
+        knotPercentages: [],
+        knotBuffIds: [],
+        knotDurationTicksByBuffId: {},
+        brokenDamageScale: 1.3,
+        breakDamageBuffId: 'buff_common_poise_break_damage_taken_scale',
+        executionGateBuffId: 'buff_common_poise_can_be_breaking_attacked',
+        recoveryTimingModel: 'nominal-gameplay-ticks-excludes-presentation-pauses',
+        rapidBreakPolicy: { enabled: false }
+    });
     assert.deepEqual(bundle.roles.normalAttackIds, [
         'chr_0004_pelica_attack1',
         'chr_0004_pelica_attack2',

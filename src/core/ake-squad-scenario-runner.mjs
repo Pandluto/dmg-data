@@ -392,23 +392,26 @@ export class AkeSquadScenarioRunner {
         };
         const resolver = parameters => {
             const resolution = this.damageResolver(parameters);
-            const targetState = parameters.runtime.resilience.snapshot(
+            const targetState = parameters.runtime.poise.hasEntity(
                 parameters.eventContext.targetId
-            );
+            )
+                ? parameters.runtime.poise.snapshot(parameters.eventContext.targetId)
+                : null;
             const hpHits = (resolution?.hits ?? []).filter(hit =>
                 hit.damageAttributeType === 'Hp'
             );
             const poiseAmount = (resolution?.hits ?? [])
-                .filter(hit => ['Poise', 'Resilience'].includes(hit.damageAttributeType))
+                .filter(hit => hit.damageAttributeType === 'Poise')
                 .reduce((sum, hit) => sum + Number(hit.amount ?? hit.finalDamage ?? 0), 0);
             let localClockTrigger = null;
             if ((parameters.action.damageUnits ?? []).some(unit =>
                 unit.calculationType === 'BreakingAttackCalculation'
-            ) && targetState.state !== 'Stable') {
+            ) && targetState?.broken) {
                 localClockTrigger = 'ExecutionHit';
-            } else if (targetState.resilience > 0 && poiseAmount >= targetState.resilience) {
+            } else if (targetState && !targetState.broken
+                && poiseAmount >= targetState.remaining) {
                 localClockTrigger = 'PoiseBreak';
-            } else if (hpHits.length > 0 && targetState.resilience <= 0) {
+            } else if (hpHits.length > 0 && targetState?.broken) {
                 localClockTrigger = 'HpDamageWhileBroken';
             }
             if (localClockTrigger) {
@@ -1427,6 +1430,7 @@ export class AkeSquadScenarioRunner {
                 ])),
                 statuses: runtime.statusEffects.list({ active: true }),
                 resilience: runtime.resilience.snapshot(),
+                poise: runtime.poise.snapshot(),
                 clocks: runtime.clockDomains.snapshot(),
                 loadout: {
                     installations: loadoutInstallations,

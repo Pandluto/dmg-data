@@ -6,6 +6,7 @@ import { VitalMachine } from './vital-machine.mjs';
 import { AuraMachine } from './aura-machine.mjs';
 import { ReactionMachine } from './reaction-machine.mjs';
 import { ResilienceMachine } from './resilience-machine.mjs';
+import { PoiseSystem } from './poise-system.mjs';
 import { StatusEffectSystem } from './status-effect-system.mjs';
 import { EffectSourceRegistry } from './effect-source-registry.mjs';
 import { SkillFormStateRegistry } from './skill-form-state-registry.mjs';
@@ -236,6 +237,18 @@ export class CombatRuntime {
             profiles: definitions.resilienceProfiles ?? {},
             targetValidator: targetId => this.context.hasEntity(targetId)
         });
+        this.poise = new PoiseSystem({
+            schedule: this.schedule,
+            clockDomains: this.clockDomains,
+            tickRate: this.tickRate,
+            targetValidator: targetId => this.context.hasEntity(targetId),
+            onTransition: transition => {
+                if (transition.eventType === 'OnPoiseRecover') {
+                    this.#notifyPoiseLifecycleEvent(transition.eventType, transition);
+                }
+            },
+            onKnot: transition => this.#onPoiseKnot(transition)
+        });
         this.statusEffects = new StatusEffectSystem({
             definitions: definitions.buffs ?? definitions.statusEffects ?? new Map(),
             schedule: this.schedule,
@@ -316,6 +329,12 @@ export class CombatRuntime {
             }
             this.#registerResilience(entry);
         }
+        for (const entry of definitionsArray(definitions.poise, 'targetId')) {
+            if (!this.context.hasEntity(entry.targetId)) {
+                throw new Error(`Poise definition references unknown entity: ${entry.targetId}`);
+            }
+            this.#registerPoise(entry);
+        }
         for (const pool of definitionsArray(definitions.resources, 'id')) {
             this.resources.registerPool(pool);
         }
@@ -356,6 +375,13 @@ export class CombatRuntime {
         }
         if (definition.resilience) {
             this.#registerResilience({ targetId: entity.id, ...definition.resilience });
+        }
+        if (definition.poise) {
+            this.#registerPoise({
+                targetId: entity.id,
+                clockDomainId: entity.clockDomainId ?? 'global',
+                ...definition.poise
+            });
         }
         this.#record('RuntimeEntityRegistered', {
             frame: 0,
@@ -1176,6 +1202,7 @@ export class CombatRuntime {
             auras: this.auras.snapshot(),
             reactions: this.reactions.snapshot(),
             resilience: this.resilience.snapshot(),
+            poise: this.poise.snapshot(),
             entityBlackboards: Object.fromEntries([...this.entityBlackboards.entries()]
                 .map(([entityId, blackboard]) => [entityId, cloneValue(blackboard)])),
             skillLoadoutPatchSources: [...this.skillLoadoutPatchSources.values()]
@@ -1200,6 +1227,17 @@ export class CombatRuntime {
         return this.resilience.registerEntity({
             ...definition,
             targetId: definition.targetId ?? definition.id
+        });
+    }
+
+    #registerPoise(definition) {
+        return this.poise.registerEntity({
+            targetId: definition.targetId ?? definition.id,
+            clockDomainId: definition.clockDomainId ?? this.#entityClockDomainId(
+                definition.targetId ?? definition.id,
+                'global'
+            ),
+            definition
         });
     }
 
@@ -2992,6 +3030,55 @@ export class CombatRuntime {
                 controlType: action.controlType,
                 controlLevel: action.controlLevel
             }),
+            ApplyPoiseDamage: (action, eventContext) => {
+                const attribution = this.#attribution(action, eventContext);
+                const amount = this.#number(
+                    action.amount ?? action.value,
+                    eventContext,
+                    'poise damage amount'
+                );
+                const hit = {
+                    ...cloneValue(action),
+                    hitId: action.hitId ?? `runtime-poise-hit:${this.nextDamageHitSequence++}`,
+                    damageAttributeType: 'Poise',
+                    amount,
+                    sourceId: attribution.sourceId,
+                    ownerId: attribution.ownerId,
+                    targetId: attribution.targetId
+                };
+                const result = this.poise.applyDamage({
+                    ...attribution,
+                    frame: eventContext.frame,
+                    amount,
+                    outputScalar: action.outputScalar ?? 1,
+                    takenScalar: action.takenScalar ?? 1,
+                    sourceSkillId: action.sourceSkillId ?? eventContext.skillId,
+                    rootSkillId: action.rootSkillId ?? eventContext.rootSkillId,
+                    damageUnitIndex: action.damageUnitIndex,
+                    hitId: hit.hitId,
+                    castId: eventContext.castId
+                });
+                const abilityEvents = [
+                    ...this.#notifyDamageEvent(
+                        'OnTakePoiseDamage',
+                        hit,
+                        result,
+                        eventContext,
+                        attribution.targetId
+                    ),
+                    ...(result.transition
+                        ? this.#notifyPoiseLifecycleEvent(
+                            'OnPoiseZero',
+                            result.transition,
+                            { ...hit, result },
+                            eventContext
+                        )
+                        : [])
+                ];
+                return abilityEvents.length === 0
+                    ? result
+                    : { ...result, abilityEvents };
+            },
             SetResilienceModifier: (action, eventContext) => this.resilience.setModifier({
                 ...this.#attribution(action, eventContext),
                 modifierId: action.modifierId,
@@ -3458,17 +3545,21 @@ export class CombatRuntime {
                             damageAttributeType: unit.damageAttributeType ?? 'Hp',
                             damageDecorateMask: Number(unit.damageDecorateMask ?? 0)
                         };
+                        if (pendingHit.damageAttributeType === 'Resilience') {
+                            return { damageUnitIndex, output: [], take: [] };
+                        }
+                        const poise = pendingHit.damageAttributeType === 'Poise';
                         return {
                             damageUnitIndex,
                             output: this.#notifyDamageEvent(
-                                'OnBeforeOutputDamage',
+                                poise ? 'OnBeforeOutputPoiseDamage' : 'OnBeforeOutputDamage',
                                 pendingHit,
                                 null,
                                 damageEventContext,
                                 sourceListenerId
                             ),
                             take: this.#notifyDamageEvent(
-                                'OnBeforeTakeDamage',
+                                poise ? 'OnBeforeTakePoiseDamage' : 'OnBeforeTakeDamage',
                                 pendingHit,
                                 null,
                                 damageEventContext,
@@ -3533,7 +3624,25 @@ export class CombatRuntime {
                         hit.amount ?? hit.finalDamage,
                         'resolved damage amount'
                     );
-                    if (['Poise', 'Resilience'].includes(hit.damageAttributeType)) {
+                    if (hit.damageAttributeType === 'Poise') {
+                        return {
+                            ...cloneValue(hit),
+                            damageAttributeType: 'Poise',
+                            result: this.poise.applyDamage({
+                                ...this.#attribution({ ...action, ...hit }, damageEventContext),
+                                frame: damageEventContext.frame,
+                                amount,
+                                outputScalar: hit.outputScalar ?? 1,
+                                takenScalar: hit.takenScalar ?? 1,
+                                sourceSkillId: hit.sourceSkillId ?? damageEventContext.skillId,
+                                rootSkillId: hit.rootSkillId ?? damageEventContext.rootSkillId,
+                                damageUnitIndex: hit.damageUnitIndex,
+                                hitId: hit.hitId,
+                                castId: damageEventContext.castId
+                            })
+                        };
+                    }
+                    if (hit.damageAttributeType === 'Resilience') {
                         return {
                             ...cloneValue(hit),
                             damageAttributeType: hit.damageAttributeType,
@@ -3559,7 +3668,7 @@ export class CombatRuntime {
                 const afterAbilityEvents = appliedHits.map(applied => {
                     const outputEvents = [];
                     const takeEvents = [];
-                    if (['Poise', 'Resilience'].includes(applied.damageAttributeType)) {
+                    if (applied.damageAttributeType === 'Poise') {
                         takeEvents.push(...this.#notifyDamageEvent(
                             'OnTakePoiseDamage',
                             applied,
@@ -3567,7 +3676,16 @@ export class CombatRuntime {
                             damageEventContext,
                             targetListenerId
                         ));
-                    } else {
+                        if (applied.damageAttributeType === 'Poise'
+                            && applied.result?.transition) {
+                            takeEvents.push(...this.#notifyPoiseLifecycleEvent(
+                                'OnPoiseZero',
+                                applied.result.transition,
+                                applied,
+                                damageEventContext
+                            ));
+                        }
+                    } else if (applied.damageAttributeType !== 'Resilience') {
                         outputEvents.push(...this.#notifyDamageEvent(
                             'OnOutputDamage',
                             applied,
@@ -3792,6 +3910,11 @@ export class CombatRuntime {
                 ...this.#attribution(action, eventContext),
                 amount: this.#number(action.amount ?? action.value, eventContext, 'resilience recovery')
             }),
+            RecoverPoise: (action, eventContext) => this.poise.recover({
+                ...this.#attribution(action, eventContext),
+                frame: eventContext.frame,
+                reason: action.reason ?? 'RecoverPoise'
+            }),
             ApplyExecutionGauge: (action, eventContext) => this.resilience.applyExecutionGauge({
                 ...this.#attribution(action, eventContext),
                 amount: this.#number(action.amount ?? action.value, eventContext, 'execution gauge amount')
@@ -3926,6 +4049,73 @@ export class CombatRuntime {
         const actions = payload.derivedActions ?? payload.onTriggerActions ?? [];
         const actionResults = actions.length === 0 ? [] : this.execute(actions, context);
         return { dispatched, listenerResults, actionResults };
+    }
+
+    #onPoiseKnot(transition) {
+        const context = this.context.createEventContext({
+            frame: transition.frame,
+            eventType: 'PoiseKnotTriggered',
+            sourceId: transition.sourceId,
+            ownerId: transition.ownerId,
+            targetId: transition.targetId,
+            skillId: transition.skillId,
+            rootSkillId: transition.rootSkillId,
+            castId: transition.castId,
+            clockDomainId: transition.clockDomainId,
+            payload: {
+                knotIndex: transition.knotIndex,
+                threshold: transition.threshold,
+                percentage: transition.percentage,
+                buffId: transition.buffId,
+                durationTicks: transition.durationTicks,
+                hitId: transition.hitId ?? null
+            }
+        });
+        this.#record('PoiseKnotTriggered', context, cloneValue(context.payload));
+        if (!transition.buffId
+            || this.statusEffects.getDefinition(transition.buffId) === null) return null;
+        return this.execute({
+            type: 'ApplyBuff',
+            target: transition.targetId,
+            buffId: transition.buffId,
+            durationTicks: transition.durationTicks
+        }, context);
+    }
+
+    #notifyPoiseLifecycleEvent(eventType, transition, hit = null, eventContext = null) {
+        const targetId = transition?.targetId ?? eventContext?.targetId ?? null;
+        if (targetId === null || targetId === undefined) return [];
+        const causal = eventContext ?? transition ?? {};
+        const context = this.context.createEventContext(causal, {
+            frame: transition?.frame ?? causal.frame ?? this.currentFrame,
+            eventType,
+            sourceId: targetId,
+            ownerId: targetId,
+            targetId,
+            clockDomainId: transition?.clockDomainId
+                ?? this.#entityClockDomainId(targetId, causal.clockDomainId ?? 'global'),
+            payload: {
+                ...cloneValue(causal.payload ?? {}),
+                poiseBefore: hit?.result?.before ?? hit?.before
+                    ?? transition?.transition?.before ?? null,
+                poiseAfter: hit?.result?.after ?? hit?.after
+                    ?? transition?.transition?.after ?? null,
+                poiseDamage: hit?.finalPoiseDamage ?? hit?.amount ?? null,
+                actualPoiseDamage: hit?.result?.actualPoiseDamage
+                    ?? hit?.actualPoiseDamage ?? null,
+                poiseOverflow: hit?.result?.overflow ?? hit?.overflow ?? null,
+                poiseCycle: transition?.cycle
+                    ?? transition?.transition?.cycle
+                    ?? null,
+                causalSourceId: transition?.sourceId ?? causal.sourceId ?? null,
+                causalOwnerId: transition?.ownerId ?? causal.ownerId ?? null,
+                causalSkillId: transition?.skillId ?? causal.skillId ?? null,
+                causalRootSkillId: transition?.rootSkillId ?? causal.rootSkillId ?? null,
+                causalCastId: transition?.castId ?? causal.castId ?? null,
+                hitId: hit?.hitId ?? transition?.hitId ?? null
+            }
+        });
+        return this.#notifyLifecycleAbilityEvent(eventType, context, targetId);
     }
 
     #notifyDamageEvent(eventType, hit, appliedResult, eventContext, listenerTargetId) {

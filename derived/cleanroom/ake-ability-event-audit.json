@@ -8,10 +8,10 @@
   "summary": {
     "eventKeys": 84,
     "consumerGroups": 1072,
-    "completeEventTypes": 23,
-    "completeConsumerGroups": 798,
-    "missingEmitterEventTypes": 59,
-    "missingEmitterConsumerGroups": 267,
+    "completeEventTypes": 25,
+    "completeConsumerGroups": 866,
+    "missingEmitterEventTypes": 57,
+    "missingEmitterConsumerGroups": 199,
     "invalidEventValues": 2,
     "invalidConsumerGroups": 7,
     "byDataset": {
@@ -1119,6 +1119,107 @@
       "sourceEntityCount": 68
     },
     {
+      "key": "OnPoiseZero",
+      "eventType": "OnPoiseZero",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnPoiseZero",
+        "producer": "poise-system-broken-edge"
+      },
+      "consumerGroups": 49,
+      "byDataset": {
+        "BuffData": 49
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 49
+      },
+      "sourceEntities": [
+        "buff_chr_0032_lizhiyan_ultimate_skill_inaura",
+        "buff_common_armor_elite",
+        "buff_common_lower_superarmor_when_interrupted",
+        "buff_dung_poisebreak_enemy",
+        "buff_eny_0045_agtrinit_enter_weak",
+        "buff_eny_0045_agtrinit_poise_zero",
+        "buff_eny_0046_lbshamman_maineny_hdg016",
+        "buff_eny_0046_lbshamman_phantom_checkline_hdg016",
+        "buff_eny_0046_lbshamman_phantom_hdg016",
+        "buff_eny_0046_lbshamman_teleport_hdg016_2",
+        "buff_eny_0046_lbshamman_teleport_main",
+        "buff_eny_0046_lbshamman_teleport_main_dung_coin",
+        "buff_eny_0047_firebat_skill04_hard",
+        "buff_eny_0047_firebat_skill04_hard_stop",
+        "buff_eny_0052_palesent_passive_effect",
+        "buff_eny_0053_hsmob_chrdgbuff",
+        "buff_eny_0054_hsmino_hard_angerState",
+        "buff_eny_0054_hsmino_hard_angerState_normal",
+        "buff_eny_0054_hsmino_inskill09",
+        "buff_eny_0061_palecore_counter",
+        "buff_eny_0061_palecore_summon01",
+        "buff_eny_0071_activityspecial_2_invincible",
+        "buff_eny_0074_lbshield_shield_break_listen",
+        "buff_eny_0075_lbroshan_dung_minibreak_coin",
+        "buff_eny_0078_nefarp1_born",
+        "buff_eny_0079_nefarp2_born",
+        "buff_eny_0080_reaper_passive",
+        "buff_eny_0081_ruanyi_P1_weakness",
+        "buff_eny_0082_hsbear_angry_fx",
+        "buff_eny_0082_hsbear_angry_fx_def",
+        "buff_eny_0082_hsbear_skill06_hdg018",
+        "buff_eny_0083_hstiger_angry_fx",
+        "buff_eny_0090_wgabyss_State_Cold",
+        "buff_eny_0090_wgabyss_State_Cold_hdg010",
+        "buff_eny_0090_wgabyss_State_Normal",
+        "buff_eny_0091_wgshoal_State_Cold",
+        "buff_eny_0091_wgshoal_State_Normal",
+        "buff_eny_0091_wgshoal_hdg010",
+        "buff_eny_0093_hshog_angry_fx",
+        "buff_eny_0109_hshog_setsuperarmor_01",
+        "buff_eny_0109_hshog_setsuperarmor_02",
+        "buff_eny_0118_klhog_angry_fx",
+        "buff_eny_0119_kltiger_angry_fx",
+        "buff_eny_0119_kltiger_disappear_fx",
+        "buff_eny_0120_klbear_angry_fx",
+        "buff_eny_0120_klbear_angry_fx_def",
+        "buff_harddung_healthball_hdg006",
+        "buff_race_level_high_poise"
+      ],
+      "characterIds": [
+        "chr_0032_lizhiyan"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_ultimate_skill_inaura",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_ultimate_skill_inaura.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_armor_elite",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_armor_elite.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_lower_superarmor_when_interrupted",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_lower_superarmor_when_interrupted.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_dung_poisebreak_enemy",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_dung_poisebreak_enemy.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 48
+    },
+    {
       "key": "OnBeforeTakeDamage",
       "eventType": "OnBeforeTakeDamage",
       "serializedValue": null,
@@ -1353,6 +1454,76 @@
           "entityId": "buff_cc_enemy_inflict_stack_resist_consume_listener",
           "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_inflict_stack_resist_consume_listener.json",
           "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 19
+    },
+    {
+      "key": "OnPoiseRecover",
+      "eventType": "OnPoiseRecover",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnPoiseRecover",
+        "producer": "poise-system-recovered-edge"
+      },
+      "consumerGroups": 19,
+      "byDataset": {
+        "BuffData": 19
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 19
+      },
+      "sourceEntities": [
+        "buff_common_lower_superarmor_when_interrupted",
+        "buff_dung_poisebreak_enemy",
+        "buff_eny_0046_lbshamman_maineny_hdg016",
+        "buff_eny_0046_lbshamman_phantom_checkline_hdg016",
+        "buff_eny_0046_lbshamman_phantom_hdg016",
+        "buff_eny_0046_lbshamman_teleport_hdg016_2",
+        "buff_eny_0053_hsmob_chrdgbuff",
+        "buff_eny_0061_palecore_counter",
+        "buff_eny_0071_activityspecial_2_weaktimer",
+        "buff_eny_0075_lbroshan_dung_minibreak_coin",
+        "buff_eny_0078_nefarp1_born",
+        "buff_eny_0079_nefarp2_born",
+        "buff_eny_0080_reaper_passive",
+        "buff_eny_0081_ruanyi_partbuff",
+        "buff_eny_0090_wgabyss_State_Weak",
+        "buff_eny_0091_wgshoal_State_Weak",
+        "buff_eny_0091_wgshoal_hdg010",
+        "buff_gambling_poise_recover_heal",
+        "buff_race_level_high_poise"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_lower_superarmor_when_interrupted",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_lower_superarmor_when_interrupted.json",
+          "path": "$.abilityEventAction[2]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_dung_poisebreak_enemy",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_dung_poisebreak_enemy.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0046_lbshamman_maineny_hdg016",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0046_lbshamman_maineny_hdg016.json",
+          "path": "$.abilityEventAction[2]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0046_lbshamman_phantom_checkline_hdg016",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0046_lbshamman_phantom_checkline_hdg016.json",
+          "path": "$.abilityEventAction[3]"
         }
       ],
       "sourceEntityCount": 19
@@ -2037,104 +2208,6 @@
       "sourceEntityCount": 1
     },
     {
-      "key": "OnPoiseZero",
-      "eventType": "OnPoiseZero",
-      "serializedValue": null,
-      "status": "emitter-required",
-      "producer": null,
-      "consumerGroups": 49,
-      "byDataset": {
-        "BuffData": 49
-      },
-      "byChannel": {
-        "BuffAbilityEventAction": 49
-      },
-      "sourceEntities": [
-        "buff_chr_0032_lizhiyan_ultimate_skill_inaura",
-        "buff_common_armor_elite",
-        "buff_common_lower_superarmor_when_interrupted",
-        "buff_dung_poisebreak_enemy",
-        "buff_eny_0045_agtrinit_enter_weak",
-        "buff_eny_0045_agtrinit_poise_zero",
-        "buff_eny_0046_lbshamman_maineny_hdg016",
-        "buff_eny_0046_lbshamman_phantom_checkline_hdg016",
-        "buff_eny_0046_lbshamman_phantom_hdg016",
-        "buff_eny_0046_lbshamman_teleport_hdg016_2",
-        "buff_eny_0046_lbshamman_teleport_main",
-        "buff_eny_0046_lbshamman_teleport_main_dung_coin",
-        "buff_eny_0047_firebat_skill04_hard",
-        "buff_eny_0047_firebat_skill04_hard_stop",
-        "buff_eny_0052_palesent_passive_effect",
-        "buff_eny_0053_hsmob_chrdgbuff",
-        "buff_eny_0054_hsmino_hard_angerState",
-        "buff_eny_0054_hsmino_hard_angerState_normal",
-        "buff_eny_0054_hsmino_inskill09",
-        "buff_eny_0061_palecore_counter",
-        "buff_eny_0061_palecore_summon01",
-        "buff_eny_0071_activityspecial_2_invincible",
-        "buff_eny_0074_lbshield_shield_break_listen",
-        "buff_eny_0075_lbroshan_dung_minibreak_coin",
-        "buff_eny_0078_nefarp1_born",
-        "buff_eny_0079_nefarp2_born",
-        "buff_eny_0080_reaper_passive",
-        "buff_eny_0081_ruanyi_P1_weakness",
-        "buff_eny_0082_hsbear_angry_fx",
-        "buff_eny_0082_hsbear_angry_fx_def",
-        "buff_eny_0082_hsbear_skill06_hdg018",
-        "buff_eny_0083_hstiger_angry_fx",
-        "buff_eny_0090_wgabyss_State_Cold",
-        "buff_eny_0090_wgabyss_State_Cold_hdg010",
-        "buff_eny_0090_wgabyss_State_Normal",
-        "buff_eny_0091_wgshoal_State_Cold",
-        "buff_eny_0091_wgshoal_State_Normal",
-        "buff_eny_0091_wgshoal_hdg010",
-        "buff_eny_0093_hshog_angry_fx",
-        "buff_eny_0109_hshog_setsuperarmor_01",
-        "buff_eny_0109_hshog_setsuperarmor_02",
-        "buff_eny_0118_klhog_angry_fx",
-        "buff_eny_0119_kltiger_angry_fx",
-        "buff_eny_0119_kltiger_disappear_fx",
-        "buff_eny_0120_klbear_angry_fx",
-        "buff_eny_0120_klbear_angry_fx_def",
-        "buff_harddung_healthball_hdg006",
-        "buff_race_level_high_poise"
-      ],
-      "characterIds": [
-        "chr_0032_lizhiyan"
-      ],
-      "samples": [
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0032_lizhiyan_ultimate_skill_inaura",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_ultimate_skill_inaura.json",
-          "path": "$.abilityEventAction[1]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_common_armor_elite",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_common_armor_elite.json",
-          "path": "$.abilityEventAction[0]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_common_lower_superarmor_when_interrupted",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_common_lower_superarmor_when_interrupted.json",
-          "path": "$.abilityEventAction[1]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_dung_poisebreak_enemy",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_dung_poisebreak_enemy.json",
-          "path": "$.abilityEventAction[0]"
-        }
-      ],
-      "sourceEntityCount": 48
-    },
-    {
       "key": "OnConsumeBuff",
       "eventType": "OnConsumeBuff",
       "serializedValue": null,
@@ -2207,73 +2280,6 @@
         }
       ],
       "sourceEntityCount": 18
-    },
-    {
-      "key": "OnPoiseRecover",
-      "eventType": "OnPoiseRecover",
-      "serializedValue": null,
-      "status": "emitter-required",
-      "producer": null,
-      "consumerGroups": 19,
-      "byDataset": {
-        "BuffData": 19
-      },
-      "byChannel": {
-        "BuffAbilityEventAction": 19
-      },
-      "sourceEntities": [
-        "buff_common_lower_superarmor_when_interrupted",
-        "buff_dung_poisebreak_enemy",
-        "buff_eny_0046_lbshamman_maineny_hdg016",
-        "buff_eny_0046_lbshamman_phantom_checkline_hdg016",
-        "buff_eny_0046_lbshamman_phantom_hdg016",
-        "buff_eny_0046_lbshamman_teleport_hdg016_2",
-        "buff_eny_0053_hsmob_chrdgbuff",
-        "buff_eny_0061_palecore_counter",
-        "buff_eny_0071_activityspecial_2_weaktimer",
-        "buff_eny_0075_lbroshan_dung_minibreak_coin",
-        "buff_eny_0078_nefarp1_born",
-        "buff_eny_0079_nefarp2_born",
-        "buff_eny_0080_reaper_passive",
-        "buff_eny_0081_ruanyi_partbuff",
-        "buff_eny_0090_wgabyss_State_Weak",
-        "buff_eny_0091_wgshoal_State_Weak",
-        "buff_eny_0091_wgshoal_hdg010",
-        "buff_gambling_poise_recover_heal",
-        "buff_race_level_high_poise"
-      ],
-      "characterIds": [],
-      "samples": [
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_common_lower_superarmor_when_interrupted",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_common_lower_superarmor_when_interrupted.json",
-          "path": "$.abilityEventAction[2]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_dung_poisebreak_enemy",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_dung_poisebreak_enemy.json",
-          "path": "$.abilityEventAction[1]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_eny_0046_lbshamman_maineny_hdg016",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0046_lbshamman_maineny_hdg016.json",
-          "path": "$.abilityEventAction[2]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_eny_0046_lbshamman_phantom_checkline_hdg016",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0046_lbshamman_phantom_checkline_hdg016.json",
-          "path": "$.abilityEventAction[3]"
-        }
-      ],
-      "sourceEntityCount": 19
     },
     {
       "key": "OnOwnerDead",

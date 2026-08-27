@@ -119,5 +119,9 @@ test('poise registry rejects duplicate and unknown targets before state mutation
         targetId: 'other',
         definition: definition(60)
     }), /Unknown or invalid poise entity/);
+    assert.equal(system.applyDamage({ targetId: 'other', amount: 0 }).reason,
+        'TargetHasNoPoise');
+    assert.throws(() => system.applyDamage({ targetId: 'other', amount: 1 }),
+        /Unknown poise entity/);
     assert.equal(system.snapshot().entities.length, 1);
 });

@@ -160,6 +160,19 @@ test('Camille weapon passive is installed, fans to the team, and changes real da
         'the before-output event must apply the weapon Buff before the attachment commits');
     assert.ok(enabledFireHit.finalDamage > disabledFireHit.finalDamage,
         'the visible weapon Buff must also participate in damage resolution');
+    const weaponDamageContribution = enabledFireHit.modifierSnapshot
+        .attackerZone
+        .contributions
+        .find(contribution => (
+            contribution.buffId === 'buff_wpn_lance_0015_dmgup'
+            && contribution.sourceType === 'StatusEffect'
+        ));
+    assert.ok(weaponDamageContribution,
+        'the damage zone must retain the exact weapon Buff source for the UI');
+    assert.equal(weaponDamageContribution.attribute, 'FireDamageIncrease');
+    assert.equal(weaponDamageContribution.resolvedValue, 0.06);
+    assert.equal(enabledFireHit.modifierSnapshot.attackerZone.scale, 1.24888889,
+        'source provenance must not apply the aggregate attribute twice');
     assert.equal(disabled.statusTrace.some(entry => (
         entry.buffId === 'buff_wpn_lance_0015_dmgup'
     )), false);

@@ -133,6 +133,10 @@ function damageFactor({
 function mergeDamageZone(base, additions = []) {
     const zones = new Map((base.zones ?? []).map(zone => [zone.zoneName, zone.addition]));
     for (const contribution of additions) {
+        // Attribute-zone source rows are presentation/audit provenance for an
+        // aggregate that has already been evaluated by the attribute system.
+        // Retain those rows without adding the same value to the zone twice.
+        if (contribution.contributesToZone === false) continue;
         zones.set(
             contribution.zoneName,
             (zones.get(contribution.zoneName) ?? 0) + contribution.addition
@@ -149,19 +153,54 @@ function mergeDamageZone(base, additions = []) {
         zones: zoneValues,
         contributions: [
             ...(base.contributions ?? []),
-            ...additions
+            ...additions.filter(contribution => (
+                contribution.metadata?.omitFromContributionLedger !== true
+            ))
         ]
     };
 }
 
-function attackerAttributeZone(context, sourceId, damageType, commandType) {
+function attackerAttributeZone(
+    context,
+    effectSources,
+    sourceId,
+    damageType,
+    commandType,
+    eventContext
+) {
     const attributes = [
         AKE_ELEMENT_DAMAGE_ATTRIBUTE[damageType],
         AKE_COMMAND_DAMAGE_ATTRIBUTE[commandType]
     ].filter(Boolean);
     return attributes.flatMap(attribute => {
         const addition = Number(context.getAttribute(sourceId, attribute));
-        return Number.isFinite(addition) && addition !== 0 ? [{
+        if (!Number.isFinite(addition) || addition === 0) return [];
+        const snapshot = effectSources?.attributeSnapshot?.({
+            targetId: sourceId,
+            attribute
+        }, eventContext);
+        const sourceContributions = (snapshot?.contributions ?? []).map(
+            (contribution, index) => ({
+                ...contribution,
+                contributionId: `${String(contribution.contributionId
+                    ?? `attribute:${String(sourceId)}:${attribute}:${index}`)}:damage-zone`,
+                semanticKey: `damage-zone.${attribute}.${String(
+                    contribution.semanticKey ?? index
+                )}`,
+                side: 'Attacker',
+                zoneName: 'NormalCalcZone',
+                addition: Number(contribution.resolvedValue
+                    ?? contribution.value
+                    ?? contribution.rawValue
+                    ?? 0),
+                contributesToZone: false,
+                metadata: {
+                    ...contribution.metadata,
+                    attributeDamageZoneSource: true
+                }
+            })
+        );
+        return [{
             contributionId: `attribute:${String(sourceId)}:${attribute}:damage-zone`,
             semanticKey: `damage-zone.${attribute}`,
             sourceKey: `attribute:${sourceId}:${attribute}`,
@@ -186,8 +225,13 @@ function attackerAttributeZone(context, sourceId, damageType, commandType) {
             stackCount: 1,
             appliedFrame: 0,
             expireFrame: null,
-            metadata: { attributeDamageZone: true }
-        }] : [];
+            metadata: {
+                attributeDamageZone: true,
+                // When exact EffectSource rows exist, expose those to all
+                // consumers and keep this aggregate only as the math operand.
+                omitFromContributionLedger: sourceContributions.length > 0
+            }
+        }, ...sourceContributions];
     });
 }
 
@@ -322,9 +366,11 @@ export function createAkeDamageResolver({
                 registeredAttackerZone,
                 attackerAttributeZone(
                     runtime.context,
+                    runtime.effectSources,
                     sourceId,
                     unit.damageType,
-                    eventContext.commandType ?? eventContext.skillType
+                    eventContext.commandType ?? eventContext.skillType,
+                    eventContext
                 )
             );
             const defenderZone = runtime.effectSources.damageZone({

@@ -446,6 +446,81 @@ assert.ok(!attackZoneLedger?.hits[0].formula.nonCritFormulaText.includes('1000')
   'runtime result formula must not leak the unresolved attack operand');
 assert.ok((attackZoneLedger?.hits[0].formula.sectionLines?.result?.length ?? 0) >= 6,
   'the runtime result zone must preserve the factor chain, validation, and all result rows');
+
+const weaponBuffReport = structuredClone(report);
+const weaponBuffHit = runtimeHit(0, null, 1, false);
+weaponBuffHit.damageType = 'Fire';
+const weaponBuffContribution = {
+  contributionId: 'status:weapon-fire:FireDamageIncrease:damage-zone',
+  semanticKey: 'damage-zone.FireDamageIncrease.BaseAddition',
+  sourceKey: 'status:weapon-fire',
+  sourceType: 'StatusEffect',
+  sourceCategory: 'Weapon',
+  sourceId: 'actor-a',
+  ownerId: 'actor-a',
+  carrierId: 'actor-a',
+  targetId: 'actor-a',
+  buffId: 'buff_weapon_fire_damage_up',
+  buffInstanceId: 'status:weapon-fire',
+  attribute: 'FireDamageIncrease',
+  zone: 'BaseAddition',
+  side: 'Attacker',
+  zoneName: 'NormalCalcZone',
+  operation: 'AddRate',
+  rawValue: 0.06,
+  resolvedValue: 0.06,
+  addition: 0.06,
+  sourceMetadata: { sourceType: 'WeaponPassive' },
+};
+weaponBuffHit.modifierSnapshot.attackerZone = {
+  scale: 1.06,
+  zones: [{ zoneName: 'NormalCalcZone', addition: 0.06, scale: 1.06 }],
+  contributions: [weaponBuffContribution],
+};
+weaponBuffHit.operands.attackerZoneScale = 1.06;
+weaponBuffHit.factors = [{
+  factorId: 'damage-factor:attacker-zone',
+  semanticKey: 'attacker-zone',
+  displayName: '攻击方增伤区',
+  operation: 'MultiplyZones',
+  rawValue: [{ zoneName: 'NormalCalcZone', addition: 0.06, scale: 1.06 }],
+  multiplier: 1.06,
+  finalValue: 1.06,
+  contributions: [weaponBuffContribution],
+}];
+weaponBuffReport.hits = [weaponBuffHit];
+weaponBuffReport.statusEvents = [{
+  ...statusBase,
+  traceIndex: 20,
+  frame: 12,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:weapon-fire',
+  buffId: 'buff_weapon_fire_damage_up',
+  targetId: 'actor-a',
+  before: 0,
+  after: 1,
+  castId: 'cast:current',
+  displayName: '镀红祝福',
+  effectType: 'fireDmgBonus',
+  applicationScope: 'team',
+}];
+const weaponBuffLedger = buildAkeRuntimeCommandLedger({
+  report: weaponBuffReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+});
+const visibleWeaponBuff = weaponBuffLedger?.hits[0].formula.buffTags.find((buff) => (
+  buff.buffId === 'buff_weapon_fire_damage_up'
+));
+assert.equal(visibleWeaponBuff?.label, '镀红祝福',
+  'an applied weapon Buff must keep its player-facing identity in hit details');
+assert.equal(visibleWeaponBuff?.type, 'fireDmgBonus');
+assert.equal(visibleWeaponBuff?.effectiveValue, 0.06);
+assert.ok(weaponBuffLedger?.hits[0].formula.sectionLines?.damageBonus?.some((line) => (
+  line.includes('镀红祝福') && line.includes('6.0%')
+)), 'the exact weapon Buff source must appear in the damage-bonus formula lines');
+
 assert.ok(ledger.statuses.some((status) => (
   status.title === '天赋·通用叠层 ×2'
   && status.kind.includes('叠层并刷新')

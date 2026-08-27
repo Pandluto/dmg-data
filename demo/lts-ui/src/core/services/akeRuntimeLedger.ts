@@ -797,6 +797,7 @@ function factorAuditLines(
   label: string,
   selected: AkeRuntimeDamageFactor | undefined,
   fallbackFormula?: string,
+  visibleBuffs: AppliedBuffTagViewModel[] = [],
 ): string[] {
   if (!selected) {
     return [`${label}计算: ${fallbackFormula ?? '运行时未提供'}`];
@@ -809,10 +810,14 @@ function factorAuditLines(
     );
     return contribution.sourceType !== 'ConfiguredAttribute' || Math.abs(value) > 1e-12;
   });
+  const visibleLabelByContributionId = new Map(visibleBuffs.flatMap((buff) => (
+    buff.contributionId ? [[buff.contributionId, buff.label] as const] : []
+  )));
   return [
     `${label}原始值: ${factorRawText(selected.rawValue)}`,
     ...contributions.map((contribution, index) => (
-      `${label}来源 ${index + 1} · ${runtimeContributionLabel(contribution)}: ${runtimeContributionValue(contribution)}`
+      `${label}来源 ${index + 1} · ${visibleLabelByContributionId.get(String(contribution.contributionId ?? ''))
+        ?? runtimeContributionLabel(contribution)}: ${runtimeContributionValue(contribution)}`
     )),
     `${label}最终系数: ×${trimNumber(selected.multiplier, 4)}`,
   ];
@@ -897,7 +902,7 @@ function buildRuntimeFormula(
         ...attackLines,
         `当前 Hit 攻击区来源: ${buffTags.filter((buff) => ['flatAtk', 'atkPercentBoost', 'atkFinalMultiplier', 'mainStatBoost', 'subStatBoost', 'allStatBoost'].includes(buff.type ?? '')).length} 项（逐项见下方 Buff）`,
       ],
-      multiplier: factorAuditLines('技能倍率', factor('attack-scale'), `${percent(atkScale)} = ×${trimNumber(atkScale, 4)}`),
+      multiplier: factorAuditLines('技能倍率', factor('attack-scale'), `${percent(atkScale)} = ×${trimNumber(atkScale, 4)}`, buffTags),
       crit: [
         `暴击率: ${percent(criticalRate)}`,
         `暴击伤害加成: ${percent(criticalDamageIncrease)}`,
@@ -913,27 +918,27 @@ function buildRuntimeFormula(
         `期望伤害: ${fixedDamage(hit.expectedDamage)}（×${trimNumber(expectedCriticalScale, 4)}）`,
       ],
       damageBonus: [
-        ...factorAuditLines('攻击方增伤区', attackerFactor, `×${trimNumber(attackerScale, 4)}`),
-        ...factorAuditLines('配置增伤区', configuredFactor, `×${trimNumber(configuredScale, 4)}`),
+        ...factorAuditLines('攻击方增伤区', attackerFactor, `×${trimNumber(attackerScale, 4)}`, buffTags),
+        ...factorAuditLines('配置增伤区', configuredFactor, `×${trimNumber(configuredScale, 4)}`, buffTags),
         `加成区合并: ${trimNumber(attackerScale, 4)} × ${trimNumber(configuredScale, 4)} = ${trimNumber(attackerCombinedScale, 4)}`,
       ],
       defense: [
         `敌方防御: ${trimNumber(defense)}`,
         `防御效率: ${trimNumber(defEfficiency, 4)}`,
-        ...factorAuditLines('防御区', factor('defense'), `1 / (1 + ${trimNumber(defense)} × ${trimNumber(defEfficiency, 4)}) = ×${trimNumber(defScale, 4)}`),
+        ...factorAuditLines('防御区', factor('defense'), `1 / (1 + ${trimNumber(defense)} × ${trimNumber(defEfficiency, 4)}) = ×${trimNumber(defScale, 4)}`, buffTags),
       ],
       resistance: [
         `有效抗性: ${trimNumber(resistance, 4)}%`,
-        ...factorAuditLines('抗性区', factor('resistance'), `1 - ${trimNumber(resistance, 4)}% = ×${trimNumber(resistanceScale, 4)}`),
+        ...factorAuditLines('抗性区', factor('resistance'), `1 - ${trimNumber(resistance, 4)}% = ×${trimNumber(resistanceScale, 4)}`, buffTags),
       ],
-      amplify: factorAuditLines('增幅区', damageTakenFactor, rateFormula(damageTakenFactor)),
-      fragile: factorAuditLines('易伤区', defenderFactor, fragileFormula),
-      vulnerability: factorAuditLines('脆弱区', vulnerableFactor, rateFormula(vulnerableFactor)),
+      amplify: factorAuditLines('增幅区', damageTakenFactor, rateFormula(damageTakenFactor), buffTags),
+      fragile: factorAuditLines('易伤区', defenderFactor, fragileFormula, buffTags),
+      vulnerability: factorAuditLines('脆弱区', vulnerableFactor, rateFormula(vulnerableFactor), buffTags),
       combo: comboFactor
-        ? factorAuditLines('连击区', comboFactor, rateFormula(comboFactor))
+        ? factorAuditLines('连击区', comboFactor, rateFormula(comboFactor), buffTags)
         : ['连击伤害加成: 当前 Hit 无额外来源（按 0%）', `连击区计算: ${neutralComboFormula}`],
       imbalance: imbalanceFactor
-        ? factorAuditLines('失衡区', imbalanceFactor, rateFormula(imbalanceFactor))
+        ? factorAuditLines('失衡区', imbalanceFactor, rateFormula(imbalanceFactor), buffTags)
         : ['失衡伤害加成: 当前 Hit 无额外来源（按 0%）', `失衡区计算: ${neutralImbalanceFormula}`],
       result: [
         `非暴击乘区顺序: ${fullFactorChain || '运行时未提供结构化因子'}`,

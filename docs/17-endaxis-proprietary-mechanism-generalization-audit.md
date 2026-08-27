@@ -807,3 +807,9 @@ frame 37 ChangeSkillAction(ComboSkill -> combo_3_skill, Infinite)
 7. 本轮没有修改列宽、变量斜率、组水位、节点坐标、光标或能量轨道，只扩充画布预演消费的状态事实。
 
 前端契约用同一共享冷却组的两段合成技能验证：第一段换槽并创建 pending，第二段在活动冷却中被单次放行；第三次重复输入因 pending 已消费而明确失败。真实目录契约另断言洛茜 `combo_2` 在 37 帧导出目标为 `combo_3` 的 180 帧窗口。
+
+### 12.14 全库审计回写与剩余边界
+
+重新扫描 3517 份 SkillData/BuffData 后，`TriggerComboSkillAction` 的 6 个原始节点（SkillData 3、BuffData 3）现均为 `complete`，`runtimeActions=6`、`unresolved=0`；角色机制审计中原先的 “No executable compiler route exists for TriggerComboSkillAction” 已全部消失。审计分类同时把已落地的 `ChangeSkillAction`、`SwitchModeAction`、`AddGlobalCDTimer` 和 `TriggerComboSkillAction` 归回 calculator-core 的通用 logic，而不是继续标成 `other/unresolved`。因此 calculator-core 可执行路径覆盖率由约 96.598% 升至约 96.621%。
+
+这不是“所有连携已经完成”的结论：静态初始开窗规则仍只有有证据的子集，`OnRemoveAllPendingComboSkill` 生产者仍未闭环，若干 Trigger 动作所在 Buff 在单角色隔离探针中也未必能达到。审计的意义是把已经实现的原语从 blocker 清单移除，使下一轮可以直接按剩余事件生产者和条件证据排序，而不会重复修同一动作类型。

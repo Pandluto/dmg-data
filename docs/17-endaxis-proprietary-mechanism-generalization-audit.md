@@ -892,3 +892,19 @@ OnRemoveAllPendingComboSkill
 6. 下一轮实现从公共边沿价值和覆盖量排序，优先研究 HP zero/dead 与 poise zero/recover 的提交顺序，而不是从某个界面缺少图标倒推逻辑。
 
 这次改动首先提升“我们知道什么没做”的正确性，不会立即伪造 60 个事件生产者。已实现的 22 种必须保持 executable，`OnRemoveAllPendingComboSkill` 的真实洛茜契约继续作为新审计的正例。
+
+### 13.2 三条消费者路径的可重复审计结果
+
+新增的 `audit:ake-ability-events` 同时扫描 Buff 顶层、Skill 被动组和内嵌 `EventListenerAction`，并生成稳定的 `derived/cleanroom/ake-ability-event-audit.json`。当前结果是：
+
+- 1072 个 listener 组、84 个事件键；其中 Buff 顶层 953、Skill 被动 97、内嵌 listener 22；
+- 22 个已证明事件覆盖 693 组；
+- 60 个缺生产者事件覆盖 372 组；
+- 2 个非法事件值覆盖 7 组；
+- `OnRemoveAllPendingComboSkill` 为 `complete`，在 operator audit 中没有该事件的 emitter gap。
+
+合并三条路径后，优先级排序比只看 BuffData 更准确：`OnConsumeBuff` 由 10 组变为 21 组（另有 11 个 Skill 被动消费者），`OnEnterFight` 为 11 组，`OnOutputHeal` 与 `OnReceiveHeal` 各 7 组。头部仍是 `OnOwnerHpZero=105`、`OnPoiseZero=49`、`OnPoiseRecover=19`、`OnOwnerDead=18`。
+
+operator audit 因此新增的是诚实的 P0 `event-subscription` blocker，而不是运行时回归：例如诀由 42 增至 52、汤汤由 19 增至 23、梨诺由 22 增至 27；佩丽卡仍为 2，艾维文娜仍没有 P0 blocker。全库 239 项行为测试与前端严格类型检查继续通过，说明新增结果只揭示此前被隐藏的不可达监听器，没有删掉现有可执行动作。
+
+下一轮按同一规则先研究 HP 与死亡边沿。必须先确定 `OnOwnerHpZero` 和 `OnOwnerDead` 是同帧前后两个阶段、是否受不死/护盾/过量伤害影响，以及 source/owner/target 的绑定；在这些边界冻结前，不能为了消掉 123 个 listener 把两个事件都粗暴地挂到 `currentHp === 0`。

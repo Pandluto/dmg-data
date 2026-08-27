@@ -1,0 +1,4620 @@
+{
+  "schemaVersion": 1,
+  "scope": [
+    "BuffData.abilityEventAction",
+    "SkillData.actionGroupData.passiveEventActions",
+    "EventListenerAction.abilityActionMap"
+  ],
+  "summary": {
+    "eventKeys": 84,
+    "consumerGroups": 1072,
+    "completeEventTypes": 22,
+    "completeConsumerGroups": 693,
+    "missingEmitterEventTypes": 60,
+    "missingEmitterConsumerGroups": 372,
+    "invalidEventValues": 2,
+    "invalidConsumerGroups": 7,
+    "byDataset": {
+      "BuffData": 956,
+      "SkillData": 116
+    },
+    "byChannel": {
+      "BuffAbilityEventAction": 953,
+      "EventListenerAction": 22,
+      "SkillPassiveEventAction": 97
+    }
+  },
+  "events": [
+    {
+      "key": "OnBeforeCastSkill",
+      "eventType": "OnBeforeCastSkill",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnBeforeCastSkill",
+        "producer": "scenario-command-start"
+      },
+      "consumerGroups": 153,
+      "byDataset": {
+        "BuffData": 137,
+        "SkillData": 16
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 137,
+        "SkillPassiveEventAction": 16
+      },
+      "sourceEntities": [
+        "buff_cc_chr_fire_skill_clear_frozenonchar",
+        "buff_cc_chr_natural_skill_clear_frozenonchar",
+        "buff_cc_chr_normal_skill_global_cd",
+        "buff_cc_chr_phy_skill_clear_frozenonchar",
+        "buff_cc_chr_pulse_skill_clear_frozenonchar",
+        "buff_cc_chr_ult_dmg_down_gradual",
+        "buff_chr_0003_endminf_train_ultimate_break_originum",
+        "buff_chr_0005_chen_train_ultimate",
+        "buff_chr_0011_seraph_normal_skill_listener",
+        "buff_chr_0011_seraph_normal_skill_listener_02",
+        "buff_chr_0012_avywen_train_normal_skill",
+        "buff_chr_0016_laevat_train_max_energy",
+        "buff_chr_0017_yvonne_talent_1_valid",
+        "buff_chr_0017_yvonne_train_normal_skill_end_with_frozen",
+        "buff_chr_0018_dapan_talent_1_preparation",
+        "buff_chr_0025_ardelia_combo_skill_trigger_listener",
+        "buff_chr_0027_tangtang_passive_0",
+        "buff_chr_0028_wulfa_combo_2_qte_timerlistening",
+        "buff_chr_0028_wulfa_combo_usetimer",
+        "buff_chr_0032_lizhiyan_train_combo_normal_end",
+        "buff_chr_0032_lizhiyan_train_combo_wisd_end",
+        "buff_chr_0035_liino_comboskill_skillcheck",
+        "buff_common_affixes_combo_trigger",
+        "buff_common_train_airborne",
+        "buff_common_train_attack",
+        "buff_common_train_attack_last_combo",
+        "buff_common_train_attack_last_combo_v2",
+        "buff_common_train_attack_ranged",
+        "buff_common_train_attack_ranged_v2",
+        "buff_common_train_attack_v2",
+        "buff_common_train_crush",
+        "buff_common_train_crush_nums",
+        "buff_common_train_fracture",
+        "buff_common_train_skill",
+        "buff_common_train_skill_damage_times",
+        "buff_common_train_skill_damage_times_laevat",
+        "buff_common_train_skill_damage_times_lifeng",
+        "buff_common_train_skill_nodamage",
+        "buff_dung_comboskill_cd_atkup",
+        "buff_dung_normalskill_mark_weekly",
+        "buff_eny_0007_mimicw_hdg005",
+        "buff_eny_0033_lbhunt_hdg005",
+        "buff_eny_0048_hvybow_hard_support",
+        "buff_eny_0078_nefarp1_player_jump",
+        "buff_eny_0092_slbomb_race002_take_power_attack_only",
+        "buff_eny_0113_jzogre_hdg023_superarmor",
+        "buff_eny_0114_jzmking_skill_07_slow_hdg024",
+        "buff_equipsuit_atk_01",
+        "buff_equipsuit_atk_02_addcombodamage",
+        "buff_equipsuit_atk_02_aruadetect",
+        "buff_equipsuit_attrisuit_01",
+        "buff_equipsuit_attrisuitup_01",
+        "buff_equipsuit_combo_cd01",
+        "buff_equipsuit_usp_01",
+        "buff_indie_phantom_effect_laevat",
+        "buff_race_character_gain_dmg_up_on_skill_cast",
+        "buff_race_difficulty_no_atb_recover_after_cast_1",
+        "buff_race_difficulty_superarmor",
+        "buff_race_gain_atb_when_all_skills_cast",
+        "buff_race_next_skill_dmg_up_on_distance_traversed_1",
+        "buff_race_skills_cost_cd",
+        "buff_rpg_effect_all_up_on_ult_cast",
+        "buff_rpg_effect_atb_up_on_combo_skill",
+        "buff_rpg_effect_gain_usp_on_cast_usp",
+        "buff_rpg_effect_main_up_on_skill_cast",
+        "buff_rpg_equip_extra_dmg_every_x_skill_cast",
+        "buff_rpg_equip_gain_atb_after_cast",
+        "buff_rpg_equip_normal_atk_extra_dmg_after_skill_cast",
+        "buff_train_add_succbuff_or_failbuff_by_id_cd",
+        "buff_train_before_last_combo_yvonne",
+        "buff_train_combo_skill_on_x_atb_recover",
+        "buff_train_combo_skill_on_x_enemies",
+        "buff_train_combo_skill_on_x_enemies_proj",
+        "buff_train_consume_burning",
+        "buff_train_consume_conduct",
+        "buff_train_consume_cryst_inflict_nums",
+        "buff_train_consume_frozen",
+        "buff_train_hit_enemy_with_burning",
+        "buff_train_hit_enemy_with_combo_and_knockdown",
+        "buff_train_hit_enemy_with_combo_and_noguard_nums",
+        "buff_train_hit_enemy_with_conduct",
+        "buff_train_hit_enemy_with_conduct_no_skill_end",
+        "buff_train_hit_enemy_with_frozen",
+        "buff_train_hit_enemy_with_frozen_no_skill_end",
+        "buff_train_hit_enemy_with_physical_vulnerable",
+        "buff_train_hit_enemy_with_physical_vulnerable_no_skill_end",
+        "buff_train_hit_enemy_with_pulse_inflict",
+        "buff_train_hit_enemy_with_pulse_inflict_no_skill_end",
+        "buff_train_hit_enemy_with_vulnerablespell",
+        "buff_train_hit_enemy_with_weak",
+        "buff_train_kill_x_enemy_with_combo",
+        "buff_train_normal_atk_last_combo",
+        "buff_train_normal_atk_last_combo_no_skill_end",
+        "buff_train_normal_skill_on_x_enemies",
+        "buff_train_output_airborne_and_checknoguard",
+        "buff_train_output_airborne_nums",
+        "buff_train_output_behit",
+        "buff_train_output_behit_no_skill_end",
+        "buff_train_output_burning",
+        "buff_train_output_burning_on_x_enemies",
+        "buff_train_output_castskill",
+        "buff_train_output_conduct",
+        "buff_train_output_conduct_ikut",
+        "buff_train_output_conduct_nums",
+        "buff_train_output_corrupt",
+        "buff_train_output_crush_and_checknoguard",
+        "buff_train_output_cryst_inflict",
+        "buff_train_output_cryst_inflict_noskill_nums_lastrite",
+        "buff_train_output_cryst_inflict_nums",
+        "buff_train_output_cryst_inflict_with_combo",
+        "buff_train_output_cryst_vulnerable",
+        "buff_train_output_fire_inflict",
+        "buff_train_output_fracture_and_checknoguard",
+        "buff_train_output_frozen",
+        "buff_train_output_frozen_aurora",
+        "buff_train_output_frozen_proj",
+        "buff_train_output_hit_vulnerablespell_and_airbone_nums",
+        "buff_train_output_knockdown",
+        "buff_train_output_knockdown_and_checknoguard",
+        "buff_train_output_natural_inflict",
+        "buff_train_output_natural_inflict_nums",
+        "buff_train_output_no_guard",
+        "buff_train_output_no_guard_nums",
+        "buff_train_output_no_guard_x_with_accurate_skillid",
+        "buff_train_output_originum_frozen",
+        "buff_train_output_physical_vulnerable",
+        "buff_train_output_pulse_inflict",
+        "buff_train_output_seal_lizhiyan",
+        "buff_train_output_spell_vulnerable",
+        "buff_train_output_succbuff_or_failbuff_byId",
+        "buff_train_output_succbuff_or_failbuff_by_id",
+        "buff_train_output_vulnerable_spell_nums",
+        "buff_train_skill_get_combo",
+        "buff_train_ultimate_skill_on_x_enemies",
+        "sk_wpn_claym_0016",
+        "sk_wpn_funnel_0005",
+        "sk_wpn_funnel_0006",
+        "sk_wpn_funnel_0009",
+        "sk_wpn_funnel_0011",
+        "sk_wpn_funnel_0015",
+        "sk_wpn_lance_0006",
+        "sk_wpn_lance_0011",
+        "sk_wpn_pistol_0003",
+        "sk_wpn_pistol_0007",
+        "sk_wpn_pistol_0008",
+        "sk_wpn_sword_0009",
+        "sk_wpn_sword_0015",
+        "sk_wpn_sword_0017",
+        "sk_wpn_sword_0021"
+      ],
+      "characterIds": [
+        "chr_0003_endminf",
+        "chr_0004_pelica",
+        "chr_0005_chen",
+        "chr_0007_ikut",
+        "chr_0009_azrila",
+        "chr_0011_seraph",
+        "chr_0012_avywen",
+        "chr_0013_aglina",
+        "chr_0016_laevat",
+        "chr_0017_yvonne",
+        "chr_0018_dapan",
+        "chr_0025_ardelia",
+        "chr_0026_lastrite",
+        "chr_0027_tangtang",
+        "chr_0028_wulfa",
+        "chr_0032_lizhiyan",
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_fire_skill_clear_frozenonchar",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_fire_skill_clear_frozenonchar.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_natural_skill_clear_frozenonchar",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_natural_skill_clear_frozenonchar.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_normal_skill_global_cd",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_normal_skill_global_cd.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_phy_skill_clear_frozenonchar",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_phy_skill_clear_frozenonchar.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 149
+    },
+    {
+      "key": "OnSkillEnd",
+      "eventType": "OnSkillEnd",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnSkillEnd",
+        "producer": "combat-runtime-skill-lifecycle"
+      },
+      "consumerGroups": 99,
+      "byDataset": {
+        "BuffData": 98,
+        "SkillData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 98,
+        "EventListenerAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0003_endminf_train_ultimate_break_originum",
+        "buff_chr_0005_chen_train_ultimate",
+        "buff_chr_0009_azrila_normal_skill_gpsuccess",
+        "buff_chr_0015_lifeng_passive",
+        "buff_chr_0017_yvonne_train_normal_skill_end_with_frozen",
+        "buff_chr_0023_antal_utimate_skill_delay",
+        "buff_chr_0030_zhuangfy_potential1_more_sword",
+        "buff_chr_0032_lizhiyan_combo_skill_interruptcheck",
+        "buff_chr_0035_liino_normalskill_music_animation_musicloop",
+        "buff_chr_0035_liino_ultskill_weaponvisible",
+        "buff_chr_0035_liino_ultskill_weaponvisible_show",
+        "buff_common_train_airborne",
+        "buff_common_train_attack",
+        "buff_common_train_attack_last_combo",
+        "buff_common_train_attack_last_combo_v2",
+        "buff_common_train_attack_v2",
+        "buff_common_train_crush",
+        "buff_common_train_crush_nums",
+        "buff_common_train_fracture",
+        "buff_common_train_skill",
+        "buff_common_train_skill_damage_times",
+        "buff_common_train_skill_damage_times_laevat",
+        "buff_common_train_skill_damage_times_lifeng",
+        "buff_eny_0018_lbtough_hard_support",
+        "buff_eny_0018_lbtough_train",
+        "buff_eny_0023_aghornb_hdg001_burst",
+        "buff_eny_0023_aghornb_skill04nocd",
+        "buff_eny_0070_agscorp2_angry",
+        "buff_eny_0085_hsrogue_hard_cdreset",
+        "buff_eny_0090_wgabyss_reducecd",
+        "buff_eny_0093_hshog_hdg",
+        "buff_race_difficulty_superarmor",
+        "buff_rpg_equip_extra_dmg_every_x_skill_cast",
+        "buff_train_add_succbuff_or_failbuff_by_id_cd",
+        "buff_train_before_last_combo_yvonne",
+        "buff_train_combo_skill_on_x_atb_recover",
+        "buff_train_combo_skill_on_x_enemies",
+        "buff_train_combo_skill_on_x_enemies_proj",
+        "buff_train_consume_burning",
+        "buff_train_consume_conduct",
+        "buff_train_consume_cryst_inflict_nums",
+        "buff_train_consume_frozen",
+        "buff_train_get_combo",
+        "buff_train_hit_enemy_with_burning",
+        "buff_train_hit_enemy_with_combo_and_knockdown",
+        "buff_train_hit_enemy_with_combo_and_noguard_nums",
+        "buff_train_hit_enemy_with_conduct",
+        "buff_train_hit_enemy_with_frozen",
+        "buff_train_hit_enemy_with_physical_vulnerable",
+        "buff_train_hit_enemy_with_pulse_inflict",
+        "buff_train_hit_enemy_with_vulnerablespell",
+        "buff_train_hit_enemy_with_weak",
+        "buff_train_kill_x_enemy_with_combo",
+        "buff_train_normal_atk_last_combo",
+        "buff_train_normal_skill_on_x_enemies",
+        "buff_train_output_airborne_and_checknoguard",
+        "buff_train_output_airborne_nums",
+        "buff_train_output_behit",
+        "buff_train_output_behit_no_skill_end",
+        "buff_train_output_burning",
+        "buff_train_output_burning_on_x_enemies",
+        "buff_train_output_castskill",
+        "buff_train_output_conduct",
+        "buff_train_output_conduct_ikut",
+        "buff_train_output_conduct_nums",
+        "buff_train_output_corrupt",
+        "buff_train_output_crush_and_checknoguard",
+        "buff_train_output_cryst_burst_noskill",
+        "buff_train_output_cryst_inflict",
+        "buff_train_output_cryst_inflict_noskill",
+        "buff_train_output_cryst_inflict_noskill_nums",
+        "buff_train_output_cryst_inflict_nums",
+        "buff_train_output_cryst_inflict_with_combo",
+        "buff_train_output_cryst_vulnerable",
+        "buff_train_output_fire_inflict",
+        "buff_train_output_fracture_and_checknoguard",
+        "buff_train_output_frozen",
+        "buff_train_output_frozen_aurora",
+        "buff_train_output_frozen_proj",
+        "buff_train_output_hit_vulnerablespell_and_airbone_nums",
+        "buff_train_output_knockdown",
+        "buff_train_output_knockdown_and_checknoguard",
+        "buff_train_output_natural_inflict",
+        "buff_train_output_natural_inflict_nums",
+        "buff_train_output_no_guard",
+        "buff_train_output_no_guard_nums",
+        "buff_train_output_no_guard_x_with_accurate_skillid",
+        "buff_train_output_originum_frozen",
+        "buff_train_output_physical_vulnerable",
+        "buff_train_output_pulse_inflict",
+        "buff_train_output_seal_lizhiyan",
+        "buff_train_output_spell_vulnerable",
+        "buff_train_output_succbuff_or_failbuff_by_id",
+        "buff_train_output_vulnerable_spell_nums",
+        "buff_train_skill_get_combo",
+        "buff_train_ultimate_skill_on_x_enemies",
+        "chr_0028_wulfa_ultimate_skill"
+      ],
+      "characterIds": [
+        "chr_0003_endmin",
+        "chr_0003_endminf",
+        "chr_0004_pelica",
+        "chr_0005_chen",
+        "chr_0007_ikut",
+        "chr_0009_azrila",
+        "chr_0013_aglina",
+        "chr_0015_lifeng",
+        "chr_0017_yvonne",
+        "chr_0023_antal",
+        "chr_0028_wulfa",
+        "chr_0030_zhuangfy",
+        "chr_0032_lizhiyan",
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0003_endminf_train_ultimate_break_originum",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0003_endminf_train_ultimate_break_originum.json",
+          "path": "$.abilityEventAction[2]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0005_chen_train_ultimate",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0005_chen_train_ultimate.json",
+          "path": "$.abilityEventAction[2]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0009_azrila_normal_skill_gpsuccess",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0009_azrila_normal_skill_gpsuccess.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0015_lifeng_passive",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0015_lifeng_passive.json",
+          "path": "$.abilityEventAction[1]"
+        }
+      ],
+      "sourceEntityCount": 97
+    },
+    {
+      "key": "OnTakeDamage",
+      "eventType": "OnTakeDamage",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnTakeDamage",
+        "producer": "combat-runtime-damage-transaction"
+      },
+      "consumerGroups": 87,
+      "byDataset": {
+        "BuffData": 87
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 87
+      },
+      "sourceEntities": [
+        "buff_Ether_Cure_buff",
+        "buff_cc_chr_dmg_reduce_maxhp",
+        "buff_cc_enemy_heal_not_take_damage",
+        "buff_cc_enemy_low_hp_heal",
+        "buff_chr_0009_azrila_talent_2",
+        "buff_chr_0013_aglina_potential_5_dmgup",
+        "buff_chr_0016_laevat_talent_2_0",
+        "buff_common_enemy_spell_status_conduct",
+        "buff_common_enemy_stopmotion",
+        "buff_common_superarmor_behit_agdisk",
+        "buff_common_superarmor_behit_agshield",
+        "buff_common_superarmor_behit_hstiger",
+        "buff_common_superarmor_behit_hstiger2",
+        "buff_common_superarmor_behit_reaper",
+        "buff_common_superarmor_behit_sandb",
+        "buff_common_superarmor_behit_wgshoal",
+        "buff_common_superarmor_behit_wgshoal2",
+        "buff_dung_bombinturrpt",
+        "buff_dung_bombinturrpt_special",
+        "buff_eny_0018_lbtough_hard_assult_life_link",
+        "buff_eny_0018_lbtough_hard_hp_listener",
+        "buff_eny_0045_agtrinit_abilityentity_marker13",
+        "buff_eny_0045_agtrinit_skill353_marker",
+        "buff_eny_0046_lbshamman_maineny_hdg016",
+        "buff_eny_0046_lbshamman_phantom_checkline_hdg016",
+        "buff_eny_0046_lbshamman_phantom_hdg016",
+        "buff_eny_0046_lbshamman_teleport",
+        "buff_eny_0046_lbshamman_teleport_bomb",
+        "buff_eny_0046_lbshamman_teleport_settlement",
+        "buff_eny_0048_hvybow_hard_hp_listener",
+        "buff_eny_0051_rodin_passiveskill",
+        "buff_eny_0051_rodin_recoverpoise",
+        "buff_eny_0054_hsmino_skill08_hitvfx",
+        "buff_eny_0055_hscrane_hard_assult_life_link",
+        "buff_eny_0055_hscrane_hard_hp_listener",
+        "buff_eny_0055_hscrane_hard_teleport",
+        "buff_eny_0055_hscrane_settlement_castskill",
+        "buff_eny_0061_palecore_passive_effect",
+        "buff_eny_0070_agscorp2_skill3_slowdown",
+        "buff_eny_0074_lbshield_casting_skill",
+        "buff_eny_0074_lbshield_settlement",
+        "buff_eny_0075_lbroshan_dung_coin",
+        "buff_eny_0079_nefarp2_boss_undeadable",
+        "buff_eny_0079_nefarp2_guard",
+        "buff_eny_0080_reaper_break",
+        "buff_eny_0080_reaper_lefthit",
+        "buff_eny_0080_reaper_passive",
+        "buff_eny_0080_reaper_righthit",
+        "buff_eny_0081_ruanyi_abilityentity_skill01_1",
+        "buff_eny_0081_ruanyi_abilityentity_skill01_2a",
+        "buff_eny_0081_ruanyi_abilityentity_skill01_2b",
+        "buff_eny_0081_ruanyi_abilityentity_skill01_2c",
+        "buff_eny_0081_ruanyi_abilityentity_skill01_3",
+        "buff_eny_0081_ruanyi_partbuff",
+        "buff_eny_0082_hsbear_skill06_hdg018_shield",
+        "buff_eny_0085_hsrogue_hard_teleport",
+        "buff_eny_0086_rpsword_passive",
+        "buff_eny_0092_slbomb_damage_bomb",
+        "buff_eny_0092_slbomb_damage_bombchr_settlement",
+        "buff_eny_0092_slbomb_damage_bombeny_settlement",
+        "buff_eny_0092_slbomb_race002_take_power_attack_only",
+        "buff_eny_0095_ethillu_dead",
+        "buff_eny_0095_ethillu_race003_take_power_attack_only",
+        "buff_eny_0111_rytokenw_borntag_red",
+        "buff_eny_0111_rytokenw_tran",
+        "buff_eny_0113_jzogre_achievement",
+        "buff_eny_0113_jzogre_skill07_passive_behit_counter",
+        "buff_eny_0113_jzogre_skill07_passive_behit_counter_hdg023",
+        "buff_eny_0116_zfydef_behit_vfx",
+        "buff_equipsuit_str_01",
+        "buff_race_difficulty_atk_up_when_low",
+        "buff_race_enemy_high_def",
+        "buff_race_heal_when_low",
+        "buff_rodin_hound_test",
+        "buff_rpg_equip_summon_ice_when_hit",
+        "buff_train_output_behit",
+        "buff_train_output_behit_no_skill_end",
+        "buff_wpn_temp"
+      ],
+      "characterIds": [
+        "chr_0009_azrila",
+        "chr_0013_aglina",
+        "chr_0016_laevat"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_Ether_Cure_buff",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_Ether_Cure_buff.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_dmg_reduce_maxhp",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_dmg_reduce_maxhp.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_enemy_heal_not_take_damage",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_heal_not_take_damage.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_enemy_low_hp_heal",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_low_hp_heal.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 78
+    },
+    {
+      "key": "OnAddedBuff",
+      "eventType": "OnAddedBuff",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnAddedBuff",
+        "producer": "combat-runtime-status-transaction"
+      },
+      "consumerGroups": 77,
+      "byDataset": {
+        "BuffData": 66,
+        "SkillData": 11
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 65,
+        "EventListenerAction": 8,
+        "SkillPassiveEventAction": 4
+      },
+      "sourceEntities": [
+        "buff_cc_chr_cryst_inflict_extend",
+        "buff_cc_chr_cryst_inflict_to_slowdown",
+        "buff_cc_chr_frozenonchar_extend",
+        "buff_cc_enemy_heal_under_control",
+        "buff_cc_enemy_inflict_stack_resist_add_listener",
+        "buff_cc_enemy_periodic_inflict_resist",
+        "buff_chr_0003_endminf_potential5",
+        "buff_chr_0011_seraph_talent_2_phydown",
+        "buff_chr_0011_seraph_ultimate_skill_ontarget_listener",
+        "buff_chr_0015_lifeng_passive",
+        "buff_chr_0016_laevat_chrdung_give_energy",
+        "buff_chr_0016_laevat_passive",
+        "buff_chr_0016_laevat_passive_enemy",
+        "buff_chr_0016_laevat_show_weapon",
+        "buff_chr_0016_laevat_train_max_energy",
+        "buff_chr_0016_laevat_ult_end",
+        "buff_chr_0021_whiten_potential_5_inaura",
+        "buff_chr_0026_lastrite_normal_skill_tag",
+        "buff_chr_0030_zhuangfy_train_set_ult_duration",
+        "buff_chr_0030_zhuangfy_ult_body_vfx",
+        "buff_chr_0031_mifu_normalskill_2",
+        "buff_chr_0031_mifu_normalskill_3",
+        "buff_chr_0032_lizhiyan_ultimate_skill_listener_owner",
+        "buff_chr_0035_liino_normalskill_music_vfx",
+        "buff_chr_0035_liino_normalskill_spelllnfliction_check",
+        "buff_common_lower_superarmor_when_interrupted",
+        "buff_dung_physicalstatus_enemy",
+        "buff_dung_spellstatus_enemy",
+        "buff_eny_0018_lbtough_train",
+        "buff_eny_0046_lbshamman_teleport_hdg016_back",
+        "buff_eny_0046_lbshamman_teleport_hdg016_back_2",
+        "buff_eny_0046_lbshamman_teleport_main",
+        "buff_eny_0046_lbshamman_teleport_main_dung_coin",
+        "buff_eny_0046_lbshamman_teleport_start_bomb",
+        "buff_eny_0046_lbshamman_teleport_start_settlement",
+        "buff_eny_0046_lbshamman_teleport_start_settlement_delay",
+        "buff_eny_0047_firebat_skill04_hard",
+        "buff_eny_0047_firebat_skill04_hard_stop",
+        "buff_eny_0047_firebat_skill04_shield",
+        "buff_eny_0049_rogue_dodge",
+        "buff_eny_0054_hsmino_hard_angerState",
+        "buff_eny_0054_hsmino_hard_angerState_normal",
+        "buff_eny_0055_hscrane_hard_inheal",
+        "buff_eny_0061_palecore_summon01",
+        "buff_eny_0074_lbshield_shield_break_half",
+        "buff_eny_0080_reaper_spawnend",
+        "buff_eny_0092_slbomb_damage_bombchr_settlement",
+        "buff_eny_0092_slbomb_damage_bombeny_settlement",
+        "buff_eny_0095_ethillu_hdg017",
+        "buff_eny_0109_hshog_setsuperarmor",
+        "buff_eny_0125_fdcentur_two",
+        "buff_eny_klcommon_klbear_behit2",
+        "buff_gambling_take_physical_abnormal",
+        "buff_gambling_take_spell_abnormal",
+        "buff_harddung_monitor_hdg005",
+        "buff_race_difficulty_shield_until_abnormal",
+        "buff_train_add_succbuff_or_failbuff_by_id_cd",
+        "buff_train_check_any_buff_added",
+        "buff_train_check_shatter",
+        "buff_train_get_combo",
+        "buff_train_output_succbuff_or_failbuff_by_id_noskill",
+        "buff_train_skill_get_combo",
+        "chr_0014_aurora_normal_skill",
+        "chr_0020_meurs_normal_skill",
+        "chr_0030_zhuangfy_talent1",
+        "chr_0033_camille_passive_normal_skill_ability_entity",
+        "chr_0035_liino_normal_skill",
+        "chr_0035_liino_normal_skill_combo",
+        "chr_0035_liino_ultimate_skill",
+        "sk_wpn_funnel_0017",
+        "sk_wpn_sword_0012"
+      ],
+      "characterIds": [
+        "chr_0002_endminm",
+        "chr_0003_endminf",
+        "chr_0005_chen",
+        "chr_0011_seraph",
+        "chr_0012_avywen",
+        "chr_0014_aurora",
+        "chr_0015_lifeng",
+        "chr_0016_laevat",
+        "chr_0020_meurs",
+        "chr_0021_whiten",
+        "chr_0026_lastrite",
+        "chr_0027_tangtang",
+        "chr_0030_zhuangfy",
+        "chr_0031_mifu",
+        "chr_0032_lizhiyan",
+        "chr_0033_camille",
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_cryst_inflict_extend",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_cryst_inflict_extend.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_cryst_inflict_to_slowdown",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_cryst_inflict_to_slowdown.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_frozenonchar_extend",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_frozenonchar_extend.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_enemy_heal_under_control",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_heal_under_control.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 71
+    },
+    {
+      "key": "OnOutputBuff",
+      "eventType": "OnOutputBuff",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnOutputBuff",
+        "producer": "combat-runtime-status-transaction"
+      },
+      "consumerGroups": 72,
+      "byDataset": {
+        "BuffData": 70,
+        "SkillData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 70,
+        "EventListenerAction": 1,
+        "SkillPassiveEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_cc_chr_dmg_down_after_inflict",
+        "buff_cc_enemy_cryst_inflict_to_frozen",
+        "buff_chr_0004_pelica_potential_3",
+        "buff_chr_0006_wolfgd_talent_0",
+        "buff_chr_0011_seraph_talent_2",
+        "buff_chr_0017_yvonne_passive_0",
+        "buff_chr_0017_yvonne_talent_1",
+        "buff_chr_0017_yvonne_train_combo_end_with_frozen",
+        "buff_chr_0021_whiten_talent_0",
+        "buff_chr_0024_deepfin_talent_1",
+        "buff_chr_0024_deepfin_talent_1_auro",
+        "buff_chr_0031_mifu_passive_detect",
+        "buff_chr_0035_liino_chrdung_combo_teammate",
+        "buff_dung_physicalstatus_character",
+        "buff_dung_spellstatus_character",
+        "buff_equipsuit_burst_01",
+        "buff_equipsuit_cpinflict_01",
+        "buff_equipsuit_fninflict_01",
+        "buff_equipsuit_magicinfdb_01",
+        "buff_equipsuit_magicinfdb_02",
+        "buff_equipsuit_physuit_01",
+        "buff_equipsuit_poisedmg_01",
+        "buff_equipsuit_usp_02",
+        "buff_train_hit_enemy_with_combo_and_noguard_nums",
+        "buff_train_hit_enemy_with_frozen",
+        "buff_train_hit_enemy_with_frozen_no_skill_end",
+        "buff_train_output_burning",
+        "buff_train_output_burning_on_x_enemies",
+        "buff_train_output_conduct",
+        "buff_train_output_conduct_ikut",
+        "buff_train_output_conduct_ikut_check",
+        "buff_train_output_conduct_nums",
+        "buff_train_output_corrupt",
+        "buff_train_output_cryst_burst_noskill",
+        "buff_train_output_cryst_inflict",
+        "buff_train_output_cryst_inflict_noskill",
+        "buff_train_output_cryst_inflict_noskill_nums",
+        "buff_train_output_cryst_inflict_noskill_nums_lastrite",
+        "buff_train_output_cryst_inflict_noskill_nums_lastrite_check",
+        "buff_train_output_cryst_inflict_nums",
+        "buff_train_output_cryst_inflict_with_combo",
+        "buff_train_output_cryst_vulnerable",
+        "buff_train_output_fire_inflict",
+        "buff_train_output_frozen",
+        "buff_train_output_frozen_aurora",
+        "buff_train_output_frozen_aurora_check",
+        "buff_train_output_frozen_proj",
+        "buff_train_output_frozen_proj_check",
+        "buff_train_output_natural_inflict",
+        "buff_train_output_natural_inflict_nums",
+        "buff_train_output_no_guard",
+        "buff_train_output_no_guard_nums",
+        "buff_train_output_no_guard_x_with_accurate_skillid",
+        "buff_train_output_originum_frozen",
+        "buff_train_output_physical_vulnerable",
+        "buff_train_output_pulse_inflict",
+        "buff_train_output_seal_lizhiyan",
+        "buff_train_output_spell_vulnerable",
+        "buff_train_output_succbuff_or_failbuff_byId",
+        "buff_train_output_succbuff_or_failbuff_by_id",
+        "buff_train_output_vulnerable_spell_nums",
+        "buff_twopeoplemode_new2",
+        "buff_wpn_pistol_0008_extra",
+        "chr_0027_tangtang_ultimate_skill_1",
+        "sk_wpn_sword_0014"
+      ],
+      "characterIds": [
+        "chr_0004_pelica",
+        "chr_0005_chen",
+        "chr_0006_wolfgd",
+        "chr_0011_seraph",
+        "chr_0013_aglina",
+        "chr_0017_yvonne",
+        "chr_0021_whiten",
+        "chr_0024_deepfin",
+        "chr_0026_lastrite",
+        "chr_0027_tangtang",
+        "chr_0031_mifu",
+        "chr_0032_lizhiyan",
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_dmg_down_after_inflict",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_dmg_down_after_inflict.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_enemy_cryst_inflict_to_frozen",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_cryst_inflict_to_frozen.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0004_pelica_potential_3",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0004_pelica_potential_3.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0006_wolfgd_talent_0",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0006_wolfgd_talent_0.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 65
+    },
+    {
+      "key": "OnOutputDamage",
+      "eventType": "OnOutputDamage",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnOutputDamage",
+        "producer": "combat-runtime-damage-transaction"
+      },
+      "consumerGroups": 68,
+      "byDataset": {
+        "BuffData": 68
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 68
+      },
+      "sourceEntities": [
+        "buff_chr_0005_chen_talent_0",
+        "buff_chr_0011_seraph_normal_skill_heal",
+        "buff_chr_0011_seraph_train_lastcombo_with_ball",
+        "buff_chr_0012_avywen_talent_0_listener",
+        "buff_chr_0016_laevat_passive_teammate",
+        "buff_chr_0017_yvonne_train_normal_skill_end_with_frozen",
+        "buff_chr_0018_dapan_talent_1_cd_reduce",
+        "buff_chr_0020_meurs_potential_1",
+        "buff_chr_0023_antal_talent_1_heal_trigger",
+        "buff_chr_0026_lastrite_normal_skill",
+        "buff_chr_0027_tangtang_comboskill_hitspelllnfliction",
+        "buff_chr_0027_tangtang_ultskill_buff",
+        "buff_chr_0031_mifu_chrdg_addusp",
+        "buff_chr_0032_lizhiyan_train_combo_wisd_check",
+        "buff_chr_0033_camille_chrdg_lastcombo",
+        "buff_common_train_attack",
+        "buff_common_train_attack_last_combo",
+        "buff_common_train_attack_last_combo_v2",
+        "buff_common_train_attack_v2",
+        "buff_common_train_skill",
+        "buff_common_train_skill_damage_times",
+        "buff_common_train_skill_damage_times_laevat",
+        "buff_common_train_skill_damage_times_laevat_check",
+        "buff_common_train_skill_damage_times_lifeng",
+        "buff_common_train_skill_damage_times_lifeng_check",
+        "buff_dung_atb_add_lastnormalattack",
+        "buff_dung_powerattack_damage",
+        "buff_eny_0045_agtrinit_abilityentity_marker13",
+        "buff_eny_0082_hsbear_hdg018",
+        "buff_eny_0090_wgabyss_State_Cold_hdg010",
+        "buff_eny_0111_rytokenw_damage",
+        "buff_eny_klcommon_baozha",
+        "buff_gambling_cryst_infliction",
+        "buff_gambling_fire_infliction",
+        "buff_gambling_natural_infliction",
+        "buff_gambling_pulse_infliction",
+        "buff_race_dash_atk_deal_poise_dmg",
+        "buff_rpg_equip_extra_skill_dmg_based_on_max_hp",
+        "buff_rpg_equip_normal_atk_extra_dmg",
+        "buff_rpg_equip_normal_atk_extra_dmg_after_skill_cast_01",
+        "buff_rpg_equip_normal_atk_fire_dragon_01",
+        "buff_rpg_equip_normal_atk_ice_rain_01",
+        "buff_rpg_equip_normal_atk_lightning_01",
+        "buff_test_enemy_spell_orb_cryst",
+        "buff_test_enemy_spell_orb_fire",
+        "buff_test_enemy_spell_orb_natural",
+        "buff_test_enemy_spell_orb_pulse",
+        "buff_train_combo_skill_on_x_enemies",
+        "buff_train_combo_skill_on_x_enemies_proj",
+        "buff_train_hit_enemy_with_burning",
+        "buff_train_hit_enemy_with_conduct",
+        "buff_train_hit_enemy_with_conduct_no_skill_end",
+        "buff_train_hit_enemy_with_frozen",
+        "buff_train_hit_enemy_with_frozen_no_skill_end",
+        "buff_train_hit_enemy_with_physical_vulnerable",
+        "buff_train_hit_enemy_with_physical_vulnerable_no_skill_end",
+        "buff_train_hit_enemy_with_pulse_inflict",
+        "buff_train_hit_enemy_with_pulse_inflict_no_skill_end",
+        "buff_train_hit_enemy_with_vulnerablespell",
+        "buff_train_hit_enemy_with_weak",
+        "buff_train_normal_atk_last_combo",
+        "buff_train_normal_atk_last_combo_no_skill_end",
+        "buff_train_normal_skill_on_x_enemies",
+        "buff_train_output_behit",
+        "buff_train_output_behit_no_skill_end",
+        "buff_train_output_hit_vulnerablespell_and_airbone_nums",
+        "buff_train_ultimate_skill_on_x_enemies",
+        "buff_twopeoplemode_new1"
+      ],
+      "characterIds": [
+        "chr_0003_endminf",
+        "chr_0004_pelica",
+        "chr_0005_chen",
+        "chr_0009_azrila",
+        "chr_0011_seraph",
+        "chr_0012_avywen",
+        "chr_0013_aglina",
+        "chr_0016_laevat",
+        "chr_0017_yvonne",
+        "chr_0018_dapan",
+        "chr_0020_meurs",
+        "chr_0023_antal",
+        "chr_0026_lastrite",
+        "chr_0027_tangtang",
+        "chr_0031_mifu",
+        "chr_0032_lizhiyan",
+        "chr_0033_camille"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0005_chen_talent_0",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0005_chen_talent_0.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0011_seraph_normal_skill_heal",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0011_seraph_normal_skill_heal.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0011_seraph_train_lastcombo_with_ball",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0011_seraph_train_lastcombo_with_ball.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0012_avywen_talent_0_listener",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0012_avywen_talent_0_listener.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 68
+    },
+    {
+      "key": "OnBeforeTakeDamage",
+      "eventType": "OnBeforeTakeDamage",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnBeforeTakeDamage",
+        "producer": "combat-runtime-damage-transaction"
+      },
+      "consumerGroups": 25,
+      "byDataset": {
+        "BuffData": 21,
+        "SkillData": 4
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 21,
+        "EventListenerAction": 3,
+        "SkillPassiveEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_activity_enemy_bomb_lockdmg_1",
+        "buff_cc_enemy_common_movespeedup_dmg_limit_base",
+        "buff_chr_0014_aurora_counter_trigger",
+        "buff_chr_0015_lifeng_normal_skill_debuff",
+        "buff_chr_0022_bounda_talent_2",
+        "buff_chr_0023_antal_talent_2",
+        "buff_chr_0029_pograni_ultimate_skill_abilityentity_inaura",
+        "buff_chr_0032_lizhiyan_combo_skill_seal2",
+        "buff_chr_0032_lizhiyan_combo_skill_seal_bunshin_end_listener",
+        "buff_chr_0032_lizhiyan_ultimate_skill_inaura",
+        "buff_common_dash_behit_listener",
+        "buff_eny_0046_lbshamman_teleport_dung_coin",
+        "buff_eny_0049_rogue_dodge",
+        "buff_eny_0073_slimerg_dung_coin",
+        "buff_eny_0077_agshield_skill01_counter",
+        "buff_eny_0079_nefarp2_core_born",
+        "buff_eny_0079_nefarp2_guard",
+        "buff_eny_0081_ruanyi_rytoken_bornblue",
+        "buff_eny_0111_rytokenw_borntag_blue",
+        "buff_int_abilitysystemforint_taken_damage",
+        "buff_settlement_damage_modify",
+        "chr_0009_azrila_normal_skill",
+        "chr_0014_aurora_normal_skill",
+        "chr_0020_meurs_normal_skill",
+        "chr_0030_zhuangfy_talent2"
+      ],
+      "characterIds": [
+        "chr_0009_azrila",
+        "chr_0014_aurora",
+        "chr_0015_lifeng",
+        "chr_0020_meurs",
+        "chr_0022_bounda",
+        "chr_0023_antal",
+        "chr_0029_pograni",
+        "chr_0030_zhuangfy",
+        "chr_0032_lizhiyan"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_activity_enemy_bomb_lockdmg_1",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_activity_enemy_bomb_lockdmg_1.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_enemy_common_movespeedup_dmg_limit_base",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_common_movespeedup_dmg_limit_base.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0014_aurora_counter_trigger",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0014_aurora_counter_trigger.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0015_lifeng_normal_skill_debuff",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0015_lifeng_normal_skill_debuff.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 25
+    },
+    {
+      "key": "OnBeforeOutputBuff",
+      "eventType": "OnBeforeOutputBuff",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnBeforeOutputBuff",
+        "producer": "combat-runtime-status-transaction"
+      },
+      "consumerGroups": 21,
+      "byDataset": {
+        "BuffData": 4,
+        "SkillData": 17
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 4,
+        "SkillPassiveEventAction": 17
+      },
+      "sourceEntities": [
+        "buff_cc_chr_inflict_after_spell_status",
+        "buff_chr_0017_yvonne_normal_skill_listener",
+        "buff_wpn_funnel_0016_will",
+        "buff_wpn_funnel_0016_wisd",
+        "sk_wpn_claym_0015",
+        "sk_wpn_claym_0017",
+        "sk_wpn_funnel_0004",
+        "sk_wpn_funnel_0018",
+        "sk_wpn_lance_0004",
+        "sk_wpn_lance_0007",
+        "sk_wpn_lance_0012",
+        "sk_wpn_pistol_0004",
+        "sk_wpn_pistol_0006",
+        "sk_wpn_pistol_0008",
+        "sk_wpn_pistol_0011",
+        "sk_wpn_sword_0017",
+        "sk_wpn_sword_0020",
+        "sk_wpn_sword_0021"
+      ],
+      "characterIds": [
+        "chr_0017_yvonne"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_inflict_after_spell_status",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_inflict_after_spell_status.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0017_yvonne_normal_skill_listener",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0017_yvonne_normal_skill_listener.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_wpn_funnel_0016_will",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_wpn_funnel_0016_will.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_wpn_funnel_0016_wisd",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_wpn_funnel_0016_wisd.json",
+          "path": "$.abilityEventAction[1]"
+        }
+      ],
+      "sourceEntityCount": 18
+    },
+    {
+      "key": "OnFinishedBuff",
+      "eventType": "OnFinishedBuff",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnFinishedBuff",
+        "producer": "combat-runtime-status-lifecycle"
+      },
+      "consumerGroups": 21,
+      "byDataset": {
+        "BuffData": 21
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 20,
+        "EventListenerAction": 1
+      },
+      "sourceEntities": [
+        "buff_cc_chr_cryst_inflict_to_slowdown",
+        "buff_cc_enemy_heal_under_control",
+        "buff_cc_enemy_inflict_stack_resist_consume_listener",
+        "buff_cc_eny_abnormal_to_superarmor",
+        "buff_chr_0016_laevat_passive_enemy",
+        "buff_chr_0016_laevat_potential_5",
+        "buff_chr_0016_laevat_show_weapon",
+        "buff_chr_0016_laevat_ult_end",
+        "buff_chr_0028_wulfa_combo_2_qte_timerlistening",
+        "buff_chr_0028_wulfa_combo_usetimer",
+        "buff_chr_0031_mifu_normalskill_2",
+        "buff_chr_0031_mifu_normalskill_3",
+        "buff_chr_0035_liino_normalskill_music_vfx",
+        "buff_eny_0054_hsmino_consume_fire",
+        "buff_eny_0054_hsmino_fireShield",
+        "buff_eny_0082_hsbear_angry_fx_assetcheck",
+        "buff_eny_0091_wgshoal_spasset",
+        "buff_eny_0119_kltiger_disappear_fx",
+        "buff_train_check_any_buff_end"
+      ],
+      "characterIds": [
+        "chr_0016_laevat",
+        "chr_0027_tangtang",
+        "chr_0028_wulfa",
+        "chr_0031_mifu",
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_cryst_inflict_to_slowdown",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_cryst_inflict_to_slowdown.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_enemy_heal_under_control",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_heal_under_control.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_enemy_heal_under_control",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_heal_under_control.json",
+          "path": "$.abilityEventAction[3]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_enemy_inflict_stack_resist_consume_listener",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_inflict_stack_resist_consume_listener.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 19
+    },
+    {
+      "key": "OnBeforeOutputDamage",
+      "eventType": "OnBeforeOutputDamage",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnBeforeOutputDamage",
+        "producer": "combat-runtime-damage-transaction"
+      },
+      "consumerGroups": 15,
+      "byDataset": {
+        "BuffData": 5,
+        "SkillData": 10
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 5,
+        "SkillPassiveEventAction": 10
+      },
+      "sourceEntities": [
+        "buff_cc_chr_no_lastcombo_stop_atb_recover",
+        "buff_chr_0003_endminf_train_ultimate_break_originum",
+        "buff_chr_0005_chen_train_ultimate",
+        "buff_train_before_last_combo_yvonne",
+        "buff_wpn_lance_0014_sign",
+        "sk_wpn_claym_0003",
+        "sk_wpn_claym_0004",
+        "sk_wpn_claym_0008",
+        "sk_wpn_claym_0009",
+        "sk_wpn_claym_0013",
+        "sk_wpn_funnel_0003",
+        "sk_wpn_lance_0008",
+        "sk_wpn_lance_0016",
+        "sk_wpn_pistol_0002",
+        "sk_wpn_sword_0008"
+      ],
+      "characterIds": [
+        "chr_0003_endminf",
+        "chr_0005_chen",
+        "chr_0017_yvonne"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_no_lastcombo_stop_atb_recover",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_no_lastcombo_stop_atb_recover.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0003_endminf_train_ultimate_break_originum",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0003_endminf_train_ultimate_break_originum.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0005_chen_train_ultimate",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0005_chen_train_ultimate.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_train_before_last_combo_yvonne",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_train_before_last_combo_yvonne.json",
+          "path": "$.abilityEventAction[2]"
+        }
+      ],
+      "sourceEntityCount": 15
+    },
+    {
+      "key": "OnObtainAtb",
+      "eventType": "OnObtainAtb",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnObtainAtb",
+        "producer": "combat-runtime-resource-transaction"
+      },
+      "consumerGroups": 10,
+      "byDataset": {
+        "BuffData": 5,
+        "SkillData": 5
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 5,
+        "SkillPassiveEventAction": 5
+      },
+      "sourceEntities": [
+        "buff_cc_chr_normal_special_cc0",
+        "buff_chr_0019_karin_potential_1",
+        "buff_dung_atb_add_useskill",
+        "buff_equipsuit_combosuit_01",
+        "buff_train_combo_skill_on_x_atb_recover",
+        "chr_0029_pograni_talent1",
+        "sk_wpn_lance_0015",
+        "sk_wpn_sword_0012",
+        "sk_wpn_sword_0016",
+        "sk_wpn_sword_0019"
+      ],
+      "characterIds": [
+        "chr_0005_chen",
+        "chr_0019_karin",
+        "chr_0029_pograni"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_normal_special_cc0",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_normal_special_cc0.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0019_karin_potential_1",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0019_karin_potential_1.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_dung_atb_add_useskill",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_dung_atb_add_useskill.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_equipsuit_combosuit_01",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_equipsuit_combosuit_01.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 10
+    },
+    {
+      "key": "OnAfterKillEntity",
+      "eventType": "OnAfterKillEntity",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnAfterKillEntity",
+        "producer": "combat-runtime-damage-transaction"
+      },
+      "consumerGroups": 9,
+      "byDataset": {
+        "BuffData": 6,
+        "SkillData": 3
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 5,
+        "EventListenerAction": 4
+      },
+      "sourceEntities": [
+        "buff_chr_0006_wolfgd_talent_1",
+        "buff_chr_0016_laevat_potential_5",
+        "buff_chr_0017_yvonne_ultimate_skill_potential4_valid",
+        "buff_equipsuit_stragi_01",
+        "buff_equipsuit_wisdwill_01",
+        "buff_train_kill_x_enemy_with_combo",
+        "chr_0018_dapan_ultimate_skill",
+        "chr_0022_bounda_combo_skill",
+        "chr_0024_deepfin_ultimate_skill"
+      ],
+      "characterIds": [
+        "chr_0005_chen",
+        "chr_0006_wolfgd",
+        "chr_0016_laevat",
+        "chr_0017_yvonne",
+        "chr_0018_dapan",
+        "chr_0022_bounda",
+        "chr_0024_deepfin"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0006_wolfgd_talent_1",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0006_wolfgd_talent_1.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0016_laevat_potential_5",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_potential_5.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "EventListenerAction",
+          "entityId": "buff_chr_0017_yvonne_ultimate_skill_potential4_valid",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0017_yvonne_ultimate_skill_potential4_valid.json",
+          "path": "$.buffEventAction[0].actions[0].actionData[0].abilityActionMap[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_equipsuit_stragi_01",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_equipsuit_stragi_01.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 9
+    },
+    {
+      "key": "OnTrulyExitFight",
+      "eventType": "OnTrulyExitFight",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnTrulyExitFight",
+        "producer": "combat-runtime-fight-lifecycle"
+      },
+      "consumerGroups": 9,
+      "byDataset": {
+        "BuffData": 6,
+        "SkillData": 3
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 6,
+        "EventListenerAction": 2,
+        "SkillPassiveEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0021_whiten_talent_0_active",
+        "buff_chr_0028_wulfa_combo_usetimer",
+        "buff_chr_0030_zhuangfy_potential1_more_sword",
+        "buff_chr_0035_liino_potential",
+        "buff_klcommon_mech_exit_fight_listener_char",
+        "buff_wpn_sword_0022_layer",
+        "chr_0029_pograni_talent1",
+        "chr_0035_liino_normal_skill",
+        "chr_0035_liino_normal_skill_combo"
+      ],
+      "characterIds": [
+        "chr_0012_avywen",
+        "chr_0021_whiten",
+        "chr_0028_wulfa",
+        "chr_0029_pograni",
+        "chr_0030_zhuangfy",
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0021_whiten_talent_0_active",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0021_whiten_talent_0_active.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0028_wulfa_combo_usetimer",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_combo_usetimer.json",
+          "path": "$.abilityEventAction[2]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0030_zhuangfy_potential1_more_sword",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0030_zhuangfy_potential1_more_sword.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0035_liino_potential",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0035_liino_potential.json",
+          "path": "$.abilityEventAction[1]"
+        }
+      ],
+      "sourceEntityCount": 9
+    },
+    {
+      "key": "OnBeforeAddedBuff",
+      "eventType": "OnBeforeAddedBuff",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnBeforeAddedBuff",
+        "producer": "combat-runtime-status-transaction"
+      },
+      "consumerGroups": 7,
+      "byDataset": {
+        "BuffData": 6,
+        "SkillData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 6,
+        "EventListenerAction": 1
+      },
+      "sourceEntities": [
+        "buff_cc_enemy_heal_under_control",
+        "buff_cc_eny_abnormal_to_superarmor",
+        "buff_chr_0027_tangtang_chrdg_addwater",
+        "buff_eny_0082_hsbear_skill06_hdg018_shield",
+        "buff_wpn_pistol_0005_inaura",
+        "buff_wpn_sword_0010_inaura",
+        "chr_0032_lizhiyan_normal_skill_abilityrange"
+      ],
+      "characterIds": [
+        "chr_0013_aglina",
+        "chr_0017_yvonne",
+        "chr_0027_tangtang",
+        "chr_0032_lizhiyan"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_enemy_heal_under_control",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_heal_under_control.json",
+          "path": "$.abilityEventAction[2]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_eny_abnormal_to_superarmor",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_eny_abnormal_to_superarmor.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0027_tangtang_chrdg_addwater",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0027_tangtang_chrdg_addwater.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0082_hsbear_skill06_hdg018_shield",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0082_hsbear_skill06_hdg018_shield.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 7
+    },
+    {
+      "key": "OnOutputCriticalDamage",
+      "eventType": "OnOutputCriticalDamage",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnOutputCriticalDamage",
+        "producer": "combat-runtime-damage-transaction"
+      },
+      "consumerGroups": 7,
+      "byDataset": {
+        "BuffData": 5,
+        "SkillData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 5,
+        "SkillPassiveEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_chr_0028_wulfa_ult_critical_firedamage",
+        "buff_equipsuit_critsuit_01",
+        "buff_race_crit_down_crit_dmg_up",
+        "buff_rpg_equip_heal_per_crit",
+        "buff_rpg_equip_increase_crit_dmg_per_crit",
+        "sk_wpn_pistol_0010",
+        "sk_wpn_sword_0022"
+      ],
+      "characterIds": [
+        "chr_0028_wulfa"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0028_wulfa_ult_critical_firedamage",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_ult_critical_firedamage.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_equipsuit_critsuit_01",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_equipsuit_critsuit_01.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_race_crit_down_crit_dmg_up",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_race_crit_down_crit_dmg_up.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_rpg_equip_heal_per_crit",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_rpg_equip_heal_per_crit.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 7
+    },
+    {
+      "key": "OnAfterSkillApplyCost",
+      "eventType": "OnAfterSkillApplyCost",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnAfterSkillApplyCost",
+        "producer": "combat-runtime-resource-transaction"
+      },
+      "consumerGroups": 5,
+      "byDataset": {
+        "BuffData": 4,
+        "SkillData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 4,
+        "SkillPassiveEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_cc_chr_combo_skill_cryst_inflict",
+        "buff_cc_chr_normal_skill_cryst_inflict",
+        "buff_cc_chr_ult_sp_cost_increase",
+        "buff_chr_0035_liino_combo_atb_return",
+        "sk_wpn_sword_0006"
+      ],
+      "characterIds": [
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_combo_skill_cryst_inflict",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_combo_skill_cryst_inflict.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_normal_skill_cryst_inflict",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_normal_skill_cryst_inflict.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_ult_sp_cost_increase",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_ult_sp_cost_increase.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0035_liino_combo_atb_return",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0035_liino_combo_atb_return.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 5
+    },
+    {
+      "key": "OnAtbMax",
+      "eventType": "OnAtbMax",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnAtbMax",
+        "producer": "combat-runtime-resource-transaction"
+      },
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_race_skills_cost_cd",
+        "buff_rpg_equip_extra_wisd_when_atb_max"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_race_skills_cost_cd",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_race_skills_cost_cd.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_rpg_equip_extra_wisd_when_atb_max",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_rpg_equip_extra_wisd_when_atb_max.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnBeforeOutputAirborne",
+      "eventType": "OnBeforeOutputAirborne",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnBeforeOutputAirborne",
+        "producer": "combat-runtime-status-transaction"
+      },
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 1,
+        "SkillData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1,
+        "EventListenerAction": 1
+      },
+      "sourceEntities": [
+        "buff_common_train_airborne",
+        "chr_0005_chen_combo_skill"
+      ],
+      "characterIds": [
+        "chr_0005_chen"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_train_airborne",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_train_airborne.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "SkillData",
+          "channel": "EventListenerAction",
+          "entityId": "chr_0005_chen_combo_skill",
+          "file": "reference/public-data/akedata/Json/SkillData/chr_0005_chen_combo_skill.json",
+          "path": "$.actionGroupData.timelineActions[7]._sequenceActionData.actionData[0].abilityActionMap[0]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnRemoveAllPendingComboSkill",
+      "eventType": "OnRemoveAllPendingComboSkill",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnRemoveAllPendingComboSkill",
+        "producer": "combo-trigger-owner-empty-edge"
+      },
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0028_wulfa_combo_usetimer"
+      ],
+      "characterIds": [
+        "chr_0028_wulfa"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0028_wulfa_combo_usetimer",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_combo_usetimer.json",
+          "path": "$.abilityEventAction[3]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnSquadUspChange",
+      "eventType": "OnSquadUspChange",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnSquadUspChange",
+        "producer": "combat-runtime-resource-transaction"
+      },
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0028_wulfa_passive_usp_detect"
+      ],
+      "characterIds": [
+        "chr_0028_wulfa"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0028_wulfa_passive_usp_detect",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_passive_usp_detect.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnTakeCriticalDamage",
+      "eventType": "OnTakeCriticalDamage",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnTakeCriticalDamage",
+        "producer": "combat-runtime-damage-transaction"
+      },
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0028_wulfa_normal_bleed"
+      ],
+      "characterIds": [
+        "chr_0005_chen",
+        "chr_0028_wulfa"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0028_wulfa_normal_bleed",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_normal_bleed.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnTakePoiseDamage",
+      "eventType": "OnTakePoiseDamage",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnTakePoiseDamage",
+        "producer": "combat-runtime-damage-transaction"
+      },
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_eny_0074_lbshield_shield_break_listen"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0074_lbshield_shield_break_listen",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0074_lbshield_shield_break_listen.json",
+          "path": "$.abilityEventAction[1]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnOwnerHpZero",
+      "eventType": "OnOwnerHpZero",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 105,
+      "byDataset": {
+        "BuffData": 105
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 105
+      },
+      "sourceEntities": [
+        "buff_cc_enemy_death_ground_area",
+        "buff_chr_0011_seraph_finishball",
+        "buff_chr_0016_laevat_gain_sp_on_kill",
+        "buff_chr_0016_laevat_passive_enemy",
+        "buff_chr_0017_yvonne_ultimate_skill",
+        "buff_chr_0017_yvonne_ultimate_skill_end",
+        "buff_chr_0027_tangtang_ultskill_buff",
+        "buff_chr_0030_zhuangfy_normal_skill_trigger_sword_tar",
+        "buff_chr_0032_lizhiyan_combo_skill_spell_vulnerable",
+        "buff_chr_0033_camille_normal_skill_listen_target_dead",
+        "buff_eny_0007_mimicw_deathskill",
+        "buff_eny_0029_lbmob_eye_fx",
+        "buff_eny_0045_agtrinit_deadFx",
+        "buff_eny_0045_agtrinit_dung_coin",
+        "buff_eny_0045_agtrinit_minion_buff",
+        "buff_eny_0045_agtrinit_minion_counter",
+        "buff_eny_0046_lbshamman_phantom_checkline_hdg016",
+        "buff_eny_0046_lbshamman_phantom_hdg016",
+        "buff_eny_0046_lbshamman_teleport_dung_coin",
+        "buff_eny_0047_firebat_skill04_hard",
+        "buff_eny_0047_firebat_skill04_hard_stop",
+        "buff_eny_0050_hound_dung_coin",
+        "buff_eny_0051_rodin_passiveskill_test",
+        "buff_eny_0055_hscrane_abilityentity_monitor",
+        "buff_eny_0055_hscrane_hard_clonebdead",
+        "buff_eny_0061_palecore_counter",
+        "buff_eny_0062_paletent_buff",
+        "buff_eny_0068_lbtough2_wolfgd_dg01_kill",
+        "buff_eny_0072_slimeml_activityspecail_deathskill_effectenemy",
+        "buff_eny_0072_slimeml_bomb",
+        "buff_eny_0072_slimeml_deathskill",
+        "buff_eny_0073_slimerg_activityspecial_deadskill_effectenemy",
+        "buff_eny_0073_slimerg_dung_coin_death",
+        "buff_eny_0079_nefarp2_born",
+        "buff_eny_0079_nefarp2_core1",
+        "buff_eny_0079_nefarp2_core2",
+        "buff_eny_0079_nefarp2_core3",
+        "buff_eny_0079_nefarp2_core_born",
+        "buff_eny_0080_reaper_summon_born",
+        "buff_eny_0081_ruanyi_rytoken_bluedead",
+        "buff_eny_0082_hsbear_angry_fx",
+        "buff_eny_0082_hsbear_angry_fx_def",
+        "buff_eny_0083_hstiger_angry_fx",
+        "buff_eny_0083_hstiger_angry_fx_hdg021",
+        "buff_eny_0083_hstiger_appear_fx",
+        "buff_eny_0083_hstiger_appear_settlement",
+        "buff_eny_0083_hstiger_disappear_fx",
+        "buff_eny_0083_hstiger_disappear_settlement",
+        "buff_eny_0085_hsrogue_hard_addsuperarmor",
+        "buff_eny_0085_hsrogue_hookhp0",
+        "buff_eny_0086_rpsword_passive",
+        "buff_eny_0087_wgslime_hdg010",
+        "buff_eny_0089_wgreflect_intensify",
+        "buff_eny_0089_wgreflect_line",
+        "buff_eny_0089_wgreflect_line_race_dst",
+        "buff_eny_0089_wgreflect_line_race_src",
+        "buff_eny_0092_slbomb_activityspecial_01_slow",
+        "buff_eny_0092_slbomb_damage_bomb",
+        "buff_eny_0092_slbomb_damage_bomb_damage",
+        "buff_eny_0092_slbomb_explosion_settlement",
+        "buff_eny_0092_slbomb_race002_take_power_attack_only",
+        "buff_eny_0093_hshog_angry_fx",
+        "buff_eny_0093_hshog_attack_ally",
+        "buff_eny_0093_hshog_hdg",
+        "buff_eny_0094_hsfly_corrosion_damage",
+        "buff_eny_0095_ethillu_achievecheck",
+        "buff_eny_0095_ethillu_damage",
+        "buff_eny_0095_ethillu_damagenofly",
+        "buff_eny_0095_ethillu_hdg017_damageup",
+        "buff_eny_0095_ethillu_race003_take_power_attack_only",
+        "buff_eny_0109_hshog_setsuperarmor",
+        "buff_eny_0109_hshog_setsuperarmor_01",
+        "buff_eny_0109_hshog_setsuperarmor_02",
+        "buff_eny_0111_rytokenw_borntag_blue",
+        "buff_eny_0111_rytokenw_borntag_red",
+        "buff_eny_0117_klhound_addsuperarmor",
+        "buff_eny_0118_klhog_angry_fx",
+        "buff_eny_0118_klhog_angry_fx_gm02m20",
+        "buff_eny_0118_klhog_horn_lighting_fx",
+        "buff_eny_0119_kltiger_angry_fx",
+        "buff_eny_0119_kltiger_appear_fx",
+        "buff_eny_0119_kltiger_disappear_fx",
+        "buff_eny_0119_kltiger_horn_lighting_fx",
+        "buff_eny_0120_klbear_angry_fx",
+        "buff_eny_0120_klbear_angry_fx_def",
+        "buff_eny_klcommon_klbear_mech",
+        "buff_eny_klcommon_mech",
+        "buff_gambling_dead_atkup",
+        "buff_gambling_dead_heal",
+        "buff_gambling_explosion",
+        "buff_harddung_hdg025",
+        "buff_harddung_healthball_hdg006",
+        "buff_harddung_wave_hdg022",
+        "buff_race_enemy_add_atb_on_death",
+        "buff_race_enemy_art_intensity_up_mark",
+        "buff_race_enemy_cryst_pulse_dmg_up_mark",
+        "buff_race_enemy_explode_on_death",
+        "buff_race_enemy_fire_natural_dmg_up_mark",
+        "buff_race_enemy_normal_attack_dmg_up_mark",
+        "buff_race_enemy_normal_skill_dmg_up_mark",
+        "buff_race_enemy_physical_dmg_up_mark",
+        "buff_race_enemy_poise_dmg_up_mark",
+        "buff_race_enemy_skill_dmg_up_mark"
+      ],
+      "characterIds": [
+        "chr_0011_seraph",
+        "chr_0016_laevat",
+        "chr_0017_yvonne",
+        "chr_0027_tangtang",
+        "chr_0030_zhuangfy",
+        "chr_0032_lizhiyan",
+        "chr_0033_camille"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_enemy_death_ground_area",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_death_ground_area.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0011_seraph_finishball",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0011_seraph_finishball.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0016_laevat_gain_sp_on_kill",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_gain_sp_on_kill.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0016_laevat_passive_enemy",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_passive_enemy.json",
+          "path": "$.abilityEventAction[1]"
+        }
+      ],
+      "sourceEntityCount": 103
+    },
+    {
+      "key": "OnPoiseZero",
+      "eventType": "OnPoiseZero",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 49,
+      "byDataset": {
+        "BuffData": 49
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 49
+      },
+      "sourceEntities": [
+        "buff_chr_0032_lizhiyan_ultimate_skill_inaura",
+        "buff_common_armor_elite",
+        "buff_common_lower_superarmor_when_interrupted",
+        "buff_dung_poisebreak_enemy",
+        "buff_eny_0045_agtrinit_enter_weak",
+        "buff_eny_0045_agtrinit_poise_zero",
+        "buff_eny_0046_lbshamman_maineny_hdg016",
+        "buff_eny_0046_lbshamman_phantom_checkline_hdg016",
+        "buff_eny_0046_lbshamman_phantom_hdg016",
+        "buff_eny_0046_lbshamman_teleport_hdg016_2",
+        "buff_eny_0046_lbshamman_teleport_main",
+        "buff_eny_0046_lbshamman_teleport_main_dung_coin",
+        "buff_eny_0047_firebat_skill04_hard",
+        "buff_eny_0047_firebat_skill04_hard_stop",
+        "buff_eny_0052_palesent_passive_effect",
+        "buff_eny_0053_hsmob_chrdgbuff",
+        "buff_eny_0054_hsmino_hard_angerState",
+        "buff_eny_0054_hsmino_hard_angerState_normal",
+        "buff_eny_0054_hsmino_inskill09",
+        "buff_eny_0061_palecore_counter",
+        "buff_eny_0061_palecore_summon01",
+        "buff_eny_0071_activityspecial_2_invincible",
+        "buff_eny_0074_lbshield_shield_break_listen",
+        "buff_eny_0075_lbroshan_dung_minibreak_coin",
+        "buff_eny_0078_nefarp1_born",
+        "buff_eny_0079_nefarp2_born",
+        "buff_eny_0080_reaper_passive",
+        "buff_eny_0081_ruanyi_P1_weakness",
+        "buff_eny_0082_hsbear_angry_fx",
+        "buff_eny_0082_hsbear_angry_fx_def",
+        "buff_eny_0082_hsbear_skill06_hdg018",
+        "buff_eny_0083_hstiger_angry_fx",
+        "buff_eny_0090_wgabyss_State_Cold",
+        "buff_eny_0090_wgabyss_State_Cold_hdg010",
+        "buff_eny_0090_wgabyss_State_Normal",
+        "buff_eny_0091_wgshoal_State_Cold",
+        "buff_eny_0091_wgshoal_State_Normal",
+        "buff_eny_0091_wgshoal_hdg010",
+        "buff_eny_0093_hshog_angry_fx",
+        "buff_eny_0109_hshog_setsuperarmor_01",
+        "buff_eny_0109_hshog_setsuperarmor_02",
+        "buff_eny_0118_klhog_angry_fx",
+        "buff_eny_0119_kltiger_angry_fx",
+        "buff_eny_0119_kltiger_disappear_fx",
+        "buff_eny_0120_klbear_angry_fx",
+        "buff_eny_0120_klbear_angry_fx_def",
+        "buff_harddung_healthball_hdg006",
+        "buff_race_level_high_poise"
+      ],
+      "characterIds": [
+        "chr_0032_lizhiyan"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_ultimate_skill_inaura",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_ultimate_skill_inaura.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_armor_elite",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_armor_elite.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_lower_superarmor_when_interrupted",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_lower_superarmor_when_interrupted.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_dung_poisebreak_enemy",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_dung_poisebreak_enemy.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 48
+    },
+    {
+      "key": "OnConsumeBuff",
+      "eventType": "OnConsumeBuff",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 21,
+      "byDataset": {
+        "BuffData": 10,
+        "SkillData": 11
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 10,
+        "SkillPassiveEventAction": 11
+      },
+      "sourceEntities": [
+        "buff_cc_chr_consume_inflict_special_cc0",
+        "buff_cc_chr_dmg_down_after_consume",
+        "buff_chr_0018_dapan_talent_0",
+        "buff_chr_0026_lastrite_talent_1",
+        "buff_equipsuit_expend_spell01",
+        "buff_train_consume_burning",
+        "buff_train_consume_conduct",
+        "buff_train_consume_cryst_inflict_nums",
+        "buff_train_consume_frozen",
+        "buff_twopeoplemode_new2",
+        "sk_wpn_claym_0014",
+        "sk_wpn_funnel_0013",
+        "sk_wpn_funnel_0015",
+        "sk_wpn_lance_0013",
+        "sk_wpn_pistol_0009",
+        "sk_wpn_pistol_0012",
+        "sk_wpn_sword_0013",
+        "sk_wpn_sword_0018"
+      ],
+      "characterIds": [
+        "chr_0005_chen",
+        "chr_0007_ikut",
+        "chr_0017_yvonne",
+        "chr_0018_dapan",
+        "chr_0026_lastrite"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_consume_inflict_special_cc0",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_consume_inflict_special_cc0.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_dmg_down_after_consume",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_dmg_down_after_consume.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0018_dapan_talent_0",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0018_dapan_talent_0.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0026_lastrite_talent_1",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0026_lastrite_talent_1.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 18
+    },
+    {
+      "key": "OnPoiseRecover",
+      "eventType": "OnPoiseRecover",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 19,
+      "byDataset": {
+        "BuffData": 19
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 19
+      },
+      "sourceEntities": [
+        "buff_common_lower_superarmor_when_interrupted",
+        "buff_dung_poisebreak_enemy",
+        "buff_eny_0046_lbshamman_maineny_hdg016",
+        "buff_eny_0046_lbshamman_phantom_checkline_hdg016",
+        "buff_eny_0046_lbshamman_phantom_hdg016",
+        "buff_eny_0046_lbshamman_teleport_hdg016_2",
+        "buff_eny_0053_hsmob_chrdgbuff",
+        "buff_eny_0061_palecore_counter",
+        "buff_eny_0071_activityspecial_2_weaktimer",
+        "buff_eny_0075_lbroshan_dung_minibreak_coin",
+        "buff_eny_0078_nefarp1_born",
+        "buff_eny_0079_nefarp2_born",
+        "buff_eny_0080_reaper_passive",
+        "buff_eny_0081_ruanyi_partbuff",
+        "buff_eny_0090_wgabyss_State_Weak",
+        "buff_eny_0091_wgshoal_State_Weak",
+        "buff_eny_0091_wgshoal_hdg010",
+        "buff_gambling_poise_recover_heal",
+        "buff_race_level_high_poise"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_lower_superarmor_when_interrupted",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_lower_superarmor_when_interrupted.json",
+          "path": "$.abilityEventAction[2]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_dung_poisebreak_enemy",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_dung_poisebreak_enemy.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0046_lbshamman_maineny_hdg016",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0046_lbshamman_maineny_hdg016.json",
+          "path": "$.abilityEventAction[2]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0046_lbshamman_phantom_checkline_hdg016",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0046_lbshamman_phantom_checkline_hdg016.json",
+          "path": "$.abilityEventAction[3]"
+        }
+      ],
+      "sourceEntityCount": 19
+    },
+    {
+      "key": "OnOwnerDead",
+      "eventType": "OnOwnerDead",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 18,
+      "byDataset": {
+        "BuffData": 18
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 18
+      },
+      "sourceEntities": [
+        "buff_chr_0023_antal_tageffect",
+        "buff_chr_0032_lizhiyan_combo_skill_precheck",
+        "buff_chr_0032_lizhiyan_combo_skill_seal",
+        "buff_chr_0032_lizhiyan_combo_skill_seal_effect_again",
+        "buff_chr_0032_lizhiyan_ultimate_skill_listener_owner",
+        "buff_eny_0075_lbroshan_kill_mines_when_dead",
+        "buff_eny_0081_ruanyi_abilityentity_skill01_1",
+        "buff_eny_0081_ruanyi_abilityentity_skill01_2a",
+        "buff_eny_0081_ruanyi_abilityentity_skill01_2b",
+        "buff_eny_0081_ruanyi_abilityentity_skill01_2c",
+        "buff_eny_0081_ruanyi_abilityentity_skill01_3",
+        "buff_eny_0085_hsrogue_hook",
+        "buff_eny_0085_hsrogue_skill",
+        "buff_eny_0085_hsrogue_unstun",
+        "buff_eny_0095_ethillu_realdead",
+        "buff_eny_0111_rytokenw_tran",
+        "buff_eny_0125_fdcentur_camera",
+        "buff_rodin_hound_test"
+      ],
+      "characterIds": [
+        "chr_0023_antal",
+        "chr_0032_lizhiyan"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0023_antal_tageffect",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0023_antal_tageffect.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_combo_skill_precheck",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_combo_skill_precheck.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_combo_skill_seal",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_combo_skill_seal.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_combo_skill_seal_effect_again",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_combo_skill_seal_effect_again.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 18
+    },
+    {
+      "key": "OnAfterOutputPhysicalInfliction",
+      "eventType": "OnAfterOutputPhysicalInfliction",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 12,
+      "byDataset": {
+        "BuffData": 10,
+        "SkillData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 10,
+        "SkillPassiveEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_common_train_crush",
+        "buff_common_train_crush_nums",
+        "buff_common_train_fracture",
+        "buff_train_output_airborne_and_checknoguard",
+        "buff_train_output_airborne_nums",
+        "buff_train_output_crush_and_checknoguard",
+        "buff_train_output_fracture_and_checknoguard",
+        "buff_train_output_knockdown",
+        "buff_train_output_knockdown_and_checknoguard",
+        "buff_wpn_funnel_0011",
+        "sk_wpn_lance_0010",
+        "sk_wpn_sword_0015"
+      ],
+      "characterIds": [
+        "chr_0003_endminf",
+        "chr_0005_chen",
+        "chr_0009_azrila",
+        "chr_0013_aglina"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_train_crush",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_train_crush.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_train_crush_nums",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_train_crush_nums.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_train_fracture",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_train_fracture.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_train_output_airborne_and_checknoguard",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_train_output_airborne_and_checknoguard.json",
+          "path": "$.abilityEventAction[2]"
+        }
+      ],
+      "sourceEntityCount": 12
+    },
+    {
+      "key": "OnEnterFight",
+      "eventType": "OnEnterFight",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 11,
+      "byDataset": {
+        "BuffData": 9,
+        "SkillData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 9,
+        "SkillPassiveEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_cc_chr_no_lastcombo_stop_atb_recover_pre",
+        "buff_chr_0011_seraph_talent_1",
+        "buff_chr_0016_laevat_potential_1",
+        "buff_chr_0030_zhuangfy_potential1",
+        "buff_chr_0035_liino_potential",
+        "buff_common_ccs_nefarp2",
+        "buff_eny_0090_wgabyss_ccs",
+        "buff_equipsuit_usp_01",
+        "buff_klcommon_mech_exit_fight_listener_char",
+        "sk_wpn_funnel_0016",
+        "sk_wpn_sword_0026"
+      ],
+      "characterIds": [
+        "chr_0011_seraph",
+        "chr_0016_laevat",
+        "chr_0030_zhuangfy",
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_no_lastcombo_stop_atb_recover_pre",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_no_lastcombo_stop_atb_recover_pre.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0011_seraph_talent_1",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0011_seraph_talent_1.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0016_laevat_potential_1",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_potential_1.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0030_zhuangfy_potential1",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0030_zhuangfy_potential1.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 11
+    },
+    {
+      "key": "OnCharBeforeOutputSpellInfliction",
+      "eventType": "OnCharBeforeOutputSpellInfliction",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 9,
+      "byDataset": {
+        "BuffData": 4,
+        "SkillData": 5
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 4,
+        "SkillPassiveEventAction": 5
+      },
+      "sourceEntities": [
+        "buff_tower_energy_inflict_or_status_listener",
+        "buff_twopeoplemode_new3",
+        "buff_wpn_funnel_0006",
+        "buff_wpn_funnel_0016_wisd",
+        "sk_wpn_claym_0013",
+        "sk_wpn_funnel_0018",
+        "sk_wpn_lance_0007",
+        "sk_wpn_lance_0015",
+        "sk_wpn_pistol_0011"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_tower_energy_inflict_or_status_listener",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_tower_energy_inflict_or_status_listener.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_twopeoplemode_new3",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_twopeoplemode_new3.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_wpn_funnel_0006",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_wpn_funnel_0006.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_wpn_funnel_0016_wisd",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_wpn_funnel_0016_wisd.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 9
+    },
+    {
+      "key": "OnTeleportationPointRest",
+      "eventType": "OnTeleportationPointRest",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 9,
+      "byDataset": {
+        "BuffData": 9
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 9
+      },
+      "sourceEntities": [
+        "buff_Ether_AttackUp",
+        "buff_Ether_AttackUp_2",
+        "buff_Ether_AttackUp_3",
+        "buff_Ether_Cure",
+        "buff_Ether_Cure_2",
+        "buff_Ether_Cure_3",
+        "buff_Ether_DefendUp",
+        "buff_Ether_DefendUp_2",
+        "buff_Ether_DefendUp_3"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_Ether_AttackUp",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_Ether_AttackUp.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_Ether_AttackUp_2",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_Ether_AttackUp_2.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_Ether_AttackUp_3",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_Ether_AttackUp_3.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_Ether_Cure",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_Ether_Cure.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 9
+    },
+    {
+      "key": "OnCharBeforeOutputSpellBurst",
+      "eventType": "OnCharBeforeOutputSpellBurst",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 7,
+      "byDataset": {
+        "BuffData": 3,
+        "SkillData": 4
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 3,
+        "SkillPassiveEventAction": 4
+      },
+      "sourceEntities": [
+        "buff_chr_0032_lizhiyan_normal_skill",
+        "buff_tower_energy_inflict_or_status_burst_listener",
+        "buff_wpn_funnel_0016_will",
+        "sk_wpn_claym_0011",
+        "sk_wpn_funnel_0008",
+        "sk_wpn_funnel_0014",
+        "sk_wpn_pistol_0004"
+      ],
+      "characterIds": [
+        "chr_0032_lizhiyan"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_normal_skill",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_normal_skill.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_tower_energy_inflict_or_status_burst_listener",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_tower_energy_inflict_or_status_burst_listener.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_wpn_funnel_0016_will",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_wpn_funnel_0016_will.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "SkillData",
+          "channel": "SkillPassiveEventAction",
+          "entityId": "sk_wpn_claym_0011",
+          "file": "reference/public-data/akedata/Json/SkillData/sk_wpn_claym_0011.json",
+          "path": "$.actionGroupData.passiveEventActions[0]"
+        }
+      ],
+      "sourceEntityCount": 7
+    },
+    {
+      "key": "OnOutputHeal",
+      "eventType": "OnOutputHeal",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 7,
+      "byDataset": {
+        "BuffData": 2,
+        "SkillData": 5
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2,
+        "SkillPassiveEventAction": 5
+      },
+      "sourceEntities": [
+        "buff_equipsuit_healup_01",
+        "sk_wpn_claym_0007",
+        "sk_wpn_funnel_0010",
+        "sk_wpn_funnel_0012",
+        "sk_wpn_lance_0014",
+        "sk_wpn_lance_0016"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_equipsuit_healup_01",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_equipsuit_healup_01.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_equipsuit_healup_01",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_equipsuit_healup_01.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "SkillData",
+          "channel": "SkillPassiveEventAction",
+          "entityId": "sk_wpn_claym_0007",
+          "file": "reference/public-data/akedata/Json/SkillData/sk_wpn_claym_0007.json",
+          "path": "$.actionGroupData.passiveEventActions[0]"
+        },
+        {
+          "dataset": "SkillData",
+          "channel": "SkillPassiveEventAction",
+          "entityId": "sk_wpn_funnel_0010",
+          "file": "reference/public-data/akedata/Json/SkillData/sk_wpn_funnel_0010.json",
+          "path": "$.actionGroupData.passiveEventActions[0]"
+        }
+      ],
+      "sourceEntityCount": 6
+    },
+    {
+      "key": "OnReceiveHeal",
+      "eventType": "OnReceiveHeal",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 7,
+      "byDataset": {
+        "BuffData": 6,
+        "SkillData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 6,
+        "SkillPassiveEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_cc_chr_heal_reflect_to_eny_heal",
+        "buff_cc_enemy_common_movespeedup_dmg_limit_instance",
+        "buff_chr_0033_camille_talent1",
+        "buff_harddung_heal_hdg006",
+        "buff_rpg_equip_all_up_when_healed",
+        "buff_train_be_heal_count",
+        "chr_0033_camille_passive_talent1"
+      ],
+      "characterIds": [
+        "chr_0033_camille"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_heal_reflect_to_eny_heal",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_heal_reflect_to_eny_heal.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_enemy_common_movespeedup_dmg_limit_instance",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_common_movespeedup_dmg_limit_instance.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0033_camille_talent1",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0033_camille_talent1.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_harddung_heal_hdg006",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_harddung_heal_hdg006.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 7
+    },
+    {
+      "key": "OnBuffEndsEarly",
+      "eventType": "OnBuffEndsEarly",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 6,
+      "byDataset": {
+        "BuffData": 6
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 6
+      },
+      "sourceEntities": [
+        "buff_chr_0028_wulfa_combo_1_qte_timerlistening",
+        "buff_chr_0028_wulfa_combo_2_qte_timerlistening",
+        "buff_chr_0032_lizhiyan_combo_skill_seal_listener",
+        "buff_chr_0033_camille_ult_lance_target",
+        "buff_eny_0073_slimerg_settlement",
+        "buff_eny_0087_wgslime_hdg010"
+      ],
+      "characterIds": [
+        "chr_0028_wulfa",
+        "chr_0032_lizhiyan",
+        "chr_0033_camille"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0028_wulfa_combo_1_qte_timerlistening",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_combo_1_qte_timerlistening.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0028_wulfa_combo_2_qte_timerlistening",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_combo_2_qte_timerlistening.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_combo_skill_seal_listener",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_combo_skill_seal_listener.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0033_camille_ult_lance_target",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0033_camille_ult_lance_target.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 6
+    },
+    {
+      "key": "OnAbilityEntitySpawned",
+      "eventType": "OnAbilityEntitySpawned",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 5,
+      "byDataset": {
+        "BuffData": 5
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 5
+      },
+      "sourceEntities": [
+        "buff_chr_0027_tangtang_water_passiveui",
+        "buff_common_train_skill_damage_times_laevat",
+        "buff_common_train_skill_damage_times_lifeng",
+        "buff_train_output_conduct_ikut",
+        "buff_train_output_frozen_aurora"
+      ],
+      "characterIds": [
+        "chr_0003_endminf",
+        "chr_0017_yvonne",
+        "chr_0027_tangtang"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0027_tangtang_water_passiveui",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0027_tangtang_water_passiveui.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_train_skill_damage_times_laevat",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_train_skill_damage_times_laevat.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_train_skill_damage_times_lifeng",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_train_skill_damage_times_lifeng.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_train_output_conduct_ikut",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_train_output_conduct_ikut.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 5
+    },
+    {
+      "key": "OnBeforeOutputPhysicalInfliction",
+      "eventType": "OnBeforeOutputPhysicalInfliction",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 5,
+      "byDataset": {
+        "BuffData": 1,
+        "SkillData": 4
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1,
+        "SkillPassiveEventAction": 4
+      },
+      "sourceEntities": [
+        "buff_equipsuit_crush_fracture",
+        "sk_wpn_claym_0015",
+        "sk_wpn_claym_0017",
+        "sk_wpn_funnel_0014",
+        "sk_wpn_sword_0005"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_equipsuit_crush_fracture",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_equipsuit_crush_fracture.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "SkillData",
+          "channel": "SkillPassiveEventAction",
+          "entityId": "sk_wpn_claym_0015",
+          "file": "reference/public-data/akedata/Json/SkillData/sk_wpn_claym_0015.json",
+          "path": "$.actionGroupData.passiveEventActions[1]"
+        },
+        {
+          "dataset": "SkillData",
+          "channel": "SkillPassiveEventAction",
+          "entityId": "sk_wpn_claym_0017",
+          "file": "reference/public-data/akedata/Json/SkillData/sk_wpn_claym_0017.json",
+          "path": "$.actionGroupData.passiveEventActions[1]"
+        },
+        {
+          "dataset": "SkillData",
+          "channel": "SkillPassiveEventAction",
+          "entityId": "sk_wpn_funnel_0014",
+          "file": "reference/public-data/akedata/Json/SkillData/sk_wpn_funnel_0014.json",
+          "path": "$.actionGroupData.passiveEventActions[1]"
+        }
+      ],
+      "sourceEntityCount": 5
+    },
+    {
+      "key": "OnCustomAbilityEvent",
+      "eventType": "OnCustomAbilityEvent",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 5,
+      "byDataset": {
+        "BuffData": 5
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 5
+      },
+      "sourceEntities": [
+        "buff_chr_0032_lizhiyan_train_combo_normal_end",
+        "buff_chr_0032_lizhiyan_train_combo_wisd_check",
+        "buff_chr_0035_liino_normalskill_music_tag",
+        "buff_klcommon_mech_exit_fight_listener"
+      ],
+      "characterIds": [
+        "chr_0005_chen",
+        "chr_0032_lizhiyan",
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_train_combo_normal_end",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_train_combo_normal_end.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_train_combo_wisd_check",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_train_combo_wisd_check.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0035_liino_normalskill_music_tag",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0035_liino_normalskill_music_tag.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_klcommon_mech_exit_fight_listener",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_klcommon_mech_exit_fight_listener.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 4
+    },
+    {
+      "key": "OnBeforeKillEntity",
+      "eventType": "OnBeforeKillEntity",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 4,
+      "byDataset": {
+        "BuffData": 4
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 4
+      },
+      "sourceEntities": [
+        "buff_dung_atb_add_kill",
+        "buff_dung_healhp_kill",
+        "buff_dung_healhp_weekly",
+        "buff_dung_ultsp_add_weekly"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_dung_atb_add_kill",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_dung_atb_add_kill.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_dung_healhp_kill",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_dung_healhp_kill.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_dung_healhp_weekly",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_dung_healhp_weekly.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_dung_ultsp_add_weekly",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_dung_ultsp_add_weekly.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 4
+    },
+    {
+      "key": "OnEnemyBeforeTakeSpellInfliction",
+      "eventType": "OnEnemyBeforeTakeSpellInfliction",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 4,
+      "byDataset": {
+        "BuffData": 4
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 4
+      },
+      "sourceEntities": [
+        "buff_chr_0016_laevat_passive_enemy",
+        "buff_chr_0022_bounda_potential_5_cd",
+        "buff_chr_0032_lizhiyan_normal_skill_aura",
+        "buff_gambling_take_spell_infliction"
+      ],
+      "characterIds": [
+        "chr_0016_laevat",
+        "chr_0022_bounda",
+        "chr_0032_lizhiyan"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0016_laevat_passive_enemy",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_passive_enemy.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0022_bounda_potential_5_cd",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0022_bounda_potential_5_cd.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_normal_skill_aura",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_normal_skill_aura.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_gambling_take_spell_infliction",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_gambling_take_spell_infliction.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 4
+    },
+    {
+      "key": "OnPoiseKnotBreak",
+      "eventType": "OnPoiseKnotBreak",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 4,
+      "byDataset": {
+        "BuffData": 4
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 4
+      },
+      "sourceEntities": [
+        "buff_eny_0054_hsmino_inskill09",
+        "buff_eny_0075_lbroshan_dung_minibreak_coin",
+        "buff_eny_0077_agshield_skill01",
+        "buff_eny_0119_kltiger_disappear_fx"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0054_hsmino_inskill09",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0054_hsmino_inskill09.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0075_lbroshan_dung_minibreak_coin",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0075_lbroshan_dung_minibreak_coin.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0077_agshield_skill01",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0077_agshield_skill01.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0119_kltiger_disappear_fx",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0119_kltiger_disappear_fx.json",
+          "path": "$.abilityEventAction[1]"
+        }
+      ],
+      "sourceEntityCount": 4
+    },
+    {
+      "key": "OnAfterOutputKnockDown",
+      "eventType": "OnAfterOutputKnockDown",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 3,
+      "byDataset": {
+        "BuffData": 3
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 3
+      },
+      "sourceEntities": [
+        "buff_chr_0009_azrila_talent_0_1",
+        "buff_grounded_poise_dmg",
+        "buff_train_hit_enemy_with_combo_and_knockdown"
+      ],
+      "characterIds": [
+        "chr_0005_chen",
+        "chr_0009_azrila"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0009_azrila_talent_0_1",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0009_azrila_talent_0_1.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_grounded_poise_dmg",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_grounded_poise_dmg.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_train_hit_enemy_with_combo_and_knockdown",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_train_hit_enemy_with_combo_and_knockdown.json",
+          "path": "$.abilityEventAction[2]"
+        }
+      ],
+      "sourceEntityCount": 3
+    },
+    {
+      "key": "OnBeforeTakeAirborne",
+      "eventType": "OnBeforeTakeAirborne",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 3,
+      "byDataset": {
+        "BuffData": 3
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 3
+      },
+      "sourceEntities": [
+        "buff_eny_0027_agscorp_skill02_immune",
+        "buff_eny_0046_lbshamman_teleport_main",
+        "buff_eny_0046_lbshamman_teleport_main_dung_coin"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0027_agscorp_skill02_immune",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0027_agscorp_skill02_immune.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0046_lbshamman_teleport_main",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0046_lbshamman_teleport_main.json",
+          "path": "$.abilityEventAction[3]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0046_lbshamman_teleport_main_dung_coin",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0046_lbshamman_teleport_main_dung_coin.json",
+          "path": "$.abilityEventAction[3]"
+        }
+      ],
+      "sourceEntityCount": 3
+    },
+    {
+      "key": "OnOwnerSwitchToGuard",
+      "eventType": "OnOwnerSwitchToGuard",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 3,
+      "byDataset": {
+        "BuffData": 3
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 3
+      },
+      "sourceEntities": [
+        "buff_chr_0006_wolfgd_extra_attack",
+        "buff_chr_0013_aglina_extra_attack",
+        "buff_chr_0035_liino_normalskill_ui_vfx"
+      ],
+      "characterIds": [
+        "chr_0006_wolfgd",
+        "chr_0013_aglina",
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0006_wolfgd_extra_attack",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0006_wolfgd_extra_attack.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0013_aglina_extra_attack",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0013_aglina_extra_attack.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0035_liino_normalskill_ui_vfx",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0035_liino_normalskill_ui_vfx.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 3
+    },
+    {
+      "key": "OnPartsDisable",
+      "eventType": "OnPartsDisable",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 3,
+      "byDataset": {
+        "BuffData": 3
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 3
+      },
+      "sourceEntities": [
+        "buff_eny_0080_reaper_passive"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0080_reaper_passive",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0080_reaper_passive.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0080_reaper_passive",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0080_reaper_passive.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0080_reaper_passive",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0080_reaper_passive.json",
+          "path": "$.abilityEventAction[2]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnAbilityEntityFinished",
+      "eventType": "OnAbilityEntityFinished",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 1,
+        "SkillData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1,
+        "SkillPassiveEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0027_tangtang_water_passiveui",
+        "chr_0033_camille_passive_listen_normal_skill"
+      ],
+      "characterIds": [
+        "chr_0027_tangtang",
+        "chr_0033_camille"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0027_tangtang_water_passiveui",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0027_tangtang_water_passiveui.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "SkillData",
+          "channel": "SkillPassiveEventAction",
+          "entityId": "chr_0033_camille_passive_listen_normal_skill",
+          "file": "reference/public-data/akedata/Json/SkillData/chr_0033_camille_passive_listen_normal_skill.json",
+          "path": "$.actionGroupData.passiveEventActions[0]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnAbsorbBuff",
+      "eventType": "OnAbsorbBuff",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_cc_chr_consume_inflict_special_cc0",
+        "buff_cc_chr_dmg_down_after_consume"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_consume_inflict_special_cc0",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_consume_inflict_special_cc0.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_dmg_down_after_consume",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_dmg_down_after_consume.json",
+          "path": "$.abilityEventAction[1]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnAfterTakeAirborne",
+      "eventType": "OnAfterTakeAirborne",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_eny_0047_firebat_skill04_hard",
+        "buff_eny_0047_firebat_skill04_hard_stop"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0047_firebat_skill04_hard",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0047_firebat_skill04_hard.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0047_firebat_skill04_hard_stop",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0047_firebat_skill04_hard_stop.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnAfterTakeKnockDown",
+      "eventType": "OnAfterTakeKnockDown",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_eny_0047_firebat_skill04_hard",
+        "buff_eny_0047_firebat_skill04_hard_stop"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0047_firebat_skill04_hard",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0047_firebat_skill04_hard.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0047_firebat_skill04_hard_stop",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0047_firebat_skill04_hard_stop.json",
+          "path": "$.abilityEventAction[1]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnAfterTakePhysicalInfliction",
+      "eventType": "OnAfterTakePhysicalInfliction",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_rpg_equip_heal_when_enemy_dies",
+        "buff_rpg_equip_str_up_on_score_kill"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_rpg_equip_heal_when_enemy_dies",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_rpg_equip_heal_when_enemy_dies.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_rpg_equip_str_up_on_score_kill",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_rpg_equip_str_up_on_score_kill.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnBeforePartDisable",
+      "eventType": "OnBeforePartDisable",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_chr_0032_lizhiyan_combo_skill_precheck",
+        "buff_chr_0032_lizhiyan_combo_skill_seal"
+      ],
+      "characterIds": [
+        "chr_0032_lizhiyan"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_combo_skill_precheck",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_combo_skill_precheck.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_combo_skill_seal",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_combo_skill_seal.json",
+          "path": "$.abilityEventAction[1]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnBeforeTakeBlowOff",
+      "eventType": "OnBeforeTakeBlowOff",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_eny_0046_lbshamman_teleport_main",
+        "buff_eny_0046_lbshamman_teleport_main_dung_coin"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0046_lbshamman_teleport_main",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0046_lbshamman_teleport_main.json",
+          "path": "$.abilityEventAction[2]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0046_lbshamman_teleport_main_dung_coin",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0046_lbshamman_teleport_main_dung_coin.json",
+          "path": "$.abilityEventAction[2]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnBeforeTakeKnockDown",
+      "eventType": "OnBeforeTakeKnockDown",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_eny_0046_lbshamman_teleport_main",
+        "buff_eny_0046_lbshamman_teleport_main_dung_coin"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0046_lbshamman_teleport_main",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0046_lbshamman_teleport_main.json",
+          "path": "$.abilityEventAction[4]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0046_lbshamman_teleport_main_dung_coin",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0046_lbshamman_teleport_main_dung_coin.json",
+          "path": "$.abilityEventAction[4]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnCharBeforeTakeSpellInfliction",
+      "eventType": "OnCharBeforeTakeSpellInfliction",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_chr_0007_ikut_talent_2",
+        "buff_chr_0014_aurora_potential_1_listener"
+      ],
+      "characterIds": [
+        "chr_0007_ikut",
+        "chr_0014_aurora"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0007_ikut_talent_2",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0007_ikut_talent_2.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0014_aurora_potential_1_listener",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0014_aurora_potential_1_listener.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnCharDeckAttrChanged",
+      "eventType": "OnCharDeckAttrChanged",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "SkillData": 2
+      },
+      "byChannel": {
+        "SkillPassiveEventAction": 2
+      },
+      "sourceEntities": [
+        "chr_0032_lizhiyan_passive",
+        "sk_wpn_funnel_0016"
+      ],
+      "characterIds": [
+        "chr_0032_lizhiyan"
+      ],
+      "samples": [
+        {
+          "dataset": "SkillData",
+          "channel": "SkillPassiveEventAction",
+          "entityId": "chr_0032_lizhiyan_passive",
+          "file": "reference/public-data/akedata/Json/SkillData/chr_0032_lizhiyan_passive.json",
+          "path": "$.actionGroupData.passiveEventActions[0]"
+        },
+        {
+          "dataset": "SkillData",
+          "channel": "SkillPassiveEventAction",
+          "entityId": "sk_wpn_funnel_0016",
+          "file": "reference/public-data/akedata/Json/SkillData/sk_wpn_funnel_0016.json",
+          "path": "$.actionGroupData.passiveEventActions[0]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnCharLanded",
+      "eventType": "OnCharLanded",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_eny_0078_nefarp1_just_air_jumped",
+        "buff_eny_0078_nefarp1_player_jump"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0078_nefarp1_just_air_jumped",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0078_nefarp1_just_air_jumped.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0078_nefarp1_player_jump",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0078_nefarp1_player_jump.json",
+          "path": "$.abilityEventAction[2]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnExitFight",
+      "eventType": "OnExitFight",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_chr_0016_laevat_potential_1",
+        "buff_dung_normalskill_damage_weekly"
+      ],
+      "characterIds": [
+        "chr_0016_laevat"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0016_laevat_potential_1",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_potential_1.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_dung_normalskill_damage_weekly",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_dung_normalskill_damage_weekly.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnInterruptActionSuccess",
+      "eventType": "OnInterruptActionSuccess",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_eny_0052_palesent_passive_effect"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0052_palesent_passive_effect",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0052_palesent_passive_effect.json",
+          "path": "$.abilityEventAction[2]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0052_palesent_passive_effect",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0052_palesent_passive_effect.json",
+          "path": "$.abilityEventAction[3]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnPartsEnable",
+      "eventType": "OnPartsEnable",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_common_superarmor_behit_reaper_ctrl",
+        "buff_eny_0054_hsmino_fireShield"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_superarmor_behit_reaper_ctrl",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_superarmor_behit_reaper_ctrl.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0054_hsmino_fireShield",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0054_hsmino_fireShield.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnProjectileLaunched",
+      "eventType": "OnProjectileLaunched",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_train_combo_skill_on_x_enemies_proj",
+        "buff_train_output_frozen_proj"
+      ],
+      "characterIds": [
+        "chr_0005_chen",
+        "chr_0017_yvonne"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_train_combo_skill_on_x_enemies_proj",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_train_combo_skill_on_x_enemies_proj.json",
+          "path": "$.abilityEventAction[3]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_train_output_frozen_proj",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_train_output_frozen_proj.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnSquadRepatriate",
+      "eventType": "OnSquadRepatriate",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 1,
+        "SkillData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1,
+        "SkillPassiveEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0032_lizhiyan_combo_skill_seal_total",
+        "chr_0032_lizhiyan_passive"
+      ],
+      "characterIds": [
+        "chr_0032_lizhiyan"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_combo_skill_seal_total",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_combo_skill_seal_total.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "SkillData",
+          "channel": "SkillPassiveEventAction",
+          "entityId": "chr_0032_lizhiyan_passive",
+          "file": "reference/public-data/akedata/Json/SkillData/chr_0032_lizhiyan_passive.json",
+          "path": "$.actionGroupData.passiveEventActions[1]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnAfterAddedShield",
+      "eventType": "OnAfterAddedShield",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_cc_chr_heal_reflect_to_eny_shield"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_heal_reflect_to_eny_shield",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_heal_reflect_to_eny_shield.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnAfterCharacterTakeBlowOff",
+      "eventType": "OnAfterCharacterTakeBlowOff",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_eny_0078_nefarp1_player_jump"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0078_nefarp1_player_jump",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0078_nefarp1_player_jump.json",
+          "path": "$.abilityEventAction[3]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnAfterOutputWeaknessTriggered",
+      "eventType": "OnAfterOutputWeaknessTriggered",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0005_chen_talent_1"
+      ],
+      "characterIds": [
+        "chr_0005_chen"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0005_chen_talent_1",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0005_chen_talent_1.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnAfterProjectileHitEntity",
+      "eventType": "OnAfterProjectileHitEntity",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0012_avywen_train_normal_skill_check"
+      ],
+      "characterIds": [
+        "chr_0012_avywen"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0012_avywen_train_normal_skill_check",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0012_avywen_train_normal_skill_check.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnBeforeApplyPhysics",
+      "eventType": "OnBeforeApplyPhysics",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_common_addweakness_physical"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_addweakness_physical",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_addweakness_physical.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnBeforeCalculateDamage",
+      "eventType": "OnBeforeCalculateDamage",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_common_affixes_skillimbue_atk"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_affixes_skillimbue_atk",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_affixes_skillimbue_atk.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnBeforeDamageAction",
+      "eventType": "OnBeforeDamageAction",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0027_tangtang_ultskill_buff"
+      ],
+      "characterIds": [
+        "chr_0027_tangtang"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0027_tangtang_ultskill_buff",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0027_tangtang_ultskill_buff.json",
+          "path": "$.abilityEventAction[1]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnBeforeHitByProjectile",
+      "eventType": "OnBeforeHitByProjectile",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_common_dash_behit_listener"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_dash_behit_listener",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_dash_behit_listener.json",
+          "path": "$.abilityEventAction[1]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnBeforeOutputKnockDown",
+      "eventType": "OnBeforeOutputKnockDown",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0015_lifeng_talent_2"
+      ],
+      "characterIds": [
+        "chr_0015_lifeng"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0015_lifeng_talent_2",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0015_lifeng_talent_2.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnBeforeTakePhysicalInfliction",
+      "eventType": "OnBeforeTakePhysicalInfliction",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0029_pograni_ultimate_skill_abilityentity_inaura"
+      ],
+      "characterIds": [
+        "chr_0029_pograni"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0029_pograni_ultimate_skill_abilityentity_inaura",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0029_pograni_ultimate_skill_abilityentity_inaura.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnBuffAbsorbed",
+      "eventType": "OnBuffAbsorbed",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0033_camille_ult_lance_target"
+      ],
+      "characterIds": [
+        "chr_0033_camille"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0033_camille_ult_lance_target",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0033_camille_ult_lance_target.json",
+          "path": "$.abilityEventAction[1]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnBuffEnhanceChanged",
+      "eventType": "OnBuffEnhanceChanged",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_eny_0054_hsmino_fireShield"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0054_hsmino_fireShield",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0054_hsmino_fireShield.json",
+          "path": "$.abilityEventAction[2]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnCollectAddedBuffBbValue",
+      "eventType": "OnCollectAddedBuffBbValue",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_eny_0114_jzmking_hdg024"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0114_jzmking_hdg024",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0114_jzmking_hdg024.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnCollectOutputBuffBbValue",
+      "eventType": "OnCollectOutputBuffBbValue",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0032_lizhiyan_talent2"
+      ],
+      "characterIds": [
+        "chr_0032_lizhiyan"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_talent2",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_talent2.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnEnemyAfterTakeSpellInfliction",
+      "eventType": "OnEnemyAfterTakeSpellInfliction",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_cc_enemy_periodic_inflict_resist"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_enemy_periodic_inflict_resist",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_periodic_inflict_resist.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnEnemyBeforeTakeSpellBurst",
+      "eventType": "OnEnemyBeforeTakeSpellBurst",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_eny_0046_lbshamman_hdg022"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0046_lbshamman_hdg022",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0046_lbshamman_hdg022.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnOwnerSwitchToCenter",
+      "eventType": "OnOwnerSwitchToCenter",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0035_liino_normalskill_ui_vfx"
+      ],
+      "characterIds": [
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0035_liino_normalskill_ui_vfx",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0035_liino_normalskill_ui_vfx.json",
+          "path": "$.abilityEventAction[1]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnPartsBeHit",
+      "eventType": "OnPartsBeHit",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_eny_0077_agshield_skill01_weak"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0077_agshield_skill01_weak",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0077_agshield_skill01_weak.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnPerfectDodge",
+      "eventType": "OnPerfectDodge",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_dung_atb_add_perfectdodge"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_dung_atb_add_perfectdodge",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_dung_atb_add_perfectdodge.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnSquadTakeDamage",
+      "eventType": "OnSquadTakeDamage",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "SkillData": 1
+      },
+      "byChannel": {
+        "SkillPassiveEventAction": 1
+      },
+      "sourceEntities": [
+        "sk_wpn_claym_0006"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "SkillData",
+          "channel": "SkillPassiveEventAction",
+          "entityId": "sk_wpn_claym_0006",
+          "file": "reference/public-data/akedata/Json/SkillData/sk_wpn_claym_0006.json",
+          "path": "$.actionGroupData.passiveEventActions[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnTriggerUndeadFeature",
+      "eventType": "OnTriggerUndeadFeature",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_eny_0045_agtrinit_undeadable"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0045_agtrinit_undeadable",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0045_agtrinit_undeadable.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "@invalid:number:0",
+      "eventType": null,
+      "serializedValue": 0,
+      "status": "invalid-type",
+      "producer": null,
+      "consumerGroups": 6,
+      "byDataset": {
+        "BuffData": 6
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 6
+      },
+      "sourceEntities": [
+        "buff_chr_0031_mifu_red",
+        "buff_chr_0035_liino_chrdung_armorbreak",
+        "buff_common_channeling_casting",
+        "buff_eny_0054_hsmino_hard_clamState",
+        "buff_eny_0089_wgreflect_checknum",
+        "buff_eny_0092_slbomb_hard_unmarkable"
+      ],
+      "characterIds": [
+        "chr_0031_mifu",
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0031_mifu_red",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0031_mifu_red.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0035_liino_chrdung_armorbreak",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0035_liino_chrdung_armorbreak.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_common_channeling_casting",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_common_channeling_casting.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0054_hsmino_hard_clamState",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0054_hsmino_hard_clamState.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 6
+    },
+    {
+      "key": "@invalid:number:32",
+      "eventType": null,
+      "serializedValue": 32,
+      "status": "invalid-type",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_wpn_extra_attack"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_wpn_extra_attack",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_wpn_extra_attack.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    }
+  ]
+}

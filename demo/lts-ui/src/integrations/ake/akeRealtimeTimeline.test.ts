@@ -2189,6 +2189,68 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
     'active skill-slot override selects the transformed normal skill',
   );
 
+  const crossTypedUltimate = profile({
+    ...ultimate,
+    formEvents: (ultimate.formEvents ?? []).map(event => (
+      event.kind === 'override' && event.operation === 'apply'
+        ? { ...event, targetSkillId: 'normal-input-combo-settlement' }
+        : event
+    )),
+  });
+  const crossTypedSettlement = profile({
+    commandType: 'ComboSkill',
+    skillId: 'normal-input-combo-settlement',
+    variantIndex: 2,
+    durationFrames: 24,
+    bodyEndOffset: 23,
+    tailEndOffset: 23,
+    exclusiveFrames: 23,
+    costType: null,
+    costValue: 0,
+    allowNext: [],
+    hits: [],
+    statusEffects: [],
+  });
+  const crossTypedResult = buildAkeRealtimeTimeline({
+    timelineData: timeline([{ characterId: actor.id, buttons: [
+      button('cross-typed-ultimate', actor.id, 0, 'Q'),
+      button('cross-typed-normal-input', actor.id, 1, 'B'),
+    ] }]),
+    selectedCharacters: [actor],
+    catalog: catalog({
+      [actor.id]: [crossTypedUltimate, normal, crossTypedSettlement],
+    }),
+    staffCount: 1,
+  });
+  const crossTypedCommand = crossTypedResult.commands.find(command => (
+    command.commandId === 'cross-typed-normal-input'
+  ));
+  assertEqual(
+    crossTypedCommand?.commandType,
+    'NormalSkill',
+    'the player input remains a battle-skill command',
+  );
+  assertEqual(
+    crossTypedCommand?.skillId,
+    'normal-input-combo-settlement',
+    'a slot override may resolve across the catalog command-type bucket',
+  );
+  assertEqual(
+    crossTypedCommand?.profile.commandType,
+    'ComboSkill',
+    'the selected profile preserves its effective combo-skill identity',
+  );
+  assertEqual(
+    crossTypedCommand?.profile.resolutionSource,
+    'skill-form-override',
+    'cross-typed settlement still exposes the enhanced-form source',
+  );
+  assertEqual(
+    crossTypedCommand?.hits.length,
+    0,
+    'the preview must not fall back to the ordinary battle skill and copy its hit effects',
+  );
+
   const delayedFormUltimate = profile({
     ...ultimate,
     durationFrames: 11,

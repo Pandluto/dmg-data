@@ -5,6 +5,7 @@ import {
   buildAkeRuntimeCommandLedger,
   buildAkeRuntimeCommandViewState,
   buildAkeRuntimeStatusLabelMap,
+  selectAkeMainTimelineStatuses,
 } from './akeRuntimeLedger';
 
 const statusBase = {
@@ -699,6 +700,45 @@ assert.deepEqual(
   )).map((status) => [status.label, status.tone]),
   [['连3', 'active']],
   'an unconsumed combo pool remains a main-display active state',
+);
+assert.deepEqual(
+  selectAkeMainTimelineStatuses(activeComboLedger).map((status) => status.buffId),
+  ['buff_common_affixes_combo_trigger'],
+  'the shared combo pool remains visible even when inherited by the current command',
+);
+
+const inheritedAttachmentReport = structuredClone(report);
+inheritedAttachmentReport.statusEvents = [{
+  ...statusBase,
+  traceIndex: 0,
+  frame: 0,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:inherited-fire',
+  buffId: 'buff_common_energy_shard_attached_fire',
+  before: 0,
+  after: 1,
+  castId: 'older-ultimate-cast',
+}];
+const inheritedAttachmentLedger = buildAkeRuntimeCommandLedger({
+  report: inheritedAttachmentReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '强化战技',
+});
+assert.equal(
+  inheritedAttachmentLedger?.compactStatuses.some((status) => (
+    status.buffId === 'buff_common_energy_shard_attached_fire'
+    && status.tone === 'active'
+  )),
+  true,
+  'the detail ledger keeps inherited enemy attachment state for hit inspection',
+);
+assert.equal(
+  selectAkeMainTimelineStatuses(inheritedAttachmentLedger).some((status) => (
+    status.buffId === 'buff_common_energy_shard_attached_fire'
+  )),
+  false,
+  'the main skill badge must not claim an inherited Fire attachment as this command effect',
 );
 
 assert.ok(ledger.statuses.some((status) => (

@@ -132,6 +132,11 @@ test('Camille enhanced battle-skill input executes the derived combo skill and g
         && event.stage === 'StatusEffectApplied'
         && event.rootCastId === command?.castId
     ));
+    const fireAttachments = result.statusTrace.filter(event => (
+        event.buffId === 'buff_common_energy_shard_attached_fire'
+        && event.stage === 'StatusEffectApplied'
+        && event.rootCastId === command?.castId
+    ));
 
     assert.equal(command?.commandType, 'NormalSkill');
     assert.equal(command?.skillId, 'chr_0033_camille_normal_skill_2');
@@ -149,6 +154,11 @@ test('Camille enhanced battle-skill input executes the derived combo skill and g
     assert.equal(combo?.frame, hpHits.at(-1)?.frame);
     assert.equal(combo?.effectiveSkillType, 'ComboSkill');
     assert.equal(combo?.stackCount, 1);
+    assert.equal(
+        fireAttachments.length,
+        0,
+        'the enhanced battle-skill input settles as a combo skill and must not copy the base battle-skill Fire attachment'
+    );
 
     const timeline = projectAkeTimeline(result);
     const settlement = timeline.commands.find(entry => (

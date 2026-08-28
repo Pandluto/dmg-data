@@ -659,7 +659,7 @@ function resolveProfile(
   const profiles = characterProfiles(timing, input.characterId);
   const candidates = profiles.filter(profile => profile.commandType === input.commandType);
   const explicit = input.skillId
-    ? candidates.find(profile => profile.skillId === input.skillId)
+    ? profiles.find(profile => profile.skillId === input.skillId)
     : null;
   const resumedBasic = input.commandType === 'Attack' && actor.basicComboCursor
     ? candidates.find(profile => profile.skillId === actor.basicComboCursor?.nextSkillId)
@@ -669,7 +669,7 @@ function resolveProfile(
     mapping.commandType === input.commandType
   ))?.skillId;
   const mapped = mappedSkillId
-    ? candidates.find(profile => profile.skillId === mappedSkillId)
+    ? profiles.find(profile => profile.skillId === mappedSkillId)
     : null;
   if (mapped) return withResolution(mapped, 'combo-mapping');
   const skillSlot = SKILL_SLOT_BY_COMMAND[input.commandType];
@@ -677,7 +677,7 @@ function resolveProfile(
     .filter(override => override.skillSlot === skillSlot)
     .sort((left, right) => right.sequence - left.sequence)[0];
   const overridden = activeOverride
-    ? candidates.find(profile => profile.skillId === activeOverride.targetSkillId)
+    ? profiles.find(profile => profile.skillId === activeOverride.targetSkillId)
     : null;
   if (overridden) return withResolution(overridden, 'skill-form-override');
   if (input.commandType === 'Attack' && actor.skillModes.size > 0) {

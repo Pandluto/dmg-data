@@ -171,6 +171,22 @@ export type RuntimeCommandViewState =
   | { kind: 'settled'; message: string; ledger: AkeRuntimeCommandLedger; command: AkeCommandSettlement }
   | { kind: 'manual-preview'; message: string; ledger: null };
 
+/**
+ * Main-axis badges describe what this command changed.  Enemy states that were
+ * merely inherited still belong in the hit/detail ledger, otherwise a later
+ * action appears to have applied an attachment that was already present.  The
+ * team combo pool is the one persistent exception because it is a shared input
+ * resource rather than an enemy-side effect owned by the current command.
+ */
+export function selectAkeMainTimelineStatuses(
+  ledger: AkeRuntimeCommandLedger | null | undefined,
+): AkeRuntimeCompactStatus[] {
+  return ledger?.compactStatuses.filter((status) => (
+    status.mainDisplay
+    && (status.tone !== 'active' || status.applicationScope === 'team')
+  )) ?? [];
+}
+
 type ActiveRuntimeStatus = {
   event: AkeRuntimeStatusEvent;
   stackCount: number;

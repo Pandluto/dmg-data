@@ -14267,9 +14267,9 @@
           "derivation": "isolated-runtime-probe"
         },
         {
-          "commandType": "ComboSkill",
+          "commandType": "NormalSkill",
           "skillId": "chr_0033_camille_normal_skill_2",
-          "variantIndex": 2,
+          "variantIndex": 1,
           "durationFrames": 138,
           "bodyEndOffset": 24,
           "tailEndOffset": 24,

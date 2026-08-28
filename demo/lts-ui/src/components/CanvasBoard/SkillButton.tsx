@@ -63,6 +63,7 @@ import {
 import {
   buildAkeRuntimeCommandViewState,
   buildAkeRuntimeStatusLabelMap,
+  selectAkeMainTimelineStatuses,
 } from '../../core/services/akeRuntimeLedger';
 import { getAnomalyStateSnapshotsByIds } from '../../core/services/anomalyStateSnapshotStorage';
 import {
@@ -1171,7 +1172,7 @@ export function SkillButtonComponent({
   }), [akeRuntimeReport, akeRuntimeStatusLabels, button.id, displayName, isAkeRuntimeMode]);
   const akeRuntimeLedger = akeRuntimeCommandViewState.ledger;
   const compactTargetStateItems = useMemo(
-    () => akeRuntimeLedger?.compactStatuses.filter((item) => item.mainDisplay) ?? [],
+    () => selectAkeMainTimelineStatuses(akeRuntimeLedger),
     [akeRuntimeLedger],
   );
   const buttonStackCounts = useMemo(

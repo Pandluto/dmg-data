@@ -135,10 +135,20 @@ function roleProfiles(bundle) {
     const seen = new Set();
     const add = (commandType, skillId) => {
         if (!skillId || !bundle.programs.has(skillId)) return;
-        const key = `${commandType}\u0000${skillId}`;
+        const compiledSkillType = bundle.programs.get(skillId)?.effectiveSkillType;
+        // Alternate A/B/E/Q forms occasionally live in a neighbouring role
+        // group for discovery, but their compiled SkillData type is the input
+        // identity.  Keep transformed normal attacks in their owning form
+        // group; those are selected by SkillMode rather than as palette inputs.
+        const effectiveCommandType = [
+            'NormalSkill', 'ComboSkill', 'UltimateSkill'
+        ].includes(compiledSkillType)
+            ? compiledSkillType
+            : commandType;
+        const key = `${effectiveCommandType}\u0000${skillId}`;
         if (seen.has(key)) return;
         seen.add(key);
-        entries.push({ commandType, skillId });
+        entries.push({ commandType: effectiveCommandType, skillId });
     };
     for (const skillId of roles.normalAttackIds ?? []) add('Attack', skillId);
     for (const skillId of roles.groups?.normalSkill ?? []) add('NormalSkill', skillId);

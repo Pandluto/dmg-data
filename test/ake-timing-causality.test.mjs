@@ -27,3 +27,17 @@ test('derived timing profiles never place a projectile effect before its launch'
     }
     assert.deepEqual(violations, []);
 });
+
+test('timing catalog keeps input command identity separate from derived settlement identity', () => {
+    const timing = JSON.parse(fs.readFileSync(timingPath, 'utf8'));
+    const camille = timing.characters?.chr_0033_camille;
+    const enhancedInput = camille?.profiles?.find(profile => (
+        profile.skillId === 'chr_0033_camille_normal_skill_2'
+    ));
+    const derivedSettlement = camille?.profiles?.find(profile => (
+        profile.skillId === 'chr_0033_camille_combo_skill_2'
+    ));
+
+    assert.equal(enhancedInput?.commandType, 'NormalSkill');
+    assert.equal(derivedSettlement?.commandType, 'ComboSkill');
+});

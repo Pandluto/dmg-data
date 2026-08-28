@@ -736,9 +736,11 @@ assert.equal(
 assert.equal(
   selectAkeMainTimelineStatuses(inheritedAttachmentLedger).some((status) => (
     status.buffId === 'buff_common_energy_shard_attached_fire'
+    && status.tone === 'active'
+    && status.title.startsWith('继承状态')
   )),
-  false,
-  'the main skill badge must not claim an inherited Fire attachment as this command effect',
+  true,
+  'the main skill badge keeps inherited Fire visible without claiming it as this command effect',
 );
 
 assert.ok(ledger.statuses.some((status) => (

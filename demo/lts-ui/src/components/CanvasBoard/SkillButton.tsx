@@ -2064,6 +2064,14 @@ export function SkillButtonComponent({
     : `${akeResolvedEnhancedForm ? '强化' : ''}${
       AKE_TEMPORAL_SHORT_LABELS[skillType] ?? skillType
     }`;
+  const akeEffectiveSettlementTypes = akeRuntimeLedger?.command.effectiveSkillTypes ?? [];
+  const akeSettlementTypeLabel = akeEffectiveSettlementTypes.includes('ComboSkill')
+    && akeRuntimeLedger?.command.commandType !== 'ComboSkill'
+    ? '（连携技结算）'
+    : '';
+  const detailSkillDisplayName = akePreviewCommand && akeResolvedEnhancedForm
+    ? `${akeTemporalKindLabel}${akeSettlementTypeLabel}`
+    : displayName;
   const akePreviewReleaseLabel = (() => {
     if (!akePreviewCommand) return '';
     if (akePreviewCommand.releaseVerdict === 'unverified') return '连携规则待核';
@@ -2183,8 +2191,8 @@ export function SkillButtonComponent({
           {akePreviewCommand && compactTargetStateItems.length > 0 ? (
             <span
               className="skill-button-target-state"
-              aria-label={`本次技能状态：${compactTargetStateItems.map((item) => (
-                `${item.displayName}${item.stackCount > 1 ? `${item.stackCount}层` : ''}`
+              aria-label={`命中后状态：${compactTargetStateItems.map((item) => (
+                `${item.tone === 'active' ? '继承' : item.tone === 'consumed' ? '消耗' : '本次变化'}${item.displayName}${item.stackCount > 1 ? `${item.stackCount}层` : ''}`
               )).join('、')}`}
             >
               {compactTargetStateItems.slice(0, 3).map((item) => (
@@ -2627,7 +2635,7 @@ export function SkillButtonComponent({
             </div>
           ) : null}
           characterName={characterName}
-          skillLabel={`${skillType} / ${displayName} ${currentSkillLevelMode}`}
+          skillLabel={`${skillType} / ${detailSkillDisplayName} ${currentSkillLevelMode}`}
           positionLabel={(() => {
             const staffLine = timelineData?.staffLines?.find((item) => item.staffIndex === (button as SkillButtonType).lineIndex);
             const buttonData = staffLine?.buttons?.find((item) => item.id === button.id);

@@ -172,19 +172,15 @@ export type RuntimeCommandViewState =
   | { kind: 'manual-preview'; message: string; ledger: null };
 
 /**
- * Main-axis badges describe what this command changed.  Enemy states that were
- * merely inherited still belong in the hit/detail ledger, otherwise a later
- * action appears to have applied an attachment that was already present.  The
- * team combo pool is the one persistent exception because it is a shared input
- * resource rather than an enemy-side effect owned by the current command.
+ * Main-axis badges are an after-command state snapshot.  Both transitions and
+ * inherited primary states stay visible; their tone tells the renderer whether
+ * this command changed the state or merely carried it forward.  Hiding the
+ * latter makes persistent enemy state appear to vanish between buttons.
  */
 export function selectAkeMainTimelineStatuses(
   ledger: AkeRuntimeCommandLedger | null | undefined,
 ): AkeRuntimeCompactStatus[] {
-  return ledger?.compactStatuses.filter((status) => (
-    status.mainDisplay
-    && (status.tone !== 'active' || status.applicationScope === 'team')
-  )) ?? [];
+  return ledger?.compactStatuses.filter((status) => status.mainDisplay) ?? [];
 }
 
 type ActiveRuntimeStatus = {
@@ -1465,7 +1461,7 @@ export function buildAkeRuntimeCommandLedger(input: {
       key: `ake-runtime-snapshot:${statusInstanceKey(active.event)}`,
       buffId: active.event.buffId,
       label: `${metadata.shortLabel}${active.stackCount}`,
-      title: `${metadata.label} · 命中后 ${active.stackCount}层`,
+      title: `继承状态 · ${metadata.label} · 命中后 ${active.stackCount}层`,
       tone: 'active',
       iconUrl: metadata.iconUrl,
       displayName: metadata.label,
@@ -1499,7 +1495,7 @@ export function buildAkeRuntimeCommandLedger(input: {
       key: `ake-runtime-compact-team-combo:${castId}`,
       buffId: TEAM_COMBO_BUFF_ID,
       label: `${metadata.shortLabel}${afterComboStacks}`,
-      title: `${metadata.label} ×${afterComboStacks} · 队伍共享`,
+      title: `${afterComboStacks > beforeComboStacks ? '本次变化' : '继承状态'} · ${metadata.label} ×${afterComboStacks} · 队伍共享`,
       tone: afterComboStacks > beforeComboStacks ? 'changed' : 'active',
       iconUrl: metadata.iconUrl,
       displayName: metadata.label,

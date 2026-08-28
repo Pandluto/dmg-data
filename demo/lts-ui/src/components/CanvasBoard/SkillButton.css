@@ -362,6 +362,12 @@
   filter: grayscale(0.7);
 }
 
+.skill-button-target-state > .is-active {
+  opacity: 0.48;
+  filter: grayscale(0.35) saturate(0.58);
+  box-shadow: none;
+}
+
 .skill-button-target-state > i > em {
   position: absolute;
   right: -3px;

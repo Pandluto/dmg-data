@@ -1642,3 +1642,79 @@ AKE 的击飞/倒地内部实现还会暂时结束 `buff_physical_no_guard` 并�
 `src/platform/runtime/sitesMobileShareApi.test.ts` 返回失败码：该测试在当前基线引用
 `../../../worker/mobileShareApi`，但 `HEAD` 中不存在 `demo/lts-ui/worker/mobileShareApi.ts`。
 状态、引擎与 UI ledger 测试在到达该文件前均通过；本轮遵守移动分享不在修复范围的边界，没有伪造或补写该服务实现。
+
+## 18. 连击共享状态专项对照（Endaxis 秋栗、卡缪、黎风，2026-08-28）
+
+### 18.1 三名干员只负责“发放”，不各自实现连击算法
+
+Endaxis 对三名干员的定义分别位于：
+
+- `../Endaxis/src/data/operators/akekuri.ts`：秋栗终结技期间向 `team` 发放
+  `stat.modifier = link`；
+- `../Endaxis/src/data/operators/camille.ts`：卡缪追击末段命中或延迟伤害状态到期后，
+  向 `team` 发放 `link`；
+- `../Endaxis/src/data/operators/lifeng.ts`：黎风连携技第一段命中向 `team` 发放
+  `link`。
+
+三份角色文件没有实现叠层、消费和伤害公式。角色数据只声明触发事件、目标范围、
+层数和持续时间；这证明连击与破防、元素附着一样，应当是运行时的一等状态，不能
+被降格成某个角色技能里的展示 Buff 或伤害区常数。
+
+### 18.2 Endaxis 的通用连击状态机
+
+Endaxis 把通用逻辑集中在以下位置：
+
+- `src/data/effectPresets.ts`：`link` 使用统一图标，默认最多四层；
+- `src/simulation/events/effectDispatch.ts`：所有来源的 `link` 归一为规范 ID
+  `link`，并按 `target: team` 投影到全队；
+- `src/simulation/state/OperatorEffectState.ts`：共享池保存逐来源 FIFO 队列，发放时
+  加层并刷新持续时间，同时保留每一层由谁提供；
+- `src/simulation/events/ActionStartHandler.ts`：战技或终结技开始时一次性消费共享池，
+  上限四层，并把 `consumedStacks.link` 与 `consumedLinkSources` 固化到本次 action；
+- `src/simulation/events/HitHandler.ts`：本次 action 的每个真实 Hit 继承同一份已消费
+  连击快照；
+- `src/data/stats/computeDamage.ts`：战技一至四层分别进入
+  `+30% / +45% / +60% / +75%`，终结技分别进入
+  `+20% / +30% / +40% / +50%` 的独立连击乘区；
+- `src/simulation/projection/projectActionBuffs.ts`：不同来源的连击显示为同一条状态，
+  而不是多条重复 Buff。
+
+这里“和破防、附着同等关键”指的是它们都必须进入统一状态账本和逐 Hit 快照；
+carrier 范围仍不同：破防、附着属于共享敌方状态，连击属于共享队伍状态。UI 可以
+统一称为“关键战斗状态”，但引擎不能把连击错误挂到敌人身上。
+
+### 18.3 本项目已经算对但仍然显示错误的根因
+
+本项目的根运行时已经能从真实 AKE `ComboAction` 编译 `GrantTeamCombo`，全队同步
+发放、最多四层，并在下一次合法战技或终结技中通过真实
+`buff_common_affixes_skillimbue_atk / ComboCalcZone` 结算正确倍率。现有数值契约已覆盖
+一至四层战技和终结技。
+
+剩余缺口不是角色解析，而是 action/Hit/UI 三段之间丢失了状态身份：
+
+1. `consumeTeamComboState` 在技能开始时结束全队副本，但只返回一个临时结果；
+2. 消费层数、提供者和规范 Buff ID 没有固化为本次 cast 的 action 快照；
+3. 后续 Hit 只能看到隐藏的 `skillimbue` 伤害来源，看不到原始“连击 ×N”；
+4. `akeRuntimeLedger` 没把 `buff_common_affixes_combo_trigger` 标为主界面关键状态；
+5. 多层、全队副本仍按 instance 展示，会造成重复图标；
+6. 伤害因子把 `ComboCalcZone` 混在总攻击方增伤区，导致 UI 的独立“连击区”仍显示
+   中性 `1.0`，即使最终伤害已经乘上连击倍率。
+
+### 18.4 通用修复契约
+
+后续实现必须满足以下约束，不增加秋栗、卡缪或黎风 ID 分支：
+
+1. 状态消费后按 cast 保存规范的 `consumedStatuses`，包含 Buff ID、消费层数、四层上限、
+   队伍范围、消费帧及逐来源层数；
+2. 同一 cast 的每个真实 Hit 继承该不可变快照；
+3. `ComboCalcZone` 从总攻击方增伤显示中拆成独立 `combo-damage` factor，但只拆展示与
+   审计，最终数学乘积必须恒等；
+4. UI 把连击聚合为一个“关键战斗状态”，显示 `连击 ×N`、队伍共享、提供来源和
+   “本次战技/终结技统一消耗，全部 Hit 生效”；
+5. 主界面只显示一个连击图标及层数，不按队员副本或独立层重复；
+6. 连携技本身不消费连击；任何 `treatAs ComboSkill` 的强化战技也必须依据运行时有效
+   技能类型决定是否消费；
+7. 继续保留 AKE 原始 `ComboAction → combo_trigger → skillimbue → ComboCalcZone` 链路，
+   Endaxis 只作为状态建模对照，不能替换 AKE 事实。
+
+水位时间轴的几何、列宽、真实帧投影和按钮布局不属于本修复范围。

@@ -209,6 +209,13 @@ test('squad runner consumes a shared combo only after another member starts a le
     assert.deepEqual(consumed.filter(entry => entry.consumption).map(entry => (
         [entry.targetId, entry.consumerId, entry.triggerCommandType]
     )), [['chr_0005_chen', 'chr_0005_chen', 'NormalSkill']]);
+    const chenHit = result.damageLog.find(hit => hit.castId === chenCast.castId);
+    assert.deepEqual(chenHit?.consumedStatuses?.map(snapshot => [
+        snapshot.stateType,
+        snapshot.buffId,
+        snapshot.consumedStacks,
+        snapshot.applicationScope
+    ]), [['combo', TEAM_COMBO_BUFF_ID, 1, 'team']]);
 });
 
 function comboDamageFixture({ count, commandType, damageDecorateMask = 512 }) {
@@ -339,6 +346,37 @@ test('shared combo enters the real ComboCalcZone for B/Q and clears all layers a
             }).length, 0);
             assert.ok(Math.abs(comboZone.addition - addition) < 1e-12);
             assert.ok(Math.abs(hit.finalDamage - 100 * (1 + addition)) < 1e-10);
+            assert.deepEqual(hit.consumedStatuses.map(snapshot => ({
+                stateType: snapshot.stateType,
+                buffId: snapshot.buffId,
+                consumedStacks: snapshot.consumedStacks,
+                maxStacks: snapshot.maxStacks,
+                applicationScope: snapshot.applicationScope,
+                sourceStacks: snapshot.sourceStacks
+            })), [{
+                stateType: 'combo',
+                buffId: TEAM_COMBO_BUFF_ID,
+                consumedStacks: count,
+                maxStacks: 4,
+                applicationScope: 'team',
+                sourceStacks: [{ sourceId: 'provider', count }]
+            }]);
+            const comboFactor = hit.factors.find(factor => (
+                factor.semanticKey === 'combo-damage'
+            ));
+            assert.ok(Math.abs(comboFactor.multiplier - (1 + addition)) < 1e-12);
+            assert.deepEqual(comboFactor.contributions.map(contribution => ({
+                buffId: contribution.buffId,
+                sourceCategory: contribution.sourceCategory,
+                stackCount: contribution.stackCount,
+                displayName: contribution.sourceMetadata?.displayName
+            })), [{
+                buffId: TEAM_COMBO_BUFF_ID,
+                sourceCategory: 'TeamState',
+                stackCount: count,
+                displayName: '连击'
+            }]);
+            assert.equal(hit.factorValidation.valid, true);
             assert.equal(runtime.statusEffects.list({ active: true }).some(instance =>
                 instance.buffId.includes('skillimbue')
             ), false);

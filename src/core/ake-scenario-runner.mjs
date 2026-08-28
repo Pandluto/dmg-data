@@ -124,6 +124,7 @@ function damageLogFromTrace(trace, statusTrace = []) {
                 targetHpAfter: applied?.after ?? null,
                 modifierSnapshot: clone(hit.modifierSnapshot ?? {}),
                 operands: clone(hit.operands ?? {}),
+                consumedStatuses: clone(hit.consumedStatuses ?? []),
                 application: clone(applied)
             };
         });

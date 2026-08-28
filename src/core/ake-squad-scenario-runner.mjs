@@ -258,6 +258,7 @@ function damageLogFromTrace(trace, memberIdByCharacterId, statusTrace = []) {
                 targetHpAfter: applied?.after ?? null,
                 modifierSnapshot: clone(hit.modifierSnapshot ?? {}),
                 operands: clone(hit.operands ?? {}),
+                consumedStatuses: clone(hit.consumedStatuses ?? []),
                 factors: clone(hit.factors ?? []),
                 factorValidation: clone(hit.factorValidation ?? null),
                 diagnostics: clone(hit.diagnostics ?? []),

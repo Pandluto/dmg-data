@@ -182,6 +182,7 @@ export class CombatRuntime {
         this.nextAbilityEntitySequence = 1;
         this.nextDamageHitSequence = 1;
         this.nextTeamComboGrantSequence = 1;
+        this.consumedStatusesByCastId = new Map();
         this.onceActionExecutions = new Set();
         this.programExecutions = new Map();
         this.endedSkillCastIds = new Set();
@@ -708,8 +709,75 @@ export class CombatRuntime {
             targetIds: [...new Set(instances.map(instance => instance.targetId))],
             transitions
         };
+        if (context.castId !== null && context.castId !== undefined
+            && record.consumedStacks > 0) {
+            const sourceStacks = new Map();
+            for (const instance of instances.filter(candidate => (
+                candidate.targetId === consumerId
+            ))) {
+                const sourceId = instance.metadata?.teamComboSourceId
+                    ?? instance.sourceId
+                    ?? null;
+                const sourceKey = sourceId === null ? 'unknown' : String(sourceId);
+                const existing = sourceStacks.get(sourceKey) ?? {
+                    sourceId,
+                    count: 0
+                };
+                existing.count += Number(instance.stackCount ?? 0);
+                sourceStacks.set(sourceKey, existing);
+            }
+            this.captureConsumedStatusForCast({
+                key: 'team-combo',
+                stateType: 'combo',
+                buffId: record.buffId,
+                applicationScope: 'team',
+                frame,
+                consumerId,
+                targetId: context.targetId ?? null,
+                skillId: context.skillId ?? null,
+                rootSkillId: context.rootSkillId ?? context.skillId ?? null,
+                castId: context.castId,
+                commandType: context.commandType ?? null,
+                skillType: context.skillType ?? context.commandType ?? null,
+                consumedStacks: record.consumedStacks,
+                maxStacks: TEAM_COMBO_MAX_STACKS,
+                sourceStacks: [...sourceStacks.values()],
+                grantIds: cloneValue(record.grantIds),
+                replicatedTargetIds: cloneValue(record.targetIds)
+            });
+        }
         this.#record('TeamComboStateConsumed', context, record);
         return cloneValue(record);
+    }
+
+    captureConsumedStatusForCast(snapshot = {}) {
+        if (!isRecord(snapshot)) {
+            throw new TypeError('captureConsumedStatusForCast requires a snapshot object.');
+        }
+        const castId = identifier(snapshot.castId, 'consumed status castId');
+        const key = identifier(
+            snapshot.key ?? snapshot.buffId,
+            'consumed status key'
+        );
+        const normalized = deepFreeze(cloneValue({
+            ...snapshot,
+            key,
+            castId,
+            consumedStacks: nonNegativeInteger(
+                Math.trunc(Number(snapshot.consumedStacks ?? 0)),
+                'consumed status stack count'
+            )
+        }));
+        const byKey = this.consumedStatusesByCastId.get(castId) ?? new Map();
+        byKey.set(key, normalized);
+        this.consumedStatusesByCastId.set(castId, byKey);
+        return cloneValue(normalized);
+    }
+
+    consumedStatusesForCast(castId) {
+        if (castId === null || castId === undefined) return [];
+        const byKey = this.consumedStatusesByCastId.get(castId);
+        return byKey ? [...byKey.values()].map(cloneValue) : [];
     }
 
     notifyAbilityEvent(eventContext = {}) {

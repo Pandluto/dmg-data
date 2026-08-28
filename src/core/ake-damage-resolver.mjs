@@ -160,6 +160,65 @@ function mergeDamageZone(base, additions = []) {
     };
 }
 
+function selectDamageZones(snapshot, predicate) {
+    const zones = (snapshot.zones ?? []).filter(zone => predicate(zone.zoneName));
+    const selectedNames = new Set(zones.map(zone => zone.zoneName));
+    return {
+        ...snapshot,
+        scale: zones.reduce((scale, zone) => scale * Number(zone.scale ?? 1), 1),
+        zones,
+        contributions: (snapshot.contributions ?? []).filter(contribution => (
+            selectedNames.has(contribution.zoneName ?? contribution.zone)
+        ))
+    };
+}
+
+function consumedStatusContribution(snapshot, eventContext, addition) {
+    const sourceStacks = Array.isArray(snapshot?.sourceStacks)
+        ? snapshot.sourceStacks.map(entry => ({
+            sourceId: entry?.sourceId ?? null,
+            count: Number(entry?.count ?? 0)
+        }))
+        : [];
+    return {
+        contributionId: `consumed-status:${String(snapshot.castId)}:${String(snapshot.key)}`,
+        semanticKey: `consumed-status.${String(snapshot.stateType ?? snapshot.key)}`,
+        sourceKey: `consumed-status:${String(snapshot.castId)}:${String(snapshot.key)}`,
+        sourceType: 'ConsumedStatus',
+        sourceCategory: 'TeamState',
+        sourceId: sourceStacks[0]?.sourceId ?? snapshot.consumerId ?? eventContext.sourceId,
+        ownerId: snapshot.consumerId ?? eventContext.ownerId ?? eventContext.sourceId,
+        carrierId: eventContext.sourceId,
+        targetId: eventContext.sourceId,
+        damageSourceId: eventContext.sourceId,
+        buffId: snapshot.buffId ?? null,
+        buffInstanceId: null,
+        sourceSkillId: eventContext.skillId ?? null,
+        side: 'Attacker',
+        zoneName: 'ComboCalcZone',
+        operation: 'AddRate',
+        rawField: 'ComboCalcZone',
+        rawValue: addition,
+        resolvedValue: addition,
+        addition,
+        stackCount: Number(snapshot.consumedStacks ?? 0),
+        appliedFrame: Number(snapshot.frame ?? eventContext.frame ?? 0),
+        expireFrame: null,
+        contributesToZone: false,
+        sourceMetadata: {
+            displayName: '连击',
+            applicationScope: snapshot.applicationScope ?? 'team'
+        },
+        metadata: {
+            consumedStatus: true,
+            stateType: snapshot.stateType ?? null,
+            maxStacks: Number(snapshot.maxStacks ?? 0),
+            sourceStacks,
+            grantIds: Array.isArray(snapshot.grantIds) ? [...snapshot.grantIds] : []
+        }
+    };
+}
+
 function attackerAttributeZone(
     context,
     effectSources,
@@ -294,6 +353,12 @@ export function createAkeDamageResolver({
             0
         );
         const defense = defenseEntry.value;
+        const consumedStatuses = runtime.consumedStatusesForCast?.(
+            eventContext.castId
+        ) ?? [];
+        const consumedCombo = consumedStatuses.find(snapshot => (
+            snapshot.stateType === 'combo'
+        )) ?? null;
         const hits = [];
         const unresolved = [];
         for (const [damageUnitIndex, unit] of (action.damageUnits ?? []).entries()) {
@@ -373,6 +438,21 @@ export function createAkeDamageResolver({
                     eventContext
                 )
             );
+            const comboZone = selectDamageZones(
+                attackerZone,
+                zoneName => zoneName === 'ComboCalcZone'
+            );
+            const baseAttackerZone = selectDamageZones(
+                attackerZone,
+                zoneName => zoneName !== 'ComboCalcZone'
+            );
+            const comboContributions = consumedCombo && comboZone.zones.length > 0
+                ? [consumedStatusContribution(
+                    consumedCombo,
+                    eventContext,
+                    Number(comboZone.zones[0]?.addition ?? 0)
+                )]
+                : comboZone.contributions;
             const defenderZone = runtime.effectSources.damageZone({
                 targetId,
                 attackerId: sourceId,
@@ -519,9 +599,14 @@ export function createAkeDamageResolver({
                 }),
                 damageFactor({
                     semanticKey: 'attacker-zone', displayName: '攻击方增伤区',
-                    rawValue: attackerZone.zones, multiplier: attackerZone.scale,
-                    contributions: attackerZone.contributions
+                    rawValue: baseAttackerZone.zones, multiplier: baseAttackerZone.scale,
+                    contributions: baseAttackerZone.contributions
                 }),
+                ...(comboZone.zones.length > 0 ? [damageFactor({
+                    semanticKey: 'combo-damage', displayName: '连击区',
+                    rawValue: comboZone.zones, multiplier: comboZone.scale,
+                    contributions: comboContributions
+                })] : []),
                 damageFactor({
                     semanticKey: 'configured-damage-bonus', displayName: '配置增伤区',
                     rawValue: configuredBonus.total,
@@ -633,6 +718,7 @@ export function createAkeDamageResolver({
                 factorValidation,
                 diagnostics: [],
                 confidence: factorValidation.valid ? 'verified' : 'partial',
+                consumedStatuses,
                 modifierSnapshot: {
                     attackAttribute: attackSnapshot,
                     defenseAttribute: defenseSnapshot,
@@ -644,6 +730,9 @@ export function createAkeDamageResolver({
                     criticalRateAttribute: criticalRateSnapshot,
                     criticalDamageAttribute: criticalDamageSnapshot,
                     attackerZone,
+                    baseAttackerZone,
+                    comboZone,
+                    consumedStatuses,
                     defenderZone,
                     configuredBonus: configuredBonus.total,
                     configuredBonusComponents: configuredBonus.components,

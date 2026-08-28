@@ -1220,3 +1220,98 @@ blocked 从 202 降到 201。
 消费层数、离场快照、原始技能类型和消费保护。根运行时全量 257 项测试通过，前端
 TypeScript 严格检查通过。本轮没有修改 `sharedVariableRateTimeline`、水位列、技能按钮、
 光标、Hit 坐标或画布 CSS；前端只继续消费既有运行时账本，因此没有推翻水位特色。
+
+## 16. 卡缪“战技输入、连携结算”的身份分层
+
+### 16.1 Endaxis 的实现只能作为行为目录
+
+Endaxis 的 `src/data/operators/camille.ts` 手工描述了以下链路：终结技末段挂上
+`camille-hunter-pursuit-ready`，普通战技按该状态分支为追猎形态，追猎伤害组写入
+`treatAsSkillType: 'comboSkill'`，最后一击再消耗就绪状态并给队伍 `link`。它证明了
+“按钮仍是战技、实际按连携结算、末段另行增加连击”这三个行为维度，但仍是角色配置
+中的专用组合，不能直接成为 cleanroom 的运行时分支。
+
+AKE E1 数据把同一行为表达为一条没有角色名的动作图：
+
+```text
+chr_0033_camille_ultimate_skill
+  -> ApplyBuff(buff_chr_0033_camille_ult_henshin_state)
+  -> ChangeSkillAction(NormalSkill -> chr_0033_camille_normal_skill_2)
+  -> 玩家输入 NormalSkill
+  -> switchToBuffConfig(CheckBuffStackNumAdvanced)
+  -> ApplyBuff(buff_chr_0033_camille_cast_combo2)
+  -> OnBuffEnable: CastSkill(chr_0033_camille_combo_skill_2)
+  -> CharacterComboSkill 的真实时间线、Hit 与状态消费
+  -> 最后一击 ComboAction(count=1)
+```
+
+`chr_0033_camille_normal_skill_2` 自己是 `CharacterNormalSkill`，负责战技槽、40 ATB、
+3 秒冷却和输入准入；实际子技能 `chr_0033_camille_combo_skill_2` 是
+`CharacterComboSkill`，成本为 0、冷却为 0，负责连携类伤害与触发。原始
+`ComboAction` 是独立动作，不能由“视作连携”自动推导。反过来，执行一个
+`CharacterComboSkill` 也不能无条件给队伍增加连击。
+
+### 16.2 当前 cleanroom 的假成功
+
+可执行探针固定输入为：卡缪 90 级、终结技 F0、战技 F140、场景结束 F500。当前结果为：
+
+- 终结技在 F118 正确施加 `buff_chr_0033_camille_ult_henshin_state`；
+- F140 的战技正确换槽为 `chr_0033_camille_normal_skill_2`；
+- 命令被记录为 `success=true`，F164 完成；
+- 该 cast 的 Hit 数为 0，没有 `buff_chr_0033_camille_cast_combo2`，也没有队伍连击；
+- 场景 `unresolvedEffectCount=0`，因此 UI 无法从运行结果识别这次空执行。
+
+根因有两个，而且都属于通用编译/运行时缺口：
+
+1. `compileSkill` 只编译 `actionGroupData.timelineActions`，完全丢弃非空
+   `switchToBuffConfig`；公开角色数据中另有 Last Rite 与 Liino 使用同一结构；
+2. Buff 编译器仍把 `CastSkill` 标成 `AKE_ACTION_UNSUPPORTED`。公开 BuffData 中卡缪、
+   Liino、诀、庄方宜等共享该动作，因此不能写 `characterId === chr_0033_camille`。
+
+### 16.3 冻结的通用身份契约
+
+运行时不得继续用一个 `skillType` 同时回答按钮、实际技能和效果分类。每条技能执行至少
+保留以下身份：
+
+```text
+inputCommandType   玩家按下的按钮；卡缪为 NormalSkill
+inputSkillId       换槽后承担成本/冷却/准入的包装 SkillData
+executedSkillId    实际产生时间线与 Hit 的子 SkillData
+effectiveSkillType 实际技能的 skillSpecification 映射；卡缪为 ComboSkill
+rootCastId         UI 与命令账本归并用的根 cast
+parentCastId       派生关系；不靠 skillId 字符串猜父子
+```
+
+使用规则：
+
+1. 按钮、拖拽、战技槽、输入合法性和包装技能成本读取 `inputCommandType/inputSkillId`；
+2. 伤害类型 Buff、`CheckSkillType`、技能倍率区和命中来源读取
+   `effectiveSkillType/executedSkillId`；
+3. `ComboAction`、资源变更、状态消费仍按真实动作逐项提交，不由类型别名补做；
+4. 子技能继承根 cast 供 UI 聚合，同时保留独立 `parentCastId` 和执行技能 ID；
+5. `skipApplyCost` 与 `inheritSourceSkillCastId` 按 AKE 字段显式处理，不能让包装技能和
+   子技能重复收费或错误共享一次性门控；
+6. UI 保留一个强化战技按钮；详情可以显示“战技输入 / 追猎（按连携结算）”，Hit 和
+   连击状态只读取运行时账本；
+7. 共享变速、水位、强边界、圆圈、光标和列投影均不参与该身份判定，也不因本机制改版。
+
+### 16.4 实现与验收边界
+
+实现分成三条通用闭环：
+
+1. 编译非空 `switchToBuffConfig` 为技能开始时的条件化 `ApplyBuff`，保留 source、target、
+   Blackboard assignments 与 `asSkillCast` 元数据；
+2. 编译 `CastSkill` 为可调度子技能事务，解析 caster、target、动态 skillId、成本策略和
+   cast 继承策略；
+3. 让派生时间线写出按钮身份与实际执行身份，并由 damage/status/UI 账本贯穿到底。
+
+验收不得只断言“命令成功”或“存在一个 Hit”。至少需要：
+
+- 卡缪终结技后按战技：包装技能收费一次，真实 `combo_skill_2` 命中，强化状态被消费，
+  最后一击产生且只产生一次队伍连击；
+- 无终结技状态时仍执行普通战技，不触发派生连携；
+- Last Rite 或 Liino 的非空 `switchToBuffConfig` 走相同编译路径；
+- Liino、诀或庄方宜至少一个真实 `CastSkill` 样本证明没有卡缪分支；
+- UI 的按钮仍为战技，Hit 的 `skillId/effectiveSkillType` 为真实连携，且命令详情通过同一
+  根 cast 看见全部 Hit 和状态；
+- 全部引擎回归、前端严格类型检查和构建通过，水位布局文件无机制性改写。

@@ -28,6 +28,15 @@ const TIMELINE_RESOLVER_TYPES = new Set([
     'ChannelingAction', 'ChannelingCastingAction', 'UltimateTimeAction'
 ]);
 const TEAM_COMBO_BUFF_ID = 'buff_common_affixes_combo_trigger';
+const SKILL_SPECIFICATION_TYPES = Object.freeze({
+    CharacterNormalAttack: 'NormalAttack',
+    CharacterPowerAttack: 'NormalAttack',
+    CharacterPlungingAttack: 'NormalAttack',
+    CharacterDashAttack: 'NormalAttack',
+    CharacterNormalSkill: 'NormalSkill',
+    CharacterUltimateSkill: 'UltimateSkill',
+    CharacterComboSkill: 'ComboSkill'
+});
 const SPATIAL_TYPES = new Set([
     'MergeTargetAction', 'MoveToAction', 'TeleportAction',
     'TeleportPosSelectAction', 'CustomRootMotionAction', 'SelfRotateAction',
@@ -589,6 +598,15 @@ export class AkeActionCompiler {
     compileSkill(raw, patchBundle = null, options = {}) {
         if (!isRecord(raw)) throw new TypeError('compileSkill requires raw SkillData.');
         const parsed = parseSkill(raw, patchBundle, options);
+        const switchToBuff = this.#compileSwitchToBuffConfig(raw.switchToBuffConfig, {
+            path: 'switchToBuffConfig',
+            blackboard: parsed.blackboard,
+            scope: 'skill',
+            skillId: parsed.skillId,
+            eventTargetMode: false,
+            timelineStartFrame: 0,
+            timelineEndFrame: 0
+        });
         const timeline = (raw.actionGroupData?.timelineActions ?? []).map((group, groupIndex) => {
             const nodes = actionData(group._sequenceActionData);
             const compiled = this.compileActions(nodes, {
@@ -608,14 +626,23 @@ export class AkeActionCompiler {
         });
         return {
             ...parsed,
+            effectiveSkillType: SKILL_SPECIFICATION_TYPES[parsed.skillSpecification] ?? null,
+            castStartActions: switchToBuff.actions,
+            castStartMetadata: switchToBuff.metadata,
             timeline,
             compiler: {
-                status: timeline.some(group => group.unresolved.length > 0)
+                status: switchToBuff.unresolved.length > 0
+                    || timeline.some(group => group.unresolved.length > 0)
                     ? 'unresolved'
                     : 'executable',
-                runtimeActionCount: timeline.reduce((sum, group) => sum + group.actions.length, 0),
-                metadataCount: timeline.reduce((sum, group) => sum + group.metadata.length, 0),
-                unresolved: timeline.flatMap(group => group.unresolved)
+                runtimeActionCount: switchToBuff.actions.length
+                    + timeline.reduce((sum, group) => sum + group.actions.length, 0),
+                metadataCount: switchToBuff.metadata.length
+                    + timeline.reduce((sum, group) => sum + group.metadata.length, 0),
+                unresolved: [
+                    ...switchToBuff.unresolved,
+                    ...timeline.flatMap(group => group.unresolved)
+                ]
             }
         };
     }
@@ -666,6 +693,68 @@ export class AkeActionCompiler {
                 unresolved: groups.flatMap(group => group.unresolved)
             }
         };
+    }
+
+    #compileSwitchToBuffConfig(config, state) {
+        const result = emptyCompilation('SwitchToBuffConfig');
+        if (!isRecord(config)) return finalize(result);
+        const buffs = (config.buffs ?? []).filter(buff => (
+            typeof buff?.buffId === 'string' && buff.buffId.length > 0
+        )).map(buff => ({
+            buffId: buff.buffId,
+            assignBlackboard: Boolean(buff.assignBlackboard),
+            assignments: normalizeAssignments(buff)
+        }));
+        if (buffs.length === 0) return finalize(result);
+
+        const source = this.#targetRef(config.buffSource ?? 'Source', state, 'switch Buff source');
+        const target = this.#targetRef(config.targets ?? 'Target', state, 'switch Buff target');
+        if (source.unresolved) result.unresolved.push(source.unresolved);
+        if (target.unresolved) result.unresolved.push(target.unresolved);
+        const conditionResults = actionData(config.condition).map((condition, index) => (
+            this.#compileCondition(condition, {
+                ...state,
+                path: `${state.path}.condition[${index}]`
+            })
+        ));
+        result.unresolved.push(...conditionResults.flatMap(entry => entry.unresolved));
+        result.diagnostics.push(...conditionResults.flatMap(entry => entry.diagnostics));
+        result.metadata.push({
+            type: 'SwitchToBuffConfig',
+            path: state.path,
+            category: 'skill-cast-transition',
+            buffIds: buffs.map(buff => buff.buffId),
+            asSkillCast: config.asSkillCast !== false
+        });
+        if (!source.ref || !target.ref
+            || conditionResults.some(entry => entry.condition === null)) {
+            return finalize(result);
+        }
+        const applyBuff = {
+            type: 'ApplyBuff',
+            sourceRef: source.ref,
+            target: target.ref,
+            count: 1,
+            buffs,
+            dependencyBuffIds: buffs.map(buff => buff.buffId),
+            inheritEventBlackboard: false,
+            triggerEnhancementEvent: true,
+            metadata: {
+                akeSourceAction: 'SwitchToBuffConfig',
+                akeSourcePath: state.path,
+                asSkillCast: config.asSkillCast !== false
+            },
+            reason: 'SwitchToBuffConfig'
+        };
+        const conditions = conditionResults.map(entry => entry.condition);
+        result.actions.push(conditions.length === 0 ? applyBuff : {
+            type: 'IfElseAction',
+            conditions,
+            success: [applyBuff],
+            failure: [],
+            reason: 'SwitchToBuffConfig'
+        });
+        return finalize(result);
     }
 
     #compileSequence(nodes, state) {
@@ -1224,6 +1313,63 @@ export class AkeActionCompiler {
                         type,
                         state.path,
                         `Ability-entity SkillData ${childSkillId} requires a skillProgramResolver.`,
+                        { childSkillId }
+                    ));
+                }
+                break;
+            }
+            case 'CastSkill': {
+                const caster = this.#targetRef(node.caster, state, 'CastSkill caster');
+                const rawTargetSource = selectorSource(node.target);
+                const target = rawTargetSource === 'MainTarget'
+                    ? {
+                        ref: { type: 'EventTarget', fallback: 'Target' },
+                        unresolved: null
+                    }
+                    : this.#targetRef(node.target, state, 'CastSkill target');
+                if (caster.unresolved) result.unresolved.push(caster.unresolved);
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                const childSkillId = resolveValue(node.skillId, state.blackboard, null);
+                const dynamicSkillId = node.skillId?.useBlackboardKey === true
+                    && typeof node.skillId.blackboardKey === 'string'
+                    && node.skillId.blackboardKey.length > 0;
+                if ((!dynamicSkillId && (typeof childSkillId !== 'string'
+                    || childSkillId.length === 0)) || !caster.ref || !target.ref) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_CAST_SKILL_DATA_MISSING',
+                        type,
+                        state.path,
+                        'CastSkill requires a resolvable caster, target and SkillData id.'
+                    ));
+                    break;
+                }
+                result.actions.push({
+                    type: 'LaunchSkillProgram',
+                    launchKind: 'CastSkill',
+                    childSkillId: dynamicSkillId ? null : childSkillId,
+                    childSkillIdDescriptor: descriptor(node.skillId, null),
+                    casterRef: caster.ref,
+                    targetRef: target.ref,
+                    skipApplyCost: Boolean(node.skipApplyCost),
+                    inheritSourceSkillCastId: Boolean(node.inheritSourceSkillCastId),
+                    inheritBlackboard: false,
+                    reason: type
+                });
+                result.metadata.push({
+                    type,
+                    path: state.path,
+                    category: 'derived-skill-cast',
+                    childSkillId: dynamicSkillId ? null : childSkillId,
+                    dynamicSkillId,
+                    skipApplyCost: Boolean(node.skipApplyCost),
+                    inheritSourceSkillCastId: Boolean(node.inheritSourceSkillCastId)
+                });
+                if (!this.capabilities.skillProgramResolver) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_SKILL_PROGRAM_RESOLVER_REQUIRED',
+                        type,
+                        state.path,
+                        `CastSkill child SkillData ${String(childSkillId)} requires a skillProgramResolver.`,
                         { childSkillId }
                     ));
                 }

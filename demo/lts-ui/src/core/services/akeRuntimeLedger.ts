@@ -2,12 +2,15 @@ import type { FormulaViewModel, AppliedBuffTagViewModel } from '../calculators/s
 import type {
   AkeCommandSettlement,
   AkePanelAttackTrace,
+  AkeRuntimeConsumedStatus,
   AkeRuntimeDamageFactor,
   AkeRuntimeHit,
   AkeRuntimeModifierContribution,
   AkeRuntimeStatusEvent,
   AkeTeamReport,
 } from '../../integrations/ake/akeProvider';
+
+const TEAM_COMBO_BUFF_ID = 'buff_common_affixes_combo_trigger';
 
 type RuntimeStatusMetadata = {
   label: string;
@@ -23,6 +26,14 @@ type RuntimeStatusMetadata = {
 };
 
 const RUNTIME_STATUS_METADATA: Record<string, RuntimeStatusMetadata> = {
+  [TEAM_COMBO_BUFF_ID]: {
+    label: '连击',
+    shortLabel: '连',
+    mainDisplay: true,
+    priority: 5,
+    effectType: 'teamCombo',
+    applicationScope: 'team',
+  },
   buff_physical_no_guard: { label: '破防', shortLabel: '破', mainDisplay: true, priority: 0 },
   buff_physical_no_guard_fake: { label: '破防结算标记', shortLabel: '破', hidden: true },
   buff_physical_handle_cryst_break: { label: '结晶击碎监听', shortLabel: '晶', hidden: true },
@@ -237,10 +248,10 @@ function runtimeStatusMetadata(
     label,
     shortLabel: builtIn?.shortLabel || event?.shortName?.trim() || label.slice(0, 1),
     hidden: event?.hidden ?? builtIn?.hidden,
-    iconUrl: event?.iconUrl || undefined,
-    iconId: event?.iconId || undefined,
-    effectType: event?.effectType || undefined,
-    applicationScope: event?.applicationScope || undefined,
+    iconUrl: event?.iconUrl || builtIn?.iconUrl,
+    iconId: event?.iconId || builtIn?.iconId,
+    effectType: event?.effectType || builtIn?.effectType,
+    applicationScope: event?.applicationScope || builtIn?.applicationScope,
   };
 }
 
@@ -387,6 +398,104 @@ function sortRuntimeStatusViews(statuses: AkeRuntimeStatusView[]): AkeRuntimeSta
     || left.title.localeCompare(right.title, 'zh-CN')
     || left.key.localeCompare(right.key)
   ));
+}
+
+function uniqueConsumedStatuses(hits: AkeRuntimeHit[]): AkeRuntimeConsumedStatus[] {
+  const byIdentity = new Map<string, AkeRuntimeConsumedStatus>();
+  hits.forEach((hit) => {
+    (hit.consumedStatuses ?? []).forEach((snapshot) => {
+      const identity = `${snapshot.key}|${snapshot.buffId}`;
+      if (!byIdentity.has(identity)) byIdentity.set(identity, snapshot);
+    });
+  });
+  return [...byIdentity.values()];
+}
+
+function teamComboStacksInState(
+  state: Map<string, ActiveRuntimeStatus>,
+  targetId: string | null,
+): number {
+  if (!targetId) return 0;
+  return Math.min(4, [...state.values()]
+    .filter((active) => (
+      active.event.buffId === TEAM_COMBO_BUFF_ID
+      && active.event.targetId === targetId
+    ))
+    .reduce((sum, active) => sum + active.stackCount, 0));
+}
+
+function runtimeActorName(report: AkeTeamReport, actorId: string | null): string | null {
+  if (!actorId) return null;
+  return report.characters.find((character) => (
+    character.akeCharacterId === actorId
+    || character.memberId === actorId
+    || character.localCharacterId === actorId
+  ))?.characterName ?? null;
+}
+
+function consumedStatusView(
+  snapshot: AkeRuntimeConsumedStatus,
+  report: AkeTeamReport,
+  labels: AkeRuntimeStatusLabelMap,
+  keyPrefix: string,
+): AkeRuntimeStatusView {
+  const metadata = runtimeStatusMetadata(snapshot.buffId, labels);
+  const stacks = Math.max(0, finite(snapshot.consumedStacks, 0));
+  const sources = (snapshot.sourceStacks ?? [])
+    .filter((source) => finite(source.count, 0) > 0)
+    .map((source, index) => (
+      `${runtimeActorName(report, source.sourceId) ?? `队伍来源${index + 1}`} ${finite(source.count, 0)}层`
+    ));
+  return {
+    key: `${keyPrefix}:${snapshot.castId}:${snapshot.key}`,
+    buffId: snapshot.buffId,
+    title: `${metadata.label} ×${stacks}`,
+    detail: [
+      '队伍共享',
+      `本次动作开始时统一消耗 ${stacks} 层`,
+      '全部 Hit 继承同一份快照',
+      sources.length > 0 ? `来源：${sources.join(' / ')}` : '',
+    ].filter(Boolean).join(' · '),
+    kind: '本次技能消耗',
+    groupLabel: '关键战斗状态',
+    groupOrder: 0,
+    priority: runtimeStatusPriority(snapshot.buffId, metadata),
+    iconUrl: metadata.iconUrl,
+    iconAlt: metadata.label,
+  };
+}
+
+function pooledTeamComboView(input: {
+  stacks: number;
+  beforeStacks?: number;
+  command: AkeCommandSettlement;
+  tickRate: number;
+  labels: AkeRuntimeStatusLabelMap;
+  keyPrefix: string;
+  moment: string;
+}): AkeRuntimeStatusView {
+  const metadata = runtimeStatusMetadata(TEAM_COMBO_BUFF_ID, input.labels);
+  const frame = input.command.actualFrame ?? input.command.requestedFrame;
+  const before = input.beforeStacks;
+  const change = before === undefined || before === input.stacks
+    ? `${input.stacks}层`
+    : `${before} → ${input.stacks}层`;
+  return {
+    key: `${input.keyPrefix}:${input.command.castId ?? input.command.commandId}`,
+    buffId: TEAM_COMBO_BUFF_ID,
+    title: `${metadata.label} ×${input.stacks}`,
+    detail: [
+      '队伍共享',
+      change,
+      `F${frame} / ${(frame / input.tickRate).toFixed(2)}秒`,
+    ].join(' · '),
+    kind: input.moment,
+    groupLabel: '关键战斗状态',
+    groupOrder: 0,
+    priority: runtimeStatusPriority(TEAM_COMBO_BUFF_ID, metadata),
+    iconUrl: metadata.iconUrl,
+    iconAlt: metadata.label,
+  };
 }
 
 function scopeLabel(targetId: string | null, command: AkeCommandSettlement, enemyId: string): string {
@@ -628,9 +737,11 @@ function contributionBuffTags(
     const status = activeStatus?.event ?? (contribution.buffInstanceId
       ? sameFrameStatusByInstanceId.get(contribution.buffInstanceId) ?? null
       : null);
+    const contributionStackCount = Number(contribution.stackCount);
     const statusStackCount = activeStatus?.stackCount
       ?? status?.after
       ?? status?.stackCount
+      ?? (Number.isFinite(contributionStackCount) ? contributionStackCount : undefined)
       ?? undefined;
     const sourceKey = String(contribution.sourceKey ?? `runtime-zone-${index}`);
     const identityStatus = status ?? statusEvents.find((event) => (
@@ -647,8 +758,11 @@ function contributionBuffTags(
       || contribution.rawField
       || sourceParts[sourceParts.length - 1]
       || '');
-    const statusMetadata = identityStatus
-      ? runtimeStatusMetadata(identityStatus.buffId, labels, identityStatus)
+    const contributionBuffId = typeof contribution.buffId === 'string'
+      ? contribution.buffId
+      : identityStatus?.buffId ?? null;
+    const statusMetadata = contributionBuffId
+      ? runtimeStatusMetadata(contributionBuffId, labels, identityStatus)
       : null;
     const sourceMetadataName = readableContributionName(contribution.sourceMetadata)
       || readableContributionName(contribution.metadata)
@@ -671,6 +785,7 @@ function contributionBuffTags(
     const sourceName = ({
       EnemyStatus: '敌方状态机', Talent: '干员天赋', Potential: '干员潜能',
       Weapon: '武器', Equipment: '装备', EquipmentSet: '三件套',
+      TeamState: '队伍共享状态',
       Skill: '技能', StatusEffect: side === 'Defender' ? '敌方状态机' : '自身状态机',
       Loadout: '角色配置', Attribute: '运行时属性状态机',
     } as Record<string, string>)[category]
@@ -998,6 +1113,7 @@ function buildHitStatusViews(input: {
   tickRate: number;
   labels: AkeRuntimeStatusLabelMap;
   castId: string;
+  report: AkeTeamReport;
 }): AkeRuntimeStatusView[] {
   const {
     hit,
@@ -1009,6 +1125,7 @@ function buildHitStatusViews(input: {
     tickRate,
     labels,
     castId,
+    report,
   } = input;
   const statusesByKey = new Map<string, AkeRuntimeStatusView>();
   const appliedBuffsByIdentity = new Map<string, AppliedBuffTagViewModel>();
@@ -1021,9 +1138,29 @@ function buildHitStatusViews(input: {
     appliedBuffsByIdentity.set(identity, buff);
   });
   const matchedAppliedBuffIds = new Set<string>();
+  const consumedBuffIds = new Set((hit.consumedStatuses ?? []).map((snapshot) => snapshot.buffId));
 
-  activeStatusesBeforeHit(statusEvents, hit).forEach((active) => {
+  (hit.consumedStatuses ?? []).forEach((snapshot) => {
+    const view = consumedStatusView(snapshot, report, labels, 'ake-runtime-hit-consumed');
+    statusesByKey.set(`consumed:${snapshot.key}`, view);
+  });
+
+  const activeBeforeHit = activeStatusesBeforeHit(statusEvents, hit);
+  const activeComboStacks = teamComboStacksInState(activeBeforeHit, hit.sourceId);
+  if (!consumedBuffIds.has(TEAM_COMBO_BUFF_ID) && activeComboStacks > 0) {
+    statusesByKey.set('pooled:team-combo', pooledTeamComboView({
+      stacks: activeComboStacks,
+      command,
+      tickRate,
+      labels,
+      keyPrefix: 'ake-runtime-hit-team-combo',
+      moment: '当前 Hit 前队伍状态',
+    }));
+  }
+
+  activeBeforeHit.forEach((active) => {
     if (active.event.targetId !== enemyId && active.event.targetId !== hit.sourceId) return;
+    if (active.event.buffId === TEAM_COMBO_BUFF_ID) return;
     const metadata = runtimeStatusMetadata(active.event.buffId, labels, active.event);
     if (metadata.hidden) return;
     const matchedBuff = (active.event.instanceId
@@ -1049,6 +1186,7 @@ function buildHitStatusViews(input: {
 
   formula.buffTags.forEach((buff, index) => {
     if (matchedAppliedBuffIds.has(buff.id)) return;
+    if (buff.buffId === TEAM_COMBO_BUFF_ID) return;
     const syntheticMetadata: RuntimeStatusMetadata = {
       label: buff.label,
       shortLabel: buff.label.slice(0, 1),
@@ -1143,6 +1281,8 @@ export function buildAkeRuntimeCommandLedger(input: {
   const runtimeHits = (report.hits ?? [])
     .filter((hit) => hit.castId === castId && hit.damageAttributeType === 'Hp')
     .sort((left, right) => left.frame - right.frame || left.hitIndex - right.hitIndex);
+  const consumedStatuses = uniqueConsumedStatuses(runtimeHits);
+  const consumedBuffIds = new Set(consumedStatuses.map((snapshot) => snapshot.buffId));
   const reportCharacter = report.characters.find((character) => (
     character.akeCharacterId === command.characterId
     || character.memberId === command.memberId
@@ -1178,6 +1318,7 @@ export function buildAkeRuntimeCommandLedger(input: {
         tickRate: report.tickRate,
         labels,
         castId,
+        report,
       }),
       hit,
     };
@@ -1191,11 +1332,14 @@ export function buildAkeRuntimeCommandLedger(input: {
   const beforeState = activeStatusesAt(statusEvents, actionStartFrame, false);
   const afterState = activeStatusesAt(statusEvents, actionEndFrame, true);
   const transitions = statusEvents.filter((event) => transitionBelongsToCast(event, castId));
+  const beforeComboStacks = teamComboStacksInState(beforeState, command.characterId);
+  const afterComboStacks = teamComboStacksInState(afterState, command.characterId);
   const statuses: AkeRuntimeStatusView[] = [];
 
   beforeState.forEach((active) => {
     if (active.event.targetId !== report.enemyId
       && active.event.targetId !== command.characterId) return;
+    if (active.event.buffId === TEAM_COMBO_BUFF_ID) return;
     if (isPassiveRegistration(active.event)) return;
     const view = snapshotStatusView(
       'ake-runtime-before', active, command, report.enemyId, report.tickRate, labels, '命中前',
@@ -1212,6 +1356,7 @@ export function buildAkeRuntimeCommandLedger(input: {
   transitionGroups.forEach((events) => {
     const firstEvent = events[0];
     const event = events[events.length - 1];
+    if (event.buffId === TEAM_COMBO_BUFF_ID || consumedBuffIds.has(event.buffId)) return;
     const metadata = runtimeStatusMetadata(event.buffId, labels, event);
     if (metadata.hidden) return;
     const after = finite(event.after ?? event.stackCount, 0);
@@ -1241,6 +1386,7 @@ export function buildAkeRuntimeCommandLedger(input: {
   afterState.forEach((active) => {
     if (active.event.targetId !== report.enemyId
       && active.event.targetId !== command.characterId) return;
+    if (active.event.buffId === TEAM_COMBO_BUFF_ID) return;
     if (isPassiveRegistration(active.event)) return;
     if (transitionedInstances.has(statusInstanceKey(active.event))) return;
     const view = snapshotStatusView(
@@ -1248,9 +1394,26 @@ export function buildAkeRuntimeCommandLedger(input: {
     );
     if (view) statuses.push(view);
   });
+  consumedStatuses.forEach((snapshot) => {
+    statuses.push(consumedStatusView(snapshot, report, labels, 'ake-runtime-command-consumed'));
+  });
+  if (!consumedBuffIds.has(TEAM_COMBO_BUFF_ID) && (beforeComboStacks > 0 || afterComboStacks > 0)) {
+    statuses.push(pooledTeamComboView({
+      stacks: afterComboStacks || beforeComboStacks,
+      beforeStacks: beforeComboStacks,
+      command,
+      tickRate: report.tickRate,
+      labels,
+      keyPrefix: 'ake-runtime-command-team-combo',
+      moment: afterComboStacks > beforeComboStacks
+        ? '本次技能叠层'
+        : '队伍共享状态',
+    }));
+  }
 
   const compactStatusByInstance = new Map<string, AkeRuntimeCompactStatus>();
   transitions.forEach((event) => {
+    if (event.buffId === TEAM_COMBO_BUFF_ID || consumedBuffIds.has(event.buffId)) return;
     const metadata = runtimeStatusMetadata(event.buffId, labels, event);
     if (metadata.hidden) return;
     const after = finite(event.after ?? event.stackCount, 0);
@@ -1270,6 +1433,7 @@ export function buildAkeRuntimeCommandLedger(input: {
   });
   afterState.forEach((active) => {
     const metadata = runtimeStatusMetadata(active.event.buffId, labels, active.event);
+    if (active.event.buffId === TEAM_COMBO_BUFF_ID) return;
     if (metadata.hidden || active.event.targetId !== report.enemyId) return;
     const instanceKey = statusInstanceKey(active.event);
     if (compactStatusByInstance.has(instanceKey)) return;
@@ -1287,6 +1451,40 @@ export function buildAkeRuntimeCommandLedger(input: {
       applicationScope: metadata.applicationScope,
     });
   });
+  consumedStatuses.forEach((snapshot) => {
+    const metadata = runtimeStatusMetadata(snapshot.buffId, labels);
+    const stacks = Math.max(0, finite(snapshot.consumedStacks, 0));
+    const view = consumedStatusView(snapshot, report, labels, 'ake-runtime-compact-consumed');
+    compactStatusByInstance.set(`consumed:${snapshot.key}`, {
+      key: view.key,
+      buffId: snapshot.buffId,
+      label: `${metadata.shortLabel}${stacks}`,
+      title: `${view.title} · ${view.detail}`,
+      tone: 'consumed',
+      iconUrl: metadata.iconUrl,
+      displayName: metadata.label,
+      stackCount: stacks,
+      mainDisplay: true,
+      priority: runtimeStatusPriority(snapshot.buffId, metadata),
+      applicationScope: snapshot.applicationScope,
+    });
+  });
+  if (!consumedBuffIds.has(TEAM_COMBO_BUFF_ID) && afterComboStacks > 0) {
+    const metadata = runtimeStatusMetadata(TEAM_COMBO_BUFF_ID, labels);
+    compactStatusByInstance.set('pooled:team-combo', {
+      key: `ake-runtime-compact-team-combo:${castId}`,
+      buffId: TEAM_COMBO_BUFF_ID,
+      label: `${metadata.shortLabel}${afterComboStacks}`,
+      title: `${metadata.label} ×${afterComboStacks} · 队伍共享`,
+      tone: afterComboStacks > beforeComboStacks ? 'changed' : 'active',
+      iconUrl: metadata.iconUrl,
+      displayName: metadata.label,
+      stackCount: afterComboStacks,
+      mainDisplay: true,
+      priority: runtimeStatusPriority(TEAM_COMBO_BUFF_ID, metadata),
+      applicationScope: 'team',
+    });
+  }
   const compactStatuses = [...compactStatusByInstance.values()].sort((left, right) => (
     left.priority - right.priority
     || left.displayName.localeCompare(right.displayName, 'zh-CN')

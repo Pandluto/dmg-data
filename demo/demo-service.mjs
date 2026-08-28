@@ -626,6 +626,11 @@ function compactStatusEvents(trace, { projectRoot = defaultProjectRoot } = {}) {
         requested: event.requested ?? null,
         actual: event.actual ?? null,
         consumedStacks: event.consumedStacks ?? null,
+        consumption: Boolean(event.consumption),
+        consumerId: event.consumerId ?? null,
+        consumeKind: event.consumeKind ?? null,
+        triggerCommandType: event.triggerCommandType ?? null,
+        triggerSkillType: event.triggerSkillType ?? null,
         bySource: structuredClone(event.bySource ?? []),
         discarded: event.discarded ?? null,
         after: event.after ?? event.stackCount ?? null,
@@ -658,7 +663,8 @@ function compactHits(damageLog) {
         finalDamage: Number(hit.finalDamage ?? 0),
         poiseDamage: Number(hit.poiseDamage ?? 0),
         targetHpBefore: hit.targetHpBefore,
-        targetHpAfter: hit.targetHpAfter
+        targetHpAfter: hit.targetHpAfter,
+        consumedStatuses: structuredClone(hit.consumedStatuses ?? [])
     }));
 }
 
@@ -1069,6 +1075,7 @@ function compactSquadHits(damageLog) {
         targetHpAfter: hit.targetHpAfter,
         modifierSnapshot: structuredClone(hit.modifierSnapshot ?? {}),
         operands: structuredClone(hit.operands ?? {}),
+        consumedStatuses: structuredClone(hit.consumedStatuses ?? []),
         factors: structuredClone(hit.factors ?? []),
         factorValidation: structuredClone(hit.factorValidation ?? null),
         diagnostics: structuredClone(hit.diagnostics ?? []),

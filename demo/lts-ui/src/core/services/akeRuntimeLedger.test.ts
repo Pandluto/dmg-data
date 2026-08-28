@@ -521,6 +521,186 @@ assert.ok(weaponBuffLedger?.hits[0].formula.sectionLines?.damageBonus?.some((lin
   line.includes('镀红祝福') && line.includes('6.0%')
 )), 'the exact weapon Buff source must appear in the damage-bonus formula lines');
 
+const comboReport = structuredClone(attackZoneReport);
+comboReport.characters.push({
+  ...structuredClone(comboReport.characters[0]),
+  localCharacterId: 'combo-provider',
+  akeCharacterId: 'combo-provider',
+  memberId: 'combo-provider',
+  characterName: '卡缪',
+});
+const comboHit = runtimeHit(0, null, 1, false);
+comboHit.consumedStatuses = [{
+  key: 'team-combo',
+  stateType: 'combo',
+  buffId: 'buff_common_affixes_combo_trigger',
+  applicationScope: 'team',
+  frame: 10,
+  consumerId: 'actor-a',
+  targetId: 'enemy-shared',
+  skillId: 'skill-current',
+  rootSkillId: 'skill-current',
+  castId: 'cast:current',
+  commandType: 'NormalSkill',
+  skillType: 'NormalSkill',
+  consumedStacks: 3,
+  maxStacks: 4,
+  sourceStacks: [{ sourceId: 'combo-provider', count: 2 }, { sourceId: 'actor-a', count: 1 }],
+  grantIds: ['grant:camille', 'grant:actor'],
+  replicatedTargetIds: ['actor-a', 'combo-provider'],
+}];
+const comboContribution = {
+  contributionId: 'consumed-status:cast:current:team-combo',
+  semanticKey: 'consumed-status.combo',
+  sourceKey: 'consumed-status:cast:current:team-combo',
+  sourceType: 'ConsumedStatus',
+  sourceCategory: 'TeamState',
+  sourceId: 'combo-provider',
+  ownerId: 'actor-a',
+  carrierId: 'actor-a',
+  targetId: 'actor-a',
+  buffId: 'buff_common_affixes_combo_trigger',
+  side: 'Attacker',
+  zoneName: 'ComboCalcZone',
+  operation: 'AddRate',
+  rawField: 'ComboCalcZone',
+  rawValue: 0.6,
+  resolvedValue: 0.6,
+  addition: 0.6,
+  stackCount: 3,
+  sourceMetadata: { displayName: '连击', applicationScope: 'team' },
+};
+comboHit.factors = [{
+  factorId: 'damage-factor:combo-damage',
+  semanticKey: 'combo-damage',
+  displayName: '连击区',
+  operation: 'MultiplyZones',
+  rawValue: [{ zoneName: 'ComboCalcZone', addition: 0.6, scale: 1.6 }],
+  multiplier: 1.6,
+  finalValue: 1.6,
+  contributions: [comboContribution],
+}];
+comboReport.hits = [comboHit];
+comboReport.statusEvents = [
+  ...['actor-a', 'combo-provider'].flatMap((targetId, index) => ([{
+    ...statusBase,
+    traceIndex: 30 + index,
+    frame: 0,
+    stage: 'StatusEffectApplied',
+    instanceId: `status:team-combo:${targetId}`,
+    buffId: 'buff_common_affixes_combo_trigger',
+    targetId,
+    sourceId: 'combo-provider',
+    ownerId: 'combo-provider',
+    stackCount: 3,
+    before: 0,
+    after: 3,
+    castId: 'cast:provider',
+    displayName: '连击',
+    shortName: '连',
+    effectType: 'teamCombo',
+    applicationScope: 'team',
+  }, {
+    ...statusBase,
+    traceIndex: 32 + index,
+    frame: 10,
+    stage: 'StatusEffectFinished',
+    instanceId: `status:team-combo:${targetId}`,
+    buffId: 'buff_common_affixes_combo_trigger',
+    targetId,
+    sourceId: 'combo-provider',
+    ownerId: 'combo-provider',
+    stackCount: 0,
+    before: 3,
+    after: 0,
+    castId: 'cast:provider',
+    triggerCastId: 'cast:current',
+    consumerId: 'actor-a',
+    consumption: targetId === 'actor-a',
+    consumeKind: 'Consume',
+    triggerCommandType: 'NormalSkill',
+    displayName: '连击',
+    shortName: '连',
+    effectType: 'teamCombo',
+    applicationScope: 'team',
+  }])) as AkeRuntimeStatusEvent[],
+];
+const comboLedger = buildAkeRuntimeCommandLedger({
+  report: comboReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+});
+assert.ok(comboLedger);
+assert.deepEqual(
+  comboLedger.hits[0].statuses.filter((status) => status.buffId === 'buff_common_affixes_combo_trigger')
+    .map((status) => [status.title, status.groupLabel]),
+  [['连击 ×3', '关键战斗状态']],
+  'replicated team instances must collapse into one critical combo state per Hit',
+);
+assert.match(
+  comboLedger.hits[0].statuses.find((status) => status.buffId === 'buff_common_affixes_combo_trigger')?.detail ?? '',
+  /卡缪 2层.*测试干员 1层/,
+  'the consumed action snapshot must retain per-source attribution',
+);
+assert.equal(
+  comboLedger.hits[0].formula.buffTags.filter((buff) => (
+    buff.buffId === 'buff_common_affixes_combo_trigger'
+  )).length,
+  1,
+  'the formula must expose the pooled combo contribution exactly once',
+);
+const comboBuffTag = comboLedger.hits[0].formula.buffTags.find((buff) => (
+  buff.buffId === 'buff_common_affixes_combo_trigger'
+));
+assert.deepEqual(
+  [comboBuffTag?.label, comboBuffTag?.sourceName, comboBuffTag?.type, comboBuffTag?.stackCount],
+  ['连击', '队伍共享状态', 'teamCombo', 3],
+  'the formula Buff row must preserve shared-state identity and consumed stack count',
+);
+assert.ok(comboLedger.hits[0].formula.sectionLines?.combo?.some((line) => (
+  line.includes('连击') && line.includes('60.0%')
+)), 'the combo zone must show its real stack-derived multiplier source');
+assert.deepEqual(
+  comboLedger.statuses.filter((status) => status.buffId === 'buff_common_affixes_combo_trigger')
+    .map((status) => status.title),
+  ['连击 ×3'],
+  'the command ledger must not leak one copied combo row per teammate',
+);
+assert.deepEqual(
+  comboLedger.compactStatuses.filter((status) => status.buffId === 'buff_common_affixes_combo_trigger')
+    .map((status) => [status.label, status.stackCount, status.mainDisplay, status.applicationScope]),
+  [['连3', 3, true, 'team']],
+  'combo must be a pooled, team-scoped main-display state',
+);
+
+const activeComboReport = structuredClone(comboReport);
+activeComboReport.timeline.commands[0].commandType = 'Attack';
+activeComboReport.hits = [runtimeHit(0, null, 1, false)];
+activeComboReport.statusEvents = comboReport.statusEvents.filter((event) => (
+  event.stage === 'StatusEffectApplied'
+));
+const activeComboLedger = buildAkeRuntimeCommandLedger({
+  report: activeComboReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试普攻',
+});
+assert.deepEqual(
+  activeComboLedger?.hits[0].statuses.filter((status) => (
+    status.buffId === 'buff_common_affixes_combo_trigger'
+  )).map((status) => status.title),
+  ['连击 ×3'],
+  'a non-consuming action must see the current pooled team combo state once',
+);
+assert.deepEqual(
+  activeComboLedger?.compactStatuses.filter((status) => (
+    status.buffId === 'buff_common_affixes_combo_trigger'
+  )).map((status) => [status.label, status.tone]),
+  [['连3', 'active']],
+  'an unconsumed combo pool remains a main-display active state',
+);
+
 assert.ok(ledger.statuses.some((status) => (
   status.title === '天赋·通用叠层 ×2'
   && status.kind.includes('叠层并刷新')

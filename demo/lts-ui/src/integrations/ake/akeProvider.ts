@@ -144,6 +144,26 @@ export type AkeRuntimeAttributeSnapshot = {
   [key: string]: unknown;
 };
 
+export type AkeRuntimeConsumedStatus = {
+  key: string;
+  stateType: string;
+  buffId: string;
+  applicationScope: string;
+  frame: number;
+  consumerId: string | null;
+  targetId: string | null;
+  skillId: string | null;
+  rootSkillId: string | null;
+  castId: string;
+  commandType: string | null;
+  skillType: string | null;
+  consumedStacks: number;
+  maxStacks: number;
+  sourceStacks: Array<{ sourceId: string | null; count: number }>;
+  grantIds: Array<string | number>;
+  replicatedTargetIds: Array<string | number>;
+};
+
 export type AkeRuntimeHit = {
   hitId?: string;
   sequence?: number;
@@ -196,6 +216,7 @@ export type AkeRuntimeHit = {
     [key: string]: unknown;
   };
   operands: Record<string, number>;
+  consumedStatuses?: AkeRuntimeConsumedStatus[];
   factors?: AkeRuntimeDamageFactor[];
   factorValidation?: {
     reconstructedNonCritical: number;
@@ -253,6 +274,11 @@ export type AkeRuntimeStatusEvent = {
   requested: number | null;
   actual: number | null;
   consumedStacks?: number | null;
+  consumption?: boolean;
+  consumerId?: string | null;
+  consumeKind?: string | null;
+  triggerCommandType?: string | null;
+  triggerSkillType?: string | null;
   bySource?: Array<{ sourceId?: string | null; ownerId?: string | null; count?: number }>;
   discarded: number | null;
   after: number | null;

@@ -171,3 +171,97 @@ test('Camille enhanced battle-skill input executes the derived combo skill and g
         burst.frame >= 160 && burst.frame <= 210
     )).every(burst => burst.castId === command.castId));
 });
+
+test('real Wulfa-Camille axis re-resolves a buffered B against the active form', () => {
+    const bundle = new AkeSquadScenarioAssembler().assemble({
+        enemyId: 'eny_0007_mimicw',
+        initialAtb: 300,
+        members: [{
+            memberId: 'wulfa',
+            characterId: 'chr_0028_wulfa',
+            level: 90,
+            skillLevel: 12,
+            initialUltimateSp: 110
+        }, {
+            memberId: 'camille',
+            characterId: 'chr_0033_camille',
+            level: 90,
+            skillLevel: 12,
+            initialUltimateSp: 130
+        }]
+    });
+    // This is the shape emitted by the real frontend: it sends input intent
+    // and planned frames, but no concrete skillId and no test-only queue flag.
+    const commands = [
+        ['wulfa-b', 'wulfa', 'NormalSkill', 0],
+        ['camille-b', 'camille', 'NormalSkill', 0],
+        ['wulfa-e-1', 'wulfa', 'ComboSkill', 94],
+        ['wulfa-e-2', 'wulfa', 'ComboSkill', 151],
+        ['camille-q', 'camille', 'UltimateSkill', 159],
+        ['camille-enhanced-b', 'camille', 'NormalSkill', 292],
+        ['wulfa-q', 'wulfa', 'UltimateSkill', 316]
+    ].map(([commandId, memberId, commandType, frame]) => ({
+        commandId,
+        memberId,
+        commandType,
+        frame
+    }));
+    const result = new AkeSquadScenarioRunner(bundle).run({
+        commands,
+        endFrame: 500
+    });
+    const queued = result.commandTrace.find(entry => (
+        entry.commandId === 'camille-enhanced-b'
+        && entry.type === 'CommandQueued'
+    ));
+    const executed = result.commandTrace.find(entry => (
+        entry.commandId === 'camille-enhanced-b'
+        && entry.type === 'CommandExecuted'
+    ));
+    const hpHits = result.damageLog.filter(hit => (
+        hit.rootCastId === executed?.castId
+        && hit.damageAttributeType === 'Hp'
+    ));
+    const fireAppliedByEnhancedInput = result.statusTrace.filter(event => (
+        event.rootCastId === executed?.castId
+        && event.buffId === 'buff_common_energy_shard_attached_fire'
+        && event.stage === 'StatusEffectApplied'
+    ));
+    const comboAppliedByEnhancedInput = result.statusTrace.filter(event => (
+        event.rootCastId === executed?.castId
+        && event.buffId === TEAM_COMBO_BUFF_ID
+        && event.stage === 'StatusEffectApplied'
+    ));
+    const activeNoGuard = result.finalState.statuses.filter(status => (
+        status.active
+        && status.targetId === 'eny_0007_mimicw'
+        && status.buffId === 'buff_physical_no_guard'
+    ));
+
+    assert.equal(queued?.frame, 292, 'the input is buffered while the ultimate still owns the action center');
+    assert.equal(executed?.frame, 294, 'the buffered input executes at the native allow-next boundary');
+    assert.equal(executed?.skillId, 'chr_0033_camille_normal_skill_2');
+    assert.equal(executed?.skillSource, 'skill-form-override');
+    assert.equal(hpHits.length, 4);
+    assert.deepEqual([...new Set(hpHits.map(hit => hit.skillId))], [
+        'chr_0033_camille_combo_skill_2'
+    ]);
+    assert.deepEqual([...new Set(hpHits.map(hit => hit.effectiveSkillType))], [
+        'ComboSkill'
+    ]);
+    assert.equal(fireAppliedByEnhancedInput.length, 0);
+    assert.deepEqual(
+        [...new Set(comboAppliedByEnhancedInput.map(event => event.targetId))].sort(),
+        ['chr_0028_wulfa', 'chr_0033_camille']
+    );
+    assert.ok(activeNoGuard.length > 0, 'the pre-existing enemy No Guard state survives Camille Q and enhanced B');
+
+    const settlement = projectAkeTimeline(result).commands.find(entry => (
+        entry.commandId === 'camille-enhanced-b'
+    ));
+    assert.equal(settlement?.hitCount, 4);
+    assert.deepEqual(settlement?.executedSkillIds, [
+        'chr_0033_camille_combo_skill_2'
+    ]);
+    assert.deepEqual(settlement?.effectiveSkillTypes, ['ComboSkill']);
+});

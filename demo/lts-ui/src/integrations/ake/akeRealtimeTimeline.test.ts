@@ -2257,6 +2257,13 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
     bodyEndOffset: 10,
     tailEndOffset: 10,
     exclusiveFrames: 10,
+    commandMappings: [{
+      commandType: 'NormalSkill',
+      skillId: 'normal',
+    }, {
+      commandType: 'NormalSkill',
+      skillId: 'normal-ultimate-form',
+    }],
     formEvents: (ultimate.formEvents ?? []).map(event => ({
       ...event,
       offsetFrames: event.operation === 'apply' ? 5 : 20,

@@ -30,12 +30,25 @@ function positiveInteger(value, label) {
     return number;
 }
 
-function mappedSkill(skill, commandType) {
+function mappedSkills(skill, commandType) {
+    const skillIds = [];
     for (const cache of skill?.comboMappings ?? []) {
-        const mapping = cache.mappings?.find(candidate => candidate.command === commandType);
-        if (mapping?.skillId) return mapping.skillId;
+        for (const mapping of cache.mappings ?? []) {
+            if (mapping.command !== commandType
+                || !mapping.skillId
+                || skillIds.includes(mapping.skillId)) continue;
+            skillIds.push(mapping.skillId);
+        }
     }
-    return null;
+    return skillIds;
+}
+
+function mappedSkill(skill, commandType, preferredSkillIds = []) {
+    const skillIds = mappedSkills(skill, commandType);
+    const preferred = preferredSkillIds.find(skillId => (
+        skillId && skillIds.includes(skillId)
+    ));
+    return preferred ?? skillIds[0] ?? null;
 }
 
 function skillSlotForCommand(commandType) {
@@ -1295,7 +1308,7 @@ export class AkeSquadScenarioRunner {
                             true,
                             commandUsesSequenceQueue(queued.command)
                                 ? null
-                                : queued.skillId,
+                                : queued.command.skillId ?? null,
                             true
                         );
                     }
@@ -1315,10 +1328,6 @@ export class AkeSquadScenarioRunner {
             const explicitSkillId = forcedSkillId ?? (
                 commandUsesSequenceQueue(command) ? null : command.skillId ?? null
             );
-            const comboMappedSkillId = mappedSkill(
-                state.currentSkill?.skill,
-                command.commandType
-            );
             const skillSlot = skillSlotForCommand(command.commandType);
             const override = skillSlot ? runtime.skillForms.resolveOverride({
                 targetId: state.characterId,
@@ -1331,6 +1340,22 @@ export class AkeSquadScenarioRunner {
                     runtime.skillForms.activeModes(state.characterId)
                 )
                 : null;
+            // ComboCacheAction can register more than one concrete skill for
+            // the same input button.  It is a cache of legal successors, not
+            // an instruction to always choose the first serialized entry.
+            // Resolve the current form/mode inside that candidate set before
+            // falling back to the first mapping.  This keeps the input button
+            // (B/E/Q/A) separate from the skill that actually settles.
+            const comboMappedSkillId = mappedSkill(
+                state.currentSkill?.skill,
+                command.commandType,
+                [override?.targetSkillId, modeSkillId]
+            );
+            const comboMappingSource = comboMappedSkillId === override?.targetSkillId
+                ? 'skill-form-override'
+                : comboMappedSkillId === modeSkillId
+                    ? 'skill-mode'
+                    : 'combo-mapping';
             skillId = explicitSkillId
                 ?? comboMappedSkillId
                 ?? override?.targetSkillId
@@ -1339,7 +1364,7 @@ export class AkeSquadScenarioRunner {
             skillSource = explicitSkillId
                 ? (fromQueue ? 'next-skill-request' : 'explicit-request')
                 : comboMappedSkillId
-                    ? 'combo-mapping'
+                    ? comboMappingSource
                     : override
                         ? 'skill-form-override'
                         : modeSkillId

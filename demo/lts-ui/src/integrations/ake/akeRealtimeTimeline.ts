@@ -665,17 +665,30 @@ function resolveProfile(
     ? candidates.find(profile => profile.skillId === actor.basicComboCursor?.nextSkillId)
     : null;
   if (resumedBasic) return withResolution(resumedBasic, 'base-intent');
-  const mappedSkillId = actor.active?.profile.commandMappings?.find(mapping => (
-    mapping.commandType === input.commandType
-  ))?.skillId;
-  const mapped = mappedSkillId
-    ? profiles.find(profile => profile.skillId === mappedSkillId)
-    : null;
-  if (mapped) return withResolution(mapped, 'combo-mapping');
   const skillSlot = SKILL_SLOT_BY_COMMAND[input.commandType];
   const activeOverride = [...actor.skillOverrides.values()]
     .filter(override => override.skillSlot === skillSlot)
     .sort((left, right) => right.sequence - left.sequence)[0];
+  const mappedSkillIds = [...new Set(
+    actor.active?.profile.commandMappings?.filter(mapping => (
+      mapping.commandType === input.commandType
+    )).map(mapping => mapping.skillId) ?? [],
+  )];
+  const mappedSkillId = activeOverride
+    && mappedSkillIds.includes(activeOverride.targetSkillId)
+    ? activeOverride.targetSkillId
+    : mappedSkillIds[0];
+  const mapped = mappedSkillId
+    ? profiles.find(profile => profile.skillId === mappedSkillId)
+    : null;
+  if (mapped) {
+    return withResolution(
+      mapped,
+      mapped.skillId === activeOverride?.targetSkillId
+        ? 'skill-form-override'
+        : 'combo-mapping',
+    );
+  }
   const overridden = activeOverride
     ? profiles.find(profile => profile.skillId === activeOverride.targetSkillId)
     : null;

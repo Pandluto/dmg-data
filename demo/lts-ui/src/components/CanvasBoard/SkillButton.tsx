@@ -1163,13 +1163,24 @@ export function SkillButtonComponent({
     () => buildAkeRuntimeStatusLabelMap(getInstalledAkeCatalog()),
     [akeRuntimeReport, candidateBuffRefreshToken],
   );
+  const akeResolvedSkillDisplayName = akePreviewCommand?.profile.resolutionSource
+    && akePreviewCommand.profile.resolutionSource !== 'base-intent'
+    && !akePreviewCommand.profile.comboStage
+    ? `强化${AKE_TEMPORAL_SHORT_LABELS[skillType] ?? skillType}`
+    : displayName;
   const akeRuntimeCommandViewState = useMemo(() => buildAkeRuntimeCommandViewState({
     runtimeMode: isAkeRuntimeMode,
     report: akeRuntimeReport,
     commandId: button.id,
     labels: akeRuntimeStatusLabels,
-    skillName: displayName,
-  }), [akeRuntimeReport, akeRuntimeStatusLabels, button.id, displayName, isAkeRuntimeMode]);
+    skillName: akeResolvedSkillDisplayName,
+  }), [
+    akeResolvedSkillDisplayName,
+    akeRuntimeReport,
+    akeRuntimeStatusLabels,
+    button.id,
+    isAkeRuntimeMode,
+  ]);
   const akeRuntimeLedger = akeRuntimeCommandViewState.ledger;
   const compactTargetStateItems = useMemo(
     () => selectAkeMainTimelineStatuses(akeRuntimeLedger),
@@ -2070,7 +2081,7 @@ export function SkillButtonComponent({
     ? '（连携技结算）'
     : '';
   const detailSkillDisplayName = akePreviewCommand && akeResolvedEnhancedForm
-    ? `${akeTemporalKindLabel}${akeSettlementTypeLabel}`
+    ? `${akeResolvedSkillDisplayName}${akeSettlementTypeLabel}`
     : displayName;
   const akePreviewReleaseLabel = (() => {
     if (!akePreviewCommand) return '';

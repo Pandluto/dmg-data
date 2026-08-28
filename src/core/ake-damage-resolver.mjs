@@ -434,7 +434,9 @@ export function createAkeDamageResolver({
                     runtime.effectSources,
                     sourceId,
                     unit.damageType,
-                    eventContext.commandType ?? eventContext.skillType,
+                    eventContext.effectiveSkillType
+                        ?? eventContext.skillType
+                        ?? eventContext.commandType,
                     eventContext
                 )
             );
@@ -468,9 +470,11 @@ export function createAkeDamageResolver({
                     damageDecorateMask: Number(unit.damageDecorateMask ?? 0)
                 }
             });
-            const commandType = eventContext.commandType
-                ?? eventContext.payload?.commandType
-                ?? eventContext.skillType;
+            const commandType = eventContext.effectiveSkillType
+                ?? eventContext.skillType
+                ?? eventContext.payload?.skillType
+                ?? eventContext.commandType
+                ?? eventContext.payload?.commandType;
             const resistanceEntry = firstFiniteAttributeEntry(runtime.context, targetId, [
                 `${unit.damageType}Resistance`,
                 `${unit.damageType}Res`,

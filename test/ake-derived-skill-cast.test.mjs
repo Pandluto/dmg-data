@@ -5,6 +5,9 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { AkeActionCompiler } from '../src/core/ake-action-compiler.mjs';
+import { AkeSquadScenarioAssembler } from '../src/core/ake-squad-scenario-assembler.mjs';
+import { AkeSquadScenarioRunner } from '../src/core/ake-squad-scenario-runner.mjs';
+import { TEAM_COMBO_BUFF_ID } from '../src/core/combat-runtime.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const readJson = relativePath => JSON.parse(fs.readFileSync(
@@ -89,4 +92,60 @@ test('the same CastSkill compiler route covers Liino without an operator branch'
     assert.equal(launch?.targetRef, 'Source');
     assert.equal(launch?.skipApplyCost, true);
     assert.equal(launch?.inheritSourceSkillCastId, false);
+});
+
+test('Camille enhanced battle-skill input executes the derived combo skill and grants combo on its real final hit', () => {
+    const bundle = new AkeSquadScenarioAssembler().assemble({
+        enemyId: 'eny_0007_mimicw',
+        initialAtb: 300,
+        members: [{
+            memberId: 'camille',
+            characterId: 'chr_0033_camille',
+            level: 90,
+            skillLevel: 12,
+            initialUltimateSp: 130
+        }]
+    });
+    const result = new AkeSquadScenarioRunner(bundle).run({
+        commands: [{
+            commandId: 'camille-ultimate',
+            memberId: 'camille',
+            commandType: 'UltimateSkill',
+            frame: 0
+        }, {
+            commandId: 'camille-enhanced-skill',
+            memberId: 'camille',
+            commandType: 'NormalSkill',
+            frame: 140
+        }],
+        endFrame: 250
+    });
+    const command = result.commandTrace.find(entry => (
+        entry.commandId === 'camille-enhanced-skill'
+        && entry.type === 'CommandExecuted'
+    ));
+    const hits = result.damageLog.filter(hit => hit.rootCastId === command?.castId);
+    const hpHits = hits.filter(hit => hit.damageAttributeType === 'Hp');
+    const combo = result.statusTrace.find(event => (
+        event.buffId === TEAM_COMBO_BUFF_ID
+        && event.stage === 'StatusEffectApplied'
+        && event.rootCastId === command?.castId
+    ));
+
+    assert.equal(command?.commandType, 'NormalSkill');
+    assert.equal(command?.skillId, 'chr_0033_camille_normal_skill_2');
+    assert.equal(hpHits.length, 4);
+    assert.deepEqual([...new Set(hpHits.map(hit => hit.skillId))], [
+        'chr_0033_camille_combo_skill_2'
+    ]);
+    assert.deepEqual([...new Set(hpHits.map(hit => hit.inputCommandType))], [
+        'NormalSkill'
+    ]);
+    assert.deepEqual([...new Set(hpHits.map(hit => hit.effectiveSkillType))], [
+        'ComboSkill'
+    ]);
+    assert.ok(hpHits.every(hit => hit.castId !== command.castId));
+    assert.equal(combo?.frame, hpHits.at(-1)?.frame);
+    assert.equal(combo?.effectiveSkillType, 'ComboSkill');
+    assert.equal(combo?.stackCount, 1);
 });

@@ -125,6 +125,7 @@ export class CombatRuntime {
         skillProgramResolver = null,
         timeDilationResolver = null,
         skillInterruptResolver = null,
+        onDerivedSkillCast = null,
         comboPendingTimeResolver = null,
         comboPendingTriggerResolver = null,
         onStatusTransition = null,
@@ -147,6 +148,9 @@ export class CombatRuntime {
         if (skillInterruptResolver !== null && typeof skillInterruptResolver !== 'function') {
             throw new TypeError('skillInterruptResolver must be a function or null.');
         }
+        if (onDerivedSkillCast !== null && typeof onDerivedSkillCast !== 'function') {
+            throw new TypeError('onDerivedSkillCast must be a function or null.');
+        }
         if (comboPendingTimeResolver !== null
             && typeof comboPendingTimeResolver !== 'function') {
             throw new TypeError('comboPendingTimeResolver must be a function or null.');
@@ -162,6 +166,7 @@ export class CombatRuntime {
         this.skillProgramResolver = skillProgramResolver;
         this.timeDilationResolver = timeDilationResolver;
         this.skillInterruptResolver = skillInterruptResolver;
+        this.onDerivedSkillCast = onDerivedSkillCast;
         this.comboPendingTimeResolver = comboPendingTimeResolver;
         this.comboPendingTriggerResolver = comboPendingTriggerResolver;
         this.tickRate = finite(tickRate, 'tickRate');
@@ -178,6 +183,7 @@ export class CombatRuntime {
         this.pendingEvents = [];
         this.nextEventSequence = 1;
         this.nextProgramSequence = 1;
+        this.nextDerivedSkillCastSequence = 1;
         this.nextIntervalSequence = 1;
         this.nextAbilityEntitySequence = 1;
         this.nextDamageHitSequence = 1;
@@ -1036,9 +1042,11 @@ export class CombatRuntime {
                             this.programExecutions.get(executionId)?.blackboard
                                 ?? context.blackboard
                         ),
-                        eventType: phase === 'start'
-                            ? 'SkillTimelineGroupStarted'
-                            : 'SkillTimelineGroupEnded'
+                        eventType: phase === 'cast-start'
+                            ? 'SkillCastStarted'
+                            : phase === 'start'
+                                ? 'SkillTimelineGroupStarted'
+                                : 'SkillTimelineGroupEnded'
                     });
                     const activeExecution = this.programExecutions.get(executionId);
                     if (activeExecution) {
@@ -1059,6 +1067,19 @@ export class CombatRuntime {
             execution.scheduled.push(scheduledPhase);
         };
         execution.scheduleFrom = (originFrame, timelineOrigin, generation) => {
+            if (timelineOrigin === 0 && Array.isArray(execution.program.castStartActions)
+                && execution.program.castStartActions.length > 0) {
+                schedulePhase(
+                    { groupIndex: 'cast-start' },
+                    'cast-start',
+                    0,
+                    0,
+                    execution.program.castStartActions,
+                    originFrame,
+                    timelineOrigin,
+                    generation
+                );
+            }
             for (const group of execution.program.timeline) {
                 // Skill timeline effects precede the frame's passive resource
                 // tick and input commands.
@@ -1546,6 +1567,15 @@ export class CombatRuntime {
             skillId: eventContext.skillId ?? null,
             rootSkillId: eventContext.rootSkillId ?? null,
             castId: eventContext.castId ?? null,
+            rootCastId: eventContext.rootCastId ?? eventContext.castId ?? null,
+            parentCastId: eventContext.parentCastId ?? null,
+            inputSkillId: eventContext.inputSkillId ?? eventContext.rootSkillId ?? null,
+            inputCommandType: eventContext.inputCommandType
+                ?? eventContext.commandType
+                ?? null,
+            effectiveSkillType: eventContext.effectiveSkillType
+                ?? eventContext.skillType
+                ?? null,
             buffInstanceId: eventContext.buffInstanceId ?? null,
             clockDomainId: eventContext.clockDomainId ?? null,
             reason: extra.reason ?? eventContext.reason ?? stage,
@@ -4283,24 +4313,48 @@ export class CombatRuntime {
                 }, eventContext);
             },
             LaunchSkillProgram: (action, eventContext) => {
+                const childSkillId = action.childSkillId
+                    ?? this.#value(action.childSkillIdDescriptor, eventContext, null);
                 if (!this.skillProgramResolver) {
                     return {
                         status: 'Unresolved',
                         reason: 'MissingSkillProgramResolver',
-                        childSkillId: action.childSkillId
+                        childSkillId
                     };
                 }
-                if (action.childSkillId === eventContext.skillId) {
+                if (childSkillId === null || childSkillId === undefined
+                    || String(childSkillId).length === 0) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'ChildSkillIdUnresolved',
+                        childSkillId: null
+                    };
+                }
+                if (childSkillId === eventContext.skillId) {
                     return {
                         status: 'Ignored',
                         reason: 'SelfReferentialSkillProgram',
-                        childSkillId: action.childSkillId
+                        childSkillId
                     };
                 }
+                const derivedCast = action.launchKind === 'CastSkill';
+                const casterId = derivedCast
+                    ? this.#entityId(action.casterRef ?? 'Owner', eventContext, 'Owner')
+                    : eventContext.sourceId;
+                const targetId = derivedCast
+                    ? this.#entityId(action.targetRef ?? 'Target', eventContext, 'Target')
+                    : eventContext.targetId;
+                const resolverContext = this.context.createEventContext({
+                    ...cloneValue(eventContext),
+                    sourceId: casterId ?? eventContext.sourceId,
+                    ownerId: casterId ?? eventContext.ownerId,
+                    targetId: targetId ?? eventContext.targetId,
+                    skillId: childSkillId
+                });
                 const resolution = this.skillProgramResolver({
-                    skillId: action.childSkillId,
+                    skillId: childSkillId,
                     action: cloneValue(action),
-                    eventContext: cloneValue(eventContext),
+                    eventContext: cloneValue(resolverContext),
                     runtime: this
                 });
                 const program = isRecord(resolution?.program)
@@ -4310,7 +4364,7 @@ export class CombatRuntime {
                     return {
                         status: 'Unresolved',
                         reason: 'SkillProgramNotFound',
-                        childSkillId: action.childSkillId
+                        childSkillId
                     };
                 }
                 const assigned = this.#assignedBlackboard(
@@ -4357,26 +4411,102 @@ export class CombatRuntime {
                     'launchDelayTicks'
                 );
                 const launchFrame = eventContext.frame + launchDelayTicks;
-                const childCastId = spawnedAbilityEntityId === null
-                    ? eventContext.castId
-                    : `ability-entity-cast:${spawnedAbilityEntityId}`;
+                const inputCommandType = eventContext.inputCommandType
+                    ?? eventContext.commandType
+                    ?? null;
+                const inputSkillId = eventContext.inputSkillId
+                    ?? eventContext.rootSkillId
+                    ?? eventContext.skillId
+                    ?? null;
+                const effectiveSkillType = program.effectiveSkillType
+                    ?? eventContext.effectiveSkillType
+                    ?? eventContext.skillType
+                    ?? inputCommandType;
+                const rootCastId = eventContext.rootCastId
+                    ?? eventContext.castId
+                    ?? null;
+                const parentCastId = eventContext.castId ?? null;
+                const childCastId = derivedCast
+                    ? action.inheritSourceSkillCastId
+                        ? parentCastId
+                        : [
+                            'derived-cast',
+                            String(casterId ?? 'unknown'),
+                            String(childSkillId),
+                            this.nextDerivedSkillCastSequence++
+                        ].join(':')
+                    : spawnedAbilityEntityId === null
+                        ? eventContext.castId
+                        : `ability-entity-cast:${spawnedAbilityEntityId}`;
+                let cost = null;
+                const costValue = Number(program.costValue ?? 0);
+                if (derivedCast && action.skipApplyCost !== true && costValue > 0) {
+                    const costType = program.costType;
+                    const poolRef = costType === 'Atb'
+                        ? { resourceType: costType, scope: 'Shared', ownerId: null }
+                        : { resourceType: costType, scope: 'Entity', ownerId: casterId };
+                    if (!this.resources.canPay(poolRef, costValue, launchFrame)) {
+                        return {
+                            status: 'Ignored',
+                            reason: 'InsufficientDerivedSkillResource',
+                            childSkillId,
+                            casterId,
+                            targetId,
+                            costType,
+                            costValue
+                        };
+                    }
+                    cost = this.resources.spend({
+                        frame: launchFrame,
+                        poolRef,
+                        amount: costValue,
+                        sourceId: casterId,
+                        ownerId: casterId,
+                        targetId: costType === 'Atb' ? null : casterId,
+                        reason: 'DerivedSkillCastCost',
+                        commandId: eventContext.commandId ?? null,
+                        castId: childCastId,
+                        skillId: childSkillId,
+                        resourceSourceType: 'Skill',
+                        resourceGainMethod: 'Spend'
+                    });
+                }
                 const scheduled = this.scheduleProgram(program, {
                     ...cloneValue(eventContext),
                     frame: launchFrame,
-                    eventType: 'ChildSkillProgramStarted',
+                    eventType: derivedCast
+                        ? 'DerivedSkillProgramStarted'
+                        : 'ChildSkillProgramStarted',
                     resolveSkillActionLifetimes: false,
                     // Projectile programs are phases of the originating cast.
                     // SpawnAbilityEntity creates a distinct ActionOwner whose
                     // actions must survive the parent character skill ending.
-                    ownerId: spawnedAbilityEntityId ?? eventContext.ownerId,
-                    carrierId: spawnedAbilityEntityId ?? eventContext.carrierId,
+                    sourceId: derivedCast ? casterId : eventContext.sourceId,
+                    ownerId: derivedCast
+                        ? casterId
+                        : spawnedAbilityEntityId ?? eventContext.ownerId,
+                    targetId: derivedCast ? targetId : eventContext.targetId,
+                    carrierId: derivedCast
+                        ? casterId
+                        : spawnedAbilityEntityId ?? eventContext.carrierId,
                     damageSourceId: eventContext.damageSourceId
+                        ?? casterId
                         ?? eventContext.sourceId,
-                    skillId: action.childSkillId,
+                    inputCommandType,
+                    inputSkillId,
+                    commandType: derivedCast ? inputCommandType : eventContext.commandType,
+                    skillType: derivedCast ? effectiveSkillType : eventContext.skillType,
+                    effectiveSkillType: derivedCast
+                        ? effectiveSkillType
+                        : eventContext.effectiveSkillType,
+                    skillId: childSkillId,
                     rootSkillId: eventContext.rootSkillId
                         ?? eventContext.skillId
-                        ?? action.childSkillId,
+                        ?? childSkillId,
                     castId: childCastId,
+                    rootCastId,
+                    parentCastId: derivedCast ? parentCastId : eventContext.parentCastId,
+                    parentSkillId: derivedCast ? eventContext.skillId : eventContext.parentSkillId,
                     blackboard: {
                         ...(action.inheritBlackboard === false
                             ? {}
@@ -4384,16 +4514,52 @@ export class CombatRuntime {
                         ...assigned
                     }
                 });
+                let cooldown = null;
+                if (derivedCast && Number(program.cooldownTicks) > 0) {
+                    cooldown = this.cooldowns.start({
+                        frame: launchFrame,
+                        actorId: casterId,
+                        skillId: childSkillId,
+                        skillType: effectiveSkillType,
+                        durationTicks: Number(program.cooldownTicks),
+                        commandId: eventContext.commandId ?? null,
+                        castId: childCastId,
+                        reason: 'DerivedSkillCast'
+                    });
+                }
+                const derivedCastEvent = derivedCast ? {
+                    status: 'Scheduled',
+                    launchFrame,
+                    casterId,
+                    targetId,
+                    inputCommandType,
+                    inputSkillId,
+                    executedSkillId: childSkillId,
+                    effectiveSkillType,
+                    rootCastId,
+                    parentCastId,
+                    childCastId,
+                    program: cloneValue(program),
+                    scheduled: cloneValue(scheduled),
+                    cost: cloneValue(cost),
+                    cooldown: cloneValue(cooldown)
+                } : null;
+                const derivedCastObserver = derivedCast && this.onDerivedSkillCast
+                    ? this.onDerivedSkillCast(cloneValue(derivedCastEvent))
+                    : null;
                 return {
                     status: 'Scheduled',
-                    childSkillId: action.childSkillId,
+                    childSkillId,
+                    launchKind: action.launchKind ?? null,
                     projectileId: action.projectileId ?? null,
                     abilityEntityId: action.abilityEntityId ?? null,
                     projectileTerminalEvent: action.projectileTerminalEvent ?? null,
                     spawnedAbilityEntityId,
                     launchFrame,
                     launchDelayTicks,
-                    scheduled
+                    scheduled,
+                    derivedCast: derivedCastEvent,
+                    derivedCastObserver
                 };
             },
             ScheduleIntervalActions: (action, eventContext) => (

@@ -229,6 +229,24 @@ export class StatusEffectSystem {
                 sourceSkillId: input.sourceSkillId ?? eventContext.skillId ?? null,
                 rootSkillId: input.rootSkillId ?? eventContext.rootSkillId ?? null,
                 castId: input.castId ?? eventContext.castId ?? null,
+                rootCastId: input.rootCastId
+                    ?? eventContext.rootCastId
+                    ?? input.castId
+                    ?? eventContext.castId
+                    ?? null,
+                parentCastId: input.parentCastId ?? eventContext.parentCastId ?? null,
+                inputSkillId: input.inputSkillId
+                    ?? eventContext.inputSkillId
+                    ?? eventContext.rootSkillId
+                    ?? null,
+                inputCommandType: input.inputCommandType
+                    ?? eventContext.inputCommandType
+                    ?? eventContext.commandType
+                    ?? null,
+                effectiveSkillType: input.effectiveSkillType
+                    ?? eventContext.effectiveSkillType
+                    ?? eventContext.skillType
+                    ?? null,
                 transactionId: input.transactionId ?? eventContext.transactionId ?? null,
                 parentEventId: input.parentEventId ?? eventContext.parentEventId ?? null,
                 parentHitId: input.parentHitId ?? eventContext.parentHitId ?? null,
@@ -253,6 +271,24 @@ export class StatusEffectSystem {
             sourceSkillId: input.sourceSkillId ?? eventContext.skillId ?? null,
             rootSkillId: input.rootSkillId ?? eventContext.rootSkillId ?? null,
             castId: input.castId ?? eventContext.castId ?? null,
+            rootCastId: input.rootCastId
+                ?? eventContext.rootCastId
+                ?? input.castId
+                ?? eventContext.castId
+                ?? null,
+            parentCastId: input.parentCastId ?? eventContext.parentCastId ?? null,
+            inputSkillId: input.inputSkillId
+                ?? eventContext.inputSkillId
+                ?? eventContext.rootSkillId
+                ?? null,
+            inputCommandType: input.inputCommandType
+                ?? eventContext.inputCommandType
+                ?? eventContext.commandType
+                ?? null,
+            effectiveSkillType: input.effectiveSkillType
+                ?? eventContext.effectiveSkillType
+                ?? eventContext.skillType
+                ?? null,
             commandType: input.commandType ?? eventContext.commandType
                 ?? eventContext.payload?.commandType ?? null,
             skillType: input.skillType ?? eventContext.skillType
@@ -1039,6 +1075,8 @@ export class StatusEffectSystem {
             triggerSkillId: eventContext.skillId ?? null,
             triggerRootSkillId: eventContext.rootSkillId ?? null,
             triggerCastId: eventContext.castId ?? null,
+            triggerRootCastId: eventContext.rootCastId ?? eventContext.castId ?? null,
+            triggerParentCastId: eventContext.parentCastId ?? null,
             triggerCommandType: eventContext.commandType
                 ?? eventContext.payload?.commandType
                 ?? null,
@@ -1651,6 +1689,23 @@ export class StatusEffectSystem {
             skillId: incomingContext.skillId ?? instance.sourceSkillId,
             rootSkillId: incomingContext.rootSkillId ?? instance.rootSkillId,
             castId: incomingContext.castId ?? instance.castId,
+            rootCastId: incomingContext.rootCastId
+                ?? instance.rootCastId
+                ?? incomingContext.castId
+                ?? instance.castId,
+            parentCastId: incomingContext.parentCastId ?? instance.parentCastId ?? null,
+            inputSkillId: incomingContext.inputSkillId
+                ?? instance.inputSkillId
+                ?? incomingContext.rootSkillId
+                ?? instance.rootSkillId,
+            inputCommandType: incomingContext.inputCommandType
+                ?? instance.inputCommandType
+                ?? incomingContext.commandType
+                ?? instance.commandType,
+            effectiveSkillType: incomingContext.effectiveSkillType
+                ?? instance.effectiveSkillType
+                ?? incomingContext.skillType
+                ?? instance.skillType,
             commandType: incomingContext.commandType
                 ?? incomingContext.payload?.commandType
                 ?? instance.commandType,
@@ -1729,6 +1784,11 @@ export class StatusEffectSystem {
             commandType: instance.commandType,
             skillType: instance.skillType,
             castId: instance.castId,
+            rootCastId: instance.rootCastId ?? instance.castId,
+            parentCastId: instance.parentCastId ?? null,
+            inputSkillId: instance.inputSkillId ?? instance.rootSkillId,
+            inputCommandType: instance.inputCommandType ?? instance.commandType,
+            effectiveSkillType: instance.effectiveSkillType ?? instance.skillType,
             clockDomainId: instance.clockDomainId,
             actionClockDomainId: instance.actionClockDomainId ?? instance.clockDomainId,
             ruleId: instance.ruleId,

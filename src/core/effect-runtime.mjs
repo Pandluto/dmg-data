@@ -326,6 +326,15 @@ export class EffectRuntime {
             skillId: eventContext?.skillId ?? null,
             rootSkillId: eventContext?.rootSkillId ?? null,
             castId: eventContext?.castId ?? null,
+            rootCastId: eventContext?.rootCastId ?? eventContext?.castId ?? null,
+            parentCastId: eventContext?.parentCastId ?? null,
+            inputSkillId: eventContext?.inputSkillId ?? eventContext?.rootSkillId ?? null,
+            inputCommandType: eventContext?.inputCommandType
+                ?? eventContext?.commandType
+                ?? null,
+            effectiveSkillType: eventContext?.effectiveSkillType
+                ?? eventContext?.skillType
+                ?? null,
             buffInstanceId: eventContext?.buffInstanceId ?? null,
             clockDomainId: eventContext?.clockDomainId ?? null,
             transactionId: eventContext?.transactionId ?? null,
@@ -344,6 +353,15 @@ export class EffectRuntime {
         record.skillId = eventContext?.skillId ?? null;
         record.rootSkillId = eventContext?.rootSkillId ?? null;
         record.castId = eventContext?.castId ?? null;
+        record.rootCastId = eventContext?.rootCastId ?? eventContext?.castId ?? null;
+        record.parentCastId = eventContext?.parentCastId ?? null;
+        record.inputSkillId = eventContext?.inputSkillId ?? eventContext?.rootSkillId ?? null;
+        record.inputCommandType = eventContext?.inputCommandType
+            ?? eventContext?.commandType
+            ?? null;
+        record.effectiveSkillType = eventContext?.effectiveSkillType
+            ?? eventContext?.skillType
+            ?? null;
         record.buffInstanceId = eventContext?.buffInstanceId ?? null;
         record.clockDomainId = eventContext?.clockDomainId ?? null;
         record.transactionId = eventContext?.transactionId ?? null;

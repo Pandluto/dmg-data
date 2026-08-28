@@ -100,6 +100,11 @@ function damageLogFromTrace(trace, statusTrace = []) {
                 skillId: entry.skillId,
                 rootSkillId: entry.rootSkillId,
                 castId: entry.castId,
+                rootCastId: entry.rootCastId ?? entry.castId,
+                parentCastId: entry.parentCastId ?? null,
+                inputSkillId: entry.inputSkillId ?? entry.rootSkillId,
+                inputCommandType: entry.inputCommandType ?? null,
+                effectiveSkillType: entry.effectiveSkillType ?? null,
                 buffInstanceId: entry.buffInstanceId ?? null,
                 sourceBuffId: buffIdByInstanceId.get(entry.buffInstanceId) ?? null,
                 reason: entry.reason ?? entry.action?.reason ?? null,
@@ -216,6 +221,7 @@ export class AkeScenarioRunner {
         const queuedCommands = new Map();
         const seenClockTriggers = new Set();
         let resolveSkillInterrupt = null;
+        let resolveDerivedSkillCast = null;
         const rootSkillRolesFor = rootSkillId => (
             bundle.roles?.heavyAttackId === rootSkillId ? ['heavy-attack'] : []
         );
@@ -229,7 +235,9 @@ export class AkeScenarioRunner {
                 sourceSkillId: transition.sourceSkillId,
                 rootSkillId: transition.rootSkillId,
                 rootSkillRoles: rootSkillRolesFor(transition.rootSkillId),
-                sourceCommandType: transition.commandType
+                sourceCommandType: transition.effectiveSkillType
+                    ?? transition.skillType
+                    ?? transition.commandType
                     ?? currentSkill?.commandType
                     ?? null,
                 sourceCastId: transition.castId,
@@ -319,7 +327,9 @@ export class AkeScenarioRunner {
                     sourceSkillId: parameters.eventContext.skillId,
                     rootSkillId: parameters.eventContext.rootSkillId,
                     rootSkillRoles: rootSkillRolesFor(parameters.eventContext.rootSkillId),
-                    sourceCommandType: parameters.eventContext.commandType
+                    sourceCommandType: parameters.eventContext.effectiveSkillType
+                        ?? parameters.eventContext.skillType
+                        ?? parameters.eventContext.commandType
                         ?? currentSkill?.commandType
                         ?? null,
                     sourceCastId: parameters.eventContext.castId,
@@ -346,6 +356,10 @@ export class AkeScenarioRunner {
             ),
             timeDilationResolver: this.timeDilationResolver,
             skillInterruptResolver: request => resolveSkillInterrupt?.(request) ?? ({
+                status: 'Ignored',
+                reason: 'CommandStateNotReady'
+            }),
+            onDerivedSkillCast: request => resolveDerivedSkillCast?.(request) ?? ({
                 status: 'Ignored',
                 reason: 'CommandStateNotReady'
             }),
@@ -471,6 +485,11 @@ export class AkeScenarioRunner {
             if (active?.scheduled?.castId) {
                 runtime.cancelCastPrograms(active.scheduled.castId, frame, reason);
             }
+            for (const derived of active?.derivedCasts ?? []) {
+                if (derived.childCastId) {
+                    runtime.cancelCastPrograms(derived.childCastId, frame, reason);
+                }
+            }
             if (active?.naturalEndTimerId) {
                 runtime.clockDomains.cancelTimer(
                     actorClockDomainId,
@@ -498,8 +517,12 @@ export class AkeScenarioRunner {
                 skillId: finished.skillId,
                 rootSkillId: finished.skillId,
                 castId: finished.castId,
+                rootCastId: finished.castId,
+                inputSkillId: finished.inputSkillId ?? finished.skillId,
+                inputCommandType: finished.commandType,
+                effectiveSkillType: finished.effectiveSkillType ?? finished.commandType,
                 commandType: finished.commandType,
-                skillType: finished.commandType,
+                skillType: finished.effectiveSkillType ?? finished.commandType,
                 clockDomainId: actorClockDomainId
             });
             if (completion !== 'Completed') {
@@ -518,8 +541,12 @@ export class AkeScenarioRunner {
                 skillId: finished.skillId,
                 rootSkillId: finished.skillId,
                 castId: finished.castId,
+                rootCastId: finished.castId,
+                inputSkillId: finished.inputSkillId ?? finished.skillId,
+                inputCommandType: finished.commandType,
+                effectiveSkillType: finished.effectiveSkillType ?? finished.commandType,
                 commandType: finished.commandType,
-                skillType: finished.commandType,
+                skillType: finished.effectiveSkillType ?? finished.commandType,
                 clockDomainId: actorClockDomainId
             });
             if (finished.commandType === 'BreakingAttack') {
@@ -578,6 +605,7 @@ export class AkeScenarioRunner {
                 );
             }
             active.naturalEndGeneration += 1;
+            active.plannedNaturalEndFrame = frame + Math.max(0, Math.trunc(durationTicks));
             const timerId = `command-skill:${active.token}:natural-end:${active.naturalEndGeneration}`;
             active.naturalEndTimerId = runtime.clockDomains.startTimer(
                 actorClockDomainId,
@@ -603,6 +631,56 @@ export class AkeScenarioRunner {
                     }
                 }
             );
+        };
+        resolveDerivedSkillCast = request => {
+            const active = currentSkill;
+            if (!active) {
+                return { status: 'Ignored', reason: 'NoActiveCommandSkill' };
+            }
+            if (request.casterId !== characterId) {
+                return { status: 'Ignored', reason: 'DerivedSkillCasterMismatch' };
+            }
+            if (request.rootCastId !== active.castId
+                && request.parentCastId !== active.castId) {
+                return {
+                    status: 'Ignored',
+                    reason: 'DerivedSkillRootCastMismatch',
+                    activeCastId: active.castId,
+                    rootCastId: request.rootCastId,
+                    parentCastId: request.parentCastId
+                };
+            }
+            const derived = {
+                childCastId: request.childCastId,
+                parentCastId: request.parentCastId,
+                inputSkillId: request.inputSkillId,
+                executedSkillId: request.executedSkillId,
+                effectiveSkillType: request.effectiveSkillType,
+                launchFrame: request.launchFrame,
+                scheduled: clone(request.scheduled)
+            };
+            active.derivedCasts.push(derived);
+            active.executedSkillId = request.executedSkillId;
+            active.effectiveSkillType = request.effectiveSkillType;
+            const derivedEndFrame = request.launchFrame
+                + skillNaturalEndOffset(request.program);
+            if (derivedEndFrame > (active.plannedNaturalEndFrame ?? active.startFrame)) {
+                scheduleNaturalEnd(
+                    active,
+                    request.launchFrame,
+                    skillNaturalEndOffset(request.program),
+                    `DerivedSkill:${String(request.executedSkillId)}`
+                );
+            }
+            return {
+                status: 'Attached',
+                characterId,
+                rootCastId: active.castId,
+                childCastId: request.childCastId,
+                executedSkillId: request.executedSkillId,
+                effectiveSkillType: request.effectiveSkillType,
+                naturalEndFrame: active.plannedNaturalEndFrame
+            };
         };
         const beginSkill = (frame, commandType, skillId, skillSource, commandId = null) => {
             const skill = runtime.resolveSkillProgram(bundle.programs.get(skillId), {
@@ -656,8 +734,12 @@ export class AkeScenarioRunner {
                 targetId: enemyId,
                 skillId,
                 rootSkillId: skillId,
+                rootCastId: castId,
+                inputSkillId: skillId,
+                inputCommandType: commandType,
+                effectiveSkillType: skill.effectiveSkillType ?? commandType,
                 commandType,
-                skillType: commandType,
+                skillType: skill.effectiveSkillType ?? commandType,
                 castId,
                 clockDomainId: actorClockDomainId
             });
@@ -674,8 +756,12 @@ export class AkeScenarioRunner {
                 targetId: enemyId,
                 skillId,
                 rootSkillId: skillId,
+                rootCastId: castId,
+                inputSkillId: skillId,
+                inputCommandType: commandType,
+                effectiveSkillType: skill.effectiveSkillType ?? commandType,
                 commandType,
-                skillType: commandType,
+                skillType: skill.effectiveSkillType ?? commandType,
                 castId,
                 clockDomainId: actorClockDomainId,
                 payload: { commandType, skillType: commandType }
@@ -687,8 +773,12 @@ export class AkeScenarioRunner {
                 targetId: enemyId,
                 skillId,
                 rootSkillId: skillId,
+                rootCastId: castId,
+                inputSkillId: skillId,
+                inputCommandType: commandType,
+                effectiveSkillType: skill.effectiveSkillType ?? commandType,
                 commandType,
-                skillType: commandType,
+                skillType: skill.effectiveSkillType ?? commandType,
                 castId,
                 clockDomainId: actorClockDomainId,
                 skillActionLifetimesResolved: true,
@@ -717,6 +807,9 @@ export class AkeScenarioRunner {
                 commandId,
                 castId,
                 skillId,
+                inputSkillId: skillId,
+                executedSkillId: skillId,
+                effectiveSkillType: skill.effectiveSkillType ?? commandType,
                 skill,
                 commandType,
                 startFrame: frame,
@@ -728,7 +821,9 @@ export class AkeScenarioRunner {
                 priority: commandProfile.priority,
                 scheduled,
                 naturalEndTimerId: null,
-                naturalEndGeneration: 0
+                naturalEndGeneration: 0,
+                plannedNaturalEndFrame: null,
+                derivedCasts: []
             };
 
             const cost = Number(skill.costValue ?? 0);

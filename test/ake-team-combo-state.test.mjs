@@ -9,6 +9,7 @@ import { createAkeDamageResolver } from '../src/core/ake-damage-resolver.mjs';
 import { AkeSquadScenarioAssembler } from '../src/core/ake-squad-scenario-assembler.mjs';
 import { AkeSquadScenarioRunner } from '../src/core/ake-squad-scenario-runner.mjs';
 import { CombatRuntime, TEAM_COMBO_BUFF_ID } from '../src/core/combat-runtime.mjs';
+import { simulateSquadDemo } from '../demo/demo-service.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const readJson = relativePath => JSON.parse(fs.readFileSync(
@@ -54,6 +55,99 @@ test('real Camille combo stages compile ComboAction and DoOnceAction as shared p
         )),
         false
     );
+});
+
+test('real Camille field grants shared combo before Wulfa ultimate consumes it', () => {
+    const result = simulateSquadDemo({
+        enemyId: 'eny_0007_mimicw',
+        members: [{
+            memberId: 'wulfa',
+            characterId: 'chr_0028_wulfa',
+            level: 90,
+            skillLevel: 12,
+            initialUltimateSp: 110
+        }, {
+            memberId: 'camille',
+            characterId: 'chr_0033_camille',
+            level: 90,
+            skillLevel: 12,
+            initialUltimateSp: 130
+        }],
+        commands: [{
+            commandId: 'wulfa-skill',
+            memberId: 'wulfa',
+            commandType: 'NormalSkill',
+            frame: 0,
+            queueMode: 'timeline-sequence'
+        }, {
+            commandId: 'camille-skill',
+            memberId: 'camille',
+            commandType: 'NormalSkill',
+            frame: 0,
+            queueMode: 'timeline-sequence'
+        }, {
+            commandId: 'wulfa-combo-1',
+            memberId: 'wulfa',
+            commandType: 'ComboSkill',
+            frame: 94,
+            queueMode: 'timeline-sequence'
+        }, {
+            commandId: 'wulfa-combo-2',
+            memberId: 'wulfa',
+            commandType: 'ComboSkill',
+            frame: 151,
+            queueMode: 'timeline-sequence'
+        }, {
+            commandId: 'camille-combo',
+            memberId: 'camille',
+            commandType: 'ComboSkill',
+            frame: 159,
+            queueMode: 'timeline-sequence'
+        }, {
+            commandId: 'wulfa-ultimate',
+            memberId: 'wulfa',
+            commandType: 'UltimateSkill',
+            frame: 212,
+            queueMode: 'timeline-sequence'
+        }],
+        endFrame: 380
+    });
+    const weakEvents = result.statusEvents.filter(event => (
+        event.buffId === 'buff_chr_0033_camille_normal_skill_weak'
+    ));
+    assert.deepEqual(weakEvents.map(event => [event.frame, event.stage]), [
+        [12, 'StatusEffectApplied']
+    ]);
+
+    const comboEvents = result.statusEvents.filter(event => (
+        event.buffId === TEAM_COMBO_BUFF_ID
+    ));
+    assert.deepEqual(comboEvents.filter(event => (
+        event.stage === 'StatusEffectApplied'
+    )).map(event => [event.frame, event.targetId]).sort(), [
+        [206, 'chr_0028_wulfa'],
+        [206, 'chr_0033_camille']
+    ]);
+    assert.deepEqual(comboEvents.filter(event => (
+        event.stage === 'StatusEffectFinished'
+    )).map(event => [event.frame, event.targetId]).sort(), [
+        [212, 'chr_0028_wulfa'],
+        [212, 'chr_0033_camille']
+    ]);
+
+    const ultimateHit = result.hits.find(hit => (
+        hit.rootSkillId === 'chr_0028_wulfa_ultimate_skill'
+        && hit.atkScale > 0
+    ));
+    assert.deepEqual(ultimateHit?.consumedStatuses?.map(status => [
+        status.stateType,
+        status.buffId,
+        status.consumedStacks,
+        status.applicationScope
+    ]), [['combo', TEAM_COMBO_BUFF_ID, 1, 'team']]);
+    assert.equal(ultimateHit?.factors?.some(factor => (
+        factor.semanticKey === 'combo-damage'
+    )), true);
 });
 
 test('team combo grant triggers the real weapon listener once and consumes atomically', () => {

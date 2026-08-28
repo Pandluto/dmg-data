@@ -940,8 +940,9 @@ export class CombatRuntime {
         const skillId = contextInput.skillId ?? program.skillId ?? `program:${sequence}`;
         const castId = contextInput.castId ?? `cast:${skillId}:${sequence}`;
         const executionId = `program-execution:${sequence}`;
+        const programOwnerId = contextInput.ownerId ?? contextInput.sourceId;
         const resolvedProgram = this.resolveSkillProgram(program, {
-            ownerId: contextInput.ownerId ?? contextInput.sourceId,
+            ownerId: programOwnerId,
             skillId
         });
         const context = this.context.createEventContext({
@@ -953,7 +954,7 @@ export class CombatRuntime {
             castId,
             blackboard: {
                 ...cloneValue(resolvedProgram.blackboard ?? {}),
-                ...this.#entityBlackboardValues(contextInput.sourceId),
+                ...this.#entityBlackboardValues(programOwnerId),
                 ...cloneValue(contextInput.blackboard ?? {})
             }
         });
@@ -1031,7 +1032,7 @@ export class CombatRuntime {
                         programExecutionId: executionId,
                         timelineFrame: offset,
                         blackboard: this.#runtimeBlackboard(
-                            context.sourceId,
+                            context.ownerId ?? context.sourceId,
                             this.programExecutions.get(executionId)?.blackboard
                                 ?? context.blackboard
                         ),
@@ -1144,7 +1145,7 @@ export class CombatRuntime {
                 return null;
             }
             const blackboard = this.#runtimeBlackboard(
-                context.sourceId,
+                context.ownerId ?? context.sourceId,
                 execution ? execution.blackboard : detachedBlackboard
             );
             const transaction = this.effects.executeTransaction(action.actions, {
@@ -4331,6 +4332,15 @@ export class CombatRuntime {
                         team: owner.team,
                         ownerId,
                         reactionTarget: false,
+                        // AbilityEntity SkillData commonly grants its owner
+                        // full-immunity/super-armor Buffs.  Give the runtime
+                        // object a zero-gauge resilience record so those
+                        // generic modifiers have a valid carrier without
+                        // turning it into a combat reaction target.
+                        resilience: {
+                            maxResilience: 0,
+                            initialResilience: 0
+                        },
                         blackboard: assigned,
                         metadata: {
                             abilityEntityId: action.abilityEntityId,
@@ -4347,16 +4357,26 @@ export class CombatRuntime {
                     'launchDelayTicks'
                 );
                 const launchFrame = eventContext.frame + launchDelayTicks;
+                const childCastId = spawnedAbilityEntityId === null
+                    ? eventContext.castId
+                    : `ability-entity-cast:${spawnedAbilityEntityId}`;
                 const scheduled = this.scheduleProgram(program, {
                     ...cloneValue(eventContext),
                     frame: launchFrame,
                     eventType: 'ChildSkillProgramStarted',
                     resolveSkillActionLifetimes: false,
+                    // Projectile programs are phases of the originating cast.
+                    // SpawnAbilityEntity creates a distinct ActionOwner whose
+                    // actions must survive the parent character skill ending.
+                    ownerId: spawnedAbilityEntityId ?? eventContext.ownerId,
+                    carrierId: spawnedAbilityEntityId ?? eventContext.carrierId,
+                    damageSourceId: eventContext.damageSourceId
+                        ?? eventContext.sourceId,
                     skillId: action.childSkillId,
                     rootSkillId: eventContext.rootSkillId
                         ?? eventContext.skillId
                         ?? action.childSkillId,
-                    castId: eventContext.castId,
+                    castId: childCastId,
                     blackboard: {
                         ...(action.inheritBlackboard === false
                             ? {}

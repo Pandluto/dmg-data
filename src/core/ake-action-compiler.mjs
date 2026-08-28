@@ -2025,6 +2025,12 @@ export class AkeActionCompiler {
                         ...(actionLifetimeLeaseKey === null ? {} : {
                             actionLifetime: {
                                 leaseKey: actionLifetimeLeaseKey,
+                                // A SkillData action is owned by ActionOwner.
+                                // This differs from ActionSource for spawned
+                                // ability entities, whose effects retain the
+                                // originating character as their source while
+                                // the entity owns the action lifetime.
+                                actorRef: 'Owner',
                                 inheritSkillIds: (node.inheritSkillIdList ?? [])
                                     .filter(skillId => typeof skillId === 'string'
                                         && skillId.length > 0),

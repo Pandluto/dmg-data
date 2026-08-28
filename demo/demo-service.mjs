@@ -639,12 +639,19 @@ function compactStatusEvents(trace, { projectRoot = defaultProjectRoot } = {}) {
         sourceSkillId: event.sourceSkillId ?? null,
         rootSkillId: event.rootSkillId ?? null,
         castId: event.castId ?? null,
+        rootCastId: event.rootCastId ?? event.castId ?? null,
+        parentCastId: event.parentCastId ?? null,
+        inputSkillId: event.inputSkillId ?? event.rootSkillId ?? null,
+        inputCommandType: event.inputCommandType ?? event.commandType ?? null,
+        effectiveSkillType: event.effectiveSkillType ?? event.skillType ?? null,
         triggerSourceId: event.triggerSourceId ?? null,
         triggerOwnerId: event.triggerOwnerId ?? null,
         triggerTargetId: event.triggerTargetId ?? null,
         triggerSkillId: event.triggerSkillId ?? null,
         triggerRootSkillId: event.triggerRootSkillId ?? null,
         triggerCastId: event.triggerCastId ?? null,
+        triggerRootCastId: event.triggerRootCastId ?? event.triggerCastId ?? null,
+        triggerParentCastId: event.triggerParentCastId ?? null,
         reason: event.reason ?? null,
         ...presentation
         };
@@ -680,7 +687,9 @@ function settleCommands(commands, result) {
         );
         const rejectedAdmission = admissions.find(entry => !entry.accepted) ?? null;
         const hits = terminal?.castId
-            ? result.damageLog.filter(hit => hit.castId === terminal.castId)
+            ? result.damageLog.filter(hit => (
+                hit.castId === terminal.castId || hit.rootCastId === terminal.castId
+            ))
             : [];
         const successful = terminal?.type === 'CommandExecuted' && terminal.success;
         const status = successful
@@ -702,6 +711,10 @@ function settleCommands(commands, result) {
             admissionReason: rejectedAdmission?.reason ?? admissions.at(-1)?.reason ?? null,
             skillId: terminal?.skillId ?? queued?.skillId ?? null,
             castId: terminal?.castId ?? null,
+            executedSkillIds: [...new Set(hits.map(hit => hit.skillId).filter(Boolean))],
+            effectiveSkillTypes: [...new Set(hits
+                .map(hit => hit.effectiveSkillType)
+                .filter(Boolean))],
             damage: hits.reduce((sum, hit) => sum + Number(hit.finalDamage ?? 0), 0),
             poiseDamage: hits.reduce((sum, hit) => sum + Number(hit.poiseDamage ?? 0), 0),
             hitCount: hits.length
@@ -1050,6 +1063,11 @@ function compactSquadHits(damageLog) {
         targetId: hit.targetId ?? null,
         damageSourceId: hit.damageSourceId ?? hit.sourceId ?? null,
         castId: hit.castId,
+        rootCastId: hit.rootCastId ?? hit.castId,
+        parentCastId: hit.parentCastId ?? null,
+        inputSkillId: hit.inputSkillId ?? hit.rootSkillId ?? null,
+        inputCommandType: hit.inputCommandType ?? null,
+        effectiveSkillType: hit.effectiveSkillType ?? null,
         skillId: hit.skillId,
         rootSkillId: hit.rootSkillId,
         buffInstanceId: hit.buffInstanceId ?? null,

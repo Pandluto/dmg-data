@@ -80,8 +80,16 @@ function projectCommands(result, durationFrames) {
         const requestedFrame = finite(input.frame);
         const actualFrame = success ? finite(terminal.frame) : null;
         const hits = terminal?.castId
-            ? (result.damageLog ?? []).filter(hit => hit.castId === terminal.castId)
+            ? (result.damageLog ?? []).filter(hit => (
+                hit.castId === terminal.castId || hit.rootCastId === terminal.castId
+            ))
             : [];
+        const executedSkillIds = [...new Set(hits
+            .map(hit => hit.skillId)
+            .filter(Boolean))];
+        const effectiveSkillTypes = [...new Set(hits
+            .map(hit => hit.effectiveSkillType)
+            .filter(Boolean))];
         return {
             id: commandId,
             commandId,
@@ -103,6 +111,8 @@ function projectCommands(result, durationFrames) {
             reason: terminal?.reason ?? queuedEvent?.reason ?? null,
             skillId: terminal?.skillId ?? queuedEvent?.skillId ?? null,
             castId: terminal?.castId ?? null,
+            executedSkillIds,
+            effectiveSkillTypes,
             hitCount: hits.filter(hit => hit.damageAttributeType === 'Hp').length,
             damage: hits.reduce((sum, hit) => sum + (
                 hit.damageAttributeType === 'Hp' ? finite(hit.finalDamage) : 0
@@ -119,13 +129,15 @@ function projectCommands(result, durationFrames) {
 function projectHitBursts(damageLog, tickRate) {
     const groups = new Map();
     for (const hit of [...(damageLog ?? [])].sort(byFrame)) {
-        const key = [hit.frame, hit.castId, hit.rootSkillId ?? hit.skillId].join('|');
+        const presentationCastId = hit.rootCastId ?? hit.castId;
+        const key = [hit.frame, presentationCastId, hit.rootSkillId ?? hit.skillId].join('|');
         if (!groups.has(key)) {
             groups.set(key, {
                 id: `hit:${key}`,
                 frame: finite(hit.frame),
                 seconds: finite(hit.frame) / tickRate,
-                castId: hit.castId ?? null,
+                castId: presentationCastId ?? null,
+                executionCastId: hit.castId ?? null,
                 memberId: hit.memberId ?? null,
                 characterId: hit.characterId ?? hit.sourceId ?? null,
                 sourceId: hit.sourceId ?? hit.characterId ?? null,

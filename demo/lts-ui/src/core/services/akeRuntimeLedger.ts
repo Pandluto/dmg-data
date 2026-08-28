@@ -576,8 +576,8 @@ function isPassiveRegistration(event: AkeRuntimeStatusEvent): boolean {
 }
 
 function transitionBelongsToCast(event: AkeRuntimeStatusEvent, castId: string): boolean {
-  if (event.triggerCastId === castId) return true;
-  return event.castId === castId
+  if (event.triggerCastId === castId || event.triggerRootCastId === castId) return true;
+  return (event.castId === castId || event.rootCastId === castId)
     && ['StatusEffectApplied', 'StatusEffectRefreshed'].includes(event.stage);
 }
 
@@ -1257,12 +1257,18 @@ function hitTitle(
 
 function hitMeta(hit: AkeRuntimeHit, tickRate: number): string {
   const element = DAMAGE_TYPE_LABELS[String(hit.damageType)] ?? String(hit.damageType ?? '未知属性');
+  const inputType = hit.inputCommandType ?? null;
+  const effectiveType = hit.effectiveSkillType ?? null;
+  const executionIdentity = inputType && effectiveType && inputType !== effectiveType
+    ? `${COMMAND_TYPE_LABELS[inputType] ?? inputType}输入 → ${COMMAND_TYPE_LABELS[effectiveType] ?? effectiveType}结算`
+    : null;
   return [
     `F${hit.frame} / ${(hit.frame / tickRate).toFixed(2)}秒`,
     element,
     `倍率 ${percent(hit.atkScale, 2)}`,
+    executionIdentity,
     hit.sourceBuffId ? '状态机触发' : '技能本体',
-  ].join(' · ');
+  ].filter(Boolean).join(' · ');
 }
 
 export function buildAkeRuntimeCommandLedger(input: {
@@ -1279,7 +1285,9 @@ export function buildAkeRuntimeCommandLedger(input: {
   const labels = input.labels ?? new Map<string, string>();
   const statusEvents = [...(report.statusEvents ?? [])].sort(statusEventOrder);
   const runtimeHits = (report.hits ?? [])
-    .filter((hit) => hit.castId === castId && hit.damageAttributeType === 'Hp')
+    .filter((hit) => (
+      hit.castId === castId || hit.rootCastId === castId
+    ) && hit.damageAttributeType === 'Hp')
     .sort((left, right) => left.frame - right.frame || left.hitIndex - right.hitIndex);
   const consumedStatuses = uniqueConsumedStatuses(runtimeHits);
   const consumedBuffIds = new Set(consumedStatuses.map((snapshot) => snapshot.buffId));
@@ -1546,7 +1554,7 @@ export function buildAkeRuntimeCommandViewState(input: {
     };
   }
   const affectedHits = (input.report.hits ?? []).filter((hit) => (
-    hit.castId === command.castId
+    (hit.castId === command.castId || hit.rootCastId === command.castId)
     && ((hit.diagnostics?.length ?? 0) > 0
       || hit.confidence === 'partial'
       || hit.factorValidation?.valid === false)
@@ -1557,7 +1565,10 @@ export function buildAkeRuntimeCommandViewState(input: {
   const affectedStatusDiagnostics = (input.report.statusEvents ?? []).filter((event) => (
     event.stage === 'StatusEffectUnresolved'
     && Boolean(command.castId)
-    && (event.castId === command.castId || event.triggerCastId === command.castId)
+    && (event.castId === command.castId
+      || event.rootCastId === command.castId
+      || event.triggerCastId === command.castId
+      || event.triggerRootCastId === command.castId)
   ));
   const partialCount = affectedHits.length
     + affectedDiagnostics.length

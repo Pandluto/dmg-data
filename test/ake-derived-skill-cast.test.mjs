@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { AkeActionCompiler } from '../src/core/ake-action-compiler.mjs';
 import { AkeSquadScenarioAssembler } from '../src/core/ake-squad-scenario-assembler.mjs';
 import { AkeSquadScenarioRunner } from '../src/core/ake-squad-scenario-runner.mjs';
+import { projectAkeTimeline } from '../src/core/ake-timeline-projector.mjs';
 import { TEAM_COMBO_BUFF_ID } from '../src/core/combat-runtime.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -148,4 +149,15 @@ test('Camille enhanced battle-skill input executes the derived combo skill and g
     assert.equal(combo?.frame, hpHits.at(-1)?.frame);
     assert.equal(combo?.effectiveSkillType, 'ComboSkill');
     assert.equal(combo?.stackCount, 1);
+
+    const timeline = projectAkeTimeline(result);
+    const settlement = timeline.commands.find(entry => (
+        entry.commandId === 'camille-enhanced-skill'
+    ));
+    assert.equal(settlement?.hitCount, 4);
+    assert.deepEqual(settlement?.executedSkillIds, ['chr_0033_camille_combo_skill_2']);
+    assert.deepEqual(settlement?.effectiveSkillTypes, ['ComboSkill']);
+    assert.ok(timeline.hitBursts.filter(burst => (
+        burst.frame >= 160 && burst.frame <= 210
+    )).every(burst => burst.castId === command.castId));
 });

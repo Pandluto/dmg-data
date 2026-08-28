@@ -1029,3 +1029,42 @@ const partialState = buildAkeRuntimeCommandViewState({
 });
 assert.equal(partialState.kind, 'partial');
 assert.match(partialState.message, /未完全解析/);
+
+const derivedCastReport = structuredClone(report);
+const derivedHit = runtimeHit(0, null, 1.25, false);
+derivedHit.castId = 'derived-cast:actor-a:combo:1';
+derivedHit.rootCastId = 'cast:current';
+derivedHit.parentCastId = 'cast:current';
+derivedHit.inputSkillId = 'skill-enhanced-button';
+derivedHit.inputCommandType = 'NormalSkill';
+derivedHit.skillId = 'skill-derived-combo';
+derivedHit.effectiveSkillType = 'ComboSkill';
+derivedCastReport.hits = [derivedHit];
+derivedCastReport.statusEvents = [{
+  ...statusBase,
+  traceIndex: 60,
+  frame: 13,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:derived-combo',
+  buffId: 'buff_derived_combo_state',
+  before: 0,
+  after: 1,
+  castId: 'derived-cast:actor-a:combo:1',
+  rootCastId: 'cast:current',
+  parentCastId: 'cast:current',
+  inputSkillId: 'skill-enhanced-button',
+  inputCommandType: 'NormalSkill',
+  effectiveSkillType: 'ComboSkill',
+  displayName: '派生连携状态',
+}];
+const derivedCastLedger = buildAkeRuntimeCommandLedger({
+  report: derivedCastReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '强化战技',
+});
+assert.equal(derivedCastLedger?.hits.length, 1,
+  'a derived execution cast must remain attached to its root input button');
+assert.match(derivedCastLedger?.hits[0].meta ?? '', /战技输入 → 连携技结算/);
+assert.ok(derivedCastLedger?.statuses.some((status) => status.title === '派生连携状态'),
+  'derived-cast status transitions must remain visible in the root button detail');

@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 
-import type { AkeRuntimeHit, AkeRuntimeStatusEvent, AkeTeamReport } from '../../integrations/ake/akeProvider';
+import type {
+  AkeRuntimeHit,
+  AkeRuntimeStatusEvent,
+  AkeTeamComboLedger,
+  AkeTeamComboLedgerEvent,
+  AkeTeamReport,
+} from '../../integrations/ake/akeProvider';
 import {
   buildAkeRuntimeCommandLedger,
   buildAkeRuntimeCommandViewState,
@@ -29,6 +35,47 @@ const statusBase = {
   reason: null,
 } satisfies Omit<AkeRuntimeStatusEvent,
   'traceIndex' | 'frame' | 'stage' | 'instanceId' | 'buffId' | 'before' | 'after' | 'castId'>;
+
+function teamComboEvent(
+  overrides: Partial<AkeTeamComboLedgerEvent>,
+): AkeTeamComboLedgerEvent {
+  return {
+    eventId: 'team-combo-event:test',
+    frame: 10,
+    sequence: 1,
+    type: 'grant',
+    buffId: 'buff_common_affixes_combo_trigger',
+    sourceId: 'combo-provider',
+    consumerId: null,
+    inputSkillId: 'provider-skill',
+    inputCommandType: 'ComboSkill',
+    executedSkillId: 'provider-skill',
+    effectiveSkillType: 'ComboSkill',
+    castId: 'cast:provider',
+    rootCastId: 'cast:provider',
+    parentCastId: null,
+    grantIds: ['grant:test'],
+    instanceIds: ['status:team-combo:test'],
+    targetIds: ['actor-a'],
+    beforeStacks: 0,
+    deltaStacks: 1,
+    afterStacks: 1,
+    reason: null,
+    sourceEventIds: ['status-event:test'],
+    consumptionSnapshot: null,
+    ...overrides,
+  };
+}
+
+function teamComboLedger(events: AkeTeamComboLedgerEvent[]): AkeTeamComboLedger {
+  return {
+    schemaVersion: 1,
+    buffId: 'buff_common_affixes_combo_trigger',
+    settlements: [],
+    events,
+    hits: [],
+  };
+}
 
 const statusEvents: AkeRuntimeStatusEvent[] = [{
   ...statusBase,
@@ -698,13 +745,232 @@ assert.deepEqual(
   activeComboLedger?.compactStatuses.filter((status) => (
     status.buffId === 'buff_common_affixes_combo_trigger'
   )).map((status) => [status.label, status.tone]),
-  [['连3', 'active']],
-  'an unconsumed combo pool remains a main-display active state',
+  [['连3', 'ongoing']],
+  'an unconsumed combo pool remains an explicitly ongoing main-display state',
 );
 assert.deepEqual(
   selectAkeMainTimelineStatuses(activeComboLedger).map((status) => status.buffId),
   ['buff_common_affixes_combo_trigger'],
   'the shared combo pool remains visible even when inherited by the current command',
+);
+
+const unrelatedGrantReport = structuredClone(report);
+unrelatedGrantReport.statusEvents = [{
+  ...statusBase,
+  traceIndex: 70,
+  frame: 15,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:unrelated-team-combo',
+  buffId: 'buff_common_affixes_combo_trigger',
+  targetId: 'actor-a',
+  before: 0,
+  after: 1,
+  castId: 'cast:other-provider',
+  rootCastId: 'cast:other-provider',
+}];
+unrelatedGrantReport.teamComboLedger = teamComboLedger([teamComboEvent({
+  eventId: 'team-combo-event:unrelated-grant',
+  frame: 15,
+  sequence: 70,
+  castId: 'cast:other-provider',
+  rootCastId: 'cast:other-provider',
+})]);
+const unrelatedGrantLedger = buildAkeRuntimeCommandLedger({
+  report: unrelatedGrantReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+});
+assert.equal(
+  unrelatedGrantLedger?.statuses.some((status) => (
+    status.buffId === 'buff_common_affixes_combo_trigger'
+  )),
+  false,
+  'a teammate grant inside this action interval must not be attributed to the current skill',
+);
+assert.equal(
+  unrelatedGrantLedger?.compactStatuses.some((status) => (
+    status.buffId === 'buff_common_affixes_combo_trigger'
+  )),
+  false,
+  'net before/after growth from another cast must not create a current-skill badge',
+);
+
+const crossCastConsumeReport = structuredClone(report);
+crossCastConsumeReport.statusEvents = [{
+  ...statusBase,
+  traceIndex: 71,
+  frame: 0,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:cross-cast-consume',
+  buffId: 'buff_physical_no_guard',
+  before: 0,
+  after: 1,
+  castId: 'cast:provider',
+  rootCastId: 'cast:provider',
+}, {
+  ...statusBase,
+  traceIndex: 72,
+  frame: 15,
+  stage: 'StatusEffectFinished',
+  instanceId: 'status:cross-cast-consume',
+  buffId: 'buff_physical_no_guard',
+  before: 1,
+  after: 0,
+  castId: 'cast:provider',
+  rootCastId: 'cast:provider',
+  triggerCastId: 'cast:current',
+  triggerRootCastId: 'cast:current',
+  triggerSourceId: 'actor-a',
+  consumption: true,
+  reason: 'ConsumedByCurrentAction',
+}];
+const crossCastConsumeLedger = buildAkeRuntimeCommandLedger({
+  report: crossCastConsumeReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+});
+assert.ok(crossCastConsumeLedger?.compactStatuses.some((status) => (
+  status.buffId === 'buff_physical_no_guard'
+  && status.tone === 'consumed'
+)), 'a terminal transition belongs to the trigger cast, not the historical grant cast');
+
+const otherCastConsumesCurrentGrantReport = structuredClone(report);
+otherCastConsumesCurrentGrantReport.statusEvents = [{
+  ...statusBase,
+  traceIndex: 73,
+  frame: 10,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:current-grant-other-consume',
+  buffId: 'buff_physical_no_guard',
+  before: 0,
+  after: 1,
+  castId: 'cast:current',
+  rootCastId: 'cast:current',
+}, {
+  ...statusBase,
+  traceIndex: 74,
+  frame: 15,
+  stage: 'StatusEffectFinished',
+  instanceId: 'status:current-grant-other-consume',
+  buffId: 'buff_physical_no_guard',
+  before: 1,
+  after: 0,
+  castId: 'cast:current',
+  rootCastId: 'cast:current',
+  triggerCastId: 'cast:other-consumer',
+  triggerRootCastId: 'cast:other-consumer',
+  triggerSourceId: 'actor-b',
+  consumption: true,
+  reason: 'ConsumedByOtherAction',
+}];
+const otherCastConsumesCurrentGrantLedger = buildAkeRuntimeCommandLedger({
+  report: otherCastConsumesCurrentGrantReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+});
+assert.equal(otherCastConsumesCurrentGrantLedger?.compactStatuses.some((status) => (
+  status.buffId === 'buff_physical_no_guard'
+  && status.tone === 'consumed'
+)), false, 'another cast consumption must not be projected as this grant cast consuming');
+
+const consumeThenOtherGrantReport = structuredClone(comboReport);
+consumeThenOtherGrantReport.statusEvents.push({
+  ...statusBase,
+  traceIndex: 80,
+  frame: 11,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:team-combo:replacement',
+  buffId: 'buff_common_affixes_combo_trigger',
+  targetId: 'actor-a',
+  sourceId: 'combo-provider',
+  ownerId: 'combo-provider',
+  before: 0,
+  after: 1,
+  castId: 'cast:other-provider',
+  rootCastId: 'cast:other-provider',
+});
+consumeThenOtherGrantReport.teamComboLedger = teamComboLedger([
+  teamComboEvent({
+    eventId: 'team-combo-event:consume-current',
+    frame: 10,
+    sequence: 75,
+    type: 'consume',
+    sourceId: 'actor-a',
+    consumerId: 'actor-a',
+    inputSkillId: 'skill-current',
+    inputCommandType: 'NormalSkill',
+    executedSkillId: 'skill-current',
+    effectiveSkillType: 'NormalSkill',
+    castId: 'cast:current',
+    rootCastId: 'cast:current',
+    beforeStacks: 3,
+    deltaStacks: -3,
+    afterStacks: 0,
+  }),
+  teamComboEvent({
+    eventId: 'team-combo-event:replacement-grant',
+    frame: 11,
+    sequence: 80,
+    castId: 'cast:other-provider',
+    rootCastId: 'cast:other-provider',
+  }),
+]);
+const consumeThenOtherGrantLedger = buildAkeRuntimeCommandLedger({
+  report: consumeThenOtherGrantReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+});
+assert.deepEqual(
+  consumeThenOtherGrantLedger?.compactStatuses.filter((status) => (
+    status.buffId === 'buff_common_affixes_combo_trigger'
+  )).map((status) => status.tone),
+  ['consumed'],
+  'a 1→0→1-style net result must retain the current action consume and ignore another cast grant',
+);
+
+const derivedGrantReport = structuredClone(report);
+derivedGrantReport.statusEvents = [{
+  ...statusBase,
+  traceIndex: 90,
+  frame: 15,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:derived-team-combo',
+  buffId: 'buff_common_affixes_combo_trigger',
+  targetId: 'actor-a',
+  before: 0,
+  after: 1,
+  castId: 'derived-cast:combo',
+  rootCastId: 'cast:current',
+  parentCastId: 'cast:current',
+}];
+derivedGrantReport.teamComboLedger = teamComboLedger([teamComboEvent({
+  eventId: 'team-combo-event:derived-grant',
+  frame: 15,
+  sequence: 90,
+  castId: 'derived-cast:combo',
+  rootCastId: 'cast:current',
+  parentCastId: 'cast:current',
+})]);
+const derivedGrantLedger = buildAkeRuntimeCommandLedger({
+  report: derivedGrantReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '强化战技',
+});
+assert.ok(derivedGrantLedger?.statuses.some((status) => (
+  status.buffId === 'buff_common_affixes_combo_trigger'
+  && status.kind === '本次技能发放'
+  && status.detail.includes('派生程序归属根动作')
+)), 'a child-cast grant must be attached to its real root action');
+assert.deepEqual(
+  derivedGrantLedger?.compactStatuses.filter((status) => (
+    status.buffId === 'buff_common_affixes_combo_trigger'
+  )).map((status) => status.tone),
+  ['changed'],
 );
 
 const inheritedAttachmentReport = structuredClone(report);
@@ -728,7 +994,7 @@ const inheritedAttachmentLedger = buildAkeRuntimeCommandLedger({
 assert.equal(
   inheritedAttachmentLedger?.compactStatuses.some((status) => (
     status.buffId === 'buff_common_energy_shard_attached_fire'
-    && status.tone === 'active'
+    && status.tone === 'ongoing'
   )),
   true,
   'the detail ledger keeps inherited enemy attachment state for hit inspection',
@@ -736,11 +1002,11 @@ assert.equal(
 assert.equal(
   selectAkeMainTimelineStatuses(inheritedAttachmentLedger).some((status) => (
     status.buffId === 'buff_common_energy_shard_attached_fire'
-    && status.tone === 'active'
-    && status.title.startsWith('继承状态')
+    && status.tone === 'ongoing'
+    && status.title.startsWith('持续生效')
   )),
   true,
-  'the main skill badge keeps inherited Fire visible without claiming it as this command effect',
+  'the main skill badge keeps ongoing Fire visible without claiming it as this command effect',
 );
 
 assert.ok(ledger.statuses.some((status) => (
@@ -1019,6 +1285,87 @@ const expiredLedger = buildAkeRuntimeCommandLedger({
 });
 assert.ok(!expiredLedger?.hits[0].statuses.some((status) => status.title.includes('短时易伤')),
   'expired runtime status must not remain active on a later Hit');
+
+const ongoingNoGuardReport = structuredClone(report);
+ongoingNoGuardReport.timeline.commands[0].requestedFrame = 316;
+ongoingNoGuardReport.timeline.commands[0].actualFrame = 316;
+ongoingNoGuardReport.timeline.commands[0].endFrame = 421;
+ongoingNoGuardReport.hits = [runtimeHit(0, null, 1, false)];
+ongoingNoGuardReport.hits[0].frame = 350;
+ongoingNoGuardReport.statusEvents = [{
+  ...statusBase,
+  traceIndex: 45,
+  frame: 35,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:no-guard-long-axis',
+  buffId: 'buff_physical_no_guard',
+  targetId: 'enemy-shared',
+  before: 0,
+  after: 1,
+  castId: 'cast:no-guard-source',
+  rootCastId: 'cast:no-guard-source',
+  durationFrames: 600,
+  expireFrame: 635,
+}];
+const ongoingNoGuardLedger = buildAkeRuntimeCommandLedger({
+  report: ongoingNoGuardReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+});
+assert.ok(ongoingNoGuardLedger?.compactStatuses.some((status) => (
+  status.buffId === 'buff_physical_no_guard'
+  && status.tone === 'ongoing'
+  && status.title.startsWith('持续生效')
+)), 'NoGuard applied at F35 and expiring at F635 remains explicitly ongoing at F421');
+
+const expiredNoGuardReport = structuredClone(report);
+expiredNoGuardReport.timeline.commands[0].requestedFrame = 35;
+expiredNoGuardReport.timeline.commands[0].actualFrame = 35;
+expiredNoGuardReport.timeline.commands[0].endFrame = 700;
+expiredNoGuardReport.hits = [runtimeHit(0, null, 1, false)];
+expiredNoGuardReport.hits[0].frame = 100;
+expiredNoGuardReport.statusEvents = [{
+  ...statusBase,
+  traceIndex: 46,
+  frame: 35,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:no-guard-expired',
+  buffId: 'buff_physical_no_guard',
+  targetId: 'enemy-shared',
+  before: 0,
+  after: 1,
+  castId: 'cast:current',
+  rootCastId: 'cast:current',
+  durationFrames: 600,
+  expireFrame: 635,
+}, {
+  ...statusBase,
+  traceIndex: 47,
+  frame: 635,
+  stage: 'StatusEffectFinished',
+  instanceId: 'status:no-guard-expired',
+  buffId: 'buff_physical_no_guard',
+  targetId: 'enemy-shared',
+  before: 1,
+  after: 0,
+  castId: 'cast:current',
+  rootCastId: 'cast:current',
+  durationFrames: 600,
+  expireFrame: 635,
+  reason: 'Expired',
+}];
+const expiredNoGuardLedger = buildAkeRuntimeCommandLedger({
+  report: expiredNoGuardReport,
+  commandId: 'button-current',
+  labels,
+  skillName: '测试战技',
+});
+assert.ok(expiredNoGuardLedger?.compactStatuses.some((status) => (
+  status.buffId === 'buff_physical_no_guard'
+  && status.tone === 'expired'
+  && status.title.includes('施加 0→1层 / 到期 1→0层')
+)), 'actual expiry uses a distinct expired projection with the full transition path');
 
 const poiseReport = structuredClone(report);
 poiseReport.schemaVersion = 3;

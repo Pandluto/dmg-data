@@ -142,6 +142,16 @@ function formatHitBuffEffectValue(value: number, unit?: string): string {
   return `${displayValue >= 0 ? '+' : ''}${formatted}${unit === 'percent' ? '%' : ''}`;
 }
 
+function runtimeStatusToneLabel(tone: string): string {
+  return ({
+    ongoing: '持续生效',
+    changed: '本次变化',
+    consumed: '已消费',
+    expired: '已过期',
+    removed: '已移除',
+  } as Record<string, string>)[tone] ?? '状态';
+}
+
 function buildDetectedHitStatuses(hitBuffs: HitBuffEffect[]): TimelineDetailStatus[] {
   const statuses = new Map<string, TimelineDetailStatus>();
   hitBuffs.forEach((effect) => {
@@ -2203,7 +2213,7 @@ export function SkillButtonComponent({
             <span
               className="skill-button-target-state"
               aria-label={`命中后状态：${compactTargetStateItems.map((item) => (
-                `${item.tone === 'active' ? '继承' : item.tone === 'consumed' ? '消耗' : '本次变化'}${item.displayName}${item.stackCount > 1 ? `${item.stackCount}层` : ''}`
+                `${runtimeStatusToneLabel(item.tone)}${item.displayName}${item.stackCount > 1 ? `${item.stackCount}层` : ''}`
               )).join('、')}`}
             >
               {compactTargetStateItems.slice(0, 3).map((item) => (

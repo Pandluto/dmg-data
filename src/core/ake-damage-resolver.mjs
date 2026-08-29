@@ -353,9 +353,11 @@ export function createAkeDamageResolver({
             0
         );
         const defense = defenseEntry.value;
-        const consumedStatuses = runtime.consumedStatusesForCast?.(
-            eventContext.castId
-        ) ?? [];
+        const consumedStatuses = runtime.consumedStatusesForCast?.({
+            castId: eventContext.castId,
+            rootCastId: eventContext.rootCastId,
+            parentCastId: eventContext.parentCastId
+        }) ?? [];
         const consumedCombo = consumedStatuses.find(snapshot => (
             snapshot.stateType === 'combo'
         )) ?? null;

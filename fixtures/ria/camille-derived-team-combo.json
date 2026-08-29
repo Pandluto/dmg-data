@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "adapter": "ake-squad-demo",
+  "description": "Real derived-child and cross-actor team-combo evidence for RIA REST examples.",
+  "input": {
+    "enemyId": "eny_0007_mimicw",
+    "initialAtb": 300,
+    "members": [
+      {
+        "memberId": "camille",
+        "characterId": "chr_0033_camille",
+        "level": 90,
+        "skillLevel": 12,
+        "initialUltimateSp": 130
+      },
+      {
+        "memberId": "chen",
+        "characterId": "chr_0005_chen",
+        "level": 90,
+        "skillLevel": 12
+      }
+    ],
+    "commands": [
+      {
+        "commandId": "camille-ultimate",
+        "memberId": "camille",
+        "commandType": "UltimateSkill",
+        "frame": 0
+      },
+      {
+        "commandId": "camille-enhanced-b",
+        "memberId": "camille",
+        "commandType": "NormalSkill",
+        "frame": 140
+      },
+      {
+        "commandId": "chen-attack",
+        "memberId": "chen",
+        "commandType": "Attack",
+        "frame": 140
+      },
+      {
+        "commandId": "chen-consume-b",
+        "memberId": "chen",
+        "commandType": "NormalSkill",
+        "frame": 220
+      }
+    ],
+    "endFrame": 360
+  }
+}

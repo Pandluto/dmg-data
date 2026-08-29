@@ -8,6 +8,10 @@ import {
   type AkeRealtimeTimeline,
 } from './akeRealtimeTimeline';
 import { GRID_NODE_COUNT } from '../../core/calculators/gridSnapLayout';
+import {
+  configuredRiaUiActionSink,
+  type RiaUiActionSink,
+} from './riaUiActionSink';
 
 export const AKE_REPORT_STORAGE_KEY = 'def.ake-demo.latest-report.v3';
 export const AKE_REPORT_UPDATED_EVENT = 'def:ake-report-updated';
@@ -157,6 +161,12 @@ export type AkeRuntimeConsumedStatus = {
   skillId: string | null;
   rootSkillId: string | null;
   castId: string;
+  rootCastId?: string | null;
+  parentCastId?: string | null;
+  inputSkillId?: string | null;
+  inputCommandType?: string | null;
+  executedSkillId?: string | null;
+  effectiveSkillType?: string | null;
   commandType: string | null;
   skillType: string | null;
   consumedStacks: number;
@@ -304,9 +314,12 @@ export type AkeRuntimeStatusEvent = {
   triggerTargetId: string | null;
   triggerSkillId: string | null;
   triggerRootSkillId: string | null;
+  triggerInputSkillId?: string | null;
   triggerCastId: string | null;
   triggerRootCastId?: string | null;
   triggerParentCastId?: string | null;
+  triggerInputCommandType?: string | null;
+  triggerEffectiveSkillType?: string | null;
   reason: string | null;
   displayName?: string | null;
   shortName?: string | null;
@@ -320,6 +333,70 @@ export type AkeRuntimeStatusEvent = {
   abnormalColorType?: string | null;
   hidden?: boolean;
   presentationSource?: string | null;
+};
+
+export type AkeTeamComboLedgerEvent = {
+  eventId: string;
+  frame: number;
+  sequence: number;
+  type: 'grant' | 'consume' | 'refresh' | 'expire' | 'remove';
+  buffId: string;
+  sourceId: string | null;
+  consumerId: string | null;
+  inputSkillId: string | null;
+  inputCommandType: string | null;
+  executedSkillId: string | null;
+  effectiveSkillType: string | null;
+  castId: string | null;
+  rootCastId: string | null;
+  parentCastId: string | null;
+  grantIds: Array<string | number>;
+  instanceIds: Array<string | number>;
+  targetIds: Array<string | number>;
+  beforeStacks: number;
+  deltaStacks: number;
+  afterStacks: number;
+  reason: string | null;
+  sourceEventIds: string[];
+  consumptionSnapshot: AkeRuntimeConsumedStatus | null;
+};
+
+export type AkeTeamComboLedger = {
+  schemaVersion: 1;
+  buffId: string;
+  settlements: Array<{
+    frame: number;
+    sequence: number;
+    memberId: string | null;
+    characterId: string | null;
+    commandId: string | null;
+    rootCastId: string | null;
+    castId: string | null;
+    parentCastId: string | null;
+    inputSkillId: string | null;
+    inputCommandType: string | null;
+    executedSkillId: string | null;
+    effectiveSkillType: string | null;
+    eligible: boolean;
+    consumptionStatus: string;
+    consumedStacks: number;
+    grantIds: Array<string | number>;
+  }>;
+  events: AkeTeamComboLedgerEvent[];
+  hits: Array<{
+    hitId: string | null;
+    frame: number;
+    sequence: number;
+    castId: string | null;
+    rootCastId: string | null;
+    parentCastId: string | null;
+    inputSkillId: string | null;
+    inputCommandType: string | null;
+    executedSkillId: string | null;
+    effectiveSkillType: string | null;
+    damageAttributeType: string | null;
+    consumptionSnapshots: AkeRuntimeConsumedStatus[];
+  }>;
 };
 
 export type AkeTimelinePoint = {
@@ -460,6 +537,7 @@ type AkeSquadSimulation = {
   commands: AkeCommandSettlement[];
   hits: AkeRuntimeHit[];
   statusEvents: AkeRuntimeStatusEvent[];
+  teamComboLedger?: AkeTeamComboLedger;
   attributeSnapshots?: Record<string, Record<string, AkeRuntimeAttributeSnapshot>>;
   timeline: AkeProjectedTimeline;
   summary: {
@@ -549,6 +627,7 @@ export type AkeTeamReport = {
   timeline: AkeProjectedTimeline;
   hits: AkeRuntimeHit[];
   statusEvents: AkeRuntimeStatusEvent[];
+  teamComboLedger?: AkeTeamComboLedger;
   summary: {
     totalDamage: number;
     totalPoiseDamage: number;
@@ -912,6 +991,7 @@ export async function runAkeTeamCalculation(input: {
   enemyId?: string;
   executionDigest?: string;
   signal?: AbortSignal;
+  riaActionSink?: RiaUiActionSink | null;
 }): Promise<AkeTeamReport> {
   const enemyId = input.enemyId ?? DEFAULT_ENEMY_ID;
   const catalog = await loadAkeCatalog();
@@ -943,20 +1023,89 @@ export async function runAkeTeamCalculation(input: {
     attackMode: button.skillType === 'A' ? 'full-combo' : undefined,
   })));
   const requestedEndFrame = resolveAkeCalculationEndFrame(preview);
-  const response = await fetch('/api/ake/squad/simulate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    signal: input.signal,
-    body: JSON.stringify({
+  const simulationInput = {
+    enemyId,
+    initialAtb: 300,
+    members: supported.map(member => member.request),
+    commands,
+    endFrame: requestedEndFrame,
+  };
+  const configuredSink = input.riaActionSink ?? configuredRiaUiActionSink();
+  const riaContext = configuredSink?.context;
+  let riaBound = false;
+  if (riaContext) {
+    try {
+      const startResponse = await fetch('/api/ake/ria/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: input.signal,
+        body: JSON.stringify({
+          caseId: riaContext.caseId,
+          sessionId: riaContext.sessionId,
+          runId: riaContext.runId,
+          input: simulationInput,
+        }),
+      });
+      riaBound = startResponse.ok;
+    } catch {
+      // Investigation recording is observational and cannot change calculation semantics.
+      riaBound = false;
+    }
+  }
+  const riaActionSink = riaContext && !riaBound ? null : configuredSink;
+  const finalizeRiaRun = async () => {
+    if (!riaBound || !riaContext) return;
+    await fetch('/api/ake/ria/seal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ caseId: riaContext.caseId, runId: riaContext.runId }),
+    }).catch(() => {});
+  };
+  await riaActionSink?.record({
+    actionType: 'AkeCalculationRequested',
+    payload: {
       enemyId,
-      initialAtb: 300,
-      members: supported.map(member => member.request),
-      commands,
-      endFrame: requestedEndFrame,
-    }),
+      commandCount: commands.length,
+      selectedCharacterIds: supported.map(member => member.akeCharacterId),
+      requestedEndFrame,
+      executionDigest: input.executionDigest ?? null,
+    },
   });
-  const payload = await response.json() as AkeSquadSimulation & { error?: string };
-  if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
+  let response: Response;
+  let payload: AkeSquadSimulation & { error?: string };
+  try {
+    response = await fetch('/api/ake/squad/simulate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(riaBound && riaContext ? {
+          'X-RIA-Case-ID': riaContext.caseId,
+          'X-RIA-Run-ID': riaContext.runId,
+        } : {}),
+      },
+      signal: input.signal,
+      body: JSON.stringify(simulationInput),
+    });
+    payload = await response.json() as AkeSquadSimulation & { error?: string };
+  } catch (error) {
+    await riaActionSink?.record({
+      actionType: 'AkeCalculationFailed',
+      payload: {
+        status: null,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    });
+    await finalizeRiaRun();
+    throw error;
+  }
+  if (!response.ok) {
+    await riaActionSink?.record({
+      actionType: 'AkeCalculationFailed',
+      payload: { status: response.status, error: payload.error ?? null },
+    });
+    await finalizeRiaRun();
+    throw new Error(payload.error || `HTTP ${response.status}`);
+  }
   const resultByCharacterId = new Map(payload.members.map(member => [member.characterId, member]));
   const characters = prepared.map(member => {
     if (!member.akeCharacterId) return errorReport(member, 'AKEDatabase 中没有该干员。');
@@ -984,6 +1133,7 @@ export async function runAkeTeamCalculation(input: {
     timeline: payload.timeline,
     hits: payload.hits ?? [],
     statusEvents: payload.statusEvents ?? [],
+    teamComboLedger: payload.teamComboLedger,
     summary: {
       totalDamage: payload.summary.totalDamage,
       totalPoiseDamage: payload.summary.totalPoiseDamage,
@@ -1000,6 +1150,18 @@ export async function runAkeTeamCalculation(input: {
   };
   safeSessionStorage.setItem(AKE_REPORT_STORAGE_KEY, JSON.stringify(report));
   window.dispatchEvent(new CustomEvent(AKE_REPORT_UPDATED_EVENT, { detail: report }));
+  await riaActionSink?.record({
+    actionType: 'AkeCalculationCompleted',
+    frame: payload.durationFrames,
+    payload: {
+      totalDamage: payload.summary.totalDamage,
+      hitCount: payload.hits?.length ?? 0,
+      successfulCommands: payload.summary.successfulCommands,
+      failedCommands: payload.summary.failedCommands,
+      executionDigest: input.executionDigest ?? null,
+    },
+  });
+  await finalizeRiaRun();
   return report;
 }
 
@@ -1014,6 +1176,7 @@ export function readLatestAkeTeamReport(): AkeTeamReport | null {
           ...value,
           hits: Array.isArray(value.hits) ? value.hits : [],
           statusEvents: Array.isArray(value.statusEvents) ? value.statusEvents : [],
+          teamComboLedger: value.teamComboLedger,
           finalState: {
             ...(value.finalState ?? {
               sharedAtb: { current: 0, max: 0 },

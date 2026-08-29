@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "tickRate": 30,
+  "contract": {
+    "inputCommandType": "button input only",
+    "executedSkillId": "program that actually executes",
+    "effectiveSkillType": "settlement identity for shared combo eligibility",
+    "consumingEffectiveSkillTypes": [
+      "NormalSkill",
+      "UltimateSkill"
+    ]
+  },
+  "cases": [
+    {
+      "id": "camille-enhanced-b-with-existing-combo",
+      "kind": "real-derived-cast",
+      "preloadedGrantFrame": 1,
+      "commands": [
+        {
+          "commandId": "camille-ultimate",
+          "memberId": "camille",
+          "commandType": "UltimateSkill",
+          "frame": 0
+        },
+        {
+          "commandId": "camille-enhanced-b",
+          "memberId": "camille",
+          "commandType": "NormalSkill",
+          "frame": 140
+        }
+      ],
+      "expected": {
+        "inputCommandType": "NormalSkill",
+        "executedSkillId": "chr_0033_camille_combo_skill_2",
+        "effectiveSkillType": "ComboSkill",
+        "consumedStacks": 0,
+        "hpHitFrames": [160, 173, 189, 210],
+        "grantFrame": 210
+      }
+    },
+    {
+      "id": "grant-earlier-than-q",
+      "kind": "causal-boundary",
+      "grantCommandFrame": 0,
+      "grantOffset": 1,
+      "qFrame": 10,
+      "providerMemberId": "provider",
+      "consumerMemberId": "consumer",
+      "expectedConsumedStacks": 1
+    },
+    {
+      "id": "grant-same-frame-before-q",
+      "kind": "causal-boundary",
+      "grantCommandFrame": 10,
+      "grantOffset": 0,
+      "qFrame": 10,
+      "providerMemberId": "a-provider",
+      "consumerMemberId": "z-consumer",
+      "expectedConsumedStacks": 1
+    },
+    {
+      "id": "grant-same-frame-after-q",
+      "kind": "causal-boundary",
+      "grantCommandFrame": 10,
+      "grantOffset": 0,
+      "qFrame": 10,
+      "providerMemberId": "z-provider",
+      "consumerMemberId": "a-consumer",
+      "expectedConsumedStacks": 0
+    },
+    {
+      "id": "grant-later-than-q",
+      "kind": "causal-boundary",
+      "grantCommandFrame": 11,
+      "grantOffset": 0,
+      "qFrame": 10,
+      "providerMemberId": "provider",
+      "consumerMemberId": "consumer",
+      "expectedConsumedStacks": 0
+    }
+  ]
+}

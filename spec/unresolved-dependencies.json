@@ -218,10 +218,29 @@
       ],
       "oracle": "fixtures/calc/ake-interruption-probe.oracle.json",
       "manifest": "fixtures/calc/ake-interruption-probe.manifest.json",
-      "evidence": "docs/12-calc-interruption-probe.md",
+      "evidence": "docs/archive/initial-research-series/12-calc-interruption-probe.md",
       "observed": "Forty-three Wulfgard cases close same-frame interruption, strict 30-frame queue expiry, MarkCanInterrupt frame 48, actor-local AllowNext frames, conditional JumpToAction, projectile cancellation and detached burning-Buff behavior.",
       "implemented": "The parser/compiler emits timeline seek and interrupt-marker actions. Program executions share dynamic Blackboard state, invalidate skipped generations, reschedule natural ends, and cancel cast-bound child programs. CommandAdmissionProvider reads the confirmed Attack=0, NormalSkill=2, ComboSkill=5 and UltimateSkill=7 priorities from semantic mappings, then combines them with exclusive frames, AllowNext and MarkCanInterrupt. Eligibility uses the actor-local clock while the 30-frame expiry boundary stays strict. Every decision is exposed in commandAdmissionTrace, and all 43 observations match command frames and every HP damage packet.",
       "remaining": "BreakingAttack has no captured INTERRUPT_CHECK priority and remains on a provisional external execution gate. Additional center-state pairs, named curves and projectile flight profiles still require independent cross-character boundary evidence before they can be generalized."
+    },
+    {
+      "id": "castskill-wrapper-check-skill-type",
+      "status": "internal-contract-implemented-official-runtime-unverified",
+      "neededFor": [
+        "Camille enhanced battle-skill shared-combo eligibility",
+        "generic CastSkill wrapper settlement identity",
+        "CheckSkillType behavior across root and child casts"
+      ],
+      "evidence": [
+        "reference/public-data/akedata/Json/SkillData/chr_0033_camille_normal_skill_2.json",
+        "reference/public-data/akedata/Json/BuffData/buff_chr_0033_camille_cast_combo2.json",
+        "reference/public-data/akedata/Json/SkillData/chr_0033_camille_combo_skill_2.json",
+        "fixtures/parity/team-combo-effective-identity.json",
+        "test/ake-team-combo-effective-identity.test.mjs"
+      ],
+      "parityReference": "/Users/sailstellar/Documents/ChatGPT/dmg-data/Endaxis/src/simulation/simulator.test.ts:2285",
+      "implemented": "The clean-room runtime resolves same-frame CastSkill identity before shared-combo eligibility, consumes only for effective NormalSkill/UltimateSkill actions, and propagates a root-action snapshot to descendant casts and every Hit.",
+      "remaining": "Public AKE data proves the wrapper field, CastSkill edge and child ComboSkill program, but does not prove the official runtime's hidden CheckSkillType dispatch across that edge. The pinned Calc corpus has no focused Camille wrapper capture. Endaxis is an independent parity/reference oracle, not an official source; a same-version Calc black-box boundary fixture is still required for an official behavior claim."
     },
     {
       "id": "ake-unknown-action-semantics",

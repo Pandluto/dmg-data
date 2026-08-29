@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "adapter": "ake-squad-demo",
+  "description": "Small deterministic RIA fixture using the real squad runner and damage resolver.",
+  "input": {
+    "enemyId": "eny_0007_mimicw",
+    "initialAtb": 300,
+    "members": [
+      {
+        "memberId": "pelica",
+        "characterId": "chr_0004_pelica",
+        "level": 90,
+        "skillLevel": 12
+      }
+    ],
+    "commands": [
+      {
+        "commandId": "pelica-b",
+        "memberId": "pelica",
+        "commandType": "NormalSkill",
+        "frame": 0
+      }
+    ],
+    "endFrame": 120
+  }
+}

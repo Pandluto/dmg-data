@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ake-cleanroom.local/ria/schemas/ui-action-append-request.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "actionType"
+  ],
+  "properties": {
+    "actionType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actor": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "frame": {
+      "type": "number",
+      "minimum": 0
+    },
+    "commandId": {
+      "anyOf": [
+        {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

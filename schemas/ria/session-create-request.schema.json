@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ake-cleanroom.local/ria/schemas/session-create-request.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "caseId"
+  ],
+  "properties": {
+    "caseId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9._-]{0,94}[A-Za-z0-9])?$",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "sessionId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9._-]{0,94}[A-Za-z0-9])?$",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 10000
+    },
+    "actor": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

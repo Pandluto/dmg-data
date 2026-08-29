@@ -1,0 +1,75 @@
+# 当前边界与未闭合项
+
+本页只记录当前仍会影响结论范围的系统边界。具体数量直接读取生成报告；修复过程进入维护记录，不在这里累加提交日志。
+
+## 当前审计快照
+
+2026-08-28 在 `f9a2067` 代码上重新生成：
+
+| 报告 | 当前结论 |
+| --- | --- |
+| `ake-action-coverage.json` | calculator-core 仍有 blocked 和 adapter-required；覆盖率不能按角色外推 |
+| `ake-operator-mechanism-audit.json` | 31 名角色仍有 combat-blocking、combat-partial、evidence-missing 和 spatial-assumption |
+| `ake-ability-event-audit.json` | 仍有 listener 事件缺少已知生产者或包含非法值 |
+
+本次刷新已移除旧报告中的 `CastSkill` 阻塞，证明生成审计必须与代码同版本。统计数值查看 [生成报告说明](../testing/README.md)，不要从历史文档抄写。
+
+## 双执行链
+
+固定精确链和通用链仍并存。资源、Buff 和部分 Poise 逻辑存在专用与通用实现。统一完成前：
+
+- 固定 oracle 的“精确”只属于对应链和输入；
+- 通用链新增能力不能靠固定 simulator 自动获得证明；
+- 两条链输出一致时是交叉证据，不表示代码已经合并。
+
+## 证据缺口
+
+- AKE 与 Calc 数据版本不同。
+- 完整 SkillSetting、部分 DamageCalculation 参数和 Blackboard 优先级尚未公开闭合。
+- 连携开窗条件有一部分来自描述文本和窄范围黑盒样本，当前语义映射只覆盖已有证据的规则。
+- 快速破韧保护只对已捕获的普通敌人签名闭合，不能外推所有敌人等级。
+- 多数 HitStop/TimeDilation 曲线只保留 metadata 或需要 adapter。
+
+权威逐项状态见 `spec/unresolved-dependencies.json`。
+
+## 运行时缺口
+
+- 能力事件消费者多于已知生产者；“listener 可编译”不等于“事件可触发”。
+- 确定性随机、部分形态选择、Buff 顶层 tag 生命周期、特殊资源操作和若干 child action 仍不完整。
+- 空执行审计已通过派生技能案例得到改进，但任何新结构仍需同时检查“是否进入编译”和“是否产生预期行为”。
+- 自动战斗终点对长周期 Buff 仍需场景化 horizon，不能把当前停止启发式当成游戏规则。
+
+## 空间与世界边界
+
+工作台默认固定单目标木桩。下列内容需要外部 provider 或显式 assumption：
+
+- 目标搜索、距离、方向、形状和屏幕条件；
+- 位移、传送、拉扯、击退和 root motion；
+- 真实投射物飞行、碰撞与多目标选择；
+- 敌人 AI、关卡信号、召唤物世界生命周期；
+- 多敌人和特殊部位/多韧性条。
+
+空间动作可以在固定木桩场景降级，但报告必须保留 assumption，不能写成 complete。
+
+## 前端边界
+
+- preview 与 settled 仍是两个结果等级；结算优先已经落地，但规划逻辑尚未完全下沉。
+- legacy fixed dummy 代码仍存在，只是在 AKE settled 模式下不再拥有数值权威。
+- 大型 Canvas/SkillButton/adapter 文件增加了职责回流风险。
+- 视觉上的一个图标可能对应队伍池、敌方状态或自身 Buff；UI 聚合不改变运行时 carrier。
+
+## 精度声明
+
+可以声明：
+
+- 固定公开来源和哈希可追溯；
+- 指定 oracle 覆盖的输入逐项相等；
+- 某个原语已有通用执行路径和测试；
+- 某份当前审计中未再出现特定 blocker。
+
+不能声明：
+
+- 已获得 Calc 私有后端源码；
+- 全角色、全配装、全敌人或完整游戏引擎精确；
+- “31 名角色可执行”等于“31 名角色正确”；
+- 总覆盖率、测试总数或 build 通过等于机制闭包。

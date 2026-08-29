@@ -155,6 +155,7 @@ export class AkeScenarioRunner {
         damageResolver = createAkeDamageResolver(),
         timeDilationResolver = null,
         commandAdmissionProvider = null,
+        traceSink = null,
         maxDriverEvents = 100000,
         maxEventsPerRun = 10000
     } = {}) {
@@ -174,6 +175,9 @@ export class AkeScenarioRunner {
                 'commandAdmissionProvider must expose profile() and evaluate(), or be null.'
             );
         }
+        if (traceSink !== null && typeof traceSink !== 'function') {
+            throw new TypeError('traceSink must be a function or null.');
+        }
         this.bundle = bundle;
         this.commandQueueWindowFrames = nonNegativeInteger(
             commandQueueWindowFrames,
@@ -192,6 +196,7 @@ export class AkeScenarioRunner {
             ?? new CommandAdmissionProvider({
                 semanticMappings: bundle.semanticMappings ?? []
             });
+        this.traceSink = traceSink;
         this.maxDriverEvents = positiveInteger(maxDriverEvents, 'maxDriverEvents');
         this.maxEventsPerRun = positiveInteger(maxEventsPerRun, 'maxEventsPerRun');
         this.lastRuntime = null;
@@ -405,6 +410,7 @@ export class AkeScenarioRunner {
                 });
             },
             onStatusTransition: observeStatusTransitionForCombos,
+            traceSink: this.traceSink,
             maxEventsPerRun: this.maxEventsPerRun
         });
         const loadoutManager = new LoadoutEffectManager({ runtime });

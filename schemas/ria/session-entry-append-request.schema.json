@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ake-cleanroom.local/ria/schemas/session-entry-append-request.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "content"
+  ],
+  "properties": {
+    "type": {
+      "enum": [
+        "decision",
+        "finding",
+        "run-link",
+        "commit-link",
+        "thread-link",
+        "note"
+      ]
+    },
+    "actor": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "content": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20000
+    },
+    "runId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9._-]{0,94}[A-Za-z0-9])?$",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "relatedRunId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9._-]{0,94}[A-Za-z0-9])?$",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "relation": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "commit": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "threadId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "threadSource": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "run-link"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "required": [
+          "runId"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "commit-link"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "required": [
+          "commit"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "thread-link"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "required": [
+          "threadId",
+          "threadSource"
+        ]
+      }
+    }
+  ]
+}

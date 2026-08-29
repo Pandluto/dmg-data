@@ -2,3 +2,15 @@ node_modules/
 demo/lts-ui/node_modules/
 demo/lts-ui/dist/
 .DS_Store
+
+# Replayable Investigation Archive runtime evidence is local by default.
+# Schemas, docs and small deterministic fixtures live elsewhere in the repo.
+/artifacts/index.json
+/artifacts/indexes/*
+!/artifacts/indexes/.gitkeep
+/artifacts/cases/*
+!/artifacts/cases/.gitkeep
+/artifacts/diffs/*
+!/artifacts/diffs/.gitkeep
+/artifacts/trash/*
+!/artifacts/trash/.gitkeep

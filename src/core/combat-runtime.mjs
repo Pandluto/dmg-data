@@ -111,6 +111,54 @@ function applyLoadoutPatch(currentValue, patchValue, operationCode) {
     return value;
 }
 
+function observeTraceArray(trace, source, traceSink, failures) {
+    if (!Array.isArray(trace) || typeof traceSink !== 'function'
+        || Object.prototype.hasOwnProperty.call(trace, '__akeTraceObserved')) return;
+    const nativePush = Array.prototype.push;
+    Object.defineProperty(trace, '__akeTraceObserved', {
+        value: true,
+        enumerable: false
+    });
+    Object.defineProperty(trace, 'push', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value(...records) {
+            const length = nativePush.apply(this, records);
+            for (const record of records) {
+                try {
+                    const accepted = traceSink({
+                        source,
+                        fact: cloneValue(record)
+                    });
+                    if (accepted === false) {
+                        failures.push({
+                            source,
+                            code: 'TRACE_SINK_BACKPRESSURE',
+                            frame: record?.frame ?? null
+                        });
+                    } else if (accepted && typeof accepted.catch === 'function') {
+                        accepted.catch(error => failures.push({
+                            source,
+                            code: 'TRACE_SINK_ASYNC_FAILURE',
+                            message: String(error?.message ?? error).slice(0, 1000),
+                            frame: record?.frame ?? null
+                        }));
+                    }
+                } catch (error) {
+                    failures.push({
+                        source,
+                        code: 'TRACE_SINK_FAILURE',
+                        message: String(error?.message ?? error).slice(0, 1000),
+                        frame: record?.frame ?? null
+                    });
+                }
+            }
+            return length;
+        }
+    });
+}
+
 /**
  * General, data-driven combat facade. The exact Pelica simulator remains
  * separate; this runtime composes the reusable state machines needed by
@@ -129,6 +177,7 @@ export class CombatRuntime {
         comboPendingTimeResolver = null,
         comboPendingTriggerResolver = null,
         onStatusTransition = null,
+        traceSink = null,
         maxDerivedDepth = 16,
         maxEventsPerRun = 10000
     } = {}) {
@@ -162,6 +211,9 @@ export class CombatRuntime {
         if (onStatusTransition !== null && typeof onStatusTransition !== 'function') {
             throw new TypeError('onStatusTransition must be a function or null.');
         }
+        if (traceSink !== null && typeof traceSink !== 'function') {
+            throw new TypeError('traceSink must be a function or null.');
+        }
         this.damageResolver = damageResolver;
         this.skillProgramResolver = skillProgramResolver;
         this.timeDilationResolver = timeDilationResolver;
@@ -169,6 +221,8 @@ export class CombatRuntime {
         this.onDerivedSkillCast = onDerivedSkillCast;
         this.comboPendingTimeResolver = comboPendingTimeResolver;
         this.comboPendingTriggerResolver = comboPendingTriggerResolver;
+        this.traceSink = traceSink;
+        this.traceSinkFailures = [];
         this.tickRate = finite(tickRate, 'tickRate');
         if (this.tickRate <= 0) throw new RangeError('tickRate must be positive.');
         this.maxDerivedDepth = nonNegativeInteger(maxDerivedDepth, 'maxDerivedDepth');
@@ -189,6 +243,7 @@ export class CombatRuntime {
         this.nextDamageHitSequence = 1;
         this.nextTeamComboGrantSequence = 1;
         this.consumedStatusesByCastId = new Map();
+        this.castLineageByCastId = new Map();
         this.onceActionExecutions = new Set();
         this.programExecutions = new Map();
         this.endedSkillCastIds = new Set();
@@ -348,6 +403,27 @@ export class CombatRuntime {
             context: this.context,
             handlers: this.#defaultHandlers()
         });
+
+        // Trace arrays remain the existing source of truth. The optional sink
+        // observes each append after it succeeds and cannot throw back into the
+        // combat calculation. This keeps recording/backpressure failures out of
+        // all rule, timing and damage decisions.
+        for (const [source, trace] of [
+            ['runtime', this.trace],
+            ['effect', this.effects.trace],
+            ['status', this.statusEffects.trace],
+            ['resource', this.resources.trace],
+            ['cooldown', this.cooldowns.trace],
+            ['clock', this.clockDomains.trace],
+            ['vital', this.vitals.trace],
+            ['poise', this.poise.trace],
+            ['reaction', this.reactions.trace],
+            ['resilience', this.resilience.trace],
+            ['effect-source', this.effectSources.trace],
+            ['skill-form', this.skillForms.trace]
+        ]) {
+            observeTraceArray(trace, source, traceSink, this.traceSinkFailures);
+        }
 
         for (const entity of definitionsArray(definitions.entities, 'id')) {
             this.registerEntity(entity);
@@ -682,6 +758,22 @@ export class CombatRuntime {
             rootSkillId: input.rootSkillId ?? eventContext.rootSkillId
                 ?? input.skillId ?? eventContext.skillId,
             castId: input.castId ?? eventContext.castId,
+            rootCastId: input.rootCastId ?? eventContext.rootCastId
+                ?? input.castId ?? eventContext.castId,
+            parentCastId: input.parentCastId ?? eventContext.parentCastId ?? null,
+            inputSkillId: input.inputSkillId ?? eventContext.inputSkillId
+                ?? input.rootSkillId ?? eventContext.rootSkillId
+                ?? input.skillId ?? eventContext.skillId,
+            inputCommandType: input.inputCommandType
+                ?? eventContext.inputCommandType
+                ?? input.commandType
+                ?? eventContext.commandType,
+            executedSkillId: input.executedSkillId ?? eventContext.executedSkillId
+                ?? input.skillId ?? eventContext.skillId,
+            effectiveSkillType: input.effectiveSkillType
+                ?? eventContext.effectiveSkillType
+                ?? input.skillType
+                ?? eventContext.skillType,
             commandType: input.commandType ?? eventContext.commandType,
             skillType: input.skillType ?? eventContext.skillType,
             payload: {
@@ -743,6 +835,18 @@ export class CombatRuntime {
                 skillId: context.skillId ?? null,
                 rootSkillId: context.rootSkillId ?? context.skillId ?? null,
                 castId: context.castId,
+                rootCastId: context.rootCastId ?? context.castId,
+                parentCastId: context.parentCastId ?? null,
+                inputSkillId: context.inputSkillId ?? context.rootSkillId
+                    ?? context.skillId ?? null,
+                inputCommandType: context.inputCommandType
+                    ?? context.commandType
+                    ?? null,
+                executedSkillId: context.executedSkillId ?? context.skillId ?? null,
+                effectiveSkillType: context.effectiveSkillType
+                    ?? context.skillType
+                    ?? context.commandType
+                    ?? null,
                 commandType: context.commandType ?? null,
                 skillType: context.skillType ?? context.commandType ?? null,
                 consumedStacks: record.consumedStacks,
@@ -761,6 +865,11 @@ export class CombatRuntime {
             throw new TypeError('captureConsumedStatusForCast requires a snapshot object.');
         }
         const castId = identifier(snapshot.castId, 'consumed status castId');
+        const lineage = this.castLineageByCastId.get(castId) ?? null;
+        const rootCastId = identifier(
+            snapshot.rootCastId ?? lineage?.rootCastId ?? castId,
+            'consumed status rootCastId'
+        );
         const key = identifier(
             snapshot.key ?? snapshot.buffId,
             'consumed status key'
@@ -769,21 +878,79 @@ export class CombatRuntime {
             ...snapshot,
             key,
             castId,
+            rootCastId,
+            parentCastId: snapshot.parentCastId ?? lineage?.parentCastId ?? null,
             consumedStacks: nonNegativeInteger(
                 Math.trunc(Number(snapshot.consumedStacks ?? 0)),
                 'consumed status stack count'
             )
         }));
-        const byKey = this.consumedStatusesByCastId.get(castId) ?? new Map();
-        byKey.set(key, normalized);
-        this.consumedStatusesByCastId.set(castId, byKey);
+        for (const storageCastId of new Set([castId, rootCastId])) {
+            const byKey = this.consumedStatusesByCastId.get(storageCastId) ?? new Map();
+            byKey.set(key, normalized);
+            this.consumedStatusesByCastId.set(storageCastId, byKey);
+        }
         return cloneValue(normalized);
     }
 
-    consumedStatusesForCast(castId) {
-        if (castId === null || castId === undefined) return [];
-        const byKey = this.consumedStatusesByCastId.get(castId);
-        return byKey ? [...byKey.values()].map(cloneValue) : [];
+    registerCastLineage(input = {}) {
+        if (!isRecord(input)) {
+            throw new TypeError('registerCastLineage requires an input object.');
+        }
+        const castId = identifier(input.castId, 'cast lineage castId');
+        const rootCastId = identifier(
+            input.rootCastId ?? castId,
+            'cast lineage rootCastId'
+        );
+        const lineage = deepFreeze(cloneValue({
+            castId,
+            rootCastId,
+            parentCastId: input.parentCastId ?? null
+        }));
+        this.castLineageByCastId.set(castId, lineage);
+        return cloneValue(lineage);
+    }
+
+    consumedStatusesForCast(identity) {
+        if (identity === null || identity === undefined) return [];
+        const input = isRecord(identity) ? identity : { castId: identity };
+        const castId = input.castId ?? null;
+        const requestedIds = [];
+        const addRequestedId = value => {
+            if (value !== null && value !== undefined && !requestedIds.includes(value)) {
+                requestedIds.push(value);
+            }
+        };
+        addRequestedId(castId);
+        addRequestedId(input.parentCastId);
+        addRequestedId(input.rootCastId);
+        let cursor = castId;
+        const visited = new Set();
+        while (cursor !== null && cursor !== undefined && !visited.has(cursor)) {
+            visited.add(cursor);
+            const lineage = this.castLineageByCastId.get(cursor);
+            if (!lineage) break;
+            addRequestedId(lineage.parentCastId);
+            addRequestedId(lineage.rootCastId);
+            cursor = lineage.parentCastId;
+        }
+        const snapshots = new Map();
+        for (const requestedId of requestedIds) {
+            const byKey = this.consumedStatusesByCastId.get(requestedId);
+            if (!byKey) continue;
+            for (const snapshot of byKey.values()) {
+                const snapshotIdentity = [
+                    snapshot.key,
+                    snapshot.buffId,
+                    snapshot.frame,
+                    snapshot.rootCastId ?? snapshot.castId
+                ].join('|');
+                if (!snapshots.has(snapshotIdentity)) {
+                    snapshots.set(snapshotIdentity, snapshot);
+                }
+            }
+        }
+        return [...snapshots.values()].map(cloneValue);
     }
 
     notifyAbilityEvent(eventContext = {}) {
@@ -963,6 +1130,11 @@ export class CombatRuntime {
                 ...this.#entityBlackboardValues(programOwnerId),
                 ...cloneValue(contextInput.blackboard ?? {})
             }
+        });
+        this.registerCastLineage({
+            castId,
+            rootCastId: context.rootCastId ?? castId,
+            parentCastId: context.parentCastId ?? null
         });
         const domainId = context.clockDomainId ?? 'global';
         const execution = {

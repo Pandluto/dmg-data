@@ -81,4 +81,3 @@ CcTagTable.tagTerms[*]
 ## 不能靠字符串搜索恢复的关系
 
 `SpellInfliction(Pulse)` 的原始动作没有目标 Buff ID，但运行时会产生 `buff_common_energy_shard_attached_pulse`。此类关系需要单独的引擎语义映射表，并用受控黑盒差分验证。
-

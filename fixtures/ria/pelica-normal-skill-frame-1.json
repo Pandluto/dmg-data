@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "adapter": "ake-squad-demo",
+  "description": "Controlled RIA diff variant: the same Pelica normal skill is submitted one frame later.",
+  "input": {
+    "enemyId": "eny_0007_mimicw",
+    "initialAtb": 300,
+    "members": [
+      {
+        "memberId": "pelica",
+        "characterId": "chr_0004_pelica",
+        "level": 90,
+        "skillLevel": 12
+      }
+    ],
+    "commands": [
+      {
+        "commandId": "pelica-b",
+        "memberId": "pelica",
+        "commandType": "NormalSkill",
+        "frame": 1
+      }
+    ],
+    "endFrame": 120
+  }
+}

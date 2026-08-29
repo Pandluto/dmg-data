@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ake-cleanroom.local/ria/schemas/state-snapshot.schema.json",
+  "title": "RIA Provable State Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "caseId",
+    "sessionId",
+    "runId",
+    "sequence",
+    "frame",
+    "state",
+    "evidence"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "caseId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9._-]{0,94}[A-Za-z0-9])?$",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "sessionId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9._-]{0,94}[A-Za-z0-9])?$",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "runId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9._-]{0,94}[A-Za-z0-9])?$",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "frame": {
+      "type": "number",
+      "minimum": 0
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "fromEventSequence",
+        "toEventSequence"
+      ],
+      "properties": {
+        "source": {
+          "const": "normalized-fact-projection"
+        },
+        "fromEventSequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "toEventSequence": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}

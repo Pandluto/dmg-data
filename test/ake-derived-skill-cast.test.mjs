@@ -264,4 +264,23 @@ test('real Wulfa-Camille axis re-resolves a buffered B against the active form',
         'chr_0033_camille_combo_skill_2'
     ]);
     assert.deepEqual(settlement?.effectiveSkillTypes, ['ComboSkill']);
+
+    const wulfaSettlement = result.teamComboLedger.settlements.find(entry => (
+        entry.commandId === 'wulfa-q'
+    ));
+    const camilleGrant = result.teamComboLedger.events.find(entry => (
+        entry.type === 'grant'
+        && entry.rootCastId === executed?.castId
+    ));
+    assert.deepEqual([
+        executed?.frame,
+        wulfaSettlement?.frame,
+        wulfaSettlement?.consumptionStatus,
+        wulfaSettlement?.consumedStacks,
+        camilleGrant?.frame
+    ], [294, 316, 'Empty', 0, 421],
+    'Wulfa Q cannot consume the future combo layer granted by Camille at F421');
+    assert.equal(result.teamComboLedger.events.some(entry => (
+        entry.rootCastId === wulfaSettlement?.rootCastId
+    )), false, 'the later Camille grant must not be attributed to Wulfa Q');
 });

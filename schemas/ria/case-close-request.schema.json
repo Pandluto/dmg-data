@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ake-cleanroom.local/ria/schemas/case-close-request.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "resolution": {
+      "type": "string",
+      "maxLength": 20000
+    }
+  }
+}

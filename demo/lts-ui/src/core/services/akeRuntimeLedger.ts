@@ -7,6 +7,7 @@ import type {
   AkeRuntimeHit,
   AkeRuntimeModifierContribution,
   AkeRuntimeStatusEvent,
+  AkeTeamComboLedgerEvent,
   AkeTeamReport,
 } from '../../integrations/ake/akeProvider';
 
@@ -172,10 +173,9 @@ export type RuntimeCommandViewState =
   | { kind: 'manual-preview'; message: string; ledger: null };
 
 /**
- * Main-axis badges are an after-command state snapshot.  Both transitions and
- * inherited primary states stay visible; their tone tells the renderer whether
- * this command changed the state or merely carried it forward.  Hiding the
- * latter makes persistent enemy state appear to vanish between buttons.
+ * Main-axis badges are an after-command causal projection. Explicit runtime
+ * transitions and states that remain active use separate tones; expiry and
+ * consumption are never inferred from a gray snapshot.
  */
 export function selectAkeMainTimelineStatuses(
   ledger: AkeRuntimeCommandLedger | null | undefined,
@@ -510,6 +510,49 @@ function pooledTeamComboView(input: {
   };
 }
 
+function teamComboEventBelongsToCast(
+  event: AkeTeamComboLedgerEvent,
+  castId: string,
+): boolean {
+  return event.rootCastId === castId || event.castId === castId;
+}
+
+function teamComboTransitionView(input: {
+  event: AkeTeamComboLedgerEvent;
+  report: AkeTeamReport;
+  labels: AkeRuntimeStatusLabelMap;
+  keyPrefix: string;
+}): AkeRuntimeStatusView {
+  const { event, report, labels, keyPrefix } = input;
+  const metadata = runtimeStatusMetadata(TEAM_COMBO_BUFF_ID, labels);
+  const typeLabel = {
+    grant: '本次技能发放',
+    refresh: '本次技能刷新',
+    consume: '本次技能消费',
+    expire: '状态已到期',
+    remove: '状态已移除',
+  }[event.type];
+  const actorName = runtimeActorName(report, event.sourceId ?? event.consumerId);
+  return {
+    key: `${keyPrefix}:${event.eventId}`,
+    buffId: TEAM_COMBO_BUFF_ID,
+    title: `${metadata.label} ×${Math.max(event.beforeStacks, event.afterStacks)}`,
+    detail: [
+      '队伍共享',
+      `${event.beforeStacks} → ${event.afterStacks}层`,
+      `F${event.frame} / ${(event.frame / report.tickRate).toFixed(2)}秒`,
+      actorName ? `来源：${actorName}` : '',
+      event.castId !== event.rootCastId ? '派生程序归属根动作' : '',
+    ].filter(Boolean).join(' · '),
+    kind: typeLabel,
+    groupLabel: '关键战斗状态',
+    groupOrder: 0,
+    priority: runtimeStatusPriority(TEAM_COMBO_BUFF_ID, metadata),
+    iconUrl: metadata.iconUrl,
+    iconAlt: metadata.label,
+  };
+}
+
 function scopeLabel(targetId: string | null, command: AkeCommandSettlement, enemyId: string): string {
   if (targetId === enemyId) return '敌方';
   if (targetId && targetId === command.characterId) return '自身';
@@ -588,9 +631,17 @@ function isPassiveRegistration(event: AkeRuntimeStatusEvent): boolean {
 }
 
 function transitionBelongsToCast(event: AkeRuntimeStatusEvent, castId: string): boolean {
-  if (event.triggerCastId === castId || event.triggerRootCastId === castId) return true;
-  return (event.castId === castId || event.rootCastId === castId)
-    && ['StatusEffectApplied', 'StatusEffectRefreshed'].includes(event.stage);
+  const triggerCastMatches = event.triggerCastId === castId
+    || event.triggerRootCastId === castId;
+  const sourceCastMatches = event.castId === castId || event.rootCastId === castId;
+  const hasTriggerCast = Boolean(event.triggerCastId || event.triggerRootCastId);
+  const terminalTransition = event.consumption === true
+    || event.stage === 'StatusEffectExpired'
+    || event.stage === 'StatusEffectFinished'
+    || event.stage === 'StatusEffectRemoved'
+    || event.stage === 'StatusEffectStackRemoved';
+  if (terminalTransition && hasTriggerCast) return triggerCastMatches;
+  return triggerCastMatches || sourceCastMatches;
 }
 
 function statusEventOrder(left: AkeRuntimeStatusEvent, right: AkeRuntimeStatusEvent): number {
@@ -1352,6 +1403,9 @@ export function buildAkeRuntimeCommandLedger(input: {
   const beforeState = activeStatusesAt(statusEvents, actionStartFrame, false);
   const afterState = activeStatusesAt(statusEvents, actionEndFrame, true);
   const transitions = statusEvents.filter((event) => transitionBelongsToCast(event, castId));
+  const causalComboEvents = (report.teamComboLedger?.events ?? []).filter((event) => (
+    teamComboEventBelongsToCast(event, castId)
+  ));
   const beforeComboStacks = teamComboStacksInState(beforeState, command.characterId);
   const afterComboStacks = teamComboStacksInState(afterState, command.characterId);
   const statuses: AkeRuntimeStatusView[] = [];
@@ -1385,13 +1439,19 @@ export function buildAkeRuntimeCommandLedger(input: {
     const scope = scopeLabel(event.targetId, command, report.enemyId);
     const changes = [...new Set(events.map(stageLabel))].join(' / ');
     const before = finite(firstEvent.before, 0);
+    const causalPath = events.map((transition) => (
+      `${stageLabel(transition)} ${finite(transition.before, 0)}→${finite(
+        transition.after ?? transition.stackCount,
+        0,
+      )}层`
+    )).join(' / ');
     statuses.push({
       key: `ake-runtime-transition:${event.traceIndex}`,
       buffId: event.buffId,
       title: `${metadata.label}${after > 1 ? ` ×${after}` : ''}`,
       detail: [
         events.length > 1 ? `${events.length} 次变化` : '',
-        `${before} → ${after}层`,
+        causalPath || `${before} → ${after}层`,
         eventDetail(event, command, report.enemyId, report.tickRate),
       ].filter(Boolean).join(' · '),
       kind: `${scope}·${changes}`,
@@ -1417,32 +1477,58 @@ export function buildAkeRuntimeCommandLedger(input: {
   consumedStatuses.forEach((snapshot) => {
     statuses.push(consumedStatusView(snapshot, report, labels, 'ake-runtime-command-consumed'));
   });
-  if (!consumedBuffIds.has(TEAM_COMBO_BUFF_ID) && (beforeComboStacks > 0 || afterComboStacks > 0)) {
+  causalComboEvents
+    .filter((event) => event.type !== 'consume'
+      || !consumedBuffIds.has(TEAM_COMBO_BUFF_ID))
+    .forEach((event) => {
+      statuses.push(teamComboTransitionView({
+        event,
+        report,
+        labels,
+        keyPrefix: 'ake-runtime-command-team-combo-event',
+      }));
+    });
+  const hasOwnedComboTransition = causalComboEvents.length > 0;
+  if (!consumedBuffIds.has(TEAM_COMBO_BUFF_ID)
+    && !hasOwnedComboTransition
+    && beforeComboStacks > 0) {
     statuses.push(pooledTeamComboView({
-      stacks: afterComboStacks || beforeComboStacks,
+      stacks: afterComboStacks > 0 ? afterComboStacks : beforeComboStacks,
       beforeStacks: beforeComboStacks,
       command,
       tickRate: report.tickRate,
       labels,
       keyPrefix: 'ake-runtime-command-team-combo',
-      moment: afterComboStacks > beforeComboStacks
-        ? '本次技能叠层'
-        : '队伍共享状态',
+      moment: afterComboStacks > 0 ? '动作期间持续生效' : '动作开始时有效',
     }));
   }
 
   const compactStatusByInstance = new Map<string, AkeRuntimeCompactStatus>();
   transitions.forEach((event) => {
     if (event.buffId === TEAM_COMBO_BUFF_ID || consumedBuffIds.has(event.buffId)) return;
+    const instanceEvents = transitionGroups.get(statusInstanceKey(event)) ?? [event];
+    if (instanceEvents[instanceEvents.length - 1]?.traceIndex !== event.traceIndex) return;
     const metadata = runtimeStatusMetadata(event.buffId, labels, event);
     if (metadata.hidden) return;
     const after = finite(event.after ?? event.stackCount, 0);
+    const expired = event.reason === 'Expired' || event.stage === 'StatusEffectExpired';
+    const removed = after <= 0 && !event.consumption && !expired;
+    const tone = after > 0
+      ? 'changed'
+      : expired ? 'expired' : event.consumption ? 'consumed' : 'removed';
+    const suffix = after > 0 ? String(after) : expired ? '期' : removed ? '移' : '消';
+    const compactCausalPath = instanceEvents.map((transition) => (
+      `${stageLabel(transition)} ${finite(transition.before, 0)}→${finite(
+        transition.after ?? transition.stackCount,
+        0,
+      )}层`
+    )).join(' / ');
     compactStatusByInstance.set(statusInstanceKey(event), {
       key: `ake-runtime-transition:${event.traceIndex}`,
       buffId: event.buffId,
-      label: after > 0 ? `${metadata.shortLabel}${after}` : `${metadata.shortLabel}消`,
-      title: `${metadata.label} · ${eventDetail(event, command, report.enemyId, report.tickRate)}`,
-      tone: after > 0 ? 'changed' : 'consumed',
+      label: `${metadata.shortLabel}${suffix}`,
+      title: `${metadata.label} · ${compactCausalPath} · ${eventDetail(event, command, report.enemyId, report.tickRate)}`,
+      tone,
       iconUrl: metadata.iconUrl,
       displayName: metadata.label,
       stackCount: after,
@@ -1461,8 +1547,8 @@ export function buildAkeRuntimeCommandLedger(input: {
       key: `ake-runtime-snapshot:${statusInstanceKey(active.event)}`,
       buffId: active.event.buffId,
       label: `${metadata.shortLabel}${active.stackCount}`,
-      title: `继承状态 · ${metadata.label} · 命中后 ${active.stackCount}层`,
-      tone: 'active',
+      title: `持续生效 · ${metadata.label} · 动作结束时 ${active.stackCount}层`,
+      tone: 'ongoing',
       iconUrl: metadata.iconUrl,
       displayName: metadata.label,
       stackCount: active.stackCount,
@@ -1489,14 +1575,50 @@ export function buildAkeRuntimeCommandLedger(input: {
       applicationScope: snapshot.applicationScope,
     });
   });
-  if (!consumedBuffIds.has(TEAM_COMBO_BUFF_ID) && afterComboStacks > 0) {
+  causalComboEvents.forEach((event) => {
+    if (event.type === 'consume' && consumedBuffIds.has(TEAM_COMBO_BUFF_ID)) return;
+    const metadata = runtimeStatusMetadata(TEAM_COMBO_BUFF_ID, labels);
+    const tone = event.type === 'expire'
+      ? 'expired'
+      : event.type === 'remove'
+        ? 'removed'
+        : event.type === 'consume' ? 'consumed' : 'changed';
+    const suffix = event.type === 'expire'
+      ? '期'
+      : event.type === 'remove'
+        ? '移'
+        : event.type === 'consume' ? '消' : String(event.afterStacks);
+    const view = teamComboTransitionView({
+      event,
+      report,
+      labels,
+      keyPrefix: 'ake-runtime-compact-team-combo-event',
+    });
+    compactStatusByInstance.set(`team-combo-event:${event.eventId}`, {
+      key: view.key,
+      buffId: TEAM_COMBO_BUFF_ID,
+      label: `${metadata.shortLabel}${suffix}`,
+      title: `${view.kind} · ${view.detail}`,
+      tone,
+      iconUrl: metadata.iconUrl,
+      displayName: metadata.label,
+      stackCount: Math.max(event.beforeStacks, event.afterStacks),
+      mainDisplay: true,
+      priority: runtimeStatusPriority(TEAM_COMBO_BUFF_ID, metadata),
+      applicationScope: 'team',
+    });
+  });
+  if (!consumedBuffIds.has(TEAM_COMBO_BUFF_ID)
+    && !hasOwnedComboTransition
+    && beforeComboStacks > 0
+    && afterComboStacks > 0) {
     const metadata = runtimeStatusMetadata(TEAM_COMBO_BUFF_ID, labels);
     compactStatusByInstance.set('pooled:team-combo', {
       key: `ake-runtime-compact-team-combo:${castId}`,
       buffId: TEAM_COMBO_BUFF_ID,
       label: `${metadata.shortLabel}${afterComboStacks}`,
-      title: `${afterComboStacks > beforeComboStacks ? '本次变化' : '继承状态'} · ${metadata.label} ×${afterComboStacks} · 队伍共享`,
-      tone: afterComboStacks > beforeComboStacks ? 'changed' : 'active',
+      title: `持续生效 · ${metadata.label} ×${afterComboStacks} · 队伍共享`,
+      tone: 'ongoing',
       iconUrl: metadata.iconUrl,
       displayName: metadata.label,
       stackCount: afterComboStacks,

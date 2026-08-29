@@ -7,6 +7,7 @@ import { ComboTriggerMachine } from './combo-trigger-machine.mjs';
 import { CombatRuntime } from './combat-runtime.mjs';
 import { CommandAdmissionProvider } from './command-admission-provider.mjs';
 import { LoadoutEffectManager } from './ake-loadout-compiler.mjs';
+import { normalizeTeamComboEventLedger } from './team-combo-event-ledger.mjs';
 
 function isRecord(value) {
     return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -317,6 +318,7 @@ export class AkeSquadScenarioRunner {
         damageResolver = createAkeDamageResolver(),
         timeDilationResolver = null,
         commandAdmissionProvider = null,
+        traceSink = null,
         maxDriverEvents = 100000,
         maxEventsPerRun = 10000
     } = {}) {
@@ -337,6 +339,9 @@ export class AkeSquadScenarioRunner {
                 'commandAdmissionProvider must expose profile() and evaluate(), or be null.'
             );
         }
+        if (traceSink !== null && typeof traceSink !== 'function') {
+            throw new TypeError('traceSink must be a function or null.');
+        }
         this.bundle = bundle;
         this.commandQueueWindowFrames = nonNegativeInteger(
             commandQueueWindowFrames,
@@ -355,6 +360,7 @@ export class AkeSquadScenarioRunner {
             ?? new CommandAdmissionProvider({
                 semanticMappings: bundle.semanticMappings ?? []
             });
+        this.traceSink = traceSink;
         this.maxDriverEvents = positiveInteger(maxDriverEvents, 'maxDriverEvents');
         this.maxEventsPerRun = positiveInteger(maxEventsPerRun, 'maxEventsPerRun');
         this.lastRuntime = null;
@@ -369,6 +375,7 @@ export class AkeSquadScenarioRunner {
         const commandAdmissionTrace = [];
         const centerStateTrace = [];
         const comboTrace = [];
+        const teamComboSettlementTrace = [];
         const localClockTriggerTrace = [];
         const seenClockTriggers = new Set();
         const states = new Map(bundle.members.map(member => [member.characterId, {
@@ -583,6 +590,7 @@ export class AkeSquadScenarioRunner {
                 });
             },
             onStatusTransition: observeStatusTransitionForCombos,
+            traceSink: this.traceSink,
             maxEventsPerRun: this.maxEventsPerRun
         });
         const loadoutManager = new LoadoutEffectManager({ runtime });
@@ -876,6 +884,10 @@ export class AkeSquadScenarioRunner {
             active.derivedCasts.push(derived);
             active.executedSkillId = request.executedSkillId;
             active.effectiveSkillType = request.effectiveSkillType;
+            if (!active.teamComboSettlementResolved) {
+                active.settlementCastId = request.childCastId;
+                active.settlementParentCastId = request.parentCastId;
+            }
             const derivedEndFrame = request.launchFrame
                 + skillNaturalEndOffset(request.program);
             if (derivedEndFrame > (active.plannedNaturalEndFrame ?? active.startFrame)) {
@@ -1041,6 +1053,9 @@ export class AkeSquadScenarioRunner {
                 inputSkillId: skillId,
                 executedSkillId: skillId,
                 effectiveSkillType: skill.effectiveSkillType ?? commandType,
+                settlementCastId: castId,
+                settlementParentCastId: null,
+                teamComboSettlementResolved: false,
                 skill,
                 commandType,
                 startFrame: frame,
@@ -1116,6 +1131,67 @@ export class AkeSquadScenarioRunner {
                 'InitialSchedule'
             );
             return state.currentSkill;
+        };
+
+        // Command callbacks run at priority 70, while cast-start actions run at
+        // priority 0 and damage timeline groups at priority 1.  Resolve the
+        // action's settlement identity between those phases so a same-frame
+        // CastSkill wrapper can attach its real child program before shared
+        // combo eligibility is decided, while ordinary B/Q still consume at
+        // action start before any Hit is evaluated.
+        const scheduleTeamComboSettlement = (state, active, frame) => {
+            runtime.schedule(frame, 0.5, () => {
+                if (active.teamComboSettlementResolved) return;
+                active.teamComboSettlementResolved = true;
+                const effectiveSkillType = active.effectiveSkillType
+                    ?? active.commandType;
+                const settlementCastId = active.settlementCastId ?? active.castId;
+                const settlementParentCastId = active.settlementParentCastId ?? null;
+                const eligible = ['NormalSkill', 'UltimateSkill'].includes(
+                    effectiveSkillType
+                );
+                const settlement = {
+                    frame,
+                    sequence: teamComboSettlementTrace.length + 1,
+                    memberId: state.memberId,
+                    characterId: state.characterId,
+                    commandId: active.commandId,
+                    rootCastId: active.castId,
+                    castId: settlementCastId,
+                    parentCastId: settlementParentCastId,
+                    inputSkillId: active.inputSkillId,
+                    inputCommandType: active.commandType,
+                    executedSkillId: active.executedSkillId,
+                    effectiveSkillType,
+                    eligible,
+                    consumptionStatus: 'Ineligible',
+                    consumedStacks: 0,
+                    grantIds: []
+                };
+                if (eligible) {
+                    const consumed = runtime.consumeTeamComboState({
+                        frame,
+                        consumerId: state.characterId,
+                        targetId: enemyId,
+                        inputCommandType: active.commandType,
+                        commandType: active.commandType,
+                        effectiveSkillType,
+                        skillType: effectiveSkillType,
+                        inputSkillId: active.inputSkillId,
+                        executedSkillId: active.executedSkillId,
+                        skillId: active.executedSkillId,
+                        rootSkillId: active.inputSkillId,
+                        castId: settlementCastId,
+                        rootCastId: active.castId,
+                        parentCastId: settlementParentCastId,
+                        reason: 'TeamComboConsumedByEffectiveSkill'
+                    });
+                    settlement.consumptionStatus = consumed.status;
+                    settlement.consumedStacks = consumed.consumedStacks;
+                    settlement.grantIds = clone(consumed.grantIds ?? []);
+                }
+                teamComboSettlementTrace.push(settlement);
+            }, `team-combo-settlement:${state.memberId}:${String(active.commandId)}`);
         };
 
         const beginFullAttackCombo = (state, command, frame, skillId, skillSource) => {
@@ -1474,7 +1550,7 @@ export class AkeSquadScenarioRunner {
             if (command.commandType === 'Attack' && command.attackMode === 'full-combo') {
                 beginFullAttackCombo(state, command, frame, skillId, skillSource);
             } else {
-                beginSkill(
+                const active = beginSkill(
                     state,
                     frame,
                     command.commandType,
@@ -1482,19 +1558,7 @@ export class AkeSquadScenarioRunner {
                     skillSource,
                     command.commandId
                 );
-            }
-            if (['NormalSkill', 'UltimateSkill'].includes(command.commandType)) {
-                runtime.consumeTeamComboState({
-                    frame,
-                    consumerId: state.characterId,
-                    targetId: command.targetId ?? enemyId,
-                    commandType: command.commandType,
-                    skillType: command.commandType,
-                    skillId: state.currentSkill?.skillId ?? skillId,
-                    rootSkillId: state.currentSkill?.rootSkillId ?? skillId,
-                    castId: state.currentSkill?.castId ?? null,
-                    reason: 'TeamComboConsumedBySkill'
-                });
+                scheduleTeamComboSettlement(state, active, frame);
             }
             if (command.commandType === 'ComboSkill' && comboGate?.pending) {
                 comboMachine.consume({
@@ -1603,6 +1667,11 @@ export class AkeSquadScenarioRunner {
                 })
             ]))
         ]));
+        const teamComboLedger = normalizeTeamComboEventLedger({
+            statusTrace: runtime.statusEffects.trace,
+            damageLog,
+            settlements: teamComboSettlementTrace
+        });
         return {
             schemaVersion: 3,
             engine: 'ake-squad-combat-runtime',
@@ -1622,11 +1691,13 @@ export class AkeSquadScenarioRunner {
             commandTrace,
             commandAdmissionTrace,
             comboTrace,
+            teamComboSettlementTrace,
             centerStateTrace,
             cooldownTrace: runtime.cooldowns.intervals(),
             cooldownMutationTrace: clone(runtime.cooldowns.trace),
             resourceTrace: clone(runtime.resources.trace),
             statusTrace: clone(runtime.statusEffects.trace),
+            teamComboLedger,
             attributeSnapshots,
             timedInputWindows: runtime.timedInputWindowSnapshot(durationTicks),
             clockTrace: clone(runtime.clockDomains.trace),

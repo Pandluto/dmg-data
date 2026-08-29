@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ake-cleanroom.local/ria/schemas/session-entry.schema.json",
+  "title": "RIA Session Journal Entry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "caseId",
+    "sessionId",
+    "sequence",
+    "createdAt",
+    "type",
+    "actor",
+    "content",
+    "metadata",
+    "contentHash"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "caseId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9._-]{0,94}[A-Za-z0-9])?$",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "sessionId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9._-]{0,94}[A-Za-z0-9])?$",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "type": {
+      "enum": [
+        "decision",
+        "finding",
+        "run-link",
+        "commit-link",
+        "thread-link",
+        "note"
+      ]
+    },
+    "actor": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "content": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20000
+    },
+    "runId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9._-]{0,94}[A-Za-z0-9])?$",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "relatedRunId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9._-]{0,94}[A-Za-z0-9])?$",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "relation": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "commit": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "threadId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "threadSource": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "contentHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "run-link"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "required": [
+          "runId"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "commit-link"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "required": [
+          "commit"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "thread-link"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "required": [
+          "threadId",
+          "threadSource"
+        ]
+      }
+    }
+  ]
+}

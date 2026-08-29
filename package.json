@@ -27,10 +27,23 @@
     "simulate:pelica-generic": "node ./src/generic-cli.mjs",
     "verify:cross-character": "node ./scripts/verify-cross-character-smoke.mjs",
     "simulate:poise": "node ./src/cli.mjs pelica-poise",
+    "check:docs": "node ./scripts/check-doc-links.mjs",
+    "ria": "node ./src/ria/cli.mjs",
+    "ria:server": "node ./src/ria/cli.mjs server",
+    "ria:schemas": "node ./scripts/export-ria-schemas.mjs",
+    "ria:openapi": "node ./scripts/export-ria-openapi.mjs",
+    "ria:test": "node ./scripts/ria-node-test.mjs",
+    "test:ria": "node --test test/ria-*.test.mjs",
+    "check": "npm run check:docs && npm test",
     "test": "node --test test/*.test.mjs",
     "verify": "node --test test/*.test.mjs"
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^12.1.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1"
   }
 }

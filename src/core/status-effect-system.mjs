@@ -1074,9 +1074,21 @@ export class StatusEffectSystem {
             triggerTargetId: eventContext.targetId ?? null,
             triggerSkillId: eventContext.skillId ?? null,
             triggerRootSkillId: eventContext.rootSkillId ?? null,
+            triggerInputSkillId: eventContext.inputSkillId
+                ?? eventContext.rootSkillId
+                ?? eventContext.skillId
+                ?? null,
             triggerCastId: eventContext.castId ?? null,
             triggerRootCastId: eventContext.rootCastId ?? eventContext.castId ?? null,
             triggerParentCastId: eventContext.parentCastId ?? null,
+            triggerInputCommandType: eventContext.inputCommandType
+                ?? eventContext.commandType
+                ?? eventContext.payload?.commandType
+                ?? null,
+            triggerEffectiveSkillType: eventContext.effectiveSkillType
+                ?? eventContext.skillType
+                ?? eventContext.payload?.skillType
+                ?? null,
             triggerCommandType: eventContext.commandType
                 ?? eventContext.payload?.commandType
                 ?? null,

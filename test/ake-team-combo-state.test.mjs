@@ -134,6 +134,16 @@ test('real Camille field grants shared combo before Wulfa ultimate consumes it',
         [212, 'chr_0028_wulfa'],
         [212, 'chr_0033_camille']
     ]);
+    assert.deepEqual(result.teamComboLedger.events.map(event => [
+        event.frame,
+        event.type,
+        event.beforeStacks,
+        event.afterStacks,
+        event.rootCastId
+    ]), [
+        [206, 'grant', 0, 1, 'command-cast:camille:2'],
+        [212, 'consume', 1, 0, 'command-cast:wulfa:4']
+    ], 'the demo transport preserves the normalized causal team-combo ledger');
 
     const ultimateHit = result.hits.find(hit => (
         hit.rootSkillId === 'chr_0028_wulfa_ultimate_skill'

@@ -77,4 +77,3 @@ stackBefore, stackAfter, blackboardSnapshot, jsonPath
 ```
 
 这样才能解释 Calc 差异，而不是只比较最终伤害数字。
-

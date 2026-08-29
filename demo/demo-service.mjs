@@ -649,9 +649,16 @@ function compactStatusEvents(trace, { projectRoot = defaultProjectRoot } = {}) {
         triggerTargetId: event.triggerTargetId ?? null,
         triggerSkillId: event.triggerSkillId ?? null,
         triggerRootSkillId: event.triggerRootSkillId ?? null,
+        triggerInputSkillId: event.triggerInputSkillId ?? null,
         triggerCastId: event.triggerCastId ?? null,
         triggerRootCastId: event.triggerRootCastId ?? event.triggerCastId ?? null,
         triggerParentCastId: event.triggerParentCastId ?? null,
+        triggerInputCommandType: event.triggerInputCommandType
+            ?? event.triggerCommandType
+            ?? null,
+        triggerEffectiveSkillType: event.triggerEffectiveSkillType
+            ?? event.triggerSkillType
+            ?? null,
         reason: event.reason ?? null,
         ...presentation
         };
@@ -792,6 +799,7 @@ export function simulateDemo(input, { projectRoot = defaultProjectRoot } = {}) {
         resourceSeries: resourceSeries(result.resourceTrace, result.durationTicks),
         resourceEvents: meaningfulResourceEvents(result.resourceTrace),
         statusEvents: compactStatusEvents(result.statusTrace, { projectRoot }),
+        teamComboLedger: structuredClone(result.teamComboLedger),
         hits,
         timeline,
         traces: {
@@ -1101,12 +1109,18 @@ function compactSquadHits(damageLog) {
     }));
 }
 
-export function simulateSquadDemo(input, { projectRoot = defaultProjectRoot } = {}) {
+export function simulateSquadDemo(input, {
+    projectRoot = defaultProjectRoot,
+    traceSink = null
+} = {}) {
     const request = normalizeSquadRequest(input, projectRoot);
     const bundle = getSquadBundle(projectRoot, request);
     const result = runAkeSquadScenario(bundle, {
-        commands: request.commands,
-        endFrame: request.endFrame
+        runner: { traceSink },
+        run: {
+            commands: request.commands,
+            endFrame: request.endFrame
+        }
     });
     const timeline = projectAkeTimeline(result);
     const catalogCharacterById = new Map(
@@ -1218,6 +1232,7 @@ export function simulateSquadDemo(input, { projectRoot = defaultProjectRoot } = 
         },
         resourceEvents: meaningfulResourceEvents(result.resourceTrace),
         statusEvents: compactStatusEvents(result.statusTrace, { projectRoot }),
+        teamComboLedger: structuredClone(result.teamComboLedger),
         diagnostics: {
             unresolvedEffectCount: result.diagnostics.unresolvedEffectCount,
             compilerUnresolvedEffectCount: bundle.compiler.unresolved.length,

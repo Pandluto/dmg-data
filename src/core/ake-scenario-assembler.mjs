@@ -52,6 +52,15 @@ const SKILL_SPECIFICATION_TYPES = Object.freeze({
     CharacterComboSkill: 'ComboSkill'
 });
 
+const AKE_PROFESSION_CODES = Object.freeze({
+    0: 'Guard',
+    2: 'Defender',
+    4: 'Supporter',
+    5: 'Caster',
+    7: 'Vanguard',
+    8: 'Assault'
+});
+
 function isRecord(value) {
     return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
@@ -1258,7 +1267,11 @@ export class AkeScenarioAssembler {
                     kind: 'Character',
                     team: 'ally',
                     clockDomainId: `${characterId}:clock`,
-                    metadata: { isMainCharacter: true },
+                    metadata: {
+                        isMainCharacter: true,
+                        professionId: Number(characterGrowth.profession),
+                        akeProfession: AKE_PROFESSION_CODES[characterGrowth.profession] ?? null
+                    },
                     ...(Object.keys(runtimeEntityBlackboard).length > 0
                         ? { blackboard: clone(runtimeEntityBlackboard) }
                         : {}),

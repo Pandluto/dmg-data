@@ -31,6 +31,7 @@ const PRODUCER_DEFINITIONS = [
     ['OnAfterSkillApplyCost', 'combat-runtime-resource-transaction'],
     ['OnSquadUspChange', 'combat-runtime-resource-transaction'],
     ['OnRemoveAllPendingComboSkill', 'combo-trigger-owner-empty-edge'],
+    ['OnCustomAbilityEvent', 'combat-runtime-custom-event-action'],
     ['ReactionTriggered', 'combat-runtime-reaction-callback']
 ];
 

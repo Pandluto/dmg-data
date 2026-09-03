@@ -203,13 +203,13 @@
           ],
           "compiler": {
             "statusCounts": {
-              "executable": 238,
+              "executable": 260,
               "metadata-only": 17,
-              "unresolved": 165
+              "unresolved": 143
             },
             "executionRouteCounts": {
-              "complete": 238,
-              "adapter-required": 165,
+              "complete": 260,
+              "adapter-required": 143,
               "blocked": 0,
               "metadata-only": 17
             },
@@ -218,11 +218,10 @@
             "metadataNodes": 458,
             "unresolvedCodes": {
               "AKE_TARGET_PROVIDER_REQUIRED": 15,
-              "AKE_CONDITION_UNSUPPORTED": 70,
+              "AKE_CONDITION_UNSUPPORTED": 43,
               "AKE_ACTION_UNSUPPORTED": 92,
               "AKE_DAMAGE_RESOLVER_REQUIRED": 52,
               "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 103,
-              "AKE_ABILITY_ENTITY_SKILL_MISSING": 7,
               "AKE_TIME_DILATION_RESOLVER_REQUIRED": 17,
               "AKE_SPATIAL_PROVIDER_REQUIRED": 15,
               "AKE_TARGET_FINDER_PROVIDER_REQUIRED": 4,
@@ -472,22 +471,21 @@
           ],
           "compiler": {
             "statusCounts": {
-              "executable": 0,
+              "executable": 13,
               "metadata-only": 2,
-              "unresolved": 116
+              "unresolved": 103
             },
             "executionRouteCounts": {
-              "complete": 0,
+              "complete": 13,
               "adapter-required": 103,
-              "blocked": 13,
+              "blocked": 0,
               "metadata-only": 2
             },
-            "runtimeActions": 103,
+            "runtimeActions": 116,
             "cleanupActions": 0,
             "metadataNodes": 118,
             "unresolvedCodes": {
-              "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 103,
-              "AKE_ABILITY_ENTITY_SKILL_MISSING": 13
+              "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 103
             }
           },
           "parserSupported": false,
@@ -1001,7 +999,7 @@
             "cleanupActions": 0,
             "metadataNodes": 0,
             "unresolvedCodes": {
-              "AKE_CONDITION_UNSUPPORTED": 58
+              "AKE_NOT_NEXT_CONDITION_LIST_REQUIRED": 58
             },
             "runtimeConditions": 58
           },
@@ -1297,13 +1295,13 @@
           ],
           "compiler": {
             "statusCounts": {
-              "executable": 19,
+              "executable": 21,
               "metadata-only": 1,
-              "unresolved": 13
+              "unresolved": 11
             },
             "executionRouteCounts": {
-              "complete": 19,
-              "adapter-required": 13,
+              "complete": 21,
+              "adapter-required": 11,
               "blocked": 0,
               "metadata-only": 1
             },
@@ -1311,7 +1309,6 @@
             "cleanupActions": 0,
             "metadataNodes": 18,
             "unresolvedCodes": {
-              "AKE_CONDITION_UNSUPPORTED": 7,
               "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 10,
               "AKE_DAMAGE_RESOLVER_REQUIRED": 7,
               "AKE_SPATIAL_PROVIDER_REQUIRED": 1
@@ -3985,21 +3982,21 @@
           ],
           "compiler": {
             "statusCounts": {
-              "executable": 0,
+              "executable": 2,
               "metadata-only": 0,
-              "unresolved": 3
+              "unresolved": 1
             },
             "executionRouteCounts": {
-              "complete": 0,
+              "complete": 2,
               "adapter-required": 0,
-              "blocked": 3,
+              "blocked": 1,
               "metadata-only": 0
             },
             "runtimeActions": 0,
             "cleanupActions": 0,
             "metadataNodes": 0,
             "unresolvedCodes": {
-              "AKE_CONDITION_UNSUPPORTED": 3
+              "AKE_CONDITION_UNSUPPORTED": 1
             },
             "runtimeConditions": 3
           },
@@ -11111,13 +11108,13 @@
           ],
           "compiler": {
             "statusCounts": {
-              "executable": 1505,
+              "executable": 1512,
               "metadata-only": 0,
-              "unresolved": 1972
+              "unresolved": 1965
             },
             "executionRouteCounts": {
-              "complete": 1505,
-              "adapter-required": 1972,
+              "complete": 1512,
+              "adapter-required": 1965,
               "blocked": 0,
               "metadata-only": 0
             },
@@ -11127,14 +11124,13 @@
             "unresolvedCodes": {
               "AKE_TIME_DILATION_RESOLVER_REQUIRED": 318,
               "AKE_SPATIAL_PROVIDER_REQUIRED": 1007,
-              "AKE_ACTION_UNSUPPORTED": 1024,
+              "AKE_ACTION_UNSUPPORTED": 1019,
               "AKE_DAMAGE_RESOLVER_REQUIRED": 634,
-              "AKE_CONDITION_UNSUPPORTED": 318,
+              "AKE_CONDITION_UNSUPPORTED": 268,
               "AKE_TARGET_PROVIDER_REQUIRED": 80,
               "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 3986,
               "AKE_TARGET_FINDER_PROVIDER_REQUIRED": 127,
               "AKE_AURA_TARGET_PROVIDER_REQUIRED": 2,
-              "AKE_ABILITY_ENTITY_SKILL_MISSING": 2,
               "AKE_NORMAL_SKILL_USP_BLACKBOARD_REQUIRED": 1
             }
           },
@@ -12190,13 +12186,13 @@
           ],
           "compiler": {
             "statusCounts": {
-              "executable": 38,
+              "executable": 40,
               "metadata-only": 0,
-              "unresolved": 170
+              "unresolved": 168
             },
             "executionRouteCounts": {
-              "complete": 38,
-              "adapter-required": 170,
+              "complete": 40,
+              "adapter-required": 168,
               "blocked": 0,
               "metadata-only": 0
             },
@@ -12205,13 +12201,13 @@
             "metadataNodes": 311,
             "unresolvedCodes": {
               "AKE_DAMAGE_RESOLVER_REQUIRED": 37,
-              "AKE_CONDITION_UNSUPPORTED": 11,
               "AKE_TIME_DILATION_RESOLVER_REQUIRED": 3,
-              "AKE_ACTION_UNSUPPORTED": 20,
+              "AKE_ACTION_UNSUPPORTED": 18,
               "AKE_SPATIAL_PROVIDER_REQUIRED": 5,
               "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 256,
               "AKE_TARGET_FINDER_PROVIDER_REQUIRED": 1,
-              "AKE_SKILL_SETTING_MISSING": 1
+              "AKE_SKILL_SETTING_MISSING": 1,
+              "AKE_CONDITION_UNSUPPORTED": 5
             }
           },
           "parserSupported": false,
@@ -12543,22 +12539,22 @@
           ],
           "compiler": {
             "statusCounts": {
-              "executable": 0,
+              "executable": 12,
               "metadata-only": 0,
-              "unresolved": 143
+              "unresolved": 131
             },
             "executionRouteCounts": {
-              "complete": 0,
-              "adapter-required": 131,
-              "blocked": 12,
+              "complete": 12,
+              "adapter-required": 130,
+              "blocked": 1,
               "metadata-only": 0
             },
-            "runtimeActions": 131,
-            "cleanupActions": 0,
+            "runtimeActions": 142,
+            "cleanupActions": 2,
             "metadataNodes": 143,
             "unresolvedCodes": {
-              "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 131,
-              "AKE_ABILITY_ENTITY_SKILL_MISSING": 12
+              "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 130,
+              "AKE_TARGET_PROVIDER_REQUIRED": 1
             }
           },
           "parserSupported": false,
@@ -12741,7 +12737,7 @@
               "AKE_CHANNEL_SCHEDULER_REQUIRED": 4,
               "AKE_ACTION_UNSUPPORTED": 11,
               "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 2,
-              "AKE_CONDITION_UNSUPPORTED": 12
+              "AKE_CONDITION_UNSUPPORTED": 3
             }
           },
           "parserSupported": false,
@@ -13509,7 +13505,7 @@
             "cleanupActions": 0,
             "metadataNodes": 0,
             "unresolvedCodes": {
-              "AKE_CONDITION_UNSUPPORTED": 34
+              "AKE_NOT_NEXT_CONDITION_LIST_REQUIRED": 34
             },
             "runtimeConditions": 34
           },
@@ -14918,22 +14914,20 @@
           ],
           "compiler": {
             "statusCounts": {
-              "executable": 0,
+              "executable": 5,
               "metadata-only": 0,
-              "unresolved": 5
+              "unresolved": 0
             },
             "executionRouteCounts": {
-              "complete": 0,
+              "complete": 5,
               "adapter-required": 0,
-              "blocked": 5,
+              "blocked": 0,
               "metadata-only": 0
             },
             "runtimeActions": 0,
             "cleanupActions": 0,
             "metadataNodes": 0,
-            "unresolvedCodes": {
-              "AKE_CONDITION_UNSUPPORTED": 5
-            },
+            "unresolvedCodes": {},
             "runtimeConditions": 5
           },
           "parserSupported": false,
@@ -19920,18 +19914,18 @@
     "parserCoverage": 0.2858485836049135,
     "effectRouteCoverage": 0.2948420656806217,
     "compilerStatuses": {
-      "executable": 10258,
+      "executable": 10323,
       "metadata-only": 12516,
-      "unresolved": 9138
+      "unresolved": 9073
     },
-    "compilerRoutingCoverage": 0.7136500376034094,
+    "compilerRoutingCoverage": 0.7156868889445976,
     "compilerExecutionRoutes": {
-      "complete": 10258,
-      "adapter-required": 5759,
-      "blocked": 3379,
+      "complete": 10323,
+      "adapter-required": 5725,
+      "blocked": 3348,
       "metadata-only": 12516
     },
-    "executableRouteCoverage": 0.501911506643269,
+    "executableRouteCoverage": 0.5028829280521434,
     "categoryOccurrences": {
       "presentation": 10860,
       "logic": 5431,
@@ -19946,12 +19940,12 @@
       "condition": 115
     },
     "gameplayOccurrences": 17430,
-    "gameplayExecutableOccurrences": 10111,
+    "gameplayExecutableOccurrences": 10151,
     "gameplayMetadataOnlyOccurrences": 377,
-    "gameplayUnresolvedOccurrences": 6942,
-    "gameplayCompilerCoverage": 0.5800917957544464,
-    "gameplayExecutableRouteOccurrences": 13727,
-    "gameplayExecutableRouteCoverage": 0.7875502008032128,
+    "gameplayUnresolvedOccurrences": 6902,
+    "gameplayCompilerCoverage": 0.5823866896156052,
+    "gameplayExecutableRouteOccurrences": 13734,
+    "gameplayExecutableRouteCoverage": 0.7879518072289157,
     "calculatorCore": {
       "categories": [
         "logic",
@@ -19963,12 +19957,12 @@
         "condition"
       ],
       "occurrences": 11143,
-      "complete": 7464,
-      "adapterRequired": 3332,
-      "blocked": 204,
+      "complete": 7500,
+      "adapterRequired": 3303,
+      "blocked": 197,
       "metadataOnly": 143,
-      "completeCoverage": 0.6698375661850489,
-      "executableRouteCoverage": 0.9688593735977744
+      "completeCoverage": 0.6730682939962308,
+      "executableRouteCoverage": 0.9694875706721708
     }
   },
   "actions": [
@@ -20048,13 +20042,13 @@
       },
       "compiler": {
         "statusCounts": {
-          "executable": 1743,
+          "executable": 1772,
           "metadata-only": 17,
-          "unresolved": 2137
+          "unresolved": 2108
         },
         "executionRouteCounts": {
-          "complete": 1743,
-          "adapter-required": 2137,
+          "complete": 1772,
+          "adapter-required": 2108,
           "blocked": 0,
           "metadata-only": 17
         },
@@ -20063,11 +20057,10 @@
         "metadataNodes": 12302,
         "unresolvedCodes": {
           "AKE_TARGET_PROVIDER_REQUIRED": 95,
-          "AKE_CONDITION_UNSUPPORTED": 388,
-          "AKE_ACTION_UNSUPPORTED": 1116,
+          "AKE_CONDITION_UNSUPPORTED": 311,
+          "AKE_ACTION_UNSUPPORTED": 1111,
           "AKE_DAMAGE_RESOLVER_REQUIRED": 686,
           "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 4089,
-          "AKE_ABILITY_ENTITY_SKILL_MISSING": 9,
           "AKE_TIME_DILATION_RESOLVER_REQUIRED": 335,
           "AKE_SPATIAL_PROVIDER_REQUIRED": 1022,
           "AKE_TARGET_FINDER_PROVIDER_REQUIRED": 131,
@@ -21189,22 +21182,22 @@
       },
       "compiler": {
         "statusCounts": {
-          "executable": 0,
+          "executable": 25,
           "metadata-only": 2,
-          "unresolved": 259
+          "unresolved": 234
         },
         "executionRouteCounts": {
-          "complete": 0,
-          "adapter-required": 234,
-          "blocked": 25,
+          "complete": 25,
+          "adapter-required": 233,
+          "blocked": 1,
           "metadata-only": 2
         },
-        "runtimeActions": 234,
-        "cleanupActions": 0,
+        "runtimeActions": 258,
+        "cleanupActions": 2,
         "metadataNodes": 261,
         "unresolvedCodes": {
-          "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 234,
-          "AKE_ABILITY_ENTITY_SKILL_MISSING": 25
+          "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 233,
+          "AKE_TARGET_PROVIDER_REQUIRED": 1
         }
       }
     },
@@ -21238,13 +21231,13 @@
       },
       "compiler": {
         "statusCounts": {
-          "executable": 57,
+          "executable": 61,
           "metadata-only": 1,
-          "unresolved": 183
+          "unresolved": 179
         },
         "executionRouteCounts": {
-          "complete": 57,
-          "adapter-required": 183,
+          "complete": 61,
+          "adapter-required": 179,
           "blocked": 0,
           "metadata-only": 1
         },
@@ -21252,14 +21245,14 @@
         "cleanupActions": 0,
         "metadataNodes": 329,
         "unresolvedCodes": {
-          "AKE_CONDITION_UNSUPPORTED": 18,
           "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 266,
           "AKE_DAMAGE_RESOLVER_REQUIRED": 44,
           "AKE_SPATIAL_PROVIDER_REQUIRED": 6,
           "AKE_TIME_DILATION_RESOLVER_REQUIRED": 3,
-          "AKE_ACTION_UNSUPPORTED": 20,
+          "AKE_ACTION_UNSUPPORTED": 18,
           "AKE_TARGET_FINDER_PROVIDER_REQUIRED": 1,
-          "AKE_SKILL_SETTING_MISSING": 1
+          "AKE_SKILL_SETTING_MISSING": 1,
+          "AKE_CONDITION_UNSUPPORTED": 5
         }
       }
     },
@@ -21925,7 +21918,7 @@
           "AKE_CHANNEL_SCHEDULER_REQUIRED": 4,
           "AKE_ACTION_UNSUPPORTED": 11,
           "AKE_SKILL_PROGRAM_RESOLVER_REQUIRED": 2,
-          "AKE_CONDITION_UNSUPPORTED": 12
+          "AKE_CONDITION_UNSUPPORTED": 3
         }
       }
     },
@@ -22207,7 +22200,7 @@
         "cleanupActions": 0,
         "metadataNodes": 0,
         "unresolvedCodes": {
-          "AKE_CONDITION_UNSUPPORTED": 92
+          "AKE_NOT_NEXT_CONDITION_LIST_REQUIRED": 92
         },
         "runtimeConditions": 92
       }
@@ -24819,21 +24812,21 @@
       },
       "compiler": {
         "statusCounts": {
-          "executable": 0,
+          "executable": 7,
           "metadata-only": 0,
-          "unresolved": 8
+          "unresolved": 1
         },
         "executionRouteCounts": {
-          "complete": 0,
+          "complete": 7,
           "adapter-required": 0,
-          "blocked": 8,
+          "blocked": 1,
           "metadata-only": 0
         },
         "runtimeActions": 0,
         "cleanupActions": 0,
         "metadataNodes": 0,
         "unresolvedCodes": {
-          "AKE_CONDITION_UNSUPPORTED": 8
+          "AKE_CONDITION_UNSUPPORTED": 1
         },
         "runtimeConditions": 8
       }

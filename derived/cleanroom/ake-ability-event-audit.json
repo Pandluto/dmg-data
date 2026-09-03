@@ -8,10 +8,10 @@
   "summary": {
     "eventKeys": 85,
     "consumerGroups": 1095,
-    "completeEventTypes": 30,
-    "completeConsumerGroups": 920,
-    "missingEmitterEventTypes": 53,
-    "missingEmitterConsumerGroups": 167,
+    "completeEventTypes": 31,
+    "completeConsumerGroups": 927,
+    "missingEmitterEventTypes": 52,
+    "missingEmitterConsumerGroups": 160,
     "invalidEventValues": 2,
     "invalidConsumerGroups": 8,
     "byDataset": {
@@ -2028,6 +2028,68 @@
       "sourceEntityCount": 7
     },
     {
+      "key": "OnCustomAbilityEvent",
+      "eventType": "OnCustomAbilityEvent",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnCustomAbilityEvent",
+        "producer": "combat-runtime-custom-event-action"
+      },
+      "consumerGroups": 7,
+      "byDataset": {
+        "BuffData": 7
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 7
+      },
+      "sourceEntities": [
+        "buff_chr_0032_lizhiyan_train_combo_normal_end",
+        "buff_chr_0032_lizhiyan_train_combo_wisd_check",
+        "buff_chr_0034_typhoea_normal_skill_arrow_num",
+        "buff_chr_0034_typhoea_talent_linken_sphere",
+        "buff_chr_0035_liino_normalskill_music_tag",
+        "buff_klcommon_mech_exit_fight_listener"
+      ],
+      "characterIds": [
+        "chr_0005_chen",
+        "chr_0032_lizhiyan",
+        "chr_0034_typhoea",
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_train_combo_normal_end",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_train_combo_normal_end.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_train_combo_wisd_check",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_train_combo_wisd_check.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0034_typhoea_normal_skill_arrow_num",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0034_typhoea_normal_skill_arrow_num.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0034_typhoea_talent_linken_sphere",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0034_typhoea_talent_linken_sphere.json",
+          "path": "$.abilityEventAction[2]"
+        }
+      ],
+      "sourceEntityCount": 6
+    },
+    {
       "key": "OnOutputCriticalDamage",
       "eventType": "OnOutputCriticalDamage",
       "serializedValue": null,
@@ -2838,65 +2900,6 @@
         }
       ],
       "sourceEntityCount": 9
-    },
-    {
-      "key": "OnCustomAbilityEvent",
-      "eventType": "OnCustomAbilityEvent",
-      "serializedValue": null,
-      "status": "emitter-required",
-      "producer": null,
-      "consumerGroups": 7,
-      "byDataset": {
-        "BuffData": 7
-      },
-      "byChannel": {
-        "BuffAbilityEventAction": 7
-      },
-      "sourceEntities": [
-        "buff_chr_0032_lizhiyan_train_combo_normal_end",
-        "buff_chr_0032_lizhiyan_train_combo_wisd_check",
-        "buff_chr_0034_typhoea_normal_skill_arrow_num",
-        "buff_chr_0034_typhoea_talent_linken_sphere",
-        "buff_chr_0035_liino_normalskill_music_tag",
-        "buff_klcommon_mech_exit_fight_listener"
-      ],
-      "characterIds": [
-        "chr_0005_chen",
-        "chr_0032_lizhiyan",
-        "chr_0034_typhoea",
-        "chr_0035_liino"
-      ],
-      "samples": [
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0032_lizhiyan_train_combo_normal_end",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_train_combo_normal_end.json",
-          "path": "$.abilityEventAction[1]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0032_lizhiyan_train_combo_wisd_check",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_train_combo_wisd_check.json",
-          "path": "$.abilityEventAction[1]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0034_typhoea_normal_skill_arrow_num",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0034_typhoea_normal_skill_arrow_num.json",
-          "path": "$.abilityEventAction[0]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0034_typhoea_talent_linken_sphere",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0034_typhoea_talent_linken_sphere.json",
-          "path": "$.abilityEventAction[2]"
-        }
-      ],
-      "sourceEntityCount": 6
     },
     {
       "key": "OnBuffEndsEarly",

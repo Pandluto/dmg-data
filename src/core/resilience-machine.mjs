@@ -302,6 +302,12 @@ export class ResilienceMachine {
         return typeMatch || levelMatch;
     }
 
+    hasEntity(targetId) {
+        if ((typeof targetId !== 'string' || targetId.trim() === '')
+            && (typeof targetId !== 'number' || !Number.isFinite(targetId))) return false;
+        return this.entities.has(targetKey(targetId));
+    }
+
     #controlOutcome(definition, controlLevel) {
         if (controlLevel <= definition.controlImmunityLevel) return 'Immune';
         if (controlLevel <= definition.superArmorLevel) return 'Reduced';

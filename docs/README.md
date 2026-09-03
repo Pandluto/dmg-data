@@ -48,4 +48,4 @@
 
 ## 历史恢复
 
-初始编号文档完整保存在 [文档档案](./archive/README.md)。2026-08-28 的逐文件迁移表见 [首次重组记录](./maintenance/documentation-cleanup-20260828.md)，本次 Spec/ADR/evidence 补全与冲突清单见 [2026-09-03 补全记录](./maintenance/documentation-reconstruction-20260903.md)。
+初始编号文档完整保存在 [文档档案](./archive/README.md)。2026-08-28 的逐文件迁移表见 [首次重组记录](./maintenance/documentation-cleanup-20260828.md)，Spec/ADR/evidence 补全与冲突清单见 [2026-09-03 补全记录](./maintenance/documentation-reconstruction-20260903.md)，同日的来源驱动运行时收口见 [通用运行时语义收口](./maintenance/runtime-generalization-20260903.md)。

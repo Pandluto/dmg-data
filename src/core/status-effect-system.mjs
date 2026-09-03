@@ -105,7 +105,8 @@ function normalizedStacking(definition, input, blackboard = {}) {
         Independent: 'Independent',
         Unlimited: 'Independent',
         Refresh: 'Refresh',
-        AddStack: 'AddStack'
+        AddStack: 'AddStack',
+        TimedGrowingEnhance: 'TimedGrowingEnhance'
     };
     if (!aliases[policy]) throw new Error(`Unsupported status-effect stacking policy: ${policy}`);
     const keyedMaxStacks = raw.maxStackCountKey
@@ -349,14 +350,15 @@ export class StatusEffectSystem {
         if (existing && stacking.policy === 'Replace') {
             this.finish({ frame, instanceId: existing.instanceId, reason: 'Replaced' }, eventContext);
         }
-        if (existing && ['Refresh', 'AddStack'].includes(stacking.policy)) {
+        if (existing && ['Refresh', 'AddStack', 'TimedGrowingEnhance'].includes(stacking.policy)) {
             const before = existing.stackCount;
             this.#cancelTimer(existing, frame, 'Refreshed');
-            const eventManagedEnhancement = stacking.policy === 'AddStack'
+            const addsStack = ['AddStack', 'TimedGrowingEnhance'].includes(stacking.policy);
+            const eventManagedEnhancement = addsStack
                 && input.triggerEnhancementEvent === true
                 && !existing.processingEnhancement
                 && enhancementIsManagedByAbilityEvent(definition, buffId);
-            if (stacking.policy === 'AddStack' && !eventManagedEnhancement) {
+            if (addsStack && !eventManagedEnhancement) {
                 existing.stackCount = Math.min(existing.maxStacks, existing.stackCount + 1);
             }
             existing.blackboard = { ...existing.blackboard, ...nextBlackboard };
@@ -368,13 +370,14 @@ export class StatusEffectSystem {
             existing.actionClockDomainId = actionClockDomainId;
             this.#scheduleExpiry(existing);
             this.#schedulePeriodicTrigger(existing, frame);
+            this.#scheduleTimedGrowth(existing, frame);
             this.#restoreTimerPauseState(existing, frame, 'StatusEffectRefreshedWhileHeld');
             const transition = this.#record(existing, frame, 'StatusEffectRefreshed', {
                 before,
-                requested: before + (stacking.policy === 'AddStack'
+                requested: before + (addsStack
                     && !eventManagedEnhancement ? 1 : 0),
                 actual: existing.stackCount - before,
-                discarded: stacking.policy === 'AddStack'
+                discarded: addsStack
                     && !eventManagedEnhancement
                     ? Math.max(0, before + 1 - existing.stackCount)
                     : 0,
@@ -460,6 +463,10 @@ export class StatusEffectSystem {
             timerId: null,
             triggerTimerId: null,
             triggerTimerDomainId: null,
+            growthTimerId: null,
+            growthTimerDomainId: null,
+            nextGrowthFrame: null,
+            growthGeneration: 0,
             timelineTimerIds: [],
             triggerCount: 0,
             processingEnhancement: false,
@@ -522,6 +529,7 @@ export class StatusEffectSystem {
         );
         this.#scheduleTimeline(instance, frame);
         this.#schedulePeriodicTrigger(instance, frame);
+        this.#scheduleTimedGrowth(instance, frame);
         return this.#publicInstance(instance);
     }
 
@@ -1173,23 +1181,27 @@ export class StatusEffectSystem {
                     continue;
                 }
             }
-            if (input.finishAll === false && requestedLayers < instance.stackCount) {
+            if (input.finishAll === false && (
+                requestedLayers < instance.stackCount
+                || instance.stackingPolicy === 'TimedGrowingEnhance'
+            )) {
                 const before = instance.stackCount;
-                instance.stackCount -= requestedLayers;
-                const bySource = this.#consumeStackSources(instance, requestedLayers);
+                const removedLayers = Math.min(requestedLayers, instance.stackCount);
+                instance.stackCount -= removedLayers;
+                const bySource = this.#consumeStackSources(instance, removedLayers);
                 const transition = this.#record(instance, frame, 'StatusEffectStackRemoved', {
                     reason: input.reason ?? 'Finished',
                     ...triggerAttribution,
                     before,
                     requested: requestedLayers,
-                    actual: requestedLayers,
-                    consumedStacks: requestedLayers,
+                    actual: removedLayers,
+                    consumedStacks: removedLayers,
                     bySource,
                     ...consumptionAttribution,
                     ...(consumption
                         ? { consumedBuffBlackboard }
                         : {}),
-                    discarded: 0,
+                    discarded: Math.max(0, requestedLayers - removedLayers),
                     after: instance.stackCount
                 });
                 this.trace.push(transition);
@@ -1206,6 +1218,7 @@ export class StatusEffectSystem {
                         parentEventId: transition.eventId
                     }
                 );
+                this.#scheduleTimedGrowth(instance, frame);
                 continue;
             }
             instance.active = false;
@@ -1443,6 +1456,11 @@ export class StatusEffectSystem {
             instance.triggerTimerId,
             'trigger'
         );
+        add(
+            instance.growthTimerDomainId ?? instance.clockDomainId,
+            instance.growthTimerId,
+            'growth'
+        );
         return references.map(({ key: _key, ...reference }) => reference);
     }
 
@@ -1524,6 +1542,120 @@ export class StatusEffectSystem {
         const value = Number(resolveDescriptor(descriptor, instance.blackboard, -1));
         if (!Number.isInteger(value)) throw new Error('max trigger count must be an integer.');
         return value < 0 ? null : value;
+    }
+
+    #timedGrowthIntervalTicks(instance) {
+        if (instance.stackingPolicy !== 'TimedGrowingEnhance') return null;
+        const explicit = instance.definition.timedGrowthIntervalTicks;
+        if (explicit !== undefined && explicit !== null) {
+            return Math.max(1, frameNumber(explicit, 'timedGrowthIntervalTicks'));
+        }
+        const seconds = Number(resolveDescriptor(
+            instance.definition.duration,
+            instance.blackboard,
+            -1
+        ));
+        if (!Number.isFinite(seconds)) throw new Error('timed growth interval must be finite.');
+        if (seconds <= 0) return null;
+        return Math.max(1, Math.round(seconds * this.tickRate));
+    }
+
+    #scheduleTimedGrowth(instance, frame) {
+        if (!instance.active || instance.stackingPolicy !== 'TimedGrowingEnhance') return;
+        if (instance.growthTimerId !== null && this.clockDomains
+            && typeof this.clockDomains.cancelTimer === 'function') {
+            this.clockDomains.cancelTimer(
+                instance.growthTimerDomainId ?? instance.clockDomainId,
+                instance.growthTimerId,
+                frame,
+                'TimedGrowthRescheduled'
+            );
+            instance.growthTimerId = null;
+            instance.growthTimerDomainId = null;
+            instance.nextGrowthFrame = null;
+        }
+        if (instance.stackCount >= instance.maxStacks) return;
+        const intervalTicks = this.#timedGrowthIntervalTicks(instance);
+        if (intervalTicks === null) return;
+        const generation = instance.generation;
+        const growthGeneration = (instance.growthGeneration ?? 0) + 1;
+        instance.growthGeneration = growthGeneration;
+        const grow = completionFrame => {
+            if (!instance.active
+                || instance.generation !== generation
+                || instance.growthGeneration !== growthGeneration) return;
+            instance.growthTimerId = null;
+            instance.growthTimerDomainId = null;
+            instance.nextGrowthFrame = null;
+            const before = instance.stackCount;
+            instance.stackCount = Math.min(instance.maxStacks, before + 1);
+            const actual = instance.stackCount - before;
+            if (actual > 0) {
+                instance.stackSources.push({
+                    sourceId: instance.sourceId,
+                    ownerId: instance.ownerId,
+                    count: actual
+                });
+            }
+            const transition = this.#record(
+                instance,
+                completionFrame,
+                'StatusEffectStackGrown',
+                {
+                    reason: 'TimedGrowingEnhance',
+                    before,
+                    requested: before + 1,
+                    actual,
+                    discarded: Math.max(0, before + 1 - instance.stackCount),
+                    after: instance.stackCount
+                }
+            );
+            this.trace.push(transition);
+            this.onTransition(plainClone(transition));
+            if (actual > 0) {
+                this.#executeLifecycle(
+                    instance.definition.duringEnableActions
+                        ?? this.#eventActions(instance.definition, 'DuringBuffEnable'),
+                    instance,
+                    completionFrame,
+                    'DuringBuffEnable',
+                    {
+                        transactionId: transition.transactionId,
+                        parentEventId: transition.eventId
+                    }
+                );
+            }
+            this.#scheduleTimedGrowth(instance, completionFrame);
+        };
+        instance.nextGrowthFrame = frame + intervalTicks;
+        if (this.clockDomains) {
+            instance.growthTimerDomainId = instance.clockDomainId;
+            instance.growthTimerId = this.clockDomains.startTimer(instance.clockDomainId, {
+                frame,
+                durationTicks: intervalTicks,
+                priority: 80,
+                label: `status-growth:${instance.buffId}:${instance.instanceId}`,
+                sourceId: instance.sourceId,
+                ownerId: instance.ownerId,
+                targetId: instance.targetId,
+                skillId: instance.sourceSkillId,
+                rootSkillId: instance.rootSkillId,
+                reason: 'TimedGrowingEnhance',
+                ruleId: instance.ruleId,
+                onComplete: grow
+            });
+            return;
+        }
+        if (!this.schedule) {
+            throw new Error(`Cannot schedule timed growth ${instance.buffId} without a scheduler.`);
+        }
+        const deadline = instance.nextGrowthFrame;
+        this.schedule(
+            deadline,
+            80,
+            () => grow(deadline),
+            `status-growth:${instance.buffId}:${instance.instanceId}`
+        );
     }
 
     #schedulePeriodicTrigger(instance, frame) {
@@ -1659,6 +1791,7 @@ export class StatusEffectSystem {
     }
 
     #cancelTimer(instance, frame, reason) {
+        instance.growthGeneration = (instance.growthGeneration ?? 0) + 1;
         if (!this.clockDomains) return;
         if (typeof this.clockDomains.cancelTimer === 'function') {
             for (const timerId of [instance.timerId, ...(instance.timelineTimerIds ?? [])]) {
@@ -1676,10 +1809,21 @@ export class StatusEffectSystem {
                     reason
                 );
             }
+            if (instance.growthTimerId !== null) {
+                this.clockDomains.cancelTimer(
+                    instance.growthTimerDomainId ?? instance.clockDomainId,
+                    instance.growthTimerId,
+                    frame,
+                    reason
+                );
+            }
         }
         instance.timerId = null;
         instance.triggerTimerId = null;
         instance.triggerTimerDomainId = null;
+        instance.growthTimerId = null;
+        instance.growthTimerDomainId = null;
+        instance.nextGrowthFrame = null;
         instance.timelineTimerIds = [];
     }
 

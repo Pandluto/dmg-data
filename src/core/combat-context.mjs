@@ -288,6 +288,22 @@ export class CombatContext {
         });
     }
 
+    patchMetadata(id, patch, eventContext = null) {
+        const entity = this.#requireEntity(id);
+        if (!isRecord(patch)) throw new TypeError('metadata patch must be an object.');
+        const before = cloneValue(entity.metadata);
+        entity.metadata = { ...entity.metadata, ...cloneValue(patch) };
+        return this.#record('EntityMetadataPatched', eventContext, {
+            entityId: id,
+            before,
+            requested: cloneValue(patch),
+            actual: cloneValue(patch),
+            discarded: 0,
+            after: cloneValue(entity.metadata),
+            reason: eventContext?.reason ?? 'PatchEntityMetadata'
+        });
+    }
+
     /**
      * Make an isolated event envelope and validate every entity reference in
      * it.  `ownerId` intentionally remains null when omitted: a source and an

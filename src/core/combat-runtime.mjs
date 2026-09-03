@@ -42,6 +42,11 @@ function nonNegativeInteger(value, label) {
     return number;
 }
 
+function nonNegativeDiscreteCount(value, label) {
+    const number = finite(value, label);
+    return Math.max(0, Math.trunc(number));
+}
+
 function identifier(value, label, { allowNull = false } = {}) {
     if (allowNull && (value === null || value === undefined)) return null;
     if ((typeof value !== 'string' && typeof value !== 'number')
@@ -240,7 +245,9 @@ export class CombatRuntime {
         this.nextDerivedSkillCastSequence = 1;
         this.nextIntervalSequence = 1;
         this.nextAbilityEntitySequence = 1;
+        this.abilityEntityLifetimes = new Map();
         this.nextDamageHitSequence = 1;
+        this.skillHitCastIds = new Set();
         this.nextTeamComboGrantSequence = 1;
         this.consumedStatusesByCastId = new Map();
         this.castLineageByCastId = new Map();
@@ -1301,7 +1308,7 @@ export class CombatRuntime {
             action.durationTicks ?? 0,
             'interval durationTicks'
         );
-        const resolvedIntervalTicks = action.intervalTicks === null
+        const sourceIntervalTicks = action.intervalTicks === null
             || action.intervalTicks === undefined
             ? Math.round(this.#number(
                 action.intervalSeconds,
@@ -1309,9 +1316,18 @@ export class CombatRuntime {
                 'interval seconds'
             ) * this.tickRate)
             : nonNegativeInteger(action.intervalTicks, 'interval ticks');
-        if (resolvedIntervalTicks < 1) {
+        if (sourceIntervalTicks < 1) {
             throw new RangeError('Interval actions require at least one tick between executions.');
         }
+        const targetIntervalSeconds = Number(action.targetIntervalSeconds ?? -1);
+        const targetIntervalTicks = Number.isFinite(targetIntervalSeconds)
+            && targetIntervalSeconds > 0
+            ? Math.max(1, Math.round(targetIntervalSeconds * this.tickRate))
+            : 0;
+        // The clean-room scenario exposes one explicit target. A per-target
+        // throttle therefore becomes the effective cadence for that target;
+        // it never makes the action fire faster than its global tick source.
+        const resolvedIntervalTicks = Math.max(sourceIntervalTicks, targetIntervalTicks);
         const includeStart = action.includeStart !== false;
         const firstOffset = includeStart ? 0 : resolvedIntervalTicks;
         const maxExecutions = action.maxExecutions === null
@@ -1409,6 +1425,8 @@ export class CombatRuntime {
         return {
             status: 'Scheduled',
             intervalTicks: resolvedIntervalTicks,
+            sourceIntervalTicks,
+            targetIntervalTicks,
             durationTicks,
             includeStart,
             maxExecutions: Number.isFinite(maxExecutions) ? maxExecutions : null,
@@ -1778,6 +1796,23 @@ export class CombatRuntime {
             return entityId;
         }
         return this.context.resolveEntityRef(ref ?? fallback, eventContext).id;
+    }
+
+    #entityIds(ref, eventContext, fallback = 'Target') {
+        if (isRecord(ref) && ref.type === 'TargetGroup') {
+            const groups = eventContext.blackboard?.__akeTargetGroups ?? {};
+            const hasGroup = Object.prototype.hasOwnProperty.call(groups, ref.key);
+            if (!hasGroup && ref.fallback) {
+                return [this.context.resolveEntityRef(ref.fallback, eventContext).id];
+            }
+            const candidates = (Array.isArray(groups[ref.key]) ? groups[ref.key] : [])
+                .filter(entityId => this.context.hasEntity(entityId)
+                    && !this.context.hasTag(entityId, 'ake-ability-entity-inactive'));
+            if (ref.all === true) return candidates;
+            const index = Math.max(0, Math.trunc(Number(ref.index ?? 0)));
+            return candidates[index] === undefined ? [] : [candidates[index]];
+        }
+        return [this.#entityId(ref, eventContext, fallback)];
     }
 
     #entityBlackboardValues(entityId) {
@@ -2202,6 +2237,208 @@ export class CombatRuntime {
         return Math.max(0, frame - window.createdFrame);
     }
 
+    #deactivateAbilityEntity(entityId, eventContext = {}, reason = 'AbilityEntityFinished') {
+        if (!this.context.hasEntity(entityId)) {
+            return { entityId, status: 'Ignored', reason: 'AbilityEntityNotFound' };
+        }
+        const lifecycle = this.abilityEntityLifetimes.get(entityId) ?? null;
+        if (lifecycle?.timerId !== null && lifecycle?.timerId !== undefined) {
+            this.clockDomains.cancelTimer(
+                lifecycle.clockDomainId,
+                lifecycle.timerId,
+                eventContext.frame ?? this.currentFrame,
+                reason
+            );
+        }
+        if (lifecycle) {
+            lifecycle.generation += 1;
+            lifecycle.active = false;
+            lifecycle.timerId = null;
+            lifecycle.finishedFrame = eventContext.frame ?? this.currentFrame;
+            lifecycle.finishReason = reason;
+        }
+        const before = this.context.hasTag(entityId, 'ake-ability-entity-inactive');
+        if (!before) {
+            this.context.addTag(entityId, 'ake-ability-entity-inactive', {
+                ...cloneValue(eventContext),
+                targetId: entityId,
+                reason
+            });
+        }
+        if (lifecycle) {
+            this.context.patchMetadata(entityId, {
+                abilityEntityActive: false,
+                abilityEntityFinishedFrame: eventContext.frame ?? this.currentFrame,
+                abilityEntityFinishReason: reason
+            }, {
+                ...cloneValue(eventContext),
+                targetId: entityId,
+                reason
+            });
+        }
+        return {
+            entityId,
+            status: before ? 'AlreadyInactive' : 'Deactivated',
+            before,
+            requested: true,
+            actual: before ? 0 : 1,
+            discarded: before ? 1 : 0,
+            after: true,
+            reason
+        };
+    }
+
+    #setAbilityEntityDuration(entityId, durationSeconds, eventContext = {}, reason = '') {
+        const lifecycle = this.abilityEntityLifetimes.get(entityId);
+        if (!lifecycle) {
+            return { entityId, status: 'Ignored', reason: 'AbilityEntityLifecycleNotFound' };
+        }
+        const duration = Math.max(0, finite(durationSeconds, 'ability-entity duration'));
+        const durationTicks = Math.max(0, Math.round(duration * this.tickRate));
+        const frame = nonNegativeInteger(
+            eventContext.frame ?? this.currentFrame,
+            'ability-entity duration frame'
+        );
+        if (lifecycle.timerId !== null) {
+            this.clockDomains.cancelTimer(
+                lifecycle.clockDomainId,
+                lifecycle.timerId,
+                frame,
+                reason || 'AbilityEntityDurationReplaced'
+            );
+        }
+        lifecycle.generation += 1;
+        const generation = lifecycle.generation;
+        lifecycle.active = true;
+        lifecycle.durationSeconds = duration;
+        lifecycle.durationTicks = durationTicks;
+        lifecycle.durationSetFrame = frame;
+        lifecycle.expireFrame = frame + durationTicks;
+        lifecycle.finishedFrame = null;
+        lifecycle.finishReason = null;
+        this.context.patchMetadata(entityId, {
+            abilityEntityActive: true,
+            abilityEntityDurationSeconds: duration,
+            abilityEntityDurationTicks: durationTicks,
+            abilityEntityDurationSetFrame: frame,
+            abilityEntityExpireFrame: frame + durationTicks
+        }, {
+            ...cloneValue(eventContext),
+            targetId: entityId,
+            reason: reason || 'SetAbilityEntityDuration'
+        });
+        lifecycle.timerId = this.clockDomains.startTimer(lifecycle.clockDomainId, {
+            frame,
+            durationTicks,
+            priority: 80,
+            label: `ability-entity-duration:${entityId}`,
+            sourceId: eventContext.sourceId,
+            ownerId: lifecycle.sourceEntityId,
+            targetId: entityId,
+            skillId: eventContext.skillId,
+            rootSkillId: eventContext.rootSkillId,
+            castId: eventContext.castId,
+            reason: reason || 'SetAbilityEntityDuration',
+            onComplete: completionFrame => {
+                if (!lifecycle.active || lifecycle.generation !== generation) return;
+                lifecycle.timerId = null;
+                this.#deactivateAbilityEntity(entityId, {
+                    ...cloneValue(eventContext),
+                    frame: completionFrame,
+                    targetId: entityId
+                }, 'AbilityEntityDurationExpired');
+            }
+        });
+        return cloneValue(lifecycle);
+    }
+
+    #spawnAbilityEntity(action, eventContext, assignedBlackboard = {}) {
+        const sourceEntityId = this.#entityId(
+            action.abilityEntitySourceRef ?? 'Owner',
+            eventContext,
+            'Owner'
+        );
+        const source = this.context.getEntity(sourceEntityId);
+        const targetEntityId = action.abilityEntityTargetRef === null
+            || action.abilityEntityTargetRef === undefined
+            ? null
+            : this.#entityId(action.abilityEntityTargetRef, eventContext, 'Target');
+        const entityId = [
+            'ability-entity',
+            action.abilityEntityId,
+            this.nextAbilityEntitySequence++
+        ].join(':');
+        this.registerEntity({
+            id: entityId,
+            kind: 'Object',
+            team: source.team,
+            ownerId: sourceEntityId,
+            reactionTarget: false,
+            resilience: { maxResilience: 0, initialResilience: 0 },
+            blackboard: assignedBlackboard,
+            metadata: {
+                abilityEntityId: action.abilityEntityId,
+                abilityEntityActive: true,
+                abilityEntitySourceId: sourceEntityId,
+                abilityEntityTargetId: targetEntityId,
+                akeTagIds: cloneValue(action.akeTagIds ?? []),
+                spawnedObjectType: 'AbilityEntity',
+                sourceSkillId: eventContext.skillId,
+                rootSkillId: eventContext.rootSkillId,
+                castId: eventContext.castId ?? null,
+                rootCastId: eventContext.rootCastId ?? eventContext.castId ?? null,
+                parentCastId: eventContext.parentCastId ?? null,
+                spawnedFrame: eventContext.frame,
+                dieWhenSourceDie: action.dieWhenSourceDie === true,
+                bornAt: cloneValue(action.bornAt ?? null)
+            }
+        });
+        const clockDomainId = eventContext.clockDomainId
+            ?? this.#entityClockDomainId(sourceEntityId, 'global');
+        this.abilityEntityLifetimes.set(entityId, {
+            entityId,
+            abilityEntityId: action.abilityEntityId,
+            sourceEntityId,
+            targetEntityId,
+            clockDomainId,
+            active: true,
+            dieWhenSourceDie: action.dieWhenSourceDie === true,
+            generation: 0,
+            timerId: null,
+            durationSeconds: null,
+            durationTicks: null,
+            durationSetFrame: null,
+            expireFrame: null,
+            finishedFrame: null,
+            finishReason: null
+        });
+        const contextKeys = [...new Set([
+            action.spawnGroupKey,
+            action.saveToContext === true ? action.contextKey : null
+        ].filter(key => typeof key === 'string' && key.length > 0))];
+        if (contextKeys.length > 0) {
+            if (!isRecord(eventContext.blackboard.__akeTargetGroups)) {
+                eventContext.blackboard.__akeTargetGroups = {};
+            }
+            for (const key of contextKeys) {
+                eventContext.blackboard.__akeTargetGroups[key] = [entityId];
+            }
+        }
+        if (action.durationSeconds !== null && action.durationSeconds !== undefined) {
+            this.#setAbilityEntityDuration(
+                entityId,
+                this.#number(
+                    action.durationSeconds,
+                    eventContext,
+                    'spawned ability-entity duration'
+                ),
+                eventContext,
+                'SpawnAbilityEntityDuration'
+            );
+        }
+        return entityId;
+    }
+
     #defaultHandlers() {
         return {
             BitMaskCompare: (condition, eventContext) => {
@@ -2240,6 +2477,133 @@ export class CombatRuntime {
                     : this.#entityId(ref, eventContext);
                 return resolve(condition.first, condition.firstUsesEventTarget)
                     === resolve(condition.second, condition.secondUsesEventTarget);
+            },
+            TargetSetContains: (condition, eventContext) => {
+                const parentIds = new Set(this.#entityIds(
+                    condition.parent ?? condition.parentRef,
+                    eventContext,
+                    null
+                ));
+                const childIds = this.#entityIds(
+                    condition.child ?? condition.childRef,
+                    eventContext,
+                    null
+                );
+                return childIds.length > 0 && childIds.every(entityId => parentIds.has(entityId));
+            },
+            EntityKindMatch: (condition, eventContext) => {
+                const targetId = this.#entityId(
+                    condition.entity ?? condition.target ?? condition.targetId,
+                    eventContext,
+                    'Target'
+                );
+                const expected = Array.isArray(condition.objectKinds)
+                    ? condition.objectKinds
+                    : [condition.objectKind ?? condition.value];
+                return expected.includes(this.context.getEntity(targetId).kind);
+            },
+            EntityProfessionMatch: (condition, eventContext) => {
+                const targetId = this.#entityId(
+                    condition.entity ?? condition.target ?? condition.targetId,
+                    eventContext,
+                    'Target'
+                );
+                const profession = this.context.getEntity(targetId).metadata?.akeProfession
+                    ?? null;
+                const expected = Array.isArray(condition.professions)
+                    ? condition.professions
+                    : [condition.profession ?? condition.value];
+                return profession !== null && expected.includes(profession);
+            },
+            SkillCastHasHit: (_condition, eventContext) => {
+                const castIds = [
+                    eventContext.castId,
+                    eventContext.rootCastId,
+                    eventContext.payload?.castId,
+                    eventContext.payload?.rootCastId
+                ].filter(value => value !== null && value !== undefined);
+                return castIds.some(castId => this.skillHitCastIds.has(castId));
+            },
+            AbilityEntityDurationCompare: (condition, eventContext) => {
+                const entityId = this.#entityId(
+                    condition.entity ?? condition.target ?? condition.targetId,
+                    eventContext,
+                    'Target'
+                );
+                const lifecycle = this.abilityEntityLifetimes.get(entityId);
+                const frame = eventContext.frame ?? this.currentFrame;
+                if (!lifecycle) {
+                    return { passed: false, actual: null, expected: null };
+                }
+                const currentDuration = lifecycle?.active === true
+                    && lifecycle.expireFrame !== null
+                    ? Math.max(0, lifecycle.expireFrame - frame) / this.tickRate
+                    : 0;
+                const expected = this.#number(
+                    condition.value ?? condition.right ?? 0,
+                    eventContext,
+                    'ability-entity duration comparison value'
+                );
+                const passed = compare(currentDuration, condition.operator, expected);
+                return {
+                    passed,
+                    actual: currentDuration,
+                    expected,
+                    ...(condition.storeKey
+                        ? { blackboardWrites: { [condition.storeKey]: currentDuration } }
+                        : {})
+                };
+            },
+            SuperArmorCompare: (condition, eventContext) => {
+                const targetId = this.#entityId(
+                    condition.entity ?? condition.target ?? condition.targetId,
+                    eventContext,
+                    'Target'
+                );
+                const actual = this.resilience.hasEntity(targetId)
+                    ? this.resilience.snapshot(targetId).superArmorLevel
+                    : 0;
+                const expected = this.#number(
+                    condition.value ?? condition.right ?? 0,
+                    eventContext,
+                    'super-armor comparison value'
+                );
+                return compare(actual, condition.operator, expected);
+            },
+            PoiseCompare: (condition, eventContext) => {
+                const targetId = this.#entityId(
+                    condition.entity ?? condition.target ?? condition.targetId,
+                    eventContext,
+                    'Target'
+                );
+                if (!this.poise.hasEntity(targetId)) {
+                    return condition.returnValueIfDontHavePoise === true;
+                }
+                const actual = this.poise.snapshot(targetId).remaining;
+                const expected = this.#number(
+                    condition.value ?? condition.right ?? 0,
+                    eventContext,
+                    'poise comparison value'
+                );
+                return compare(actual, condition.operator, expected);
+            },
+            CustomAbilityEventMatch: (condition, eventContext) => {
+                const expected = this.#value(condition.eventName, eventContext, '');
+                const actual = eventContext.payload?.customAbilityEventName
+                    ?? eventContext.payload?.eventName
+                    ?? null;
+                const passed = actual === expected;
+                const eventParam = eventContext.payload?.customAbilityEventParam
+                    ?? eventContext.payload?.eventParam
+                    ?? 0;
+                return {
+                    passed,
+                    actual,
+                    expected,
+                    ...(passed && condition.storeKey
+                        ? { blackboardWrites: { [condition.storeKey]: cloneValue(eventParam) } }
+                        : {})
+                };
             },
             HasBuff: (condition, eventContext) => {
                 const targetId = this.#entityId(
@@ -3056,22 +3420,94 @@ export class CombatRuntime {
                 } else {
                     entityIds = [this.#entityId(targetRef, eventContext, 'Target')];
                 }
-                const records = entityIds.map(entityId => {
-                    const before = this.context.hasTag(
-                        entityId,
-                        'ake-ability-entity-inactive'
-                    );
-                    if (!before) {
-                        this.context.addTag(entityId, 'ake-ability-entity-inactive', {
-                            ...cloneValue(eventContext),
-                            targetId: entityId,
-                            reason: action.reason ?? 'DeactivateEntity'
-                        });
-                    }
-                    return { entityId, before, actual: before ? 0 : 1, after: true };
-                });
+                const records = entityIds.map(entityId => this.#deactivateAbilityEntity(
+                    entityId,
+                    eventContext,
+                    action.reason ?? 'DeactivateEntity'
+                ));
                 return {
                     status: 'Resolved',
+                    count: records.length,
+                    records,
+                    ...(records.length === 1 ? records[0] : {})
+                };
+            },
+            SetAbilityEntityDuration: (action, eventContext) => {
+                if (!['assign', 'set'].includes(String(action.operation ?? 'Assign').toLowerCase())) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'UnsupportedAbilityEntityDurationOperation',
+                        operation: action.operation
+                    };
+                }
+                const durationSeconds = this.#number(
+                    action.value ?? action.durationSeconds ?? 0,
+                    eventContext,
+                    'ability-entity duration'
+                );
+                const entityIds = this.#entityIds(
+                    action.target ?? action.targetRef,
+                    eventContext,
+                    null
+                );
+                const records = entityIds.map(entityId => this.#setAbilityEntityDuration(
+                    entityId,
+                    durationSeconds,
+                    eventContext,
+                    action.reason ?? 'SetAbilityEntityDuration'
+                ));
+                return {
+                    status: records.some(record => record.status === 'Ignored')
+                        ? 'PartiallyResolved'
+                        : 'Resolved',
+                    count: records.length,
+                    records,
+                    ...(records.length === 1 ? records[0] : {})
+                };
+            },
+            SetAbilityEntityTarget: (action, eventContext) => {
+                const entityIds = this.#entityIds(
+                    action.entity ?? action.entityRef ?? 'Owner',
+                    eventContext,
+                    null
+                );
+                const targetId = this.#entityId(
+                    action.target ?? action.targetRef,
+                    eventContext,
+                    'Target'
+                );
+                const records = entityIds.map(entityId => {
+                    const lifecycle = this.abilityEntityLifetimes.get(entityId);
+                    if (!lifecycle) {
+                        return {
+                            entityId,
+                            status: 'Ignored',
+                            reason: 'AbilityEntityLifecycleNotFound'
+                        };
+                    }
+                    const before = lifecycle.targetEntityId;
+                    lifecycle.targetEntityId = targetId;
+                    this.context.patchMetadata(entityId, {
+                        abilityEntityTargetId: targetId
+                    }, {
+                        ...cloneValue(eventContext),
+                        targetId: entityId,
+                        reason: action.reason ?? 'SetAbilityEntityTarget'
+                    });
+                    return {
+                        entityId,
+                        status: 'Resolved',
+                        before,
+                        requested: targetId,
+                        actual: targetId,
+                        discarded: 0,
+                        after: targetId
+                    };
+                });
+                return {
+                    status: records.some(record => record.status === 'Ignored')
+                        ? 'PartiallyResolved'
+                        : 'Resolved',
                     count: records.length,
                     records,
                     ...(records.length === 1 ? records[0] : {})
@@ -3641,7 +4077,7 @@ export class CombatRuntime {
                         assignments: action.assignments,
                         assignBlackboard: action.assignBlackboard
                     }];
-                const count = nonNegativeInteger(
+                const count = nonNegativeDiscreteCount(
                     this.#number(action.count ?? 1, eventContext, 'buff count', 1),
                     'buff count'
                 );
@@ -4391,12 +4827,22 @@ export class CombatRuntime {
                 const sourceId = action.sourceRef === undefined
                     ? eventContext.sourceId
                     : this.#optionalEntityId(action.sourceRef, eventContext);
+                const payload = Object.fromEntries(Object.entries(action.payload ?? {})
+                    .map(([key, value]) => [key, cloneValue(this.#value(
+                        value,
+                        eventContext,
+                        null
+                    ))]));
                 return this.notifyAbilityEvent({
                     ...cloneValue(eventContext),
                     sourceId,
                     eventType: action.eventType,
                     listenerTargetId,
-                    useEventSourceAsActionSource: action.eventSourceAsActionSource === true
+                    useEventSourceAsActionSource: action.eventSourceAsActionSource === true,
+                    payload: {
+                        ...cloneValue(eventContext.payload ?? {}),
+                        ...payload
+                    }
                 });
             },
             ModifySkillCooldown: (action, eventContext) => {
@@ -4485,24 +4931,21 @@ export class CombatRuntime {
                 }, eventContext);
             },
             LaunchSkillProgram: (action, eventContext) => {
-                const childSkillId = action.childSkillId
+                const resolvedChildSkillId = action.childSkillId
                     ?? this.#value(action.childSkillIdDescriptor, eventContext, null);
-                if (!this.skillProgramResolver) {
-                    return {
-                        status: 'Unresolved',
-                        reason: 'MissingSkillProgramResolver',
-                        childSkillId
-                    };
-                }
-                if (childSkillId === null || childSkillId === undefined
-                    || String(childSkillId).length === 0) {
+                const childSkillId = resolvedChildSkillId === null
+                    || resolvedChildSkillId === undefined
+                    || String(resolvedChildSkillId).length === 0
+                    ? null
+                    : resolvedChildSkillId;
+                if (childSkillId === null && !action.abilityEntityId) {
                     return {
                         status: 'Unresolved',
                         reason: 'ChildSkillIdUnresolved',
                         childSkillId: null
                     };
                 }
-                if (childSkillId === eventContext.skillId) {
+                if (childSkillId !== null && childSkillId === eventContext.skillId) {
                     return {
                         status: 'Ignored',
                         reason: 'SelfReferentialSkillProgram',
@@ -4516,10 +4959,35 @@ export class CombatRuntime {
                 const targetId = derivedCast
                     ? this.#entityId(action.targetRef ?? 'Target', eventContext, 'Target')
                     : eventContext.targetId;
+                const assigned = this.#assignedBlackboard(
+                    action.assignments ?? [],
+                    eventContext
+                );
+                const spawnedAbilityEntityId = action.abilityEntityId
+                    ? this.#spawnAbilityEntity(action, eventContext, assigned)
+                    : null;
+                if (childSkillId === null) {
+                    return {
+                        status: 'Spawned',
+                        childSkillId: null,
+                        abilityEntityId: action.abilityEntityId,
+                        spawnedAbilityEntityId
+                    };
+                }
+                if (!this.skillProgramResolver) {
+                    return {
+                        status: 'Unresolved',
+                        reason: 'MissingSkillProgramResolver',
+                        childSkillId,
+                        spawnedAbilityEntityId
+                    };
+                }
                 const resolverContext = this.context.createEventContext({
                     ...cloneValue(eventContext),
                     sourceId: casterId ?? eventContext.sourceId,
-                    ownerId: casterId ?? eventContext.ownerId,
+                    ownerId: spawnedAbilityEntityId
+                        ?? casterId
+                        ?? eventContext.ownerId,
                     targetId: targetId ?? eventContext.targetId,
                     skillId: childSkillId
                 });
@@ -4536,47 +5004,9 @@ export class CombatRuntime {
                     return {
                         status: 'Unresolved',
                         reason: 'SkillProgramNotFound',
-                        childSkillId
+                        childSkillId,
+                        spawnedAbilityEntityId
                     };
-                }
-                const assigned = this.#assignedBlackboard(
-                    action.assignments ?? [],
-                    eventContext
-                );
-                let spawnedAbilityEntityId = null;
-                if (action.abilityEntityId) {
-                    const ownerId = eventContext.ownerId ?? eventContext.sourceId;
-                    const owner = this.context.getEntity(ownerId);
-                    spawnedAbilityEntityId = [
-                        'ability-entity',
-                        action.abilityEntityId,
-                        this.nextAbilityEntitySequence++
-                    ].join(':');
-                    this.registerEntity({
-                        id: spawnedAbilityEntityId,
-                        kind: 'Object',
-                        team: owner.team,
-                        ownerId,
-                        reactionTarget: false,
-                        // AbilityEntity SkillData commonly grants its owner
-                        // full-immunity/super-armor Buffs.  Give the runtime
-                        // object a zero-gauge resilience record so those
-                        // generic modifiers have a valid carrier without
-                        // turning it into a combat reaction target.
-                        resilience: {
-                            maxResilience: 0,
-                            initialResilience: 0
-                        },
-                        blackboard: assigned,
-                        metadata: {
-                            abilityEntityId: action.abilityEntityId,
-                            akeTagIds: cloneValue(action.akeTagIds ?? []),
-                            spawnedObjectType: 'AbilityEntity',
-                            sourceSkillId: eventContext.skillId,
-                            rootSkillId: eventContext.rootSkillId,
-                            spawnedFrame: eventContext.frame
-                        }
-                    });
                 }
                 const launchDelayTicks = nonNegativeInteger(
                     action.launchDelayTicks ?? 0,
@@ -4908,6 +5338,7 @@ export class CombatRuntime {
                 if (!Array.isArray(hits)) throw new TypeError('damageResolver hits must be an array.');
                 const identifiedHits = hits.map(hit => {
                     const existingIdentity = hitIdentityByUnit.get(hit.damageUnitIndex);
+                    const sourceUnit = action.damageUnits?.[hit.damageUnitIndex] ?? {};
                     const fallbackSequence = existingIdentity
                         ? existingIdentity.sequence
                         : this.nextDamageHitSequence++;
@@ -4932,6 +5363,12 @@ export class CombatRuntime {
                         sourceBuffInstanceId: damageEventContext.buffInstanceId ?? null,
                         sourceBuffId,
                         semanticHitType,
+                        damageTagIds: cloneValue(
+                            hit.damageTagIds ?? sourceUnit.damageTagIds ?? []
+                        ),
+                        damageDecorateMask: Number(
+                            hit.damageDecorateMask ?? sourceUnit.damageDecorateMask ?? 0
+                        ),
                         displayName: hit.displayName
                             ?? action.displayName
                             ?? action.metadata?.displayName
@@ -4991,6 +5428,16 @@ export class CombatRuntime {
                         })
                     };
                 });
+                if (appliedHits.length > 0) {
+                    for (const castId of [
+                        damageEventContext.castId,
+                        damageEventContext.rootCastId
+                    ]) {
+                        if (castId !== null && castId !== undefined) {
+                            this.skillHitCastIds.add(castId);
+                        }
+                    }
+                }
                 const afterAbilityEvents = appliedHits.map(applied => {
                     const outputEvents = [];
                     const takeEvents = [];
@@ -5559,6 +6006,7 @@ export class CombatRuntime {
                     damageTypeMask: hit.damageTypeMask ?? null,
                     damageAttributeType: hit.damageAttributeType ?? 'Hp',
                     damageDecorateMask: Number(hit.damageDecorateMask ?? 0),
+                    damageTagIds: cloneValue(hit.damageTagIds ?? []),
                     atkScale: hit.operands?.atkScale ?? hit.atkScale ?? null,
                     rawDamage: hit.rawDamage ?? null,
                     finalDamage: hit.finalDamage ?? hit.amount ?? null,
@@ -5584,7 +6032,8 @@ export class CombatRuntime {
                 handled: results.length,
                 damageUnitIndex: hit.damageUnitIndex ?? null,
                 hitId: hit.hitId ?? null,
-                damageDecorateMask: Number(hit.damageDecorateMask ?? 0)
+                damageDecorateMask: Number(hit.damageDecorateMask ?? 0),
+                damageTagIds: cloneValue(hit.damageTagIds ?? [])
             });
             return results;
         } finally {
@@ -5595,6 +6044,16 @@ export class CombatRuntime {
     #notifyOwnerHpZero(hit, appliedResult, eventContext) {
         if (Number(appliedResult?.before ?? 0) <= 0
             || Number(appliedResult?.after ?? 0) !== 0) return [];
+        for (const lifecycle of this.abilityEntityLifetimes.values()) {
+            if (lifecycle.active
+                && lifecycle.dieWhenSourceDie
+                && lifecycle.sourceEntityId === eventContext.targetId) {
+                this.#deactivateAbilityEntity(lifecycle.entityId, {
+                    ...cloneValue(eventContext),
+                    targetId: lifecycle.entityId
+                }, 'AbilityEntitySourceDied');
+            }
+        }
         return this.#notifyDamageEvent(
             'OnOwnerHpZero',
             hit,

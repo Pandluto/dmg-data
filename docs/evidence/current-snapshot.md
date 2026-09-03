@@ -25,7 +25,7 @@
 | 已审计可选角色 | 32 | 排除 `chr_9000_endmin` |
 | timing 角色 | 32 | 可生成前端预演画像的角色 |
 | timing 技能画像 | 274 | 当前目录中的技能变体 |
-| diagnostic fallback | 16 | 运行探针未闭合，只提供静态结构画像 |
+| diagnostic fallback | 0 | 运行探针未闭合，只提供静态结构画像 |
 | 参考分析样本 | 40 | 来源锁明示、第三方分析器生成，不是运行时输入 |
 | 武器 | 79 | 当前 AKE 目录 |
 | 装备 | 258 | 当前 AKE 目录 |
@@ -54,12 +54,12 @@
 | 扫描文件 | 3605 |
 | 动作出现 | 31912 |
 | 唯一动作类型 | 164 |
-| executable | 10258 |
+| executable | 10323 |
 | metadata-only | 12516 |
-| unresolved | 9138 |
-| gameplay compiler coverage | 58.01% |
-| calculator-core complete coverage | 66.98% |
-| calculator-core executable-route coverage | 96.89% |
+| unresolved | 9073 |
+| gameplay compiler coverage | 58.24% |
+| calculator-core complete coverage | 67.31% |
+| calculator-core executable-route coverage | 96.95% |
 
 ### 能力事件覆盖
 
@@ -69,10 +69,10 @@
 | --- | ---: |
 | 事件键 | 85 |
 | 消费者组 | 1095 |
-| 生产者完整事件类型 | 30 |
-| 生产者完整消费者组 | 920 |
-| 缺少生产者事件类型 | 53 |
-| 缺少生产者消费者组 | 167 |
+| 生产者完整事件类型 | 31 |
+| 生产者完整消费者组 | 927 |
+| 缺少生产者事件类型 | 52 |
+| 缺少生产者消费者组 | 160 |
 | 非法事件值 | 2 |
 | 非法消费者组 | 8 |
 
@@ -83,9 +83,9 @@
 | 指标 | 当前值 |
 | --- | ---: |
 | 已审计角色 | 32 |
-| findings | 3477 |
-| combat risks | 1080 |
-| combat-blocking | 312 |
+| findings | 3362 |
+| combat risks | 965 |
+| combat-blocking | 197 |
 | combat-partial | 284 |
 | evidence-missing | 484 |
 | spatial-assumption | 1991 |

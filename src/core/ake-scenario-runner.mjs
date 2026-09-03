@@ -353,12 +353,13 @@ export class AkeScenarioRunner {
             tickRate: bundle.tickRate,
             definitions: bundle.definitions,
             damageResolver: resolver,
-            skillProgramResolver: ({ skillId, eventContext, runtime: activeRuntime }) => (
-                activeRuntime.resolveSkillProgram(bundle.programs.get(skillId), {
+            skillProgramResolver: ({ skillId, eventContext, runtime: activeRuntime }) => {
+                const program = bundle.programs.get(skillId);
+                return program ? activeRuntime.resolveSkillProgram(program, {
                     ownerId: eventContext.ownerId ?? eventContext.sourceId,
                     skillId
-                })
-            ),
+                }) : null;
+            },
             timeDilationResolver: this.timeDilationResolver,
             skillInterruptResolver: request => resolveSkillInterrupt?.(request) ?? ({
                 status: 'Ignored',

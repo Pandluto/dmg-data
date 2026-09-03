@@ -23,7 +23,7 @@
 - 连携开窗条件有一部分来自描述文本和窄范围黑盒样本，当前语义映射只覆盖已有证据的规则。
 - 快速破韧保护只对已捕获的普通敌人签名闭合，不能外推所有敌人等级。
 - 多数 HitStop/TimeDilation 曲线只保留 metadata 或需要 adapter。
-- 新角色提弗洛斯使用的 `TimedGrowingEnhance` 叠层策略尚未进入通用状态机；其 timing profile 带 diagnostic，只能使用静态结构 fallback。
+- `TimedGrowingEnhance` 已按公开字段进入通用状态机和 runtime timing probe；其增长起点、重置和离战行为尚无对应 Calc 探针，因此只能声明 source-derived，不能声明外部精确。
 - 当前递归闭包仍包含明确缺失的上游文件；路径由生成证据列出，不以空定义补齐。
 
 权威逐项状态见 `spec/unresolved-dependencies.json`。
@@ -31,7 +31,9 @@
 ## 运行时缺口
 
 - 能力事件消费者多于已知生产者；“listener 可编译”不等于“事件可触发”。
-- 确定性随机、部分形态选择、Buff 顶层 tag 生命周期、特殊资源操作和若干 child action 仍不完整。
+- `Probablity`/`RandomAction` 的真实 seed、抽样序列与分布，`CurveEvaluateFloat` 的插值，以及部分形态选择、Buff 顶层 tag 生命周期和特殊资源操作仍不完整。
+- enemy rank、dungeon/environment、AI 与输入状态需要有来源的 metadata 或外部 provider；固定木桩不能用默认值冒充这些事实。
+- marker ability entity、duration/target mutation 和可选 child program 已统一；投射物清理等剩余 child action 仍按 audit 明示。
 - 空执行审计已通过派生技能案例得到改进，但任何新结构仍需同时检查“是否进入编译”和“是否产生预期行为”。
 - 自动战斗终点对长周期 Buff 仍需场景化 horizon，不能把当前停止启发式当成游戏规则。
 

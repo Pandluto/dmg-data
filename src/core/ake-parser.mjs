@@ -535,6 +535,14 @@ export function parseBuff(raw, { tickRate = 30 } = {}) {
         duration: raw.duration,
         durationSeconds,
         durationTicks: Math.round(Number(durationSeconds) * tickRate),
+        // TimedGrowingEnhance is the one AKE stacking policy for which the
+        // serialized duration is not the lifetime of the Buff.  The instance
+        // is infinite; duration is the cadence at which its layer count grows
+        // toward maxStackCnt.  Keep the meaning explicit so the runtime never
+        // has to reinterpret every Infinity Buff's duration field.
+        timedGrowthIntervalTicks: stacking.stackingType === 'TimedGrowingEnhance'
+            ? Math.max(1, Math.round(Number(durationSeconds) * tickRate))
+            : null,
         useTimeDilationDt: raw.useTimeDilationDt === true,
         onlyUseSelfTimeDilation: raw.onlyUseSelfTimeDilation === true,
         triggerInterval: raw.triggerInterval,

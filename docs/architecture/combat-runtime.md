@@ -40,6 +40,38 @@ runner 对每个输入依次处理：
 
 `CastSkill` 与 ability entity 都编译为 `LaunchSkillProgram`。派生程序继承根施放身份，同时有自己的 `executedSkillId` 和 `parentCastId`。取消根施放时，仍从属于该动作生命周期的派生程序会被取消；已经脱手的状态由其 carrier 和时钟继续管理。
 
+## 条件与值图
+
+AKE 条件不是一组互不相关的布尔 action。compiler 先解释 condition list，再生成运行时谓词：
+
+- 连续条件组成 `All`；
+- `NotNextCheckAction` 只否定同一列表中的下一个条件；
+- `OrConditionAction` 的每个 wrapper 是一个分支，分支之间组成 `Any`；
+- `IfElseAction`、伤害修正和 Buff 切换共用同一条件入口；
+- Blackboard、payload、属性、状态层数、目标组、实体类型、职业、super armor、Poise、技能是否命中和 ability entity 剩余时间都作为显式值或谓词读取。
+
+无法安全解释的条件生成 `AkeUnresolvedCondition` 并失败，不允许默认通过。`CheckCustomAbilityEvent` 读取真实事件 envelope；事件参数写回当前 listener 的 Blackboard，而不是全局临时变量。
+
+## 目标组与 ability entity
+
+目标引用可以是 source、owner、event target、显式目标或 context target group。组包含和计数读取完整集合；需要单个目标的 action 才按显式 index 选择。`MainCharacterValidator` 进入 finder IR，不在前端补筛选。
+
+`SpawnAbilityEntity` 分开处理实体存在与 child program：
+
+1. 先注册唯一实体 identity、owner/team、source/target、tag、cast lineage 和 metadata；
+2. 空 `abilityEntitySkillId` 仍得到可引用的 marker entity；
+3. 非空 child SkillData 存在时才调度派生程序；
+4. duration、target、timeline end、source death 和显式 finish 都操作同一 entity handle；
+5. 缺失 child 文件保留诊断，但不撤销已经注册的实体或中止父技能。
+
+实体期限使用来源实体的时钟域。`CheckAbilityEntityCurDuration` 读取当前剩余秒数，因此刷新判断和真正到期使用同一个计时事实。
+
+## 周期与取消
+
+周期 action 同时受 source interval、per-target interval、duration、max execution 和 generation 控制。单目标场景的有效 cadence 取两个 interval 中更严格的值；刷新或取消使旧 generation 失效，不允许旧 timer 继续写状态。
+
+通道、状态 tick、Buff timeline 和 ability entity 期限都使用时钟域调度。全局帧负责确定事件顺序，局部时钟负责暂停与恢复；表现暂停不能通过移动全局事件伪造。
+
 ## 状态事务
 
 每个 Buff 实例至少区分：
@@ -69,6 +101,8 @@ exit reason
 - finish / dispel / replace。
 
 消费发生前先执行守卫；被阻止的消费不应先删除状态。退出原因决定后续 listener，不能全部折叠成 `FinishBuff`。
+
+`TimedGrowingEnhance` 使用同一 Buff 实例保存零层容器、当前层数、增长间隔、上限和 timer generation。直接加层按离散层数截断并受上限约束；归零后容器仍存在并可继续增长。该路径是由公开字段驱动的当前实现，外部起始时点、重置和离战精确行为仍受 [当前边界](./known-boundaries.md) 约束。
 
 ## 敌方机制
 
@@ -143,6 +177,7 @@ attack × atkScale
 ## 失败语义
 
 - 缺少目标、属性、定义、SkillSetting、provider 或 calculation type 时返回明确诊断。
+- 缺失 child SkillData 不得把父技能已经发生的状态、实体或事件回滚成不存在。
 - 表现动作可以 metadata-only；战斗关键动作不能静默跳过。
 - `unresolvedEffectCount = 0` 只说明已进入编译链的节点没有运行期 unresolved，不证明原始结构没有被遗漏；结构覆盖由独立 audit 负责。
 - 命令成功但没有应有 Hit 时，前端显示 partial，而不是回退旧计算器制造数值。

@@ -27,6 +27,7 @@
 - [当前生成证据](../evidence/README.md)
 - [Endaxis 对照研究](../research/README.md)
 - [文档与实现演变](../maintenance/documentation-reconstruction-20260903.md)
+- [通用运行时语义收口](../maintenance/runtime-generalization-20260903.md)
 - [历史档案](../archive/README.md)
 
 架构页不使用源文件行号作为长期引用。需要定位实现时使用稳定文件、导出名、测试名或生成报告键；行号只适合一次性审查记录。

@@ -331,11 +331,6 @@ test('cross-operator audit keeps real multipliers, compact bodies and stable sta
         for (const candidate of character.profiles) {
             if (candidate.diagnostic) {
                 diagnosticProfiles.push(candidate.skillId);
-                assert.equal(characterId, 'chr_0034_typhoea',
-                    `${candidate.skillId} is an unrecorded diagnostic fallback`);
-                assert.equal(candidate.derivation, 'compiled-fallback');
-                assert.match(candidate.diagnostic, /TimedGrowingEnhance/,
-                    `${candidate.skillId} must preserve the exact unsupported policy`);
             } else {
                 assert.equal(candidate.derivation, 'isolated-runtime-probe',
                     `${candidate.skillId} must not fall back to a guessed compiled timeline`);
@@ -346,20 +341,12 @@ test('cross-operator audit keeps real multipliers, compact bodies and stable sta
             }
             for (const hit of candidate.hits) {
                 if (hit.levels.M3 > 0) continue;
-                assert.ok(candidate.diagnostic,
-                    `${candidate.skillId}@${hit.offsetFrames} must be a real positive HP hit`);
                 unresolvedDiagnosticHits.push(`${candidate.skillId}@${hit.offsetFrames}`);
             }
         }
     }
-    assert.equal(diagnosticProfiles.length, 16,
-        'only the 16 documented Typhoea profiles may use compiled fallback');
-    assert.deepEqual(unresolvedDiagnosticHits, [
-        'chr_0034_typhoea_attack4@5',
-        'chr_0034_typhoea_attack4@15',
-        'chr_0034_typhoea_attack4@18',
-        'chr_0034_typhoea_attack4@21',
-        'chr_0034_typhoea_attack4@24',
-        'chr_0034_typhoea_attack4@27'
-    ], 'only the documented Typhoea attack-4 fallback may retain unresolved multipliers');
+    assert.deepEqual(diagnosticProfiles, [],
+        'every catalog profile must come from an isolated runtime probe');
+    assert.deepEqual(unresolvedDiagnosticHits, [],
+        'every catalog hit must resolve a positive M3 multiplier');
 });

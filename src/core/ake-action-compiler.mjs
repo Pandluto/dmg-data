@@ -221,6 +221,7 @@ function normalizeDamageUnits(node) {
             // listeners such as Chen Qianyu's talent distinguish crush,
             // fracture and airborne hits through these bits.
             damageDecorateMask: Number(unit.damageDecorateMask ?? 0),
+            damageTagIds: tagIds(unit.damageTags),
             damageTypeMask: unit.damageTypeMask ?? null,
             scale: unit.scale ?? (unit.simpleCalculation === false
                 ? (unit.atkCalculation?.atkScale ?? unit.atkScale)
@@ -506,22 +507,23 @@ export class AkeActionCompiler {
         const extendTagIds = tagIds(raw.tagsAfterTriggerExtendBuffAction);
         const persistentExtendTags = extendTagIds.map(tagId => `ake-tag:${tagId}`);
         const damageModifierConditionResults = (raw.damageModifier ?? []).map(
-            (modifier, modifierIndex) => (modifier.condition?.actionData ?? []).map(
-                (condition, conditionIndex) => this.#compileCondition(condition, {
-                    path: `damageModifier[${modifierIndex}].condition.actionData[${conditionIndex}]`,
+            (modifier, modifierIndex) => this.#compileConditionList(
+                modifier.condition?.actionData ?? [],
+                {
+                    path: `damageModifier[${modifierIndex}].condition.actionData`,
                     blackboard,
                     scope: 'buff'
-                })
+                }
             )
         );
         const persistentDamageModifiers = parsed.damageModifiers.map((modifier, modifierIndex) => {
-            const conditionResults = damageModifierConditionResults[modifierIndex] ?? [];
-            const conditionUnresolved = conditionResults.flatMap(result => result.unresolved);
+            const conditionResult = damageModifierConditionResults[modifierIndex]
+                ?? { conditions: [], unresolved: [] };
             return {
                 ...clone(modifier),
-                conditions: conditionResults.map(result => result.condition).filter(Boolean),
-                conditionsExecutable: conditionUnresolved.length === 0
-                    && conditionResults.every(result => result.condition !== null)
+                conditions: conditionResult.conditions.filter(Boolean),
+                conditionsExecutable: conditionResult.unresolved.length === 0
+                    && conditionResult.conditions.every(Boolean)
             };
         });
         const effectSourceActions = persistentModifiers.length > 0
@@ -551,7 +553,7 @@ export class AkeActionCompiler {
             ...igniteEventActions,
             ...timeline
         ].flatMap(group => group.unresolved).concat(
-            damageModifierConditionResults.flat(1).flatMap(result => result.unresolved)
+            damageModifierConditionResults.flatMap(result => result.unresolved)
         );
         const definition = {
             ...parsed,
@@ -711,14 +713,12 @@ export class AkeActionCompiler {
         const target = this.#targetRef(config.targets ?? 'Target', state, 'switch Buff target');
         if (source.unresolved) result.unresolved.push(source.unresolved);
         if (target.unresolved) result.unresolved.push(target.unresolved);
-        const conditionResults = actionData(config.condition).map((condition, index) => (
-            this.#compileCondition(condition, {
-                ...state,
-                path: `${state.path}.condition[${index}]`
-            })
-        ));
-        result.unresolved.push(...conditionResults.flatMap(entry => entry.unresolved));
-        result.diagnostics.push(...conditionResults.flatMap(entry => entry.diagnostics));
+        const conditionResult = this.#compileConditionList(actionData(config.condition), {
+            ...state,
+            path: `${state.path}.condition`
+        });
+        result.unresolved.push(...conditionResult.unresolved);
+        result.diagnostics.push(...conditionResult.diagnostics);
         result.metadata.push({
             type: 'SwitchToBuffConfig',
             path: state.path,
@@ -726,8 +726,7 @@ export class AkeActionCompiler {
             buffIds: buffs.map(buff => buff.buffId),
             asSkillCast: config.asSkillCast !== false
         });
-        if (!source.ref || !target.ref
-            || conditionResults.some(entry => entry.condition === null)) {
+        if (!source.ref || !target.ref || conditionResult.conditions.some(entry => !entry)) {
             return finalize(result);
         }
         const applyBuff = {
@@ -746,7 +745,7 @@ export class AkeActionCompiler {
             },
             reason: 'SwitchToBuffConfig'
         };
-        const conditions = conditionResults.map(entry => entry.condition);
+        const conditions = conditionResult.conditions;
         result.actions.push(conditions.length === 0 ? applyBuff : {
             type: 'IfElseAction',
             conditions,
@@ -795,24 +794,24 @@ export class AkeActionCompiler {
                 return finalize(result);
             }
             if (isAkeConditionType(type)) {
-                const conditions = [];
-                while (index < nodes.length && isAkeConditionType(shortType(nodes[index]))) {
-                    const compiledCondition = this.#compileCondition(nodes[index], {
-                        ...state,
-                        path: `${state.path}[${index}]`
-                    });
-                    conditions.push(compiledCondition.condition);
-                    result.unresolved.push(...compiledCondition.unresolved);
-                    result.diagnostics.push(...compiledCondition.diagnostics);
-                    index += 1;
+                let endIndex = index;
+                while (endIndex < nodes.length
+                    && isAkeConditionType(shortType(nodes[endIndex]))) {
+                    endIndex += 1;
                 }
-                const tail = this.#compileSequence(nodes.slice(index), {
+                const compiledConditions = this.#compileConditionList(
+                    nodes.slice(index, endIndex),
+                    { ...state, path: state.path, indexOffset: index }
+                );
+                result.unresolved.push(...compiledConditions.unresolved);
+                result.diagnostics.push(...compiledConditions.diagnostics);
+                const tail = this.#compileSequence(nodes.slice(endIndex), {
                     ...state,
-                    path: `${state.path}[${index}..]`
+                    path: `${state.path}[${endIndex}..]`
                 });
                 result.actions.push({
                     type: 'IfElseAction',
-                    conditions,
+                    conditions: compiledConditions.conditions,
                     success: tail.actions,
                     failure: [],
                     reason: `AKE condition gate at ${state.path}`
@@ -829,6 +828,45 @@ export class AkeActionCompiler {
             }));
         }
         return finalize(result);
+    }
+
+    #compileConditionList(nodes, state) {
+        const result = { conditions: [], unresolved: [], diagnostics: [] };
+        const indexOffset = Number(state.indexOffset ?? 0);
+        const pathAt = index => `${state.path}[${indexOffset + index}]`;
+        for (let index = 0; index < nodes.length; index += 1) {
+            let negate = false;
+            let markerCount = 0;
+            while (shortType(nodes[index]) === 'NotNextCheckAction') {
+                negate = !negate;
+                markerCount += 1;
+                index += 1;
+            }
+            if (markerCount > 0 && (index >= nodes.length
+                || !isAkeConditionType(shortType(nodes[index]))
+                || shortType(nodes[index]) === 'NotNextCheckAction')) {
+                const unresolved = this.#unresolved(
+                    'AKE_NOT_NEXT_CONDITION_MISSING',
+                    'NotNextCheckAction',
+                    pathAt(index - 1),
+                    'NotNextCheckAction must be followed by a condition in the same condition list.'
+                );
+                result.unresolved.push(unresolved);
+                result.diagnostics.push(clone(unresolved));
+                index -= 1;
+                continue;
+            }
+            const compiled = this.#compileCondition(nodes[index], {
+                ...state,
+                path: pathAt(index)
+            });
+            result.unresolved.push(...compiled.unresolved);
+            result.diagnostics.push(...compiled.diagnostics);
+            result.conditions.push(negate
+                ? { type: 'Not', condition: compiled.condition }
+                : compiled.condition);
+        }
+        return result;
     }
 
     #targetRef(value, state, label = 'target') {
@@ -1174,6 +1212,9 @@ export class AkeActionCompiler {
                     excludeOwner: validators.some(validator =>
                         nestedDataType(validator) === 'ExcludeOwnerValidator'
                     ),
+                    onlyMainCharacter: validators.some(validator =>
+                        nestedDataType(validator) === 'MainCharacterValidator'
+                    ),
                     tagIds: validators.flatMap(validator =>
                         nestedDataType(validator) === 'TagValidator'
                             ? tagIds(validator.query?.tags)
@@ -1274,6 +1315,22 @@ export class AkeActionCompiler {
             }
             case 'SpawnAbilityEntity': {
                 const childSkillId = node.childSkillId ?? node.abilityEntitySkillId;
+                const source = this.#targetRef(
+                    node.setAbilityEntitySource === true
+                        ? node.abilityEntitySource
+                        : 'Owner',
+                    state,
+                    'ability-entity source'
+                );
+                const target = node.setAbilityEntityTarget === true
+                    ? this.#targetRef(
+                        node.abilityEntityTarget,
+                        state,
+                        'ability-entity target'
+                    )
+                    : { ref: null, unresolved: null };
+                if (source.unresolved) result.unresolved.push(source.unresolved);
+                if (target.unresolved) result.unresolved.push(target.unresolved);
                 const tagMapping = this.#findMapping(
                     'AbilityEntityTagRule',
                     mapping => mapping.selector?.abilityEntityId === node.abilityEntityId
@@ -1287,27 +1344,53 @@ export class AkeActionCompiler {
                     childSkillId: childSkillId ?? null,
                     akeTagIds
                 });
-                if (!childSkillId) {
+                if (typeof node.abilityEntityId !== 'string'
+                    || node.abilityEntityId.length === 0) {
                     result.unresolved.push(this.#unresolved(
-                        'AKE_ABILITY_ENTITY_SKILL_MISSING',
+                        'AKE_ABILITY_ENTITY_ID_MISSING',
                         type,
                         state.path,
-                        'SpawnAbilityEntity has no abilityEntitySkillId.'
+                        'SpawnAbilityEntity has no abilityEntityId.'
                     ));
                     break;
                 }
+                if (!source.ref || (node.setAbilityEntityTarget === true && !target.ref)) {
+                    break;
+                }
+                const spawnGroupKey = `ability-entity:${state.path}`;
                 result.actions.push({
                     type: 'LaunchSkillProgram',
-                    abilityEntityId: node.abilityEntityId ?? null,
+                    abilityEntityId: node.abilityEntityId,
                     akeTagIds,
-                    childSkillId,
+                    childSkillId: childSkillId || null,
+                    abilityEntitySourceRef: source.ref,
+                    abilityEntityTargetRef: target.ref,
+                    spawnGroupKey,
+                    saveToContext: node.saveToContext === true,
+                    contextKey: node.contextKey || null,
+                    durationSeconds: node.overrideDuration === true
+                        ? descriptor(node.duration, 0)
+                        : null,
+                    dieWhenSourceDie: node.dieWhenSourceDie === true,
+                    bornAt: clone(node.bornAt ?? null),
                     assignments: normalizeAssignments({
                         assignItems: node.assignPairs ?? node.assignments ?? []
                     }),
                     inheritBlackboard: true,
                     reason: type
                 });
-                if (!this.capabilities.skillProgramResolver) {
+                if (node.dieOnEnd === true) result.cleanupActions.push({
+                    type: 'DeactivateEntity',
+                    target: {
+                        type: 'TargetGroup',
+                        key: spawnGroupKey,
+                        index: 0,
+                        fallback: null,
+                        all: true
+                    },
+                    reason: `${type}:timeline-end`
+                });
+                if (childSkillId && !this.capabilities.skillProgramResolver) {
                     result.unresolved.push(this.#unresolved(
                         'AKE_SKILL_PROGRAM_RESOLVER_REQUIRED',
                         type,
@@ -1316,6 +1399,58 @@ export class AkeActionCompiler {
                         { childSkillId }
                     ));
                 }
+                break;
+            }
+            case 'SetAbilityEntityDuration': {
+                let entityRef;
+                if (node.actionTargetType === 'ContextTarget'
+                    && typeof node.targetContextKey === 'string'
+                    && node.targetContextKey.length > 0) {
+                    entityRef = {
+                        type: 'TargetGroup',
+                        key: node.targetContextKey,
+                        index: 0,
+                        fallback: null,
+                        all: node.setMultipleTarget === true
+                    };
+                } else {
+                    const target = this.#targetRef(
+                        node.targetSettings ?? 'Target',
+                        state,
+                        'ability-entity duration target'
+                    );
+                    if (target.unresolved) result.unresolved.push(target.unresolved);
+                    entityRef = target.ref;
+                    if (isRecord(entityRef) && entityRef.type === 'TargetGroup') {
+                        entityRef = {
+                            ...entityRef,
+                            fallback: null,
+                            all: node.setMultipleTarget === true
+                        };
+                    }
+                }
+                if (entityRef) result.actions.push({
+                    type: 'SetAbilityEntityDuration',
+                    target: entityRef,
+                    operation: node.operation ?? 'Assign',
+                    value: descriptor(node.value, 0),
+                    reason: type
+                });
+                break;
+            }
+            case 'SetAbilityEntityTarget': {
+                const target = this.#targetRef(
+                    node.targetSettings ?? 'Target',
+                    state,
+                    'ability-entity assigned target'
+                );
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                if (target.ref) result.actions.push({
+                    type: 'SetAbilityEntityTarget',
+                    entity: 'Owner',
+                    target: target.ref,
+                    reason: type
+                });
                 break;
             }
             case 'CastSkill': {
@@ -1533,10 +1668,10 @@ export class AkeActionCompiler {
                 break;
             case 'IfElseAction': {
                 const conditions = node.conditions ?? actionData(node.conditionAction);
-                const compiledConditions = conditions.map((condition, index) => this.#compileCondition(
-                    condition,
-                    { ...state, path: `${state.path}.condition[${index}]` }
-                ));
+                const compiledConditions = this.#compileConditionList(conditions, {
+                    ...state,
+                    path: `${state.path}.condition`
+                });
                 const success = this.#compileSequence(
                     node.success ?? actionData(node.succeedActions),
                     { ...state, path: `${state.path}.success` }
@@ -1547,19 +1682,19 @@ export class AkeActionCompiler {
                 );
                 result.actions.push({
                     type: 'IfElseAction',
-                    conditions: compiledConditions.map(entry => entry.condition),
+                    conditions: compiledConditions.conditions,
                     success: success.actions,
                     failure: failure.actions
                 });
                 result.cleanupActions.push(...success.cleanupActions, ...failure.cleanupActions);
                 result.metadata.push(...success.metadata, ...failure.metadata);
                 result.unresolved.push(
-                    ...compiledConditions.flatMap(entry => entry.unresolved),
+                    ...compiledConditions.unresolved,
                     ...success.unresolved,
                     ...failure.unresolved
                 );
                 result.diagnostics.push(
-                    ...compiledConditions.flatMap(entry => entry.diagnostics),
+                    ...compiledConditions.diagnostics,
                     ...success.diagnostics,
                     ...failure.diagnostics
                 );
@@ -1946,6 +2081,33 @@ export class AkeActionCompiler {
                     eventType: node.igniteType,
                     target: listener.ref,
                     sourceRef: source.ref,
+                    reason: type
+                });
+                break;
+            }
+            case 'TriggerCustomAbilityEvent': {
+                const source = this.#targetRef(
+                    node.eventSource ?? 'Source',
+                    state,
+                    'custom-event source'
+                );
+                const target = this.#targetRef(
+                    node.targets ?? 'Target',
+                    state,
+                    'custom-event listener target'
+                );
+                if (source.unresolved) result.unresolved.push(source.unresolved);
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                if (source.ref && target.ref) result.actions.push({
+                    type: 'TriggerStatusEvent',
+                    eventType: 'OnCustomAbilityEvent',
+                    sourceRef: source.ref,
+                    target: target.ref,
+                    eventSourceAsActionSource: true,
+                    payload: {
+                        customAbilityEventName: descriptor(node.eventName, ''),
+                        customAbilityEventParam: descriptor(node.eventParam, 0)
+                    },
                     reason: type
                 });
                 break;
@@ -3850,6 +4012,48 @@ export class AkeActionCompiler {
         const type = shortType(node) || 'UnknownCondition';
         const result = { condition: null, unresolved: [], diagnostics: [] };
         switch (type) {
+            case 'NotNextCheckAction':
+                result.unresolved.push(this.#unresolved(
+                    'AKE_NOT_NEXT_CONDITION_LIST_REQUIRED',
+                    type,
+                    state.path,
+                    'NotNextCheckAction is a condition-list prefix and cannot be evaluated alone.'
+                ));
+                break;
+            case 'OrConditionAction': {
+                const branches = [];
+                for (const [index, wrapper] of (node.conditionList ?? []).entries()) {
+                    const branch = this.#compileConditionList(actionData(wrapper), {
+                        ...state,
+                        path: `${state.path}.conditionList[${index}].actionData`
+                    });
+                    result.unresolved.push(...branch.unresolved);
+                    result.diagnostics.push(...branch.diagnostics);
+                    if (branch.conditions.length === 0) {
+                        result.unresolved.push(this.#unresolved(
+                            'AKE_OR_CONDITION_BRANCH_EMPTY',
+                            type,
+                            `${state.path}.conditionList[${index}]`,
+                            'OrConditionAction branches must contain at least one condition.'
+                        ));
+                        continue;
+                    }
+                    branches.push(branch.conditions.length === 1
+                        ? branch.conditions[0]
+                        : { type: 'All', conditions: branch.conditions });
+                }
+                if (branches.length > 0) {
+                    result.condition = { type: 'Any', conditions: branches };
+                } else {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_OR_CONDITION_EMPTY',
+                        type,
+                        state.path,
+                        'OrConditionAction has no executable condition branch.'
+                    ));
+                }
+                break;
+            }
             case 'CompareFloat':
             case 'CompareString':
                 result.condition = {
@@ -3934,6 +4138,23 @@ export class AkeActionCompiler {
                 };
                 break;
             }
+            case 'CheckDamageTag': {
+                const requested = tagIds(node.tags);
+                const conditions = requested.map(tagId => ({
+                    type: 'Compare',
+                    left: tagId,
+                    operator: 'IN',
+                    right: { type: 'Payload', key: 'damageTagIds', default: [] }
+                }));
+                const queryType = node.queryType ?? 'HasAny';
+                result.condition = queryType === 'HasNone'
+                    ? { type: 'Not', condition: { type: 'Any', conditions } }
+                    : {
+                        type: queryType === 'HasAll' ? 'All' : 'Any',
+                        conditions
+                    };
+                break;
+            }
             case 'CheckSpellInflictionType': {
                 const spellInflictionTypes = String(node.mask ?? 'All')
                     .split(',')
@@ -3984,6 +4205,44 @@ export class AkeActionCompiler {
                     second: second.ref,
                     firstUsesEventTarget: selectorSource(firstSettings) === 'Target',
                     secondUsesEventTarget: selectorSource(secondSettings) === 'Target'
+                } : null;
+                break;
+            }
+            case 'CheckTargetContains': {
+                const parent = this.#targetRef(
+                    node.parentTargetSettings,
+                    state,
+                    'containing target set'
+                );
+                const child = this.#targetRef(
+                    node.childTargetSettings,
+                    state,
+                    'contained target set'
+                );
+                if (parent.unresolved) result.unresolved.push(parent.unresolved);
+                if (child.unresolved) result.unresolved.push(child.unresolved);
+                result.condition = parent.ref && child.ref ? {
+                    type: 'TargetSetContains',
+                    parent: isRecord(parent.ref) && parent.ref.type === 'TargetGroup'
+                        ? { ...parent.ref, fallback: null, all: true }
+                        : parent.ref,
+                    child: isRecord(child.ref) && child.ref.type === 'TargetGroup'
+                        ? { ...child.ref, fallback: null, all: true }
+                        : child.ref
+                } : null;
+                break;
+            }
+            case 'CheckObjectTypeMatch': {
+                const target = this.#targetRef(node.target, state, 'object-kind target');
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                const objectKinds = String(node.objectTypeMask ?? '')
+                    .split(/[|,]/g)
+                    .map(value => value.trim())
+                    .filter(Boolean);
+                result.condition = target.ref && objectKinds.length > 0 ? {
+                    type: 'EntityKindMatch',
+                    target: target.ref,
+                    objectKinds
                 } : null;
                 break;
             }
@@ -4206,6 +4465,96 @@ export class AkeActionCompiler {
                 } : null;
                 break;
             }
+            case 'CheckProfession': {
+                const target = this.#targetRef(
+                    node.checkTarget,
+                    state,
+                    'profession target'
+                );
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                const professions = String(node.professionCategories ?? '')
+                    .split(/[|,]/g)
+                    .map(value => value.trim())
+                    .filter(Boolean);
+                result.condition = target.ref && professions.length > 0 ? {
+                    type: 'EntityProfessionMatch',
+                    target: target.ref,
+                    professions
+                } : null;
+                break;
+            }
+            case 'CheckSkillHasHit':
+                result.condition = { type: 'SkillCastHasHit' };
+                break;
+            case 'CheckSkillInterruptReason':
+                result.condition = {
+                    type: 'Compare',
+                    left: { type: 'Payload', key: 'skillEndReason', default: null },
+                    operator: 'IN',
+                    right: (node.reasonList ?? []).filter(Boolean)
+                };
+                break;
+            case 'CheckAbilityEntityCurDuration': {
+                const target = this.#targetRef(
+                    node.abilityEntity,
+                    state,
+                    'ability-entity duration target'
+                );
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                result.condition = target.ref ? {
+                    type: 'AbilityEntityDurationCompare',
+                    target: target.ref,
+                    operator: node.compareType ?? 'Equals',
+                    value: descriptor(node.value, 0),
+                    storeKey: node.saveCurDuration === true
+                        && typeof node.bbKey === 'string'
+                        && node.bbKey.length > 0
+                        ? node.bbKey
+                        : null
+                } : null;
+                break;
+            }
+            case 'CheckSuperArmor': {
+                const target = this.#targetRef(
+                    node.checkTarget,
+                    state,
+                    'super-armor target'
+                );
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                result.condition = target.ref ? {
+                    type: 'SuperArmorCompare',
+                    target: target.ref,
+                    operator: node.compareType ?? node.compare ?? 'Equals',
+                    value: descriptor(node.value, 0)
+                } : null;
+                break;
+            }
+            case 'CheckPoiseValue': {
+                const target = this.#targetRef(
+                    node.poiseOwner,
+                    state,
+                    'poise target'
+                );
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                result.condition = target.ref ? {
+                    type: 'PoiseCompare',
+                    target: target.ref,
+                    operator: node.compare ?? node.compareType ?? 'Equals',
+                    value: descriptor(node.value, 0),
+                    returnValueIfDontHavePoise: Boolean(node.returnValueIfDontHavePoise)
+                } : null;
+                break;
+            }
+            case 'CheckCustomAbilityEvent':
+                result.condition = {
+                    type: 'CustomAbilityEventMatch',
+                    eventName: descriptor(node.eventName, ''),
+                    storeKey: typeof node.savedParamKey === 'string'
+                        && node.savedParamKey.length > 0
+                        ? node.savedParamKey
+                        : null
+                };
+                break;
             case 'CheckSquadInFight':
                 // SkillData uses this gate for combat-only resource and Buff
                 // branches. The runtime derives it from the registered allied

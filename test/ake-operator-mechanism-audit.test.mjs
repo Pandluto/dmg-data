@@ -62,8 +62,11 @@ test('operator audit attaches every combat gap to AKE evidence and avoids operat
     assert.equal(rossi.findings.some(finding =>
         finding.sourceType === 'PauseBuffTime'
     ), false, 'implemented generic status time control must leave the unresolved audit');
-    assert.ok(arcane.findings.some(finding =>
-        ['CastSkill', 'SpawnAbilityEntity'].includes(finding.sourceType)
+    assert.equal(arcane.findings.some(finding =>
+        finding.sourceType === 'SpawnAbilityEntity'
+    ), false, 'marker entities and optional child programs use the generic entity lifecycle');
+    assert.ok(rossi.findings.some(finding =>
+        finding.sourceType === 'ClearProjectileAction'
         && finding.capability === 'child-action'
     ));
     for (const finding of [...rossi.findings, ...arcane.findings]) {

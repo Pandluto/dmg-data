@@ -5,14 +5,14 @@
     "id": "buff_common_poise_rectime",
     "generator": "AKEV3BuffData.analyzeBuff",
     "generatorWrapper": "scripts/export-ake-analysis.mjs",
-    "generatorWrapperSha256": "571c3da2e52854f78c3fe352b745de6555f5ead1f49c075538396d5185eff692",
+    "generatorWrapperSha256": "28f2daa895b708f4991d7f51146dfeb690e0226c3ad3be2a45f3996cac98a602",
     "akeDatabaseCommit": "1bb9549705eba2601affed4cb8a7ea69ba13b150",
-    "akedataJsonRevision": "2026-08-22T05:51:44.260485+08:00",
+    "akedataJsonRevision": "2026-09-01T22:53:25.945329+00:00",
     "inputs": [
       {
         "role": "raw",
         "path": "reference/public-data/akedata/Json/BuffData/buff_common_poise_rectime.json",
-        "sha256": "14052a94baa03b320b434abe4cb1d91506915655b0546ce1b4eb809ad970b61f"
+        "sha256": "42fbce89b01a2e9876ab25d25701f7e2f3d7b55ee309ecd2751c21d0ac420686"
       },
       {
         "role": "analyzer",

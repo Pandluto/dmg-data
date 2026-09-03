@@ -257,8 +257,8 @@ test('cross-operator audit keeps real multipliers, compact bodies and stable sta
         wulfaCombo3.hits
             .filter(hit => statusKeys(hit.hitBuffs).has('airborne'))
             .map(hit => hit.offsetFrames),
-        [29],
-        'a frame-29 AirborneAction must not be copied onto all nine damage hits'
+        [28],
+        'the frame-29 AirborneAction belongs only to the adjacent frame-28 settlement in the 1.5.3 timeline'
     );
 
     const wulfaCombo2 = profile('chr_0028_wulfa', 'chr_0028_wulfa_combo_2_skill');
@@ -325,18 +325,41 @@ test('cross-operator audit keeps real multipliers, compact bodies and stable sta
         assert.ok(catalogStatusKeys.has(key), `catalog must expose stable ${key} markers`);
     }
 
-    for (const character of Object.values(enriched.characters)) {
+    const diagnosticProfiles = [];
+    const unresolvedDiagnosticHits = [];
+    for (const [characterId, character] of Object.entries(enriched.characters)) {
         for (const candidate of character.profiles) {
-            assert.equal(candidate.derivation, 'isolated-runtime-probe',
-                `${candidate.skillId} must not fall back to a guessed compiled timeline`);
+            if (candidate.diagnostic) {
+                diagnosticProfiles.push(candidate.skillId);
+                assert.equal(characterId, 'chr_0034_typhoea',
+                    `${candidate.skillId} is an unrecorded diagnostic fallback`);
+                assert.equal(candidate.derivation, 'compiled-fallback');
+                assert.match(candidate.diagnostic, /TimedGrowingEnhance/,
+                    `${candidate.skillId} must preserve the exact unsupported policy`);
+            } else {
+                assert.equal(candidate.derivation, 'isolated-runtime-probe',
+                    `${candidate.skillId} must not fall back to a guessed compiled timeline`);
+            }
             if (candidate.exclusiveFrames > 0) {
                 assert.ok(candidate.bodyEndOffset <= candidate.exclusiveFrames,
                     `${candidate.skillId} body must not use its padded asset duration`);
             }
             for (const hit of candidate.hits) {
-                assert.ok(hit.levels.M3 > 0,
+                if (hit.levels.M3 > 0) continue;
+                assert.ok(candidate.diagnostic,
                     `${candidate.skillId}@${hit.offsetFrames} must be a real positive HP hit`);
+                unresolvedDiagnosticHits.push(`${candidate.skillId}@${hit.offsetFrames}`);
             }
         }
     }
+    assert.equal(diagnosticProfiles.length, 16,
+        'only the 16 documented Typhoea profiles may use compiled fallback');
+    assert.deepEqual(unresolvedDiagnosticHits, [
+        'chr_0034_typhoea_attack4@5',
+        'chr_0034_typhoea_attack4@15',
+        'chr_0034_typhoea_attack4@18',
+        'chr_0034_typhoea_attack4@21',
+        'chr_0034_typhoea_attack4@24',
+        'chr_0034_typhoea_attack4@27'
+    ], 'only the documented Typhoea attack-4 fallback may retain unresolved multipliers');
 });

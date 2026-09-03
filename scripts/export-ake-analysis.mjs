@@ -110,6 +110,19 @@ const patchTable = readJson(patchTablePath);
 const potentialTable = readJson(potentialTablePath);
 const localSkillDirectory = safePath(dataRoot, 'Json', 'SkillData');
 
+function lockedAnalysisInputs(kind) {
+    const prefix = `reference/public-data/akedata/Json/${kind}/`;
+    const inputs = (lock.sources ?? [])
+        .map(source => source.path)
+        .filter(relativePath => relativePath.startsWith(prefix) && relativePath.endsWith('.json'))
+        .map(relativePath => projectPath(relativePath))
+        .sort((left, right) => left.localeCompare(right, 'en'));
+    if (inputs.length === 0) {
+        throw new Error(`No source-locked ${kind} inputs are available for reference analysis.`);
+    }
+    return inputs;
+}
+
 async function loadLocalSkillData(skillId) {
     const normalizedId = String(skillId ?? '');
     if (!/^[A-Za-z0-9_.-]+$/.test(normalizedId)) {
@@ -124,7 +137,7 @@ async function loadLocalSkillData(skillId) {
 
 const records = [];
 
-for (const rawPath of listJsonFiles(safePath(dataRoot, 'Json', 'BuffData'))) {
+for (const rawPath of lockedAnalysisInputs('BuffData')) {
     const raw = readJson(rawPath);
     const id = String(raw.id || path.basename(rawPath, '.json'));
     const analysis = buffAnalyzer.api.analyzeBuff(raw, {});
@@ -161,7 +174,7 @@ for (const rawPath of listJsonFiles(safePath(dataRoot, 'Json', 'BuffData'))) {
     });
 }
 
-for (const rawPath of listJsonFiles(localSkillDirectory)) {
+for (const rawPath of lockedAnalysisInputs('SkillData')) {
     const raw = readJson(rawPath);
     const id = String(raw.skillId || path.basename(rawPath, '.json'));
     const patchBundle = patchTable[id] ?? null;
@@ -213,15 +226,35 @@ for (const rawPath of listJsonFiles(localSkillDirectory)) {
 records.sort((left, right) => `${left.kind}/${left.id}`.localeCompare(`${right.kind}/${right.id}`, 'en'));
 
 const manifestPath = safePath(outputRoot, 'manifest.json');
-writeJson(manifestPath, {
+const expectedOutputs = new Set(records.map(record => record.outputPath));
+for (const kind of ['BuffData', 'SkillData']) {
+    for (const generatedPath of listJsonFiles(safePath(outputRoot, kind))) {
+        const relativePath = portablePath(generatedPath);
+        if (expectedOutputs.has(relativePath)) continue;
+        const existing = readJson(generatedPath);
+        if (existing?._meta?.generatorWrapper === 'scripts/export-ake-analysis.mjs') {
+            fs.unlinkSync(generatedPath);
+        }
+    }
+}
+
+const manifestBody = {
     schemaVersion: 1,
-    generatedAt: new Date().toISOString(),
     generatorWrapper: 'scripts/export-ake-analysis.mjs',
     generatorWrapperSha256: wrapperSha256,
     pins: lock.pins,
     recordCount: records.length,
     records
-});
+};
+let generatedAt = new Date().toISOString();
+if (fs.existsSync(manifestPath)) {
+    const previous = readJson(manifestPath);
+    const { generatedAt: previousGeneratedAt, ...previousBody } = previous;
+    if (JSON.stringify(previousBody) === JSON.stringify(manifestBody)) {
+        generatedAt = previousGeneratedAt;
+    }
+}
+writeJson(manifestPath, { ...manifestBody, generatedAt });
 
 const buffCount = records.filter(record => record.kind === 'BuffData').length;
 const skillCount = records.filter(record => record.kind === 'SkillData').length;

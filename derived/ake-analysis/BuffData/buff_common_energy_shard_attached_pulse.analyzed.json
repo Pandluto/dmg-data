@@ -5,14 +5,14 @@
     "id": "buff_common_energy_shard_attached_pulse",
     "generator": "AKEV3BuffData.analyzeBuff",
     "generatorWrapper": "scripts/export-ake-analysis.mjs",
-    "generatorWrapperSha256": "571c3da2e52854f78c3fe352b745de6555f5ead1f49c075538396d5185eff692",
+    "generatorWrapperSha256": "28f2daa895b708f4991d7f51146dfeb690e0226c3ad3be2a45f3996cac98a602",
     "akeDatabaseCommit": "1bb9549705eba2601affed4cb8a7ea69ba13b150",
-    "akedataJsonRevision": "2026-08-22T05:51:44.260485+08:00",
+    "akedataJsonRevision": "2026-09-01T22:53:25.945329+00:00",
     "inputs": [
       {
         "role": "raw",
         "path": "reference/public-data/akedata/Json/BuffData/buff_common_energy_shard_attached_pulse.json",
-        "sha256": "d22078be2571cd4380c6bdfc31d47417580f7b49415d7e200ef34408311c3124"
+        "sha256": "03046047242d810ab1ce0d0c588b9c93129dbda311895a6ee384376c6efa08f5"
       },
       {
         "role": "analyzer",

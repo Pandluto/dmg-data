@@ -6,22 +6,22 @@
     "EventListenerAction.abilityActionMap"
   ],
   "summary": {
-    "eventKeys": 84,
-    "consumerGroups": 1072,
+    "eventKeys": 85,
+    "consumerGroups": 1095,
     "completeEventTypes": 30,
-    "completeConsumerGroups": 911,
-    "missingEmitterEventTypes": 52,
-    "missingEmitterConsumerGroups": 154,
+    "completeConsumerGroups": 920,
+    "missingEmitterEventTypes": 53,
+    "missingEmitterConsumerGroups": 167,
     "invalidEventValues": 2,
-    "invalidConsumerGroups": 7,
+    "invalidConsumerGroups": 8,
     "byDataset": {
-      "BuffData": 956,
-      "SkillData": 116
+      "BuffData": 975,
+      "SkillData": 120
     },
     "byChannel": {
-      "BuffAbilityEventAction": 953,
+      "BuffAbilityEventAction": 972,
       "EventListenerAction": 22,
-      "SkillPassiveEventAction": 97
+      "SkillPassiveEventAction": 101
     }
   },
   "events": [
@@ -34,14 +34,14 @@
         "eventType": "OnBeforeCastSkill",
         "producer": "scenario-command-start"
       },
-      "consumerGroups": 153,
+      "consumerGroups": 155,
       "byDataset": {
-        "BuffData": 137,
-        "SkillData": 16
+        "BuffData": 138,
+        "SkillData": 17
       },
       "byChannel": {
-        "BuffAbilityEventAction": 137,
-        "SkillPassiveEventAction": 16
+        "BuffAbilityEventAction": 138,
+        "SkillPassiveEventAction": 17
       },
       "sourceEntities": [
         "buff_cc_chr_fire_skill_clear_frozenonchar",
@@ -65,6 +65,7 @@
         "buff_chr_0028_wulfa_combo_usetimer",
         "buff_chr_0032_lizhiyan_train_combo_normal_end",
         "buff_chr_0032_lizhiyan_train_combo_wisd_end",
+        "buff_chr_0034_typhoea_talent_linken_sphere",
         "buff_chr_0035_liino_comboskill_skillcheck",
         "buff_common_affixes_combo_trigger",
         "buff_common_train_airborne",
@@ -184,6 +185,7 @@
         "sk_wpn_funnel_0009",
         "sk_wpn_funnel_0011",
         "sk_wpn_funnel_0015",
+        "sk_wpn_funnel_0019",
         "sk_wpn_lance_0006",
         "sk_wpn_lance_0011",
         "sk_wpn_pistol_0003",
@@ -211,6 +213,7 @@
         "chr_0027_tangtang",
         "chr_0028_wulfa",
         "chr_0032_lizhiyan",
+        "chr_0034_typhoea",
         "chr_0035_liino"
       ],
       "samples": [
@@ -243,7 +246,7 @@
           "path": "$.abilityEventAction[0]"
         }
       ],
-      "sourceEntityCount": 149
+      "sourceEntityCount": 151
     },
     {
       "key": "OnOwnerHpZero",
@@ -254,12 +257,12 @@
         "eventType": "OnOwnerHpZero",
         "producer": "combat-runtime-vital-zero-edge"
       },
-      "consumerGroups": 105,
+      "consumerGroups": 106,
       "byDataset": {
-        "BuffData": 105
+        "BuffData": 106
       },
       "byChannel": {
-        "BuffAbilityEventAction": 105
+        "BuffAbilityEventAction": 106
       },
       "sourceEntities": [
         "buff_cc_enemy_death_ground_area",
@@ -272,6 +275,7 @@
         "buff_chr_0030_zhuangfy_normal_skill_trigger_sword_tar",
         "buff_chr_0032_lizhiyan_combo_skill_spell_vulnerable",
         "buff_chr_0033_camille_normal_skill_listen_target_dead",
+        "buff_chr_0034_typhoea_combo_trigger_combo",
         "buff_eny_0007_mimicw_deathskill",
         "buff_eny_0029_lbmob_eye_fx",
         "buff_eny_0045_agtrinit_deadFx",
@@ -373,7 +377,8 @@
         "chr_0027_tangtang",
         "chr_0030_zhuangfy",
         "chr_0032_lizhiyan",
-        "chr_0033_camille"
+        "chr_0033_camille",
+        "chr_0034_typhoea"
       ],
       "samples": [
         {
@@ -405,7 +410,7 @@
           "path": "$.abilityEventAction[1]"
         }
       ],
-      "sourceEntityCount": 103
+      "sourceEntityCount": 104
     },
     {
       "key": "OnSkillEnd",
@@ -581,12 +586,12 @@
         "eventType": "OnTakeDamage",
         "producer": "combat-runtime-damage-transaction"
       },
-      "consumerGroups": 87,
+      "consumerGroups": 88,
       "byDataset": {
-        "BuffData": 87
+        "BuffData": 88
       },
       "byChannel": {
-        "BuffAbilityEventAction": 87
+        "BuffAbilityEventAction": 88
       },
       "sourceEntities": [
         "buff_Ether_Cure_buff",
@@ -596,6 +601,7 @@
         "buff_chr_0009_azrila_talent_2",
         "buff_chr_0013_aglina_potential_5_dmgup",
         "buff_chr_0016_laevat_talent_2_0",
+        "buff_chr_0034_typhoea_floatingmode",
         "buff_common_enemy_spell_status_conduct",
         "buff_common_enemy_stopmotion",
         "buff_common_superarmor_behit_agdisk",
@@ -671,7 +677,8 @@
       "characterIds": [
         "chr_0009_azrila",
         "chr_0013_aglina",
-        "chr_0016_laevat"
+        "chr_0016_laevat",
+        "chr_0034_typhoea"
       ],
       "samples": [
         {
@@ -703,7 +710,7 @@
           "path": "$.abilityEventAction[0]"
         }
       ],
-      "sourceEntityCount": 78
+      "sourceEntityCount": 79
     },
     {
       "key": "OnAddedBuff",
@@ -714,13 +721,13 @@
         "eventType": "OnAddedBuff",
         "producer": "combat-runtime-status-transaction"
       },
-      "consumerGroups": 77,
+      "consumerGroups": 79,
       "byDataset": {
-        "BuffData": 66,
+        "BuffData": 68,
         "SkillData": 11
       },
       "byChannel": {
-        "BuffAbilityEventAction": 65,
+        "BuffAbilityEventAction": 67,
         "EventListenerAction": 8,
         "SkillPassiveEventAction": 4
       },
@@ -748,6 +755,8 @@
         "buff_chr_0031_mifu_normalskill_2",
         "buff_chr_0031_mifu_normalskill_3",
         "buff_chr_0032_lizhiyan_ultimate_skill_listener_owner",
+        "buff_chr_0034_typhoea_floatingmode",
+        "buff_chr_0034_typhoea_passitive_enemy_listennaturalspellbrust",
         "buff_chr_0035_liino_normalskill_music_vfx",
         "buff_chr_0035_liino_normalskill_spelllnfliction_check",
         "buff_common_lower_superarmor_when_interrupted",
@@ -814,6 +823,7 @@
         "chr_0031_mifu",
         "chr_0032_lizhiyan",
         "chr_0033_camille",
+        "chr_0034_typhoea",
         "chr_0035_liino"
       ],
       "samples": [
@@ -846,7 +856,7 @@
           "path": "$.abilityEventAction[0]"
         }
       ],
-      "sourceEntityCount": 71
+      "sourceEntityCount": 73
     },
     {
       "key": "OnOutputBuff",
@@ -1309,6 +1319,85 @@
       "sourceEntityCount": 25
     },
     {
+      "key": "OnFinishedBuff",
+      "eventType": "OnFinishedBuff",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnFinishedBuff",
+        "producer": "combat-runtime-status-lifecycle"
+      },
+      "consumerGroups": 22,
+      "byDataset": {
+        "BuffData": 22
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 21,
+        "EventListenerAction": 1
+      },
+      "sourceEntities": [
+        "buff_cc_chr_cryst_inflict_to_slowdown",
+        "buff_cc_enemy_heal_under_control",
+        "buff_cc_enemy_inflict_stack_resist_consume_listener",
+        "buff_cc_eny_abnormal_to_superarmor",
+        "buff_chr_0016_laevat_passive_enemy",
+        "buff_chr_0016_laevat_potential_5",
+        "buff_chr_0016_laevat_show_weapon",
+        "buff_chr_0016_laevat_ult_end",
+        "buff_chr_0028_wulfa_combo_2_qte_timerlistening",
+        "buff_chr_0028_wulfa_combo_usetimer",
+        "buff_chr_0031_mifu_normalskill_2",
+        "buff_chr_0031_mifu_normalskill_3",
+        "buff_chr_0034_typhoea_talent_linken_sphere",
+        "buff_chr_0035_liino_normalskill_music_vfx",
+        "buff_eny_0054_hsmino_consume_fire",
+        "buff_eny_0054_hsmino_fireShield",
+        "buff_eny_0082_hsbear_angry_fx_assetcheck",
+        "buff_eny_0091_wgshoal_spasset",
+        "buff_eny_0119_kltiger_disappear_fx",
+        "buff_train_check_any_buff_end"
+      ],
+      "characterIds": [
+        "chr_0016_laevat",
+        "chr_0027_tangtang",
+        "chr_0028_wulfa",
+        "chr_0031_mifu",
+        "chr_0034_typhoea",
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_chr_cryst_inflict_to_slowdown",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_cryst_inflict_to_slowdown.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_enemy_heal_under_control",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_heal_under_control.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_enemy_heal_under_control",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_heal_under_control.json",
+          "path": "$.abilityEventAction[3]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_cc_enemy_inflict_stack_resist_consume_listener",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_inflict_stack_resist_consume_listener.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 20
+    },
+    {
       "key": "OnBeforeOutputBuff",
       "eventType": "OnBeforeOutputBuff",
       "serializedValue": null,
@@ -1459,83 +1548,6 @@
       "sourceEntityCount": 18
     },
     {
-      "key": "OnFinishedBuff",
-      "eventType": "OnFinishedBuff",
-      "serializedValue": null,
-      "status": "complete",
-      "producer": {
-        "eventType": "OnFinishedBuff",
-        "producer": "combat-runtime-status-lifecycle"
-      },
-      "consumerGroups": 21,
-      "byDataset": {
-        "BuffData": 21
-      },
-      "byChannel": {
-        "BuffAbilityEventAction": 20,
-        "EventListenerAction": 1
-      },
-      "sourceEntities": [
-        "buff_cc_chr_cryst_inflict_to_slowdown",
-        "buff_cc_enemy_heal_under_control",
-        "buff_cc_enemy_inflict_stack_resist_consume_listener",
-        "buff_cc_eny_abnormal_to_superarmor",
-        "buff_chr_0016_laevat_passive_enemy",
-        "buff_chr_0016_laevat_potential_5",
-        "buff_chr_0016_laevat_show_weapon",
-        "buff_chr_0016_laevat_ult_end",
-        "buff_chr_0028_wulfa_combo_2_qte_timerlistening",
-        "buff_chr_0028_wulfa_combo_usetimer",
-        "buff_chr_0031_mifu_normalskill_2",
-        "buff_chr_0031_mifu_normalskill_3",
-        "buff_chr_0035_liino_normalskill_music_vfx",
-        "buff_eny_0054_hsmino_consume_fire",
-        "buff_eny_0054_hsmino_fireShield",
-        "buff_eny_0082_hsbear_angry_fx_assetcheck",
-        "buff_eny_0091_wgshoal_spasset",
-        "buff_eny_0119_kltiger_disappear_fx",
-        "buff_train_check_any_buff_end"
-      ],
-      "characterIds": [
-        "chr_0016_laevat",
-        "chr_0027_tangtang",
-        "chr_0028_wulfa",
-        "chr_0031_mifu",
-        "chr_0035_liino"
-      ],
-      "samples": [
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_cc_chr_cryst_inflict_to_slowdown",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_cryst_inflict_to_slowdown.json",
-          "path": "$.abilityEventAction[1]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_cc_enemy_heal_under_control",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_heal_under_control.json",
-          "path": "$.abilityEventAction[1]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_cc_enemy_heal_under_control",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_heal_under_control.json",
-          "path": "$.abilityEventAction[3]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_cc_enemy_inflict_stack_resist_consume_listener",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_cc_enemy_inflict_stack_resist_consume_listener.json",
-          "path": "$.abilityEventAction[0]"
-        }
-      ],
-      "sourceEntityCount": 19
-    },
-    {
       "key": "OnPoiseRecover",
       "eventType": "OnPoiseRecover",
       "serializedValue": null,
@@ -1614,19 +1626,20 @@
         "eventType": "OnBeforeOutputDamage",
         "producer": "combat-runtime-damage-transaction"
       },
-      "consumerGroups": 15,
+      "consumerGroups": 16,
       "byDataset": {
-        "BuffData": 5,
+        "BuffData": 6,
         "SkillData": 10
       },
       "byChannel": {
-        "BuffAbilityEventAction": 5,
+        "BuffAbilityEventAction": 6,
         "SkillPassiveEventAction": 10
       },
       "sourceEntities": [
         "buff_cc_chr_no_lastcombo_stop_atb_recover",
         "buff_chr_0003_endminf_train_ultimate_break_originum",
         "buff_chr_0005_chen_train_ultimate",
+        "buff_chr_0034_typhoea_ultimate_skill_cause_subarrowrain",
         "buff_train_before_last_combo_yvonne",
         "buff_wpn_lance_0014_sign",
         "sk_wpn_claym_0003",
@@ -1643,7 +1656,8 @@
       "characterIds": [
         "chr_0003_endminf",
         "chr_0005_chen",
-        "chr_0017_yvonne"
+        "chr_0017_yvonne",
+        "chr_0034_typhoea"
       ],
       "samples": [
         {
@@ -1670,12 +1684,12 @@
         {
           "dataset": "BuffData",
           "channel": "BuffAbilityEventAction",
-          "entityId": "buff_train_before_last_combo_yvonne",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_train_before_last_combo_yvonne.json",
-          "path": "$.abilityEventAction[2]"
+          "entityId": "buff_chr_0034_typhoea_ultimate_skill_cause_subarrowrain",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0034_typhoea_ultimate_skill_cause_subarrowrain.json",
+          "path": "$.abilityEventAction[0]"
         }
       ],
-      "sourceEntityCount": 15
+      "sourceEntityCount": 16
     },
     {
       "key": "OnObtainAtb",
@@ -1739,6 +1753,78 @@
           "channel": "BuffAbilityEventAction",
           "entityId": "buff_equipsuit_combosuit_01",
           "file": "reference/public-data/akedata/Json/BuffData/buff_equipsuit_combosuit_01.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 10
+    },
+    {
+      "key": "OnTrulyExitFight",
+      "eventType": "OnTrulyExitFight",
+      "serializedValue": null,
+      "status": "complete",
+      "producer": {
+        "eventType": "OnTrulyExitFight",
+        "producer": "combat-runtime-fight-lifecycle"
+      },
+      "consumerGroups": 10,
+      "byDataset": {
+        "BuffData": 7,
+        "SkillData": 3
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 7,
+        "EventListenerAction": 2,
+        "SkillPassiveEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0021_whiten_talent_0_active",
+        "buff_chr_0028_wulfa_combo_usetimer",
+        "buff_chr_0030_zhuangfy_potential1_more_sword",
+        "buff_chr_0034_typhoea_passive_arrowrecover",
+        "buff_chr_0035_liino_potential",
+        "buff_klcommon_mech_exit_fight_listener_char",
+        "buff_wpn_sword_0022_layer",
+        "chr_0029_pograni_talent1",
+        "chr_0035_liino_normal_skill",
+        "chr_0035_liino_normal_skill_combo"
+      ],
+      "characterIds": [
+        "chr_0012_avywen",
+        "chr_0021_whiten",
+        "chr_0028_wulfa",
+        "chr_0029_pograni",
+        "chr_0030_zhuangfy",
+        "chr_0034_typhoea",
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0021_whiten_talent_0_active",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0021_whiten_talent_0_active.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0028_wulfa_combo_usetimer",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_combo_usetimer.json",
+          "path": "$.abilityEventAction[2]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0030_zhuangfy_potential1_more_sword",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0030_zhuangfy_potential1_more_sword.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0034_typhoea_passive_arrowrecover",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0034_typhoea_passive_arrowrecover.json",
           "path": "$.abilityEventAction[0]"
         }
       ],
@@ -1872,76 +1958,6 @@
           "entityId": "buff_wpn_funnel_0016_wisd",
           "file": "reference/public-data/akedata/Json/BuffData/buff_wpn_funnel_0016_wisd.json",
           "path": "$.abilityEventAction[0]"
-        }
-      ],
-      "sourceEntityCount": 9
-    },
-    {
-      "key": "OnTrulyExitFight",
-      "eventType": "OnTrulyExitFight",
-      "serializedValue": null,
-      "status": "complete",
-      "producer": {
-        "eventType": "OnTrulyExitFight",
-        "producer": "combat-runtime-fight-lifecycle"
-      },
-      "consumerGroups": 9,
-      "byDataset": {
-        "BuffData": 6,
-        "SkillData": 3
-      },
-      "byChannel": {
-        "BuffAbilityEventAction": 6,
-        "EventListenerAction": 2,
-        "SkillPassiveEventAction": 1
-      },
-      "sourceEntities": [
-        "buff_chr_0021_whiten_talent_0_active",
-        "buff_chr_0028_wulfa_combo_usetimer",
-        "buff_chr_0030_zhuangfy_potential1_more_sword",
-        "buff_chr_0035_liino_potential",
-        "buff_klcommon_mech_exit_fight_listener_char",
-        "buff_wpn_sword_0022_layer",
-        "chr_0029_pograni_talent1",
-        "chr_0035_liino_normal_skill",
-        "chr_0035_liino_normal_skill_combo"
-      ],
-      "characterIds": [
-        "chr_0012_avywen",
-        "chr_0021_whiten",
-        "chr_0028_wulfa",
-        "chr_0029_pograni",
-        "chr_0030_zhuangfy",
-        "chr_0035_liino"
-      ],
-      "samples": [
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0021_whiten_talent_0_active",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0021_whiten_talent_0_active.json",
-          "path": "$.abilityEventAction[0]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0028_wulfa_combo_usetimer",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0028_wulfa_combo_usetimer.json",
-          "path": "$.abilityEventAction[2]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0030_zhuangfy_potential1_more_sword",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0030_zhuangfy_potential1_more_sword.json",
-          "path": "$.abilityEventAction[0]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0035_liino_potential",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0035_liino_potential.json",
-          "path": "$.abilityEventAction[1]"
         }
       ],
       "sourceEntityCount": 9
@@ -2504,12 +2520,12 @@
       "serializedValue": null,
       "status": "emitter-required",
       "producer": null,
-      "consumerGroups": 18,
+      "consumerGroups": 19,
       "byDataset": {
-        "BuffData": 18
+        "BuffData": 19
       },
       "byChannel": {
-        "BuffAbilityEventAction": 18
+        "BuffAbilityEventAction": 19
       },
       "sourceEntities": [
         "buff_chr_0023_antal_tageffect",
@@ -2517,6 +2533,7 @@
         "buff_chr_0032_lizhiyan_combo_skill_seal",
         "buff_chr_0032_lizhiyan_combo_skill_seal_effect_again",
         "buff_chr_0032_lizhiyan_ultimate_skill_listener_owner",
+        "buff_chr_0034_typhoea_floatingmode",
         "buff_eny_0075_lbroshan_kill_mines_when_dead",
         "buff_eny_0081_ruanyi_abilityentity_skill01_1",
         "buff_eny_0081_ruanyi_abilityentity_skill01_2a",
@@ -2533,7 +2550,8 @@
       ],
       "characterIds": [
         "chr_0023_antal",
-        "chr_0032_lizhiyan"
+        "chr_0032_lizhiyan",
+        "chr_0034_typhoea"
       ],
       "samples": [
         {
@@ -2565,7 +2583,7 @@
           "path": "$.abilityEventAction[0]"
         }
       ],
-      "sourceEntityCount": 18
+      "sourceEntityCount": 19
     },
     {
       "key": "OnAfterOutputPhysicalInfliction",
@@ -2640,13 +2658,13 @@
       "serializedValue": null,
       "status": "emitter-required",
       "producer": null,
-      "consumerGroups": 11,
+      "consumerGroups": 12,
       "byDataset": {
-        "BuffData": 9,
+        "BuffData": 10,
         "SkillData": 2
       },
       "byChannel": {
-        "BuffAbilityEventAction": 9,
+        "BuffAbilityEventAction": 10,
         "SkillPassiveEventAction": 2
       },
       "sourceEntities": [
@@ -2654,6 +2672,7 @@
         "buff_chr_0011_seraph_talent_1",
         "buff_chr_0016_laevat_potential_1",
         "buff_chr_0030_zhuangfy_potential1",
+        "buff_chr_0034_typhoea_passive_arrowrecover",
         "buff_chr_0035_liino_potential",
         "buff_common_ccs_nefarp2",
         "buff_eny_0090_wgabyss_ccs",
@@ -2666,6 +2685,7 @@
         "chr_0011_seraph",
         "chr_0016_laevat",
         "chr_0030_zhuangfy",
+        "chr_0034_typhoea",
         "chr_0035_liino"
       ],
       "samples": [
@@ -2698,7 +2718,69 @@
           "path": "$.abilityEventAction[0]"
         }
       ],
-      "sourceEntityCount": 11
+      "sourceEntityCount": 12
+    },
+    {
+      "key": "OnCharBeforeOutputSpellBurst",
+      "eventType": "OnCharBeforeOutputSpellBurst",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 10,
+      "byDataset": {
+        "BuffData": 4,
+        "SkillData": 6
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 4,
+        "SkillPassiveEventAction": 6
+      },
+      "sourceEntities": [
+        "buff_chr_0032_lizhiyan_normal_skill",
+        "buff_equipsuit_spellburst_01",
+        "buff_tower_energy_inflict_or_status_burst_listener",
+        "buff_wpn_funnel_0016_will",
+        "sk_wpn_claym_0011",
+        "sk_wpn_funnel_0008",
+        "sk_wpn_funnel_0014",
+        "sk_wpn_funnel_0019",
+        "sk_wpn_funnel_0020",
+        "sk_wpn_pistol_0004"
+      ],
+      "characterIds": [
+        "chr_0032_lizhiyan"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_normal_skill",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_normal_skill.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_equipsuit_spellburst_01",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_equipsuit_spellburst_01.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_tower_energy_inflict_or_status_burst_listener",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_tower_energy_inflict_or_status_burst_listener.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_wpn_funnel_0016_will",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_wpn_funnel_0016_will.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 10
     },
     {
       "key": "OnTeleportationPointRest",
@@ -2758,63 +2840,63 @@
       "sourceEntityCount": 9
     },
     {
-      "key": "OnCharBeforeOutputSpellBurst",
-      "eventType": "OnCharBeforeOutputSpellBurst",
+      "key": "OnCustomAbilityEvent",
+      "eventType": "OnCustomAbilityEvent",
       "serializedValue": null,
       "status": "emitter-required",
       "producer": null,
       "consumerGroups": 7,
       "byDataset": {
-        "BuffData": 3,
-        "SkillData": 4
+        "BuffData": 7
       },
       "byChannel": {
-        "BuffAbilityEventAction": 3,
-        "SkillPassiveEventAction": 4
+        "BuffAbilityEventAction": 7
       },
       "sourceEntities": [
-        "buff_chr_0032_lizhiyan_normal_skill",
-        "buff_tower_energy_inflict_or_status_burst_listener",
-        "buff_wpn_funnel_0016_will",
-        "sk_wpn_claym_0011",
-        "sk_wpn_funnel_0008",
-        "sk_wpn_funnel_0014",
-        "sk_wpn_pistol_0004"
+        "buff_chr_0032_lizhiyan_train_combo_normal_end",
+        "buff_chr_0032_lizhiyan_train_combo_wisd_check",
+        "buff_chr_0034_typhoea_normal_skill_arrow_num",
+        "buff_chr_0034_typhoea_talent_linken_sphere",
+        "buff_chr_0035_liino_normalskill_music_tag",
+        "buff_klcommon_mech_exit_fight_listener"
       ],
       "characterIds": [
-        "chr_0032_lizhiyan"
+        "chr_0005_chen",
+        "chr_0032_lizhiyan",
+        "chr_0034_typhoea",
+        "chr_0035_liino"
       ],
       "samples": [
         {
           "dataset": "BuffData",
           "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0032_lizhiyan_normal_skill",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_normal_skill.json",
+          "entityId": "buff_chr_0032_lizhiyan_train_combo_normal_end",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_train_combo_normal_end.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0032_lizhiyan_train_combo_wisd_check",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_train_combo_wisd_check.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0034_typhoea_normal_skill_arrow_num",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0034_typhoea_normal_skill_arrow_num.json",
           "path": "$.abilityEventAction[0]"
         },
         {
           "dataset": "BuffData",
           "channel": "BuffAbilityEventAction",
-          "entityId": "buff_tower_energy_inflict_or_status_burst_listener",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_tower_energy_inflict_or_status_burst_listener.json",
-          "path": "$.abilityEventAction[0]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_wpn_funnel_0016_will",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_wpn_funnel_0016_will.json",
-          "path": "$.abilityEventAction[0]"
-        },
-        {
-          "dataset": "SkillData",
-          "channel": "SkillPassiveEventAction",
-          "entityId": "sk_wpn_claym_0011",
-          "file": "reference/public-data/akedata/Json/SkillData/sk_wpn_claym_0011.json",
-          "path": "$.actionGroupData.passiveEventActions[0]"
+          "entityId": "buff_chr_0034_typhoea_talent_linken_sphere",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0034_typhoea_talent_linken_sphere.json",
+          "path": "$.abilityEventAction[2]"
         }
       ],
-      "sourceEntityCount": 7
+      "sourceEntityCount": 6
     },
     {
       "key": "OnBuffEndsEarly",
@@ -2987,62 +3069,6 @@
       "sourceEntityCount": 5
     },
     {
-      "key": "OnCustomAbilityEvent",
-      "eventType": "OnCustomAbilityEvent",
-      "serializedValue": null,
-      "status": "emitter-required",
-      "producer": null,
-      "consumerGroups": 5,
-      "byDataset": {
-        "BuffData": 5
-      },
-      "byChannel": {
-        "BuffAbilityEventAction": 5
-      },
-      "sourceEntities": [
-        "buff_chr_0032_lizhiyan_train_combo_normal_end",
-        "buff_chr_0032_lizhiyan_train_combo_wisd_check",
-        "buff_chr_0035_liino_normalskill_music_tag",
-        "buff_klcommon_mech_exit_fight_listener"
-      ],
-      "characterIds": [
-        "chr_0005_chen",
-        "chr_0032_lizhiyan",
-        "chr_0035_liino"
-      ],
-      "samples": [
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0032_lizhiyan_train_combo_normal_end",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_train_combo_normal_end.json",
-          "path": "$.abilityEventAction[1]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0032_lizhiyan_train_combo_wisd_check",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0032_lizhiyan_train_combo_wisd_check.json",
-          "path": "$.abilityEventAction[1]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0035_liino_normalskill_music_tag",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0035_liino_normalskill_music_tag.json",
-          "path": "$.abilityEventAction[0]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_klcommon_mech_exit_fight_listener",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_klcommon_mech_exit_fight_listener.json",
-          "path": "$.abilityEventAction[0]"
-        }
-      ],
-      "sourceEntityCount": 4
-    },
-    {
       "key": "OnBeforeKillEntity",
       "eventType": "OnBeforeKillEntity",
       "serializedValue": null,
@@ -3145,6 +3171,63 @@
           "channel": "BuffAbilityEventAction",
           "entityId": "buff_gambling_take_spell_infliction",
           "file": "reference/public-data/akedata/Json/BuffData/buff_gambling_take_spell_infliction.json",
+          "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 4
+    },
+    {
+      "key": "OnOwnerSwitchToGuard",
+      "eventType": "OnOwnerSwitchToGuard",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 4,
+      "byDataset": {
+        "BuffData": 4
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 4
+      },
+      "sourceEntities": [
+        "buff_chr_0006_wolfgd_extra_attack",
+        "buff_chr_0013_aglina_extra_attack",
+        "buff_chr_0034_typhoea_passive_arrowrecover",
+        "buff_chr_0035_liino_normalskill_ui_vfx"
+      ],
+      "characterIds": [
+        "chr_0006_wolfgd",
+        "chr_0013_aglina",
+        "chr_0034_typhoea",
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0006_wolfgd_extra_attack",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0006_wolfgd_extra_attack.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0013_aglina_extra_attack",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0013_aglina_extra_attack.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0034_typhoea_passive_arrowrecover",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0034_typhoea_passive_arrowrecover.json",
+          "path": "$.abilityEventAction[3]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0035_liino_normalskill_ui_vfx",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0035_liino_normalskill_ui_vfx.json",
           "path": "$.abilityEventAction[0]"
         }
       ],
@@ -3294,8 +3377,8 @@
       "sourceEntityCount": 3
     },
     {
-      "key": "OnOwnerSwitchToGuard",
-      "eventType": "OnOwnerSwitchToGuard",
+      "key": "OnExitFight",
+      "eventType": "OnExitFight",
       "serializedValue": null,
       "status": "emitter-required",
       "producer": null,
@@ -3307,35 +3390,34 @@
         "BuffAbilityEventAction": 3
       },
       "sourceEntities": [
-        "buff_chr_0006_wolfgd_extra_attack",
-        "buff_chr_0013_aglina_extra_attack",
-        "buff_chr_0035_liino_normalskill_ui_vfx"
+        "buff_chr_0016_laevat_potential_1",
+        "buff_chr_0034_typhoea_ultimate_skill_maintarget",
+        "buff_dung_normalskill_damage_weekly"
       ],
       "characterIds": [
-        "chr_0006_wolfgd",
-        "chr_0013_aglina",
-        "chr_0035_liino"
+        "chr_0016_laevat",
+        "chr_0034_typhoea"
       ],
       "samples": [
         {
           "dataset": "BuffData",
           "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0006_wolfgd_extra_attack",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0006_wolfgd_extra_attack.json",
+          "entityId": "buff_chr_0016_laevat_potential_1",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_potential_1.json",
+          "path": "$.abilityEventAction[1]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0034_typhoea_ultimate_skill_maintarget",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0034_typhoea_ultimate_skill_maintarget.json",
           "path": "$.abilityEventAction[0]"
         },
         {
           "dataset": "BuffData",
           "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0013_aglina_extra_attack",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0013_aglina_extra_attack.json",
-          "path": "$.abilityEventAction[0]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0035_liino_normalskill_ui_vfx",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0035_liino_normalskill_ui_vfx.json",
+          "entityId": "buff_dung_normalskill_damage_weekly",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_dung_normalskill_damage_weekly.json",
           "path": "$.abilityEventAction[0]"
         }
       ],
@@ -3456,6 +3538,44 @@
           "entityId": "buff_cc_chr_dmg_down_after_consume",
           "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_dmg_down_after_consume.json",
           "path": "$.abilityEventAction[1]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
+      "key": "OnAfterCharacterTakeBlowOff",
+      "eventType": "OnAfterCharacterTakeBlowOff",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_chr_0034_typhoea_floatingmode",
+        "buff_eny_0078_nefarp1_player_jump"
+      ],
+      "characterIds": [
+        "chr_0034_typhoea"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0034_typhoea_floatingmode",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0034_typhoea_floatingmode.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0078_nefarp1_player_jump",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0078_nefarp1_player_jump.json",
+          "path": "$.abilityEventAction[3]"
         }
       ],
       "sourceEntityCount": 2
@@ -3679,6 +3799,44 @@
       "sourceEntityCount": 2
     },
     {
+      "key": "OnBuffEnhanceChanged",
+      "eventType": "OnBuffEnhanceChanged",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 1,
+        "SkillData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1,
+        "SkillPassiveEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_eny_0054_hsmino_fireShield",
+        "sk_wpn_funnel_0020"
+      ],
+      "characterIds": [],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_eny_0054_hsmino_fireShield",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0054_hsmino_fireShield.json",
+          "path": "$.abilityEventAction[2]"
+        },
+        {
+          "dataset": "SkillData",
+          "channel": "SkillPassiveEventAction",
+          "entityId": "sk_wpn_funnel_0020",
+          "file": "reference/public-data/akedata/Json/SkillData/sk_wpn_funnel_0020.json",
+          "path": "$.actionGroupData.passiveEventActions[1]"
+        }
+      ],
+      "sourceEntityCount": 2
+    },
+    {
       "key": "OnCharBeforeTakeSpellInfliction",
       "eventType": "OnCharBeforeTakeSpellInfliction",
       "serializedValue": null,
@@ -3792,44 +3950,6 @@
       "sourceEntityCount": 2
     },
     {
-      "key": "OnExitFight",
-      "eventType": "OnExitFight",
-      "serializedValue": null,
-      "status": "emitter-required",
-      "producer": null,
-      "consumerGroups": 2,
-      "byDataset": {
-        "BuffData": 2
-      },
-      "byChannel": {
-        "BuffAbilityEventAction": 2
-      },
-      "sourceEntities": [
-        "buff_chr_0016_laevat_potential_1",
-        "buff_dung_normalskill_damage_weekly"
-      ],
-      "characterIds": [
-        "chr_0016_laevat"
-      ],
-      "samples": [
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0016_laevat_potential_1",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0016_laevat_potential_1.json",
-          "path": "$.abilityEventAction[1]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_dung_normalskill_damage_weekly",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_dung_normalskill_damage_weekly.json",
-          "path": "$.abilityEventAction[0]"
-        }
-      ],
-      "sourceEntityCount": 2
-    },
-    {
       "key": "OnInterruptActionSuccess",
       "eventType": "OnInterruptActionSuccess",
       "serializedValue": null,
@@ -3863,6 +3983,45 @@
         }
       ],
       "sourceEntityCount": 1
+    },
+    {
+      "key": "OnOwnerSwitchToCenter",
+      "eventType": "OnOwnerSwitchToCenter",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 2,
+      "byDataset": {
+        "BuffData": 2
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 2
+      },
+      "sourceEntities": [
+        "buff_chr_0034_typhoea_passive_arrowrecover",
+        "buff_chr_0035_liino_normalskill_ui_vfx"
+      ],
+      "characterIds": [
+        "chr_0034_typhoea",
+        "chr_0035_liino"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0034_typhoea_passive_arrowrecover",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0034_typhoea_passive_arrowrecover.json",
+          "path": "$.abilityEventAction[2]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0035_liino_normalskill_ui_vfx",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0035_liino_normalskill_ui_vfx.json",
+          "path": "$.abilityEventAction[1]"
+        }
+      ],
+      "sourceEntityCount": 2
     },
     {
       "key": "OnPartsEnable",
@@ -4003,34 +4162,6 @@
           "entityId": "buff_cc_chr_heal_reflect_to_eny_shield",
           "file": "reference/public-data/akedata/Json/BuffData/buff_cc_chr_heal_reflect_to_eny_shield.json",
           "path": "$.abilityEventAction[0]"
-        }
-      ],
-      "sourceEntityCount": 1
-    },
-    {
-      "key": "OnAfterCharacterTakeBlowOff",
-      "eventType": "OnAfterCharacterTakeBlowOff",
-      "serializedValue": null,
-      "status": "emitter-required",
-      "producer": null,
-      "consumerGroups": 1,
-      "byDataset": {
-        "BuffData": 1
-      },
-      "byChannel": {
-        "BuffAbilityEventAction": 1
-      },
-      "sourceEntities": [
-        "buff_eny_0078_nefarp1_player_jump"
-      ],
-      "characterIds": [],
-      "samples": [
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_eny_0078_nefarp1_player_jump",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0078_nefarp1_player_jump.json",
-          "path": "$.abilityEventAction[3]"
         }
       ],
       "sourceEntityCount": 1
@@ -4272,34 +4403,6 @@
       "sourceEntityCount": 1
     },
     {
-      "key": "OnBuffEnhanceChanged",
-      "eventType": "OnBuffEnhanceChanged",
-      "serializedValue": null,
-      "status": "emitter-required",
-      "producer": null,
-      "consumerGroups": 1,
-      "byDataset": {
-        "BuffData": 1
-      },
-      "byChannel": {
-        "BuffAbilityEventAction": 1
-      },
-      "sourceEntities": [
-        "buff_eny_0054_hsmino_fireShield"
-      ],
-      "characterIds": [],
-      "samples": [
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_eny_0054_hsmino_fireShield",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0054_hsmino_fireShield.json",
-          "path": "$.abilityEventAction[2]"
-        }
-      ],
-      "sourceEntityCount": 1
-    },
-    {
       "key": "OnCollectAddedBuffBbValue",
       "eventType": "OnCollectAddedBuffBbValue",
       "serializedValue": null,
@@ -4414,36 +4517,6 @@
       "sourceEntityCount": 1
     },
     {
-      "key": "OnOwnerSwitchToCenter",
-      "eventType": "OnOwnerSwitchToCenter",
-      "serializedValue": null,
-      "status": "emitter-required",
-      "producer": null,
-      "consumerGroups": 1,
-      "byDataset": {
-        "BuffData": 1
-      },
-      "byChannel": {
-        "BuffAbilityEventAction": 1
-      },
-      "sourceEntities": [
-        "buff_chr_0035_liino_normalskill_ui_vfx"
-      ],
-      "characterIds": [
-        "chr_0035_liino"
-      ],
-      "samples": [
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_chr_0035_liino_normalskill_ui_vfx",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0035_liino_normalskill_ui_vfx.json",
-          "path": "$.abilityEventAction[1]"
-        }
-      ],
-      "sourceEntityCount": 1
-    },
-    {
       "key": "OnPartsBeHit",
       "eventType": "OnPartsBeHit",
       "serializedValue": null,
@@ -4495,6 +4568,36 @@
           "entityId": "buff_dung_atb_add_perfectdodge",
           "file": "reference/public-data/akedata/Json/BuffData/buff_dung_atb_add_perfectdodge.json",
           "path": "$.abilityEventAction[0]"
+        }
+      ],
+      "sourceEntityCount": 1
+    },
+    {
+      "key": "OnSkillInterrupted",
+      "eventType": "OnSkillInterrupted",
+      "serializedValue": null,
+      "status": "emitter-required",
+      "producer": null,
+      "consumerGroups": 1,
+      "byDataset": {
+        "BuffData": 1
+      },
+      "byChannel": {
+        "BuffAbilityEventAction": 1
+      },
+      "sourceEntities": [
+        "buff_chr_0034_typhoea_floatingmode"
+      ],
+      "characterIds": [
+        "chr_0034_typhoea"
+      ],
+      "samples": [
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0034_typhoea_floatingmode",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0034_typhoea_floatingmode.json",
+          "path": "$.abilityEventAction[3]"
         }
       ],
       "sourceEntityCount": 1
@@ -4561,15 +4664,16 @@
       "serializedValue": 0,
       "status": "invalid-type",
       "producer": null,
-      "consumerGroups": 6,
+      "consumerGroups": 7,
       "byDataset": {
-        "BuffData": 6
+        "BuffData": 7
       },
       "byChannel": {
-        "BuffAbilityEventAction": 6
+        "BuffAbilityEventAction": 7
       },
       "sourceEntities": [
         "buff_chr_0031_mifu_red",
+        "buff_chr_0034_typhoea_passive_arrowrecover_exitfight",
         "buff_chr_0035_liino_chrdung_armorbreak",
         "buff_common_channeling_casting",
         "buff_eny_0054_hsmino_hard_clamState",
@@ -4578,6 +4682,7 @@
       ],
       "characterIds": [
         "chr_0031_mifu",
+        "chr_0034_typhoea",
         "chr_0035_liino"
       ],
       "samples": [
@@ -4586,6 +4691,13 @@
           "channel": "BuffAbilityEventAction",
           "entityId": "buff_chr_0031_mifu_red",
           "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0031_mifu_red.json",
+          "path": "$.abilityEventAction[0]"
+        },
+        {
+          "dataset": "BuffData",
+          "channel": "BuffAbilityEventAction",
+          "entityId": "buff_chr_0034_typhoea_passive_arrowrecover_exitfight",
+          "file": "reference/public-data/akedata/Json/BuffData/buff_chr_0034_typhoea_passive_arrowrecover_exitfight.json",
           "path": "$.abilityEventAction[0]"
         },
         {
@@ -4601,16 +4713,9 @@
           "entityId": "buff_common_channeling_casting",
           "file": "reference/public-data/akedata/Json/BuffData/buff_common_channeling_casting.json",
           "path": "$.abilityEventAction[0]"
-        },
-        {
-          "dataset": "BuffData",
-          "channel": "BuffAbilityEventAction",
-          "entityId": "buff_eny_0054_hsmino_hard_clamState",
-          "file": "reference/public-data/akedata/Json/BuffData/buff_eny_0054_hsmino_hard_clamState.json",
-          "path": "$.abilityEventAction[0]"
         }
       ],
-      "sourceEntityCount": 6
+      "sourceEntityCount": 7
     },
     {
       "key": "@invalid:number:32",

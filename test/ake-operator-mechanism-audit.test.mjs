@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import { classifyAkeMechanismGap } from '../src/core/ake-mechanism-impact.mjs';
+import { AkeDataRepository } from '../src/core/ake-data-repository.mjs';
 import { buildAkeOperatorMechanismAudit } from '../scripts/audit-ake-operator-mechanisms.mjs';
 
 test('AKE mechanism impact classification separates presentation, spatial, and combat gaps', () => {
@@ -46,7 +48,7 @@ test('operator audit attaches every combat gap to AKE evidence and avoids operat
     const report = buildAkeOperatorMechanismAudit({
         characterIds: ['chr_0028_wulfa', 'chr_0032_lizhiyan']
     });
-    assert.equal(report.source.characterCatalogEntries, 32);
+    assert.equal(report.source.characterCatalogEntries, 33);
     assert.equal(report.auditedCharacterCount, 2);
     const rossi = report.characters.find(character => character.characterId === 'chr_0028_wulfa');
     const arcane = report.characters.find(character => character.characterId === 'chr_0032_lizhiyan');
@@ -74,15 +76,23 @@ test('operator audit attaches every combat gap to AKE evidence and avoids operat
 });
 
 test('committed operator mechanism audit covers every concrete catalog character', async () => {
+    const projectRoot = fileURLToPath(new URL('../', import.meta.url));
+    const catalog = new AkeDataRepository({ projectRoot }).catalog();
     const report = JSON.parse(await readFile(new URL(
         '../derived/cleanroom/ake-operator-mechanism-audit.json',
         import.meta.url
     ), 'utf8'));
     assert.equal(report.schemaVersion, 1);
-    assert.equal(report.source.characterCatalogEntries, 32);
+    assert.equal(report.source.characterCatalogEntries, catalog.characters.length);
     assert.deepEqual(report.source.excludedAbstractCharacters, ['chr_9000_endmin']);
-    assert.equal(report.auditedCharacterCount, 31);
-    assert.equal(new Set(report.characters.map(character => character.characterId)).size, 31);
+    const concreteCharacters = catalog.characters.filter(character => (
+        !report.source.excludedAbstractCharacters.includes(character.id)
+    ));
+    assert.equal(report.auditedCharacterCount, concreteCharacters.length);
+    assert.deepEqual(
+        new Set(report.characters.map(character => character.characterId)),
+        new Set(concreteCharacters.map(character => character.id))
+    );
     assert.ok(report.summary.byImpact['combat-blocking'] > 0);
     assert.ok(report.summary.byImpact['presentation-only'] > 0);
     const missingDependencies = report.characters.flatMap(character =>
@@ -93,10 +103,30 @@ test('committed operator mechanism audit covers every concrete catalog character
         entityId: finding.entityId,
         impact: finding.impact,
         capability: finding.capability
-    })), [{
-        characterId: 'chr_0030_zhuangfy',
-        entityId: 'buff_chr_0030_zhuangfy_have_sword',
-        impact: 'combat-blocking',
-        capability: 'dependency-closure'
-    }], 'missing AKE dependencies must remain explicit combat blockers in the artifact');
+    })), [
+        {
+            characterId: 'chr_0030_zhuangfy',
+            entityId: 'buff_chr_0030_zhuangfy_have_sword',
+            impact: 'combat-blocking',
+            capability: 'dependency-closure'
+        },
+        {
+            characterId: 'chr_0034_typhoea',
+            entityId: 'chr_0034_typhoea_attack5_02_projhit',
+            impact: 'combat-blocking',
+            capability: 'dependency-closure'
+        },
+        {
+            characterId: 'chr_0034_typhoea',
+            entityId: 'chr_0034_typhoea_normal_skill',
+            impact: 'combat-blocking',
+            capability: 'dependency-closure'
+        },
+        {
+            characterId: 'chr_0034_typhoea',
+            entityId: 'chr_0034_typhoea_power_attack_projhit',
+            impact: 'combat-blocking',
+            capability: 'dependency-closure'
+        }
+    ], 'missing AKE dependencies must remain explicit combat blockers in the artifact');
 });

@@ -40,7 +40,7 @@ test('all public SetSkillCdAtOnce shapes compile to one generic cooldown transac
         }
     }
 
-    assert.equal(compiled.length, 40);
+    assert.equal(compiled.length, 42);
     assert.equal(compiled.every(result => result.unresolved.length === 0), true);
     assert.equal(compiled.every(result =>
         result.actions.length === 1

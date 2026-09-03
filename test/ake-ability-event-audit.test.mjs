@@ -18,7 +18,7 @@ test('ability-event audit aggregates every listener channel by producer status',
     ), 'utf8'));
 
     assert.deepEqual(audit, committed);
-    assert.equal(audit.summary.byChannel.BuffAbilityEventAction, 953);
+    assert.equal(audit.summary.byChannel.BuffAbilityEventAction, 972);
     assert.ok(audit.summary.byChannel.SkillPassiveEventAction > 0);
     assert.ok(audit.summary.byChannel.EventListenerAction > 0);
     assert.equal(audit.events.find(entry =>

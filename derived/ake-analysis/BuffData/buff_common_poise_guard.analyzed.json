@@ -5,14 +5,14 @@
     "id": "buff_common_poise_guard",
     "generator": "AKEV3BuffData.analyzeBuff",
     "generatorWrapper": "scripts/export-ake-analysis.mjs",
-    "generatorWrapperSha256": "571c3da2e52854f78c3fe352b745de6555f5ead1f49c075538396d5185eff692",
+    "generatorWrapperSha256": "28f2daa895b708f4991d7f51146dfeb690e0226c3ad3be2a45f3996cac98a602",
     "akeDatabaseCommit": "1bb9549705eba2601affed4cb8a7ea69ba13b150",
-    "akedataJsonRevision": "2026-08-22T05:51:44.260485+08:00",
+    "akedataJsonRevision": "2026-09-01T22:53:25.945329+00:00",
     "inputs": [
       {
         "role": "raw",
         "path": "reference/public-data/akedata/Json/BuffData/buff_common_poise_guard.json",
-        "sha256": "9f07f1614a08a3b59ab3b2c9693a42083bd7bdfb9a17176b46f334ca727124c5"
+        "sha256": "3088ab1273dcfca1ea501a3ef5200ab91a29c97b2ee495604ae4f2dd134e3611"
       },
       {
         "role": "analyzer",

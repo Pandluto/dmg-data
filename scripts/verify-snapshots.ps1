@@ -3,9 +3,15 @@ $ErrorActionPreference = 'Stop'
 
 $ProjectRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $LockPath = Join-Path $ProjectRoot 'sources.lock.json'
+$ConsistencyCheck = Join-Path $ProjectRoot 'scripts/check-repository-consistency.mjs'
 
 if (-not (Test-Path -LiteralPath $LockPath -PathType Leaf)) {
     throw 'sources.lock.json is missing. Run sync-public-data.ps1 first.'
+}
+
+& node $ConsistencyCheck
+if ($LASTEXITCODE -ne 0) {
+    throw "Repository consistency check failed with exit code $LASTEXITCODE"
 }
 
 $lock = Get-Content -LiteralPath $LockPath -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -57,6 +63,7 @@ $authoredJson = @(
     'spec/engine-semantic-mappings.json',
     'spec/unresolved-dependencies.json',
     'package.json',
+    'reference/public-data/akedata/table-corpus.manifest.json',
     'reference/public-data/akedata/runtime-corpus.manifest.json',
     'derived/cleanroom/ake-action-coverage.json',
     'derived/cleanroom/pelica-model.json',

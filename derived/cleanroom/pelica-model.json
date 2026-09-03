@@ -114,9 +114,7 @@
           "rootSkillIds": [
             "chr_0004_pelica_attack4"
           ],
-          "sourceSkillIds": [
-            "chr_0004_pelica_attack4_projhit"
-          ],
+          "rootSkillRole": "heavy-attack",
           "damageAttributeType": "Hp",
           "occurrence": "first-per-cast"
         },
@@ -124,7 +122,8 @@
           "operation": "CreateComboPending",
           "comboSkillId": "chr_0004_pelica_combo_skill",
           "pendingDurationTicks": 180,
-          "ownerBinding": "event-source",
+          "ownerBinding": "fixed",
+          "ownerId": "chr_0004_pelica",
           "triggerTargetBinding": "event-target",
           "requireComboOffCooldown": true,
           "pendingPolicy": "append",
@@ -144,7 +143,7 @@
             "observation": "same-frame cast succeeds; active interval is [86,265); repeated casts append and newest is selected; cooldown suppresses creation"
           }
         ],
-        "notes": "The public SkillData exposes attack4 timing and damage but does not declare the character-specific combo-pending rule. first-per-cast is a conservative selector because this SkillData currently has one HP hit."
+        "notes": "The public description says any controlled operator's heavy attack opens Perlica's combo. The isolated Calc fixture proves the Perlica attack4 boundary; rootSkillRole generalizes the same event to the selected controller without a character branch."
       }
     ],
     "resourceRules": {
@@ -342,6 +341,9 @@
             "trigger": "HpDamageWhileBroken",
             "sourceSkillIds": [
               "chr_0004_pelica_normal_skill"
+            ],
+            "eventTypes": [
+              "SkillTimelineGroupStarted"
             ]
           },
           "effect": {
@@ -399,14 +401,119 @@
       ]
     },
     "spellInflictionBuffs": {
-      "Pulse": "buff_common_energy_shard_attached_pulse"
+      "Pulse": "buff_common_energy_shard_attached_pulse",
+      "Fire": "buff_common_energy_shard_attached_fire",
+      "Cryst": "buff_common_energy_shard_attached_cryst",
+      "Natural": "buff_common_energy_shard_attached_natural"
     },
     "skillSettings": {
+      "异常初始伤害倍率": {
+        "1": 1.6,
+        "2": 2.4,
+        "3": 3.2,
+        "4": 4
+      },
       "导电法术伤害提高": {
-        "1": 0.12
+        "1": 0.12,
+        "2": 0.16,
+        "3": 0.2,
+        "4": 0.24
       },
       "导电持续时间": {
-        "1": 12
+        "1": 12,
+        "2": 18,
+        "3": 24,
+        "4": 30
+      },
+      "冰冻持续时间": {
+        "1": 6,
+        "2": 7,
+        "3": 8,
+        "4": 9
+      },
+      "燃烧每跳伤害": {
+        "1": 0.24,
+        "2": 0.36,
+        "3": 0.48,
+        "4": 0.6
+      },
+      "腐蚀每跳减抗": {
+        "1": -0.0084,
+        "2": -0.0112,
+        "3": -0.014,
+        "4": -0.0168
+      },
+      "腐蚀减抗上限": {
+        "1": -0.12,
+        "2": -0.16,
+        "3": -0.2,
+        "4": -0.24
+      },
+      "腐蚀初始减抗": {
+        "1": -0.036,
+        "2": -0.048,
+        "3": -0.06,
+        "4": -0.072
+      },
+      "腐蚀持续时间": {
+        "1": 15,
+        "2": 15,
+        "3": 15,
+        "4": 15
+      },
+      "法术爆发伤害倍率": {
+        "1": 1.6,
+        "2": 1.6,
+        "3": 1.6,
+        "4": 1.6
+      },
+      "碎甲持续时间": {
+        "1": 12,
+        "2": 18,
+        "3": 24,
+        "4": 30
+      },
+      "碎甲物理伤害提高": {
+        "1": 0.12,
+        "2": 0.16,
+        "3": 0.2,
+        "4": 0.24
+      },
+      "碎甲伤害": {
+        "1": 1,
+        "2": 1.5,
+        "3": 2,
+        "4": 2.5
+      },
+      "猛击伤害": {
+        "1": 3,
+        "2": 4.5,
+        "3": 6,
+        "4": 7.5
+      },
+      "击飞伤害": {
+        "1": 1.2
+      },
+      "击飞失衡": {
+        "1": 10
+      },
+      "倒地伤害": {
+        "1": 1.2
+      },
+      "倒地失衡": {
+        "1": 10
+      },
+      "碎冰倍率": {
+        "1": 2.4,
+        "2": 3.6,
+        "3": 4.8,
+        "4": 6
+      },
+      "连击增伤": {
+        "1": 0.3,
+        "2": 0.225,
+        "3": 0.2,
+        "4": 0.1875
       }
     },
     "skillSettingEvidence": [
@@ -508,6 +615,27 @@
           "assignEntityBlackboard": false
         },
         {
+          "order": 5,
+          "type": "SetSuperArmorAction",
+          "startFrame": 0,
+          "endFrame": 15,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[5]._sequenceActionData.actionData[0]",
+          "targetSource": "Source",
+          "superArmorValue": {
+            "useBlackboardKey": false,
+            "value": 15,
+            "blackboardKey": "",
+            "useCustomValue": false
+          },
+          "impactResistance": {
+            "useBlackboardKey": false,
+            "value": 100,
+            "blackboardKey": "",
+            "useCustomValue": false
+          }
+        },
+        {
           "order": 14,
           "type": "ComboCacheAction",
           "startFrame": 5,
@@ -593,9 +721,36 @@
           ]
         }
       ],
+      "timelineJumps": [],
+      "interruptMarks": [],
       "hitStops": [],
       "timeDilations": [],
-      "ultimateTimeActions": []
+      "ultimateTimeActions": [],
+      "heals": [],
+      "superArmorActions": [
+        {
+          "order": 5,
+          "type": "SetSuperArmorAction",
+          "startFrame": 0,
+          "endFrame": 15,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[5]._sequenceActionData.actionData[0]",
+          "targetSource": "Source",
+          "superArmorValue": {
+            "useBlackboardKey": false,
+            "value": 15,
+            "blackboardKey": "",
+            "useCustomValue": false
+          },
+          "impactResistance": {
+            "useBlackboardKey": false,
+            "value": 100,
+            "blackboardKey": "",
+            "useCustomValue": false
+          }
+        }
+      ],
+      "reactionTriggers": []
     },
     "chr_0004_pelica_attack2": {
       "skillId": "chr_0004_pelica_attack2",
@@ -669,6 +824,27 @@
           "projectileId": "projectile_chr_0004_pelica_normal_attack2",
           "childSkillId": "chr_0004_pelica_attack2_projhit",
           "assignEntityBlackboard": false
+        },
+        {
+          "order": 9,
+          "type": "SetSuperArmorAction",
+          "startFrame": 0,
+          "endFrame": 22,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[8]._sequenceActionData.actionData[0]",
+          "targetSource": "Source",
+          "superArmorValue": {
+            "useBlackboardKey": false,
+            "value": 15,
+            "blackboardKey": "",
+            "useCustomValue": false
+          },
+          "impactResistance": {
+            "useBlackboardKey": false,
+            "value": 100,
+            "blackboardKey": "",
+            "useCustomValue": false
+          }
         },
         {
           "order": 20,
@@ -767,9 +943,36 @@
           ]
         }
       ],
+      "timelineJumps": [],
+      "interruptMarks": [],
       "hitStops": [],
       "timeDilations": [],
-      "ultimateTimeActions": []
+      "ultimateTimeActions": [],
+      "heals": [],
+      "superArmorActions": [
+        {
+          "order": 9,
+          "type": "SetSuperArmorAction",
+          "startFrame": 0,
+          "endFrame": 22,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[8]._sequenceActionData.actionData[0]",
+          "targetSource": "Source",
+          "superArmorValue": {
+            "useBlackboardKey": false,
+            "value": 15,
+            "blackboardKey": "",
+            "useCustomValue": false
+          },
+          "impactResistance": {
+            "useBlackboardKey": false,
+            "value": 100,
+            "blackboardKey": "",
+            "useCustomValue": false
+          }
+        }
+      ],
+      "reactionTriggers": []
     },
     "chr_0004_pelica_attack3": {
       "skillId": "chr_0004_pelica_attack3",
@@ -856,6 +1059,27 @@
           "assignEntityBlackboard": false
         },
         {
+          "order": 13,
+          "type": "SetSuperArmorAction",
+          "startFrame": 0,
+          "endFrame": 29,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[12]._sequenceActionData.actionData[0]",
+          "targetSource": "Source",
+          "superArmorValue": {
+            "useBlackboardKey": false,
+            "value": 15,
+            "blackboardKey": "",
+            "useCustomValue": false
+          },
+          "impactResistance": {
+            "useBlackboardKey": false,
+            "value": 100,
+            "blackboardKey": "",
+            "useCustomValue": false
+          }
+        },
+        {
           "order": 24,
           "type": "ComboCacheAction",
           "startFrame": 8,
@@ -963,9 +1187,36 @@
           ]
         }
       ],
+      "timelineJumps": [],
+      "interruptMarks": [],
       "hitStops": [],
       "timeDilations": [],
-      "ultimateTimeActions": []
+      "ultimateTimeActions": [],
+      "heals": [],
+      "superArmorActions": [
+        {
+          "order": 13,
+          "type": "SetSuperArmorAction",
+          "startFrame": 0,
+          "endFrame": 29,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[12]._sequenceActionData.actionData[0]",
+          "targetSource": "Source",
+          "superArmorValue": {
+            "useBlackboardKey": false,
+            "value": 15,
+            "blackboardKey": "",
+            "useCustomValue": false
+          },
+          "impactResistance": {
+            "useBlackboardKey": false,
+            "value": 100,
+            "blackboardKey": "",
+            "useCustomValue": false
+          }
+        }
+      ],
+      "reactionTriggers": []
     },
     "chr_0004_pelica_attack4": {
       "skillId": "chr_0004_pelica_attack4",
@@ -1032,6 +1283,27 @@
           "projectileId": "projectile_chr_0004_pelica_normal_attack4",
           "childSkillId": "chr_0004_pelica_attack4_projhit",
           "assignEntityBlackboard": false
+        },
+        {
+          "order": 9,
+          "type": "SetSuperArmorAction",
+          "startFrame": 0,
+          "endFrame": 43,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[9]._sequenceActionData.actionData[0]",
+          "targetSource": "Source",
+          "superArmorValue": {
+            "useBlackboardKey": false,
+            "value": 25,
+            "blackboardKey": "",
+            "useCustomValue": false
+          },
+          "impactResistance": {
+            "useBlackboardKey": false,
+            "value": 100,
+            "blackboardKey": "",
+            "useCustomValue": false
+          }
         },
         {
           "order": 22,
@@ -1119,9 +1391,36 @@
           ]
         }
       ],
+      "timelineJumps": [],
+      "interruptMarks": [],
       "hitStops": [],
       "timeDilations": [],
-      "ultimateTimeActions": []
+      "ultimateTimeActions": [],
+      "heals": [],
+      "superArmorActions": [
+        {
+          "order": 9,
+          "type": "SetSuperArmorAction",
+          "startFrame": 0,
+          "endFrame": 43,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[9]._sequenceActionData.actionData[0]",
+          "targetSource": "Source",
+          "superArmorValue": {
+            "useBlackboardKey": false,
+            "value": 25,
+            "blackboardKey": "",
+            "useCustomValue": false
+          },
+          "impactResistance": {
+            "useBlackboardKey": false,
+            "value": 100,
+            "blackboardKey": "",
+            "useCustomValue": false
+          }
+        }
+      ],
+      "reactionTriggers": []
     },
     "chr_0004_pelica_combo_skill": {
       "skillId": "chr_0004_pelica_combo_skill",
@@ -1290,6 +1589,27 @@
           "timeDilationPriorityTagId": -593023102
         },
         {
+          "order": 47,
+          "type": "SetSuperArmorAction",
+          "startFrame": 0,
+          "endFrame": 45,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[11]._sequenceActionData.actionData[0]",
+          "targetSource": "Source",
+          "superArmorValue": {
+            "useBlackboardKey": false,
+            "value": 25,
+            "blackboardKey": "",
+            "useCustomValue": false
+          },
+          "impactResistance": {
+            "useBlackboardKey": false,
+            "value": 100,
+            "blackboardKey": "",
+            "useCustomValue": false
+          }
+        },
+        {
           "order": 50,
           "type": "ComboCacheAction",
           "startFrame": 0,
@@ -1375,6 +1695,8 @@
           ]
         }
       ],
+      "timelineJumps": [],
+      "interruptMarks": [],
       "hitStops": [],
       "timeDilations": [
         {
@@ -1397,7 +1719,32 @@
           "timeDilationPriorityTagId": -593023102
         }
       ],
-      "ultimateTimeActions": []
+      "ultimateTimeActions": [],
+      "heals": [],
+      "superArmorActions": [
+        {
+          "order": 47,
+          "type": "SetSuperArmorAction",
+          "startFrame": 0,
+          "endFrame": 45,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[11]._sequenceActionData.actionData[0]",
+          "targetSource": "Source",
+          "superArmorValue": {
+            "useBlackboardKey": false,
+            "value": 25,
+            "blackboardKey": "",
+            "useCustomValue": false
+          },
+          "impactResistance": {
+            "useBlackboardKey": false,
+            "value": 100,
+            "blackboardKey": "",
+            "useCustomValue": false
+          }
+        }
+      ],
+      "reactionTriggers": []
     },
     "chr_0004_pelica_normal_skill": {
       "skillId": "chr_0004_pelica_normal_skill",
@@ -1595,6 +1942,27 @@
           "buffSource": "ActionSource"
         },
         {
+          "order": 32,
+          "type": "SetSuperArmorAction",
+          "startFrame": 0,
+          "endFrame": 30,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[9]._sequenceActionData.actionData[0]",
+          "targetSource": "Source",
+          "superArmorValue": {
+            "useBlackboardKey": false,
+            "value": 25,
+            "blackboardKey": "",
+            "useCustomValue": false
+          },
+          "impactResistance": {
+            "useBlackboardKey": false,
+            "value": 100,
+            "blackboardKey": "",
+            "useCustomValue": false
+          }
+        },
+        {
           "order": 77,
           "type": "ComboCacheAction",
           "startFrame": 0,
@@ -1773,9 +2141,36 @@
           ]
         }
       ],
+      "timelineJumps": [],
+      "interruptMarks": [],
       "hitStops": [],
       "timeDilations": [],
-      "ultimateTimeActions": []
+      "ultimateTimeActions": [],
+      "heals": [],
+      "superArmorActions": [
+        {
+          "order": 32,
+          "type": "SetSuperArmorAction",
+          "startFrame": 0,
+          "endFrame": 30,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[9]._sequenceActionData.actionData[0]",
+          "targetSource": "Source",
+          "superArmorValue": {
+            "useBlackboardKey": false,
+            "value": 25,
+            "blackboardKey": "",
+            "useCustomValue": false
+          },
+          "impactResistance": {
+            "useBlackboardKey": false,
+            "value": 100,
+            "blackboardKey": "",
+            "useCustomValue": false
+          }
+        }
+      ],
+      "reactionTriggers": []
     },
     "chr_0004_pelica_ultimate_skill": {
       "skillId": "chr_0004_pelica_ultimate_skill",
@@ -2143,6 +2538,8 @@
           ]
         }
       ],
+      "timelineJumps": [],
+      "interruptMarks": [],
       "hitStops": [],
       "timeDilations": [],
       "ultimateTimeActions": [
@@ -2156,7 +2553,10 @@
           "timeScale": 0,
           "timeDilationPriorityTagId": -1742631616
         }
-      ]
+      ],
+      "heals": [],
+      "superArmorActions": [],
+      "reactionTriggers": []
     },
     "chr_0004_pelica_power_attack": {
       "skillId": "chr_0004_pelica_power_attack",
@@ -2329,6 +2729,27 @@
             "chr_0004_pelica_normal_skill",
             "chr_0004_pelica_combo_skill"
           ]
+        },
+        {
+          "order": 42,
+          "type": "SetSuperArmorAction",
+          "startFrame": 0,
+          "endFrame": 50,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[14]._sequenceActionData.actionData[0]",
+          "targetSource": "Source",
+          "superArmorValue": {
+            "useBlackboardKey": false,
+            "value": 35,
+            "blackboardKey": "",
+            "useCustomValue": false
+          },
+          "impactResistance": {
+            "useBlackboardKey": false,
+            "value": 100,
+            "blackboardKey": "",
+            "useCustomValue": false
+          }
         },
         {
           "order": 43,
@@ -2514,6 +2935,8 @@
           ]
         }
       ],
+      "timelineJumps": [],
+      "interruptMarks": [],
       "hitStops": [
         {
           "order": 17,
@@ -2530,7 +2953,32 @@
         }
       ],
       "timeDilations": [],
-      "ultimateTimeActions": []
+      "ultimateTimeActions": [],
+      "heals": [],
+      "superArmorActions": [
+        {
+          "order": 42,
+          "type": "SetSuperArmorAction",
+          "startFrame": 0,
+          "endFrame": 50,
+          "branchDepth": 0,
+          "path": "actionGroupData.timelineActions[14]._sequenceActionData.actionData[0]",
+          "targetSource": "Source",
+          "superArmorValue": {
+            "useBlackboardKey": false,
+            "value": 35,
+            "blackboardKey": "",
+            "useCustomValue": false
+          },
+          "impactResistance": {
+            "useBlackboardKey": false,
+            "value": 100,
+            "blackboardKey": "",
+            "useCustomValue": false
+          }
+        }
+      ],
+      "reactionTriggers": []
     },
     "chr_0004_pelica_attack1_projhit": {
       "skillId": "chr_0004_pelica_attack1_projhit",
@@ -2695,9 +3143,14 @@
       ],
       "comboMappings": [],
       "allowNextWindows": [],
+      "timelineJumps": [],
+      "interruptMarks": [],
       "hitStops": [],
       "timeDilations": [],
-      "ultimateTimeActions": []
+      "ultimateTimeActions": [],
+      "heals": [],
+      "superArmorActions": [],
+      "reactionTriggers": []
     },
     "chr_0004_pelica_attack2_projhit": {
       "skillId": "chr_0004_pelica_attack2_projhit",
@@ -2862,9 +3315,14 @@
       ],
       "comboMappings": [],
       "allowNextWindows": [],
+      "timelineJumps": [],
+      "interruptMarks": [],
       "hitStops": [],
       "timeDilations": [],
-      "ultimateTimeActions": []
+      "ultimateTimeActions": [],
+      "heals": [],
+      "superArmorActions": [],
+      "reactionTriggers": []
     },
     "chr_0004_pelica_attack3_projhit": {
       "skillId": "chr_0004_pelica_attack3_projhit",
@@ -3013,9 +3471,14 @@
       ],
       "comboMappings": [],
       "allowNextWindows": [],
+      "timelineJumps": [],
+      "interruptMarks": [],
       "hitStops": [],
       "timeDilations": [],
-      "ultimateTimeActions": []
+      "ultimateTimeActions": [],
+      "heals": [],
+      "superArmorActions": [],
+      "reactionTriggers": []
     },
     "chr_0004_pelica_attack4_projhit": {
       "skillId": "chr_0004_pelica_attack4_projhit",
@@ -3237,6 +3700,8 @@
       ],
       "comboMappings": [],
       "allowNextWindows": [],
+      "timelineJumps": [],
+      "interruptMarks": [],
       "hitStops": [
         {
           "order": 9,
@@ -3253,7 +3718,10 @@
         }
       ],
       "timeDilations": [],
-      "ultimateTimeActions": []
+      "ultimateTimeActions": [],
+      "heals": [],
+      "superArmorActions": [],
+      "reactionTriggers": []
     },
     "chr_0004_pelica_combo_skill_projhit": {
       "skillId": "chr_0004_pelica_combo_skill_projhit",
@@ -3713,6 +4181,8 @@
       ],
       "comboMappings": [],
       "allowNextWindows": [],
+      "timelineJumps": [],
+      "interruptMarks": [],
       "hitStops": [
         {
           "order": 18,
@@ -3729,7 +4199,10 @@
         }
       ],
       "timeDilations": [],
-      "ultimateTimeActions": []
+      "ultimateTimeActions": [],
+      "heals": [],
+      "superArmorActions": [],
+      "reactionTriggers": []
     }
   },
   "buffs": {
@@ -3743,16 +4216,39 @@
       },
       "durationSeconds": 1,
       "durationTicks": 30,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "triggerInterval": {
+        "useBlackboardKey": false,
+        "value": -1,
+        "blackboardKey": ""
+      },
+      "triggerIntervalSeconds": -1,
+      "triggerIntervalTicks": null,
+      "waitFirstTriggerInterval": false,
+      "maxTriggerCnt": {
+        "useBlackboardKey": false,
+        "value": -1,
+        "blackboardKey": "duration"
+      },
+      "maxTriggerCount": -1,
       "blackboard": {},
       "stacking": {
         "identifierType": "Id",
         "stackingType": "Unique",
         "stackingKey": "",
-        "maxStackCount": 1
+        "maxStackCount": 1,
+        "configuredMaxStackCount": 1,
+        "maxStackCountKey": null
       },
       "attributeModifiers": [],
       "damageModifiers": [],
-      "startActions": []
+      "eventActions": [],
+      "startActions": [],
+      "triggerActions": [],
+      "endActions": [],
+      "enableActions": [],
+      "duringEnableActions": []
     },
     "buff_common_pulse_pulse_conduct_triggered": {
       "buffId": "buff_common_pulse_pulse_conduct_triggered",
@@ -3764,6 +4260,22 @@
       },
       "durationSeconds": 2,
       "durationTicks": 60,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "triggerInterval": {
+        "useBlackboardKey": false,
+        "value": -1,
+        "blackboardKey": ""
+      },
+      "triggerIntervalSeconds": -1,
+      "triggerIntervalTicks": null,
+      "waitFirstTriggerInterval": false,
+      "maxTriggerCnt": {
+        "useBlackboardKey": false,
+        "value": 1,
+        "blackboardKey": ""
+      },
+      "maxTriggerCount": 1,
       "blackboard": {
         "duration": 0,
         "count": 1,
@@ -3776,10 +4288,117 @@
         "identifierType": "Id",
         "stackingType": "Unlimited",
         "stackingKey": "pulse_triggered",
-        "maxStackCount": 1
+        "maxStackCount": 1,
+        "configuredMaxStackCount": 1,
+        "maxStackCountKey": null
       },
       "attributeModifiers": [],
       "damageModifiers": [],
+      "eventActions": [
+        {
+          "eventType": "OnBuffStart",
+          "actions": [
+            {
+              "type": "IfElseAction",
+              "conditions": [
+                {
+                  "type": "CompareFloat",
+                  "left": {
+                    "useBlackboardKey": true,
+                    "value": 0,
+                    "blackboardKey": "duration"
+                  },
+                  "operator": "GT",
+                  "right": {
+                    "useBlackboardKey": false,
+                    "value": 0,
+                    "blackboardKey": ""
+                  }
+                }
+              ],
+              "success": [
+                {
+                  "type": "ModifyDynamicBlackboard",
+                  "key": "real_duration",
+                  "operation": "Assign",
+                  "directValue": true,
+                  "value": {
+                    "useBlackboardKey": true,
+                    "value": 0,
+                    "blackboardKey": "duration"
+                  },
+                  "calculateType": "HpRatio",
+                  "calculationTarget": "Owner"
+                }
+              ],
+              "failure": [
+                {
+                  "type": "ReadSkillSettingData",
+                  "reads": [
+                    {
+                      "dataKey": "导电持续时间",
+                      "column": {
+                        "useBlackboardKey": true,
+                        "value": 1,
+                        "blackboardKey": "count"
+                      },
+                      "storeKey": "real_duration"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "CreateBuffAction",
+              "count": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "buffs": [
+                {
+                  "buffId": "buff_common_pulse_pulse_conduct_triggered_do",
+                  "assignBlackboard": true,
+                  "assignments": [
+                    {
+                      "targetKey": "duration",
+                      "sourceKey": "real_duration",
+                      "direct": false,
+                      "directValue": 0
+                    },
+                    {
+                      "targetKey": "count",
+                      "sourceKey": "count",
+                      "direct": false,
+                      "directValue": 0
+                    },
+                    {
+                      "targetKey": "consumed_type",
+                      "sourceKey": "consumed_type",
+                      "direct": false,
+                      "directValue": 0
+                    },
+                    {
+                      "targetKey": "consumed_layer",
+                      "sourceKey": "consumed_layer",
+                      "direct": false,
+                      "directValue": 0
+                    },
+                    {
+                      "targetKey": "extra_scaling",
+                      "sourceKey": "extra_scaling",
+                      "direct": false,
+                      "directValue": 0
+                    }
+                  ]
+                }
+              ],
+              "targetSource": "Owner",
+              "buffSource": "ActionSource"
+            }
+          ]
+        }
+      ],
       "startActions": [
         {
           "type": "IfElseAction",
@@ -3804,11 +4423,14 @@
               "type": "ModifyDynamicBlackboard",
               "key": "real_duration",
               "operation": "Assign",
+              "directValue": true,
               "value": {
                 "useBlackboardKey": true,
                 "value": 0,
                 "blackboardKey": "duration"
-              }
+              },
+              "calculateType": "HpRatio",
+              "calculationTarget": "Owner"
             }
           ],
           "failure": [
@@ -3876,7 +4498,11 @@
           "targetSource": "Owner",
           "buffSource": "ActionSource"
         }
-      ]
+      ],
+      "triggerActions": [],
+      "endActions": [],
+      "enableActions": [],
+      "duringEnableActions": []
     },
     "buff_common_pulse_pulse_conduct_triggered_do": {
       "buffId": "buff_common_pulse_pulse_conduct_triggered_do",
@@ -3888,6 +4514,22 @@
       },
       "durationSeconds": 5,
       "durationTicks": 150,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "triggerInterval": {
+        "useBlackboardKey": false,
+        "value": 1,
+        "blackboardKey": ""
+      },
+      "triggerIntervalSeconds": 1,
+      "triggerIntervalTicks": 30,
+      "waitFirstTriggerInterval": true,
+      "maxTriggerCnt": {
+        "useBlackboardKey": false,
+        "value": 1,
+        "blackboardKey": ""
+      },
+      "maxTriggerCount": 1,
       "blackboard": {
         "spell_resistance_decrease": 0.2,
         "duration": 5,
@@ -3899,7 +4541,9 @@
         "identifierType": "StackingKey",
         "stackingType": "Stack",
         "stackingKey": "pulse_triggered",
-        "maxStackCount": 1
+        "maxStackCount": 1,
+        "configuredMaxStackCount": 1,
+        "maxStackCountKey": null
       },
       "attributeModifiers": [],
       "damageModifiers": [
@@ -3972,6 +4616,143 @@
           ]
         }
       ],
+      "eventActions": [
+        {
+          "eventType": "DuringBuffEnable",
+          "actions": [
+            {
+              "type": "EffectAction",
+              "supported": false
+            },
+            {
+              "type": "PlaySoundAction",
+              "supported": false
+            },
+            {
+              "type": "EffectAction",
+              "supported": false
+            },
+            {
+              "type": "CheckSuperArmor",
+              "supported": false
+            }
+          ]
+        },
+        {
+          "eventType": "OnBuffStart",
+          "actions": [
+            {
+              "type": "CreateBuffAction",
+              "count": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "buffs": [
+                {
+                  "buffId": "buff_common_pulse_triggered_start",
+                  "assignBlackboard": false,
+                  "assignments": []
+                }
+              ],
+              "targetSource": "Owner",
+              "buffSource": "ActionSource"
+            }
+          ]
+        },
+        {
+          "eventType": "OnBuffStart",
+          "actions": [
+            {
+              "type": "ReadSkillSettingData",
+              "reads": [
+                {
+                  "dataKey": "导电法术伤害提高",
+                  "column": {
+                    "useBlackboardKey": true,
+                    "value": 1,
+                    "blackboardKey": "count"
+                  },
+                  "storeKey": "spell_resistance_decrease"
+                }
+              ]
+            },
+            {
+              "type": "StoreAttributeValue",
+              "targetSource": "Source",
+              "attributeType": "PulseAbnormalDamageIncrease",
+              "storeAttributeType": "FinalNonConverted",
+              "useFloor": false,
+              "divisor": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "multiplier": {
+                "useBlackboardKey": true,
+                "value": 1,
+                "blackboardKey": "spell_resistance_decrease"
+              },
+              "baseValue": {
+                "useBlackboardKey": true,
+                "value": 1,
+                "blackboardKey": "spell_resistance_decrease"
+              },
+              "key": "final_spell_resistance_decrease"
+            },
+            {
+              "type": "ModifyDynamicBlackboard",
+              "key": "final_spell_resistance_decrease",
+              "operation": "Multiply",
+              "directValue": true,
+              "value": {
+                "useBlackboardKey": true,
+                "value": 0,
+                "blackboardKey": "extra_scaling"
+              },
+              "calculateType": "HpRatio",
+              "calculationTarget": "Owner"
+            },
+            {
+              "type": "CreateBuffAction",
+              "count": {
+                "useBlackboardKey": false,
+                "value": 1,
+                "blackboardKey": ""
+              },
+              "buffs": [
+                {
+                  "buffId": "buff_common_pulse_triggered_fx",
+                  "assignBlackboard": false,
+                  "assignments": []
+                }
+              ],
+              "targetSource": "Owner",
+              "buffSource": "ActionSource"
+            }
+          ]
+        },
+        {
+          "eventType": "OnBuffStart",
+          "actions": [
+            {
+              "type": "OnSpellAbnormalStartFinish",
+              "isStart": true,
+              "abnormalType": "Pulse"
+            }
+          ]
+        },
+        {
+          "eventType": "OnBuffFinish",
+          "actions": [
+            {
+              "type": "OnSpellAbnormalStartFinish",
+              "isStart": false,
+              "abnormalType": "Pulse"
+            }
+          ]
+        }
+      ],
       "startActions": [
         {
           "type": "CreateBuffAction",
@@ -4006,7 +4787,10 @@
         },
         {
           "type": "StoreAttributeValue",
+          "targetSource": "Source",
           "attributeType": "PulseAbnormalDamageIncrease",
+          "storeAttributeType": "FinalNonConverted",
+          "useFloor": false,
           "divisor": {
             "useBlackboardKey": false,
             "value": 1,
@@ -4028,11 +4812,14 @@
           "type": "ModifyDynamicBlackboard",
           "key": "final_spell_resistance_decrease",
           "operation": "Multiply",
+          "directValue": true,
           "value": {
             "useBlackboardKey": true,
             "value": 0,
             "blackboardKey": "extra_scaling"
-          }
+          },
+          "calculateType": "HpRatio",
+          "calculationTarget": "Owner"
         },
         {
           "type": "CreateBuffAction",
@@ -4053,6 +4840,34 @@
         },
         {
           "type": "OnSpellAbnormalStartFinish",
+          "isStart": true,
+          "abnormalType": "Pulse"
+        }
+      ],
+      "triggerActions": [],
+      "endActions": [
+        {
+          "type": "OnSpellAbnormalStartFinish",
+          "isStart": false,
+          "abnormalType": "Pulse"
+        }
+      ],
+      "enableActions": [],
+      "duringEnableActions": [
+        {
+          "type": "EffectAction",
+          "supported": false
+        },
+        {
+          "type": "PlaySoundAction",
+          "supported": false
+        },
+        {
+          "type": "EffectAction",
+          "supported": false
+        },
+        {
+          "type": "CheckSuperArmor",
           "supported": false
         }
       ]
@@ -4067,21 +4882,54 @@
       },
       "durationSeconds": 3,
       "durationTicks": 90,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "triggerInterval": {
+        "useBlackboardKey": false,
+        "value": 0,
+        "blackboardKey": ""
+      },
+      "triggerIntervalSeconds": 0,
+      "triggerIntervalTicks": null,
+      "waitFirstTriggerInterval": true,
+      "maxTriggerCnt": {
+        "useBlackboardKey": false,
+        "value": 1,
+        "blackboardKey": ""
+      },
+      "maxTriggerCount": 1,
       "blackboard": {},
       "stacking": {
         "identifierType": "Id",
         "stackingType": "Unlimited",
         "stackingKey": "pulse_triggered",
-        "maxStackCount": 1
+        "maxStackCount": 1,
+        "configuredMaxStackCount": 1,
+        "maxStackCountKey": null
       },
       "attributeModifiers": [],
       "damageModifiers": [],
+      "eventActions": [
+        {
+          "eventType": "OnBuffStart",
+          "actions": [
+            {
+              "type": "IgniteBuffTextAction",
+              "supported": false
+            }
+          ]
+        }
+      ],
       "startActions": [
         {
           "type": "IgniteBuffTextAction",
           "supported": false
         }
-      ]
+      ],
+      "triggerActions": [],
+      "endActions": [],
+      "enableActions": [],
+      "duringEnableActions": []
     },
     "buff_common_pulse_triggered_fx": {
       "buffId": "buff_common_pulse_triggered_fx",
@@ -4093,15 +4941,60 @@
       },
       "durationSeconds": 5,
       "durationTicks": 150,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "triggerInterval": {
+        "useBlackboardKey": false,
+        "value": 0,
+        "blackboardKey": ""
+      },
+      "triggerIntervalSeconds": 0,
+      "triggerIntervalTicks": null,
+      "waitFirstTriggerInterval": true,
+      "maxTriggerCnt": {
+        "useBlackboardKey": false,
+        "value": 1,
+        "blackboardKey": ""
+      },
+      "maxTriggerCount": 1,
       "blackboard": {},
       "stacking": {
         "identifierType": "Id",
         "stackingType": "Unlimited",
         "stackingKey": "",
-        "maxStackCount": 0
+        "maxStackCount": 0,
+        "configuredMaxStackCount": 0,
+        "maxStackCountKey": null
       },
       "attributeModifiers": [],
       "damageModifiers": [],
+      "eventActions": [
+        {
+          "eventType": "OnBuffStart",
+          "actions": [
+            {
+              "type": "EnemyHurtAnimAction",
+              "supported": false
+            },
+            {
+              "type": "EffectAction",
+              "supported": false
+            },
+            {
+              "type": "CameraImpulseAction",
+              "supported": false
+            },
+            {
+              "type": "HitStopAction",
+              "supported": false
+            },
+            {
+              "type": "PlaySoundAction",
+              "supported": false
+            }
+          ]
+        }
+      ],
       "startActions": [
         {
           "type": "EnemyHurtAnimAction",
@@ -4123,7 +5016,11 @@
           "type": "PlaySoundAction",
           "supported": false
         }
-      ]
+      ],
+      "triggerActions": [],
+      "endActions": [],
+      "enableActions": [],
+      "duringEnableActions": []
     },
     "buff_common_energy_shard_attached_pulse": {
       "buffId": "buff_common_energy_shard_attached_pulse",
@@ -4135,6 +5032,22 @@
       },
       "durationSeconds": 20,
       "durationTicks": 600,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "triggerInterval": {
+        "useBlackboardKey": false,
+        "value": -1,
+        "blackboardKey": ""
+      },
+      "triggerIntervalSeconds": -1,
+      "triggerIntervalTicks": null,
+      "waitFirstTriggerInterval": true,
+      "maxTriggerCnt": {
+        "useBlackboardKey": false,
+        "value": 0,
+        "blackboardKey": ""
+      },
+      "maxTriggerCount": 0,
       "blackboard": {
         "duration": 20,
         "atk_scale": 0,
@@ -4151,11 +5064,50 @@
         "identifierType": "Id",
         "stackingType": "EnhanceAndRefresh",
         "stackingKey": "",
-        "maxStackCount": 4
+        "maxStackCount": 4,
+        "configuredMaxStackCount": 4,
+        "maxStackCountKey": null
       },
       "attributeModifiers": [],
       "damageModifiers": [],
-      "startActions": []
+      "eventActions": [
+        {
+          "eventType": "DuringBuffEnable",
+          "actions": [
+            {
+              "type": "EffectAction",
+              "supported": false
+            },
+            {
+              "type": "PlaySoundAction",
+              "supported": false
+            }
+          ]
+        },
+        {
+          "eventType": "OnBuffAfterTryEnhanced",
+          "actions": [
+            {
+              "type": "OnSpellInflictionStart",
+              "supported": false
+            }
+          ]
+        }
+      ],
+      "startActions": [],
+      "triggerActions": [],
+      "endActions": [],
+      "enableActions": [],
+      "duringEnableActions": [
+        {
+          "type": "EffectAction",
+          "supported": false
+        },
+        {
+          "type": "PlaySoundAction",
+          "supported": false
+        }
+      ]
     },
     "buff_common_obtain_ultimate_sp": {
       "buffId": "buff_common_obtain_ultimate_sp",
@@ -4167,6 +5119,22 @@
       },
       "durationSeconds": 1,
       "durationTicks": 30,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "triggerInterval": {
+        "useBlackboardKey": false,
+        "value": -1,
+        "blackboardKey": ""
+      },
+      "triggerIntervalSeconds": -1,
+      "triggerIntervalTicks": null,
+      "waitFirstTriggerInterval": true,
+      "maxTriggerCnt": {
+        "useBlackboardKey": false,
+        "value": 0,
+        "blackboardKey": ""
+      },
+      "maxTriggerCount": 0,
       "blackboard": {
         "usp_self": 0,
         "usp_everyone": 6.5,
@@ -4176,10 +5144,28 @@
         "identifierType": "Id",
         "stackingType": "Unlimited",
         "stackingKey": "",
-        "maxStackCount": 0
+        "maxStackCount": 0,
+        "configuredMaxStackCount": 0,
+        "maxStackCountKey": null
       },
       "attributeModifiers": [],
       "damageModifiers": [],
+      "eventActions": [
+        {
+          "eventType": "OnBuffStart",
+          "actions": [
+            {
+              "type": "ObtainUspInNormalSkill",
+              "coefficient": {
+                "useBlackboardKey": true,
+                "value": 1,
+                "blackboardKey": "ratio"
+              },
+              "sourceTarget": "Source"
+            }
+          ]
+        }
+      ],
       "startActions": [
         {
           "type": "ObtainUspInNormalSkill",
@@ -4190,7 +5176,11 @@
           },
           "sourceTarget": "Source"
         }
-      ]
+      ],
+      "triggerActions": [],
+      "endActions": [],
+      "enableActions": [],
+      "duringEnableActions": []
     },
     "buff_common_damage_immune_ult_skill": {
       "buffId": "buff_common_damage_immune_ult_skill",
@@ -4202,6 +5192,22 @@
       },
       "durationSeconds": 9999,
       "durationTicks": 299970,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "triggerInterval": {
+        "useBlackboardKey": false,
+        "value": -1,
+        "blackboardKey": ""
+      },
+      "triggerIntervalSeconds": -1,
+      "triggerIntervalTicks": null,
+      "waitFirstTriggerInterval": true,
+      "maxTriggerCnt": {
+        "useBlackboardKey": false,
+        "value": 0,
+        "blackboardKey": ""
+      },
+      "maxTriggerCount": 0,
       "blackboard": {
         "duration": 9999
       },
@@ -4209,11 +5215,57 @@
         "identifierType": "Id",
         "stackingType": "Unlimited",
         "stackingKey": "",
-        "maxStackCount": 0
+        "maxStackCount": 0,
+        "configuredMaxStackCount": 0,
+        "maxStackCountKey": null
       },
       "attributeModifiers": [],
       "damageModifiers": [],
-      "startActions": []
+      "eventActions": [
+        {
+          "eventType": "DuringBuffEnable",
+          "actions": [
+            {
+              "type": "SetSuperArmorAction",
+              "targetSource": "Owner",
+              "superArmorValue": {
+                "useBlackboardKey": false,
+                "value": 50,
+                "blackboardKey": "",
+                "useCustomValue": false
+              },
+              "impactResistance": {
+                "useBlackboardKey": false,
+                "value": 100,
+                "blackboardKey": "",
+                "useCustomValue": false
+              }
+            }
+          ]
+        }
+      ],
+      "startActions": [],
+      "triggerActions": [],
+      "endActions": [],
+      "enableActions": [],
+      "duringEnableActions": [
+        {
+          "type": "SetSuperArmorAction",
+          "targetSource": "Owner",
+          "superArmorValue": {
+            "useBlackboardKey": false,
+            "value": 50,
+            "blackboardKey": "",
+            "useCustomValue": false
+          },
+          "impactResistance": {
+            "useBlackboardKey": false,
+            "value": 100,
+            "blackboardKey": "",
+            "useCustomValue": false
+          }
+        }
+      ]
     },
     "buff_common_poise_break_damage_taken_scale": {
       "buffId": "buff_common_poise_break_damage_taken_scale",
@@ -4225,6 +5277,22 @@
       },
       "durationSeconds": 0.1,
       "durationTicks": 3,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "triggerInterval": {
+        "useBlackboardKey": false,
+        "value": -1,
+        "blackboardKey": ""
+      },
+      "triggerIntervalSeconds": -1,
+      "triggerIntervalTicks": null,
+      "waitFirstTriggerInterval": true,
+      "maxTriggerCnt": {
+        "useBlackboardKey": false,
+        "value": 0,
+        "blackboardKey": ""
+      },
+      "maxTriggerCount": 0,
       "blackboard": {
         "dmg_up": 0.3
       },
@@ -4232,7 +5300,9 @@
         "identifierType": "Id",
         "stackingType": "Unlimited",
         "stackingKey": "",
-        "maxStackCount": 1
+        "maxStackCount": 1,
+        "configuredMaxStackCount": 1,
+        "maxStackCountKey": null
       },
       "attributeModifiers": [],
       "damageModifiers": [
@@ -4252,7 +5322,12 @@
           ]
         }
       ],
-      "startActions": []
+      "eventActions": [],
+      "startActions": [],
+      "triggerActions": [],
+      "endActions": [],
+      "enableActions": [],
+      "duringEnableActions": []
     },
     "buff_common_poise_can_be_breaking_attacked": {
       "buffId": "buff_common_poise_can_be_breaking_attacked",
@@ -4264,16 +5339,70 @@
       },
       "durationSeconds": 0.1,
       "durationTicks": 3,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "triggerInterval": {
+        "useBlackboardKey": false,
+        "value": -1,
+        "blackboardKey": ""
+      },
+      "triggerIntervalSeconds": -1,
+      "triggerIntervalTicks": null,
+      "waitFirstTriggerInterval": true,
+      "maxTriggerCnt": {
+        "useBlackboardKey": false,
+        "value": 0,
+        "blackboardKey": ""
+      },
+      "maxTriggerCount": 0,
       "blackboard": {},
       "stacking": {
         "identifierType": "Id",
         "stackingType": "Unlimited",
         "stackingKey": "",
-        "maxStackCount": 1
+        "maxStackCount": 1,
+        "configuredMaxStackCount": 1,
+        "maxStackCountKey": null
       },
       "attributeModifiers": [],
       "damageModifiers": [],
-      "startActions": []
+      "eventActions": [
+        {
+          "eventType": "DuringBuffEnable",
+          "actions": [
+            {
+              "type": "EffectAction",
+              "supported": false
+            },
+            {
+              "type": "EffectAction",
+              "supported": false
+            },
+            {
+              "type": "EffectAction",
+              "supported": false
+            }
+          ]
+        }
+      ],
+      "startActions": [],
+      "triggerActions": [],
+      "endActions": [],
+      "enableActions": [],
+      "duringEnableActions": [
+        {
+          "type": "EffectAction",
+          "supported": false
+        },
+        {
+          "type": "EffectAction",
+          "supported": false
+        },
+        {
+          "type": "EffectAction",
+          "supported": false
+        }
+      ]
     },
     "buff_common_damage_immune_medium": {
       "buffId": "buff_common_damage_immune_medium",
@@ -4285,6 +5414,22 @@
       },
       "durationSeconds": 9999,
       "durationTicks": 299970,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "triggerInterval": {
+        "useBlackboardKey": false,
+        "value": -1,
+        "blackboardKey": ""
+      },
+      "triggerIntervalSeconds": -1,
+      "triggerIntervalTicks": null,
+      "waitFirstTriggerInterval": true,
+      "maxTriggerCnt": {
+        "useBlackboardKey": false,
+        "value": 0,
+        "blackboardKey": ""
+      },
+      "maxTriggerCount": 0,
       "blackboard": {
         "duration": 9999
       },
@@ -4292,11 +5437,18 @@
         "identifierType": "Id",
         "stackingType": "Unlimited",
         "stackingKey": "",
-        "maxStackCount": 0
+        "maxStackCount": 0,
+        "configuredMaxStackCount": 0,
+        "maxStackCountKey": null
       },
       "attributeModifiers": [],
       "damageModifiers": [],
-      "startActions": []
+      "eventActions": [],
+      "startActions": [],
+      "triggerActions": [],
+      "endActions": [],
+      "enableActions": [],
+      "duringEnableActions": []
     },
     "buff_common_power_attack_disable_cast_skill": {
       "buffId": "buff_common_power_attack_disable_cast_skill",
@@ -4308,16 +5460,39 @@
       },
       "durationSeconds": 0,
       "durationTicks": 0,
+      "useTimeDilationDt": false,
+      "onlyUseSelfTimeDilation": false,
+      "triggerInterval": {
+        "useBlackboardKey": false,
+        "value": -1,
+        "blackboardKey": ""
+      },
+      "triggerIntervalSeconds": -1,
+      "triggerIntervalTicks": null,
+      "waitFirstTriggerInterval": true,
+      "maxTriggerCnt": {
+        "useBlackboardKey": false,
+        "value": 1,
+        "blackboardKey": ""
+      },
+      "maxTriggerCount": 1,
       "blackboard": {},
       "stacking": {
         "identifierType": "Id",
         "stackingType": "Unlimited",
         "stackingKey": "",
-        "maxStackCount": 0
+        "maxStackCount": 0,
+        "configuredMaxStackCount": 0,
+        "maxStackCountKey": null
       },
       "attributeModifiers": [],
       "damageModifiers": [],
-      "startActions": []
+      "eventActions": [],
+      "startActions": [],
+      "triggerActions": [],
+      "endActions": [],
+      "enableActions": [],
+      "duringEnableActions": []
     }
   }
 }

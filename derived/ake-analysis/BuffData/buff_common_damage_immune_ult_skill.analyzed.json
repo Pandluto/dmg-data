@@ -5,14 +5,14 @@
     "id": "buff_common_damage_immune_ult_skill",
     "generator": "AKEV3BuffData.analyzeBuff",
     "generatorWrapper": "scripts/export-ake-analysis.mjs",
-    "generatorWrapperSha256": "571c3da2e52854f78c3fe352b745de6555f5ead1f49c075538396d5185eff692",
+    "generatorWrapperSha256": "28f2daa895b708f4991d7f51146dfeb690e0226c3ad3be2a45f3996cac98a602",
     "akeDatabaseCommit": "1bb9549705eba2601affed4cb8a7ea69ba13b150",
-    "akedataJsonRevision": "2026-08-22T05:51:44.260485+08:00",
+    "akedataJsonRevision": "2026-09-01T22:53:25.945329+00:00",
     "inputs": [
       {
         "role": "raw",
         "path": "reference/public-data/akedata/Json/BuffData/buff_common_damage_immune_ult_skill.json",
-        "sha256": "6467ad58e2b61ba1572a019746e2fd6bb868778e6fe8d3ee3ed10de74d7b0893"
+        "sha256": "001f8938085ce2a72dbe9dbb35db1ab8b0f333fd730f64bfbda8a5fbf8ace861"
       },
       {
         "role": "analyzer",

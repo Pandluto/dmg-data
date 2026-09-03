@@ -1,37 +1,51 @@
 # 项目文档入口
 
-当前文档沿用 `dmg-end-field` 的组织方式：入口保持简短，跨模块且长期有效的事实进入架构目录，测试证据、外部研究、维护过程和历史材料各自隔离。
+这里采用与 DEF 相同的短入口和稳定目录，同时增加本项目必需的生成证据层。先按问题选择入口，再下钻细节；历史文档不参与当前验收。
 
-## 从这里开始
+## 按问题阅读
+
+| 想回答的问题 | 入口 |
+| --- | --- |
+| 项目现在由哪些组件组成 | [架构事实源](./architecture/README.md) |
+| 一项能力必须满足什么 | [当前 Spec](./specs/README.md) |
+| 为什么采用某个跨模块选择 | [ADR 索引](./architecture/decisions/README.md) |
+| 当前版本、数量、覆盖和缺失项是什么 | [当前证据快照](./evidence/current-snapshot.md) |
+| 一个结论需要什么验证 | [测试与 Calc oracle](./testing/README.md) |
+| 如何开发、更新数据或使用 RIA | [操作指南](./guides/README.md) |
+| 外部项目提供了什么参考 | [外部研究](./research/README.md) |
+| 一次升级或清理为什么发生 | [维护记录](./maintenance/README.md) |
+| 如何恢复旧研究 | [历史档案](./archive/README.md) |
+
+## 核心入口
 
 - [架构总览](./architecture/overview.md)
 - [当前系统与模块职责](./architecture/current-system.md)
+- [文档与证据系统](./architecture/documentation-system.md)
 - [数据来源与派生链](./architecture/data-lineage.md)
 - [运行拓扑](./architecture/runtime-topology.md)
 - [战斗运行时](./architecture/combat-runtime.md)
 - [共享变速时间轴](./architecture/shared-variable-rate-timeline.md)
 - [引擎与前端接线](./architecture/frontend-integration.md)
 - [可重放调查档案](./architecture/replayable-investigation-archive.md)
-- [RIA 快速开始](./guides/ria-quickstart.md)
 - [验证矩阵](./architecture/verification-matrix.md)
 - [当前边界与未闭合项](./architecture/known-boundaries.md)
-- [测试与 Calc oracle](./testing/README.md)
-- [Endaxis 对照研究](./research/README.md)
-- [31 角色机制目录](./research/operator-mechanism-catalog.md)
-- [开发指南](./guides/development.md)
-- [文档重组记录](./maintenance/documentation-cleanup-20260828.md)
-- [完整开发提交演变](./maintenance/development-history.md)
-- [历史档案](./archive/README.md)
+
+## 权威顺序
+
+公开输入以原始快照与来源锁为准；当前行为以可执行代码和结构化 report 为准；目标行为以 Accepted Spec/ADR 为准；证明范围以测试、oracle 和生成审计为准；当前数字只看生成证据；变化原因看维护记录与 Git。
+
+详细的冲突裁决、文档类型、生命周期和完成条件见 [文档与证据系统](./architecture/documentation-system.md)。
 
 ## 保留规则
 
-1. `docs/architecture/` 只描述当前系统，不追加“本轮完成”“下一步计划”或一次性测试数量。
-2. `docs/testing/` 说明稳定验证方法和 oracle 范围；单次执行日志不进入长期正文。
-3. `docs/research/` 保存能继续帮助设计的外部对照，但不能替代 AKE/Calc 证据。
-4. `docs/maintenance/` 记录清理、迁移、冲突处理和提交演变。
-5. `docs/archive/` 中的文档不是当前事实源；其中有效结论必须已经回写到当前目录。
-6. 代码行为、生成审计和 Markdown 冲突时，先复现实例并更新生成物，再修改当前架构页；不能只改一句“已完成”。
+1. 架构只写现在成立的事实，不追加阶段日志和待办。
+2. Spec 不复制当前统计；数字只由 evidence generator 维护。
+3. 测试页说明方法和证据等级，不保存会漂移的通过总数。
+4. 研究只提供设计维度，不替代 AKE、Calc 或本项目运行证据。
+5. 维护页可以保存带日期的差异，不能成为长期架构入口。
+6. 档案保持原文并明确降权；有效结论必须回写当前目录。
+7. 代码、生成物和文字冲突时先复现实例，再依照事实层级裁决，不能只改一句“已完成”。
 
-## 恢复历史材料
+## 历史恢复
 
-初始编号文档完整保存在 [文档档案](./archive/README.md)。它们原本对应 tracked 基线 `f9a2067` 及 2026-08-28 工作区中的三份未跟踪架构草稿；详细迁移表和恢复方式见 [文档重组记录](./maintenance/documentation-cleanup-20260828.md)。
+初始编号文档完整保存在 [文档档案](./archive/README.md)。2026-08-28 的逐文件迁移表见 [首次重组记录](./maintenance/documentation-cleanup-20260828.md)，本次 Spec/ADR/evidence 补全与冲突清单见 [2026-09-03 补全记录](./maintenance/documentation-reconstruction-20260903.md)。

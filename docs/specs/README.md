@@ -1,0 +1,15 @@
+# Spec 总索引
+
+本目录保存仍会约束项目行为、数据更新和文档治理的规格。Spec 说明“必须成立什么”；当前实现事实见 [架构目录](../architecture/README.md)，可复算结果见 [当前证据](../evidence/README.md)。
+
+## 当前 Spec
+
+- [文档与证据系统](./documentation-and-evidence-system/spec.md)：唯一事实层级、来源升级事务、文档生命周期和验收门。
+
+## 文件约定
+
+1. 每项长期需求使用 `docs/specs/<spec-id>/spec.md`，不在 `docs/` 顶层创建散落的 `*-spec.md`。
+2. 活跃实施可以在同目录增加 `tasks.md`；任务完成后，只有仍能约束维护的内容继续保留。
+3. Spec 至少包含状态、Problem Statement、Solution、User Stories、Implementation Decisions、Testing Decisions、Out of Scope 与 Further Notes。
+4. Spec 不复制会漂移的覆盖数字、提交清单和源码行号；这些内容分别进入生成证据、维护记录和 Git。
+5. 被替代的 Spec 必须标记 `Superseded` 并链接后继；不允许静默保留两份互相冲突的现行要求。

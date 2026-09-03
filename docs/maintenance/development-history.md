@@ -1,8 +1,6 @@
 # 完整开发提交演变
 
-本页逐条索引从初始提交到文档整理基线 `f9a2067` 的全部 114 个提交。日期和主题直接来自 Git；阶段标题只帮助阅读，不替代提交本身。
-
-当前尚未提交的文档重组、归档移动和审计刷新记录在 [2026-08-28 文档重组记录](./documentation-cleanup-20260828.md)，不会伪装成已经存在的 Git 历史。
+本页逐条索引从初始提交到文档/RIA 基线 `0bea9f8` 的全部 115 个提交。日期和主题直接来自 Git；阶段标题只帮助阅读，不替代提交本身。该基线之后的提交以 Git 为唯一完整事实源，带日期的变化原因另见 [维护索引](./README.md)；本页不通过自指条目伪装覆盖仍在形成的提交。
 
 ## 阶段 1 · clean-room 研究基线
 
@@ -147,6 +145,12 @@
 - 2026-08-28 16:29 · `9002b15` · fix(ui): retain inherited combat states on timeline
 - 2026-08-28 16:34 · `f9a2067` · fix(ui): name transformed settlement in skill details
 
+## 阶段 8 · 文档事实源与可重放调查档案
+
+完成当前文档重组，并加入 Case/Session/不可变 Run、结构化事实、REST/SSE、replay/diff 与保留策略。
+
+- 2026-08-29 12:23 · `0bea9f8` · feat(ria): add replayable investigation archive
+
 ## 查阅方式
 
 查看任一提交的完整改动：
@@ -161,5 +165,4 @@ git show <commit>
 git log --follow -- <path>
 ```
 
-本索引保留所有提交，不用最终架构文档覆盖中间失败、修正和责任迁移。当前系统结论仍以 [架构事实源](../architecture/README.md) 为准。
-
+本索引保留基线前的全部提交，不用最终架构文档覆盖中间失败、修正和责任迁移。基线后的精确提交继续使用 `git log`；当前系统结论仍以 [架构事实源](../architecture/README.md) 为准。

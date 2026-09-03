@@ -45,8 +45,8 @@ test('all public AKE global-cooldown gates compile to entity-scoped timed marker
         }
     }
 
-    assert.equal(checks.length, 14);
-    assert.equal(starts.length, 14);
+    assert.equal(checks.length, 15);
+    assert.equal(starts.length, 15);
     assert.equal(checks.every(result =>
         result.unresolved.length === 0
         && result.condition.type === 'TimedMarkerExists'

@@ -1,9 +1,30 @@
 {
   "schemaVersion": 1,
-  "latest": "1.4.4@9433094-12",
-  "sharedRevision": "2026-08-22T03:01:50.274881+08:00",
-  "updatedAt": "2026-08-21T21:52:35.842392+00:00",
+  "latest": "1.5.3@9885010-4",
+  "sharedRevision": "2026-09-02T12:36:22.209625+00:00",
+  "updatedAt": "2026-09-03T02:05:26.765636+00:00",
   "versions": [
+    {
+      "id": "1.5.3@9885010-4",
+      "gameVersion": "1.5.3",
+      "hotfixVersion": "9885010-4",
+      "tableCfgPath": "public/1.5.3/9885010-4/TableCfg",
+      "publishedAt": "2026-09-03T02:05:26.765636+00:00"
+    },
+    {
+      "id": "1.5.3@9764758-3",
+      "gameVersion": "1.5.3",
+      "hotfixVersion": "9764758-3",
+      "tableCfgPath": "public/1.5.3/9764758-3/TableCfg",
+      "publishedAt": "2026-09-01T22:16:30.752260+00:00"
+    },
+    {
+      "id": "1.4.4@9599201-14",
+      "gameVersion": "1.4.4",
+      "hotfixVersion": "9599201-14",
+      "tableCfgPath": "public/1.4.4/9599201-14/TableCfg",
+      "publishedAt": "2026-08-26T02:04:02.148141+00:00"
+    },
     {
       "id": "1.4.4@9433094-12",
       "gameVersion": "1.4.4",

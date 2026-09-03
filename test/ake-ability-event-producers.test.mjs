@@ -34,10 +34,10 @@ test('public BuffData ability events are measured against concrete runtime produ
         hasRuntimeAbilityEventProducer(eventType)
     );
 
-    assert.equal(counts.size, 82);
-    assert.equal([...counts.values()].reduce((sum, count) => sum + count, 0), 953);
+    assert.equal(counts.size, 83);
+    assert.equal([...counts.values()].reduce((sum, count) => sum + count, 0), 972);
     assert.equal(publicProducerEntries.length, 30);
-    assert.equal(publicProducerEntries.reduce((sum, [, count]) => sum + count, 0), 809);
+    assert.equal(publicProducerEntries.reduce((sum, [, count]) => sum + count, 0), 817);
     assert.ok(RUNTIME_ABILITY_EVENT_TYPES.includes(
         'OnCharBeforeOutputSpellInfliction'
     ));

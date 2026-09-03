@@ -4,7 +4,7 @@
 
 | 组件 | 入口 | 责任 |
 | --- | --- | --- |
-| 来源锁 | `sources.lock.json` | 固定 AKE、Calc 与 AKEDatabase 参考版本及 SHA-256 |
+| 来源锁 | `sources.lock.json` | 固定 AKE、Calc 与 AKEDatabase 参考版本、逐项 SHA-256 和表/运行时语料聚合哈希 |
 | 公开数据仓库 | `reference/public-data/` | 保存运行时允许读取的 AKE 表、技能、Buff 和 Calc 面板/响应快照 |
 | 第三方参考隔离区 | `reference/third-party/akedatabase/` | 只用于研究原始结构和展示分析，不进入 clean-room 运行时 |
 | 机器语义 | `spec/engine-semantic-mappings.json` | 保存有证据的隐式映射、指令优先级、连携规则和窄范围黑盒参数 |
@@ -26,6 +26,7 @@
 | 前端账本 | `akeRuntimeLedger.ts` | 把已结算 Hit、状态与乘区格式化为页面读取模型 |
 | 调查档案 | `src/ria/` | 保存 Case/Session/不可变 Run，规范化事实事件并提供 replay/diff/verify |
 | 调查 API | `src/ria/server.mjs` | 在 loopback 提供 REST、OpenAPI 与支持续传的 SSE |
+| 文档证据生成 | `render-current-evidence.mjs` | 从当前来源锁、目录和审计生成唯一的人类可读数字快照 |
 
 ## 运行时组合根
 
@@ -81,10 +82,10 @@ Poise 与控制韧性不是同一状态机；元素附着、物理状态和共�
 
 ## 生成物与事实所有权
 
-- `derived/ake-analysis/` 来自第三方分析器，只说明其展示性解析结果。
+- `derived/ake-analysis/` 来自第三方分析器，只覆盖来源锁中的研究样本并说明其展示性解析结果；它不等于完整运行时语料。
 - `derived/cleanroom/` 来自本项目代码，包含模拟结果、动作覆盖、事件覆盖和逐角色风险。
 - 生成报告是某次代码与数据快照的结果，不是手工维护的永久数字；修改编译器或审计分类后必须重新生成。
-- 架构正文解释字段语义和责任，具体统计直接读取生成 JSON。
+- 架构正文解释字段语义和责任，具体统计由[当前证据快照](../evidence/current-snapshot.md)从生成 JSON 汇总。
 
 ## 禁止的反向依赖
 
@@ -94,4 +95,4 @@ Poise 与控制韧性不是同一状态机；元素附着、物理状态和共�
 - 前端 ledger 不重新计算伤害；它只格式化 report 的 factors 和 contributions。
 - preview 不能覆盖匹配 execution digest 的 settled report。
 - RIA 记录器不能修改、拦截或重新判定 runner/runtime 结果；记录失败只能降低 Run 档案状态。
-- “全测试通过”“无 unresolved”或“31 名角色可执行”不能写成“全角色精确”。
+- “全测试通过”“无 unresolved”或“当前目录角色均可装配”不能写成“全角色精确”。

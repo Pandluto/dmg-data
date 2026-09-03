@@ -19,11 +19,11 @@ test('AKEDatabase reader preserves Int64 text ids and hydrates the complete cata
     const repository = new AkeDataRepository();
     const catalog = repository.catalog();
     assert.equal(catalog.source.provider, 'AKEDatabase');
-    assert.equal(catalog.source.version, '1.4.4@9433094-12');
-    assert.equal(catalog.characters.length, 32);
-    assert.equal(catalog.weapons.length, 77);
-    assert.equal(catalog.equipment.length, 243);
-    assert.equal(catalog.suits.length, 23);
+    assert.equal(catalog.source.version, '1.5.3@9764758-3');
+    assert.equal(catalog.characters.length, 33);
+    assert.equal(catalog.weapons.length, 79);
+    assert.equal(catalog.equipment.length, 258);
+    assert.equal(catalog.suits.length, 24);
     const pelica = catalog.characters.find(character => character.id === 'chr_0004_pelica');
     assert.equal(pelica.name, '佩丽卡');
     assert.equal(pelica.weaponTypeId, 2);

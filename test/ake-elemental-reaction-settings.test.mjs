@@ -137,8 +137,8 @@ test('all public elemental SkillSetting reads close through ten generic tables',
         }
     }
 
-    assert.equal(actionCount, 21);
-    assert.equal(readCount, 47);
+    assert.equal(actionCount, 22);
+    assert.equal(readCount, 48);
 });
 
 test('all four columns resolve exactly and Arts intensity uses separate damage/state formulas', () => {

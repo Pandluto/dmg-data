@@ -43,36 +43,57 @@ function containsHpDamage(actions) {
 }
 
 function compiledHitFrames(programs, rootSkillId) {
-    const hits = [];
-    const visit = (skillId, baseFrame, stack) => {
-        if (stack.has(skillId)) return;
+    const memo = new Map();
+    const merge = hits => {
+        const merged = new Map();
+        for (const hit of hits) {
+            const key = `${hit.offsetFrames}\0${hit.sourceSkillId}`;
+            // A failed runtime probe only proves that a structural damage node
+            // is reachable. Repeated graph paths are not evidence of runtime
+            // multiplicity, so keep one representative node and surface the
+            // probe diagnostic instead of manufacturing an enormous hit count.
+            if (!merged.has(key)) merged.set(key, { ...hit, hitCount: 1 });
+        }
+        return [...merged.values()].sort((left, right) => left.offsetFrames - right.offsetFrames
+            || left.sourceSkillId.localeCompare(right.sourceSkillId));
+    };
+    const expand = (skillId, stack) => {
+        if (memo.has(skillId)) return memo.get(skillId);
+        if (stack.has(skillId)) return [];
         const program = programs.get(skillId);
-        if (!program) return;
+        if (!program) return [];
+        const hits = [];
         const nextStack = new Set(stack).add(skillId);
         for (const group of program.timeline ?? []) {
-            const groupFrame = baseFrame + Number(group.startFrame ?? 0);
+            const groupFrame = Number(group.startFrame ?? 0);
             if (containsHpDamage(group.actions)) {
                 hits.push({
                     offsetFrames: groupFrame,
                     sourceSkillId: skillId,
-                    rootSkillId,
-                    kind: skillId === rootSkillId ? 'direct' : 'projectile',
                     hitCount: 1,
                     damageTypes: []
                 });
             }
             walkActions(group.actions, action => {
                 if (action.type !== 'LaunchSkillProgram' || !action.childSkillId) return;
-                visit(
-                    action.childSkillId,
-                    groupFrame + Number(action.launchDelayTicks ?? 0),
-                    nextStack
-                );
+                const launchFrame = groupFrame + Number(action.launchDelayTicks ?? 0);
+                for (const childHit of expand(action.childSkillId, nextStack)) {
+                    hits.push({
+                        ...childHit,
+                        offsetFrames: launchFrame + childHit.offsetFrames
+                    });
+                }
             });
         }
+        const result = merge(hits);
+        memo.set(skillId, result);
+        return result;
     };
-    visit(rootSkillId, 0, new Set());
-    return hits.sort((left, right) => left.offsetFrames - right.offsetFrames);
+    return expand(rootSkillId, new Set()).map(hit => ({
+        ...hit,
+        rootSkillId,
+        kind: hit.sourceSkillId === rootSkillId ? 'direct' : 'projectile'
+    }));
 }
 
 function launchOffsetFor(programs, rootSkillId, targetSkillId, effectOffsetFrames) {
@@ -99,7 +120,10 @@ function launchOffsetFor(programs, rootSkillId, targetSkillId, effectOffsetFrame
     // observed hit.  Preserve the existing earliest-launch projection when it
     // is causal; otherwise the launch remains unknown and the hit itself
     // becomes the conservative commit.
-    const earliestLaunch = candidates.length > 0 ? Math.min(...candidates) : null;
+    const earliestLaunch = candidates.reduce(
+        (minimum, candidate) => minimum === null ? candidate : Math.min(minimum, candidate),
+        null
+    );
     return earliestLaunch !== null && earliestLaunch <= effectOffsetFrames
         ? earliestLaunch
         : null;
@@ -490,14 +514,14 @@ function simulateProfile(
         startOffsetFrames: Number(window.startFrame ?? 0),
         endOffsetFrames: Number(window.endFrame ?? bodyEndOffset)
     }));
+    let tailEndOffset = bodyEndOffset;
+    for (const event of hits) tailEndOffset = Math.max(tailEndOffset, Number(event.offsetFrames ?? 0));
+    for (const event of comboPendingEvents) {
+        tailEndOffset = Math.max(tailEndOffset, Number(event.offsetFrames ?? 0));
+    }
     return {
         bodyEndOffset,
-        tailEndOffset: Math.max(
-            bodyEndOffset,
-            ...hits.map(hit => hit.offsetFrames),
-            ...comboPendingEvents.map(event => event.offsetFrames),
-            0
-        ),
+        tailEndOffset,
         hits,
         resourceEvents: profileResourceEvents(resourceResult ?? result, characterId),
         recoveryPauses,

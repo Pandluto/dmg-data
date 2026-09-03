@@ -2,17 +2,11 @@
 
 本页只记录当前仍会影响结论范围的系统边界。具体数量直接读取生成报告；修复过程进入维护记录，不在这里累加提交日志。
 
-## 当前审计快照
+## 当前审计状态
 
-2026-08-28 在 `f9a2067` 代码上重新生成：
+[当前证据快照](../evidence/current-snapshot.md)由固定数据与三类 audit 自动生成。当前仍存在 calculator-core blocked/adapter-required、逐角色 combat risk，以及缺少已知生产者或含非法值的 ability event；具体数字不在本页复制。
 
-| 报告 | 当前结论 |
-| --- | --- |
-| `ake-action-coverage.json` | calculator-core 仍有 blocked 和 adapter-required；覆盖率不能按角色外推 |
-| `ake-operator-mechanism-audit.json` | 31 名角色仍有 combat-blocking、combat-partial、evidence-missing 和 spatial-assumption |
-| `ake-ability-event-audit.json` | 仍有 listener 事件缺少已知生产者或包含非法值 |
-
-本次刷新已移除旧报告中的 `CastSkill` 阻塞，证明生成审计必须与代码同版本。统计数值查看 [生成报告说明](../testing/README.md)，不要从历史文档抄写。
+数据与审计完整对齐只证明缺口被看见，不表示缺口已经解决。生成审计必须与代码和来源锁同版本。
 
 ## 双执行链
 
@@ -29,6 +23,8 @@
 - 连携开窗条件有一部分来自描述文本和窄范围黑盒样本，当前语义映射只覆盖已有证据的规则。
 - 快速破韧保护只对已捕获的普通敌人签名闭合，不能外推所有敌人等级。
 - 多数 HitStop/TimeDilation 曲线只保留 metadata 或需要 adapter。
+- 新角色提弗洛斯使用的 `TimedGrowingEnhance` 叠层策略尚未进入通用状态机；其 timing profile 带 diagnostic，只能使用静态结构 fallback。
+- 当前递归闭包仍包含明确缺失的上游文件；路径由生成证据列出，不以空定义补齐。
 
 权威逐项状态见 `spec/unresolved-dependencies.json`。
 
@@ -71,5 +67,5 @@
 
 - 已获得 Calc 私有后端源码；
 - 全角色、全配装、全敌人或完整游戏引擎精确；
-- “31 名角色可执行”等于“31 名角色正确”；
+- “当前目录角色可装配/可生成画像”等于“全部角色正确”；
 - 总覆盖率、测试总数或 build 通过等于机制闭包。

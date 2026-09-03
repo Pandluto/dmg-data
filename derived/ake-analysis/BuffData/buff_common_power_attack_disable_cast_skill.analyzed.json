@@ -5,14 +5,14 @@
     "id": "buff_common_power_attack_disable_cast_skill",
     "generator": "AKEV3BuffData.analyzeBuff",
     "generatorWrapper": "scripts/export-ake-analysis.mjs",
-    "generatorWrapperSha256": "571c3da2e52854f78c3fe352b745de6555f5ead1f49c075538396d5185eff692",
+    "generatorWrapperSha256": "28f2daa895b708f4991d7f51146dfeb690e0226c3ad3be2a45f3996cac98a602",
     "akeDatabaseCommit": "1bb9549705eba2601affed4cb8a7ea69ba13b150",
-    "akedataJsonRevision": "2026-08-22T05:51:44.260485+08:00",
+    "akedataJsonRevision": "2026-09-01T22:53:25.945329+00:00",
     "inputs": [
       {
         "role": "raw",
         "path": "reference/public-data/akedata/Json/BuffData/buff_common_power_attack_disable_cast_skill.json",
-        "sha256": "bdae18386e29a9a0c5ce600213710ec3bfb2684b4e7ead8fa35dc3a968d81490"
+        "sha256": "5a1d5302e631e4e9f4a749628d316d3b0bcdfdfaf07337816ea66231cd721439"
       },
       {
         "role": "analyzer",

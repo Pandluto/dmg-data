@@ -2,7 +2,9 @@
 
 | 层级 | 命令或操作 | 证明什么 | 不能证明什么 |
 | --- | --- | --- | --- |
-| 当前文档 | `npm run check:docs` | 当前入口和相对链接有效，编号旧文档未回流顶层 | 内容语义一定正确 |
+| 来源一致性 | `npm run check:consistency` | pins、逐文件哈希、语料哈希、资产索引和递归依赖闭包相互一致 | 游戏行为正确 |
+| 当前证据 | `npm run docs:evidence:check` | 人类可读快照可由当前锁、目录和 audit 字节重建 | audit 分类本身正确 |
+| 当前文档 | `npm run check:docs` | 证据新鲜、必要入口/Spec 结构/相对链接有效，编号旧文档未回流顶层 | 内容语义一定正确 |
 | 根回归 | `npm test` | 编译器、运行时、状态机、runner 与冻结 oracle 的现有断言 | 未覆盖角色/组合正确 |
 | 固定佩丽卡 | `npm run simulate:pelica` | 精确链仍可生成固定场景结果 | 通用链一致或全角色正确 |
 | 通用佩丽卡 | `npm run simulate:pelica-generic -- --no-write` | 公开数据闭包到通用运行时可执行 | 全语料分支完整 |
@@ -15,7 +17,7 @@
 | Demo 构建 | `npm run demo:build` | AKE Demo 可生产构建 | 真实操作可用 |
 | 真实浏览器 | 启动 `npm run demo` 后操作 | 拖拽、等待、换人、结算、状态和详情的可见结果 | 未操作路径 |
 
-`npm run check` 依次执行文档链接检查和根回归。它是仓库基础门，不替代前端类型、前端测试、Demo 构建或浏览器验收。
+`npm run check` 依次执行来源一致性、证据/文档检查和根回归。它是仓库基础门，不替代前端类型、前端测试、Demo 构建、RIA 专项或浏览器验收。
 
 ## Oracle 比较口径
 
@@ -42,7 +44,8 @@
 - 改生成审计：重新生成并检查 diff，不手工同步统计。
 - 改前端 adapter/ledger：前端聚焦测试 + typecheck + Demo build。
 - 改时间轴交互：领域测试 + 真实浏览器验收。
-- 改公开数据：全部生成物、oracle 和版本边界重新审查。
+- 改公开数据：固定 version/revision、重建语料/来源锁、全部生成物、oracle、前端目录和版本边界重新审查。
+- 改 Spec/架构：文档检查 + 对应事实源；不能只让链接通过。
 
 ## 浏览器验收记录
 

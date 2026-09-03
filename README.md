@@ -6,8 +6,8 @@
 
 ## 当前边界
 
-- AKE TableCfg 固定为 `1.4.4@9433094-12`，Calc 数据固定为 `9163343-11`；两者不是同一数据版本。
-- `sources.lock.json` 保存公开来源、版本与 SHA-256；运行时不读取 Calc oracle 作为答案。
+- 当前 AKE/Calc 版本、语料规模、哈希、审计数字和明确缺失项由[当前证据快照](docs/evidence/current-snapshot.md)统一生成；AKE 与 Calc 不是同一数据版本。
+- `sources.lock.json` 保存公开来源、版本、逐文件 SHA-256 和语料聚合哈希；运行时不读取 Calc oracle 作为答案。
 - `src/core/simulator.mjs` 是佩丽卡固定场景的精确回归锚点；通用产品链使用 `CombatRuntime`、AKE 编译器和单人/小队运行器。两条链仍然并存，保证范围不同。
 - `demo/lts-ui/` 复用 `dmg-end-field` 的产品外壳；战斗结算来自根运行时，前端实时预演只提供尚未结算时的规划反馈。
 - `reference/third-party/akedatabase/` 是隔离的强 copyleft 研究快照；`src/` 不导入其中实现。许可说明见 [NOTICE.md](NOTICE.md)。
@@ -46,6 +46,7 @@ npm run verify:cross-character
 npm run audit:ake-actions
 npm run audit:ake-ability-events
 npm run audit:ake-operator-mechanisms
+npm run check:consistency
 ```
 
 记录并查询可重放计算证据：
@@ -66,7 +67,8 @@ RIA 把 Case、Session、不可变 Run、事实事件、状态证据、重放和
 | --- | --- |
 | `reference/public-data/` | 固定的 AKE 与 Calc 公开输入 |
 | `reference/third-party/` | 隔离的第三方研究参考 |
-| `spec/` | 有证据的语义映射与仍未闭合的外部依赖 |
+| `spec/` | 机器可读语义映射与仍未闭合的外部依赖 |
+| `docs/specs/` | 面向人的现行需求与行为规格 |
 | `src/core/` | 解析、编译、运行时、状态机、伤害与投影 |
 | `fixtures/` | Calc 请求、响应、manifest 与归一化 oracle |
 | `derived/` | 可重新生成的分析、审计和模拟结果 |
@@ -79,6 +81,9 @@ RIA 把 Case、Session、不可变 Run、事实事件、状态证据、重放和
 ## 文档
 
 - [项目文档入口](docs/README.md)
+- [文档与证据系统 Spec](docs/specs/documentation-and-evidence-system/spec.md)
+- [文档与证据系统架构](docs/architecture/documentation-system.md)
+- [当前证据快照](docs/evidence/current-snapshot.md)
 - [架构总览](docs/architecture/overview.md)
 - [当前系统与模块职责](docs/architecture/current-system.md)
 - [数据来源与派生链](docs/architecture/data-lineage.md)
@@ -89,11 +94,12 @@ RIA 把 Case、Session、不可变 Run、事实事件、状态证据、重放和
 - [RIA 快速开始](docs/guides/ria-quickstart.md)
 - [验证矩阵](docs/architecture/verification-matrix.md)
 - [当前边界与未闭合项](docs/architecture/known-boundaries.md)
+- [架构决策](docs/architecture/decisions/README.md)
 - [Endaxis 对照研究](docs/research/endaxis-comparison.md)
-- [文档重组记录](docs/maintenance/documentation-cleanup-20260828.md)
+- [维护与变更记录](docs/maintenance/README.md)
 
 ## 文档维护
 
-`npm run check:docs` 检查当前文档链接；`npm run check` 再运行根引擎测试。数字型覆盖结论以重新生成的 `derived/cleanroom/*.json` 为准，不在架构正文中复制一份会漂移的统计。
+`npm run check:docs` 检查生成证据是否新鲜、当前入口和相对链接是否有效；`npm run check` 还会先验证来源/语料一致性，再运行根引擎测试。数字型覆盖结论由 `npm run docs:evidence` 从当前锁、目录和 `derived/cleanroom/*.json` 生成，不在架构正文中复制。
 
 历史编号文档保存在 [初始研究档案](docs/archive/README.md)，只用于追溯写作与实现演变，不再作为当前事实入口。

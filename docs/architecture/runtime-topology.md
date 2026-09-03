@@ -79,6 +79,8 @@ npm run demo:serve
 | --- | --- | --- |
 | `pelica-simulation.json` | 固定精确链 | oracle 锚点 |
 | `pelica-generic-runtime-simulation.json` | 通用单人链 | 通用链回归与调试 |
-| `ake-timing-profiles.json` | timing builder | 前端预演的技能时长、Hit 和释放画像 |
+| `ake-timing-profiles.json` | timing builder | 前端预演的技能时长、Hit 和释放画像；运行失败时显式携带 diagnostic 并使用结构 fallback |
 | API schema v3 report | 通用小队链 | 当前页面结算、逐 Hit 详情和时间轴投影 |
 | `ake-*-audit.json` | audit scripts | 覆盖与风险快照，不参与战斗执行 |
+
+结构 fallback 对相同帧和来源技能的静态命中进行聚合，避免子技能图按路径指数展开；它只保证画像可生成，不具备 settled 行为精度。当前 diagnostic 数量见[生成证据](../evidence/current-snapshot.md)。

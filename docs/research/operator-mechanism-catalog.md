@@ -1,4 +1,4 @@
-# 31 角色机制目录
+# 32 角色机制目录
 
 本表把角色专有名词归入通用机制族，用于设计测试和发现引擎原语缺口。它不是角色完成度表：当前 finding、风险等级和具体 blocker 只读取 `derived/cleanroom/ake-operator-mechanism-audit.json`。
 
@@ -52,6 +52,7 @@
 | Mifu · `chr_0031_mifu` | 三段战技、失衡分支、猛击别名 | 条件形态选择、目标状态、反应别名与证据边界 |
 | Arcane · `chr_0032_lizhiyan` | 双形态、属性比较、簇击 | selector、owner 消费计数、派生技能簇和冷却条件 |
 | Camille · `chr_0033_camille` | 追击、末段爆伤、队伍/自身 Buff | 派生技能身份、末段事件、延迟 Hit 和 recipient scope |
+| Typhoeus · `chr_0034_typhoea` | 浮空、启示/猎矢、强化射击、箭阵与箭雨 | 形态 overlay、自定义资源、有限攻击次数、子技能图、目标选择、自然爆发与 `TimedGrowingEnhance` 证据边界 |
 | Liino · `chr_0035_liino` | 开战状态、倒计时循环、姿态、非技能动作 | onBattleStart、循环收敛、状态绑定形态、事件监听和零层强制状态 |
 
 角色只是通用原语的组合压力测试。出现新角色机制时，应先确认现有机制族是否能够表达；只有确实出现新的状态事务或事件语义时才扩展核心。

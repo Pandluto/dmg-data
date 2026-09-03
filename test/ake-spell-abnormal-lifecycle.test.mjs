@@ -62,8 +62,8 @@ test('all public spell-abnormal lifecycle actions compile to one normalized even
         }
     }
 
-    assert.equal(rows.length, 46);
-    assert.equal(rows.filter(row => row.action.isEnable !== false).length, 42);
+    assert.equal(rows.length, 48);
+    assert.equal(rows.filter(row => row.action.isEnable !== false).length, 44);
     assert.deepEqual(
         [...new Set(rows.map(row => row.action.abnormalType))].sort(),
         ['Burst', 'Cryst', 'Fire', 'Natural', 'Pulse']

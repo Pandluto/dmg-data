@@ -93,11 +93,11 @@ test('all public SkillData AddTagAction windows compile without operator excepti
         }
     }
 
-    assert.equal(rows.length, 16);
-    assert.equal(rows.filter(row => row.action.isEnable !== false).length, 15);
+    assert.equal(rows.length, 24);
+    assert.equal(rows.filter(row => row.action.isEnable !== false).length, 23);
     assert.equal(rows.filter(row => row.action.isEnable !== false)
-        .reduce((sum, row) => sum + row.compiled.actions[0].tags.length, 0), 22);
-    assert.equal(new Set(rows.map(row => row.fileName)).size, 12);
+        .reduce((sum, row) => sum + row.compiled.actions[0].tags.length, 0), 35);
+    assert.equal(new Set(rows.map(row => row.fileName)).size, 16);
 });
 
 test('skill tag windows are cast-scoped and cannot erase overlapping or Buff-owned tags', () => {

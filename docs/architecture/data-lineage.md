@@ -4,12 +4,24 @@
 
 | 来源 | 当前版本 | 在本项目中的用途 |
 | --- | --- | --- |
-| AKE TableCfg / SkillData / BuffData | `1.4.4@9433094-12` | 角色、技能、Buff、装备、敌人和动作结构 |
-| Calc 公共数据与模拟响应 | `9163343-11` | 面板输入和选定场景的行为 oracle |
-| AKEDatabase 参考实现 | commit `1bb9549` | 理解公开 JSON 的展示性解析方式；不进入运行时 |
+| AKE TableCfg / SkillData / BuffData | 见[当前证据快照](../evidence/current-snapshot.md) | 角色、技能、Buff、装备、敌人和动作结构 |
+| Calc 公共数据与模拟响应 | 见[当前证据快照](../evidence/current-snapshot.md) | 面板输入和选定场景的行为 oracle |
+| AKEDatabase 参考实现 | 见来源锁 | 理解公开 JSON 的展示性解析方式；不进入运行时 |
 | Endaxis | 固定研究提交 `66bb80b` | 机制目录、架构与测试维度；不提供权威数值 |
 
-完整 URL、文件大小和哈希由 `sources.lock.json` 管理。AKE 与 Calc 版本不同，因此“字段存在于 AKE”和“Calc 在该场景这样结算”是两类证据，不能直接互相覆盖。
+完整 URL、文件大小、逐文件 SHA-256 和语料聚合哈希由 `sources.lock.json` 管理。AKE 与 Calc 版本不同，因此“字段存在于 AKE”和“Calc 在该场景这样结算”是两类证据，不能直接互相覆盖。
+
+## 快照组成
+
+| 文件 | 责任 |
+| --- | --- |
+| `manifest.json` | 保存可选 TableCfg version 与 shared revision |
+| `table-corpus.manifest.json` | 固定本次选中的表版本、选定表的来源/大小/哈希与聚合哈希 |
+| `asset-sync-index.json` | 固定 JSON 资产 revision 与上游 MD5/size 索引 |
+| `runtime-corpus.manifest.json` | 固定索引扫描范围、运行时内容哈希、递归依赖闭包、索引外补充文件和 missing 集合 |
+| `sources.lock.json` | 组合以上 manifest 哈希、语料哈希、Calc/第三方来源和全局 pins |
+
+运行时同步默认使用仓库内已经固定的资产索引。只有明确执行 refresh 时才允许引入新的上游 JSON revision；因此普通重建不会因为日期变化而悄悄换数据。
 
 ## 证据能证明什么
 
@@ -88,18 +100,29 @@ reference/public-data
   └─ clean-room 编译/运行/审计 ─→ derived/cleanroom
 ```
 
-- `derived/ake-analysis/` 是展示性、有损的参考分析，不是运行时输入。
+- `derived/ake-analysis/` 是来源锁明示研究样本的展示性、有损参考分析，不是全运行时语料，也不是运行时输入；生成器只重建锁定样本并清理自身遗留输出。
 - `derived/cleanroom/` 是本项目生成结果，包括技能模型、模拟、时序画像和覆盖审计。
 - `fixtures/calc/` 是独立测试输入与 oracle；`src/` 不读取其中答案。
 - 修改编译器、语义映射或审计分类后，应重新运行相关 audit，不能手工修改报告统计。
 
 ## 更新纪律
 
-同步公开数据是有意的版本升级，不是普通开发步骤。更新时必须：
+同步公开数据是有意的版本升级，不是普通开发步骤。标准事务为：
 
-1. 更新来源快照和 `sources.lock.json`；
-2. 重新生成受影响的 analysis、timing 和 audit；
-3. 运行全部 oracle 回归并区分版本差异与实现回归；
-4. 在维护记录中说明旧版本、新版本、变化范围和未闭合差异。
+```bash
+npm run sync:akedatabase-tables -- --version=<game@hotfix>
+npm run sync:ake-runtime-corpus -- --refresh-index
+npm run source-lock:update
+npm run derive:ake
+npm run derive:pelica
+npm run derive:ake-timing
+npm run audit:ake-actions
+npm run audit:ake-ability-events
+npm run audit:ake-operator-mechanisms
+npm run docs:evidence
+npm run check
+```
+
+若只验证已经固定的 JSON revision，第二条命令省略 `--refresh-index`。升级还必须运行跨角色、前端和 RIA 中受影响的验证，并在维护记录中说明旧/新版本、目录差异、生成器修复和未闭合项。完整合同见[文档与证据系统](./documentation-system.md)。
 
 当前同步脚本不会读取仓库外的私人数据文件。

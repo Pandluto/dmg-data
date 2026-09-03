@@ -5,10 +5,13 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+# Compatibility entry point for refreshing the older hand-picked Calc and
+# third-party snapshots. The Node corpus scripts below are authoritative for
+# AKE TableCfg/JSON closure and sources.lock schema v2.
 $ProjectRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $GitCommit = '1bb9549705eba2601affed4cb8a7ea69ba13b150'
-$AkeVersion = '1.4.4@9433094-12'
-$TableBase = 'https://data.akedata.wiki/public/1.4.4/9433094-12/TableCfg'
+$AkeVersion = '1.5.3@9764758-3'
+$TableBase = 'https://data.akedata.wiki/public/1.5.3/9764758-3/TableCfg'
 $JsonBase = 'https://data.akedata.wiki/public/Json'
 $GitRawBase = "https://raw.githubusercontent.com/NagiYume/AKEDatabase/$GitCommit"
 $PelicaPanelRequest = [ordered]@{
@@ -194,19 +197,14 @@ $records = foreach ($source in $Sources) {
     }
 }
 
-$lock = [ordered]@{
-    schemaVersion = 1
-    generatedAt = (Get-Date).ToUniversalTime().ToString('o')
-    pins = [ordered]@{
-        akedataTableVersion = $AkeVersion
-        akedataJsonRevision = ((Get-Content -LiteralPath (Get-SafeTargetPath -RelativePath 'reference/public-data/akedata/asset-sync-index.json') -Raw | ConvertFrom-Json -Depth 30).revision)
-        akeDatabaseCommit = $GitCommit
-        calcDataVersion = ((Get-Content -LiteralPath (Get-SafeTargetPath -RelativePath 'reference/public-data/calc/api/metadata.json') -Raw | ConvertFrom-Json -Depth 10).data.version)
-        calcBundle = '/_nuxt/Cgx2mFCV.js'
-    }
-    sources = $records
-}
+$tableSync = Join-Path $PSScriptRoot 'sync-akedatabase-tables.mjs'
+$runtimeSync = Join-Path $PSScriptRoot 'sync-ake-runtime-corpus.mjs'
+$lockUpdate = Join-Path $PSScriptRoot 'update-source-lock.mjs'
 
-$lockPath = Get-SafeTargetPath -RelativePath 'sources.lock.json'
-$lock | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $lockPath -Encoding utf8NoBOM
-Write-Host "Wrote $lockPath"
+& node $tableSync "--version=$AkeVersion"
+if ($LASTEXITCODE -ne 0) { throw "Table corpus sync failed with exit code $LASTEXITCODE" }
+& node $runtimeSync
+if ($LASTEXITCODE -ne 0) { throw "Runtime corpus sync failed with exit code $LASTEXITCODE" }
+& node $lockUpdate
+if ($LASTEXITCODE -ne 0) { throw "Source lock update failed with exit code $LASTEXITCODE" }
+Write-Host 'Refreshed sources.lock.json through the authoritative Node corpus pipeline.'

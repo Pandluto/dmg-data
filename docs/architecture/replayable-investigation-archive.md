@@ -73,7 +73,7 @@ artifacts/
 - `schemaVersion`、Case/Session/Run ID、`recording/completed/interrupted/partial` 与 `sealed`；
 - started/ended time、seed 和经过脱敏的显式 config；
 - fixture 的 canonical SHA-256；
-- battle rule hash（`src/core`、`spec` 与 package）、data lock hash、完整执行闭包 `executableHash` 和记录闭包 `recorderHash`；执行闭包包含 adapter、demo service、runner/runtime、normalizer、schema、OpenAPI、package lock/config；
+- battle rule hash（`src/core`、`spec` 与 package）、data lock hash、完整执行闭包 `executableHash` 和记录闭包 `recorderHash`；data lock 通过语料 manifest/content hash 间接覆盖完整固定数据集，执行闭包包含 adapter、demo service、runner/runtime、normalizer、schema、OpenAPI、package lock/config；
 - Git commit、branch、dirty path 摘要、status hash、tracked diff hash；参与执行的 untracked 文件还保存逐文件 content hash 与 aggregate hash；
 - Node、platform、architecture；
 - 每个文件的 byte count、SHA-256、encoding 和整个文件表的 content hash；

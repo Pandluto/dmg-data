@@ -6,15 +6,15 @@
     "level": 1,
     "generator": "AKEV3SkillData.analyzeSkill",
     "generatorWrapper": "scripts/export-ake-analysis.mjs",
-    "generatorWrapperSha256": "571c3da2e52854f78c3fe352b745de6555f5ead1f49c075538396d5185eff692",
+    "generatorWrapperSha256": "28f2daa895b708f4991d7f51146dfeb690e0226c3ad3be2a45f3996cac98a602",
     "akeDatabaseCommit": "1bb9549705eba2601affed4cb8a7ea69ba13b150",
-    "akedataTableVersion": "1.4.4@9433094-12",
-    "akedataJsonRevision": "2026-08-22T05:51:44.260485+08:00",
+    "akedataTableVersion": "1.5.3@9764758-3",
+    "akedataJsonRevision": "2026-09-01T22:53:25.945329+00:00",
     "inputs": [
       {
         "role": "raw",
         "path": "reference/public-data/akedata/Json/SkillData/chr_0004_pelica_attack1.json",
-        "sha256": "6dd2f654daad0330f3f13d5a3608249b4c736777d2e0e411c556a5966ef2c832"
+        "sha256": "c611e3e4cbcd0215878af14ed1bd923d1e4685bc2d87ec75a69c0046392299e8"
       },
       {
         "role": "analyzer",
@@ -24,12 +24,12 @@
       {
         "role": "skill-patch-table",
         "path": "reference/public-data/akedata/TableCfg/SkillPatchTable.json",
-        "sha256": "1ed8b010f6413b90f64cc68739ffd9bebef6613853ff7134f154eb2c87728a1d"
+        "sha256": "7005a81c09e8d61065a624679f3ee52e3113c0809f600b86b555ba35210c78a4"
       },
       {
         "role": "potential-talent-effect-table",
         "path": "reference/public-data/akedata/TableCfg/PotentialTalentEffectTable.json",
-        "sha256": "b31a47150b62bd4a03348964848406c83ee28e7a1f73967724f8c9297e510c99"
+        "sha256": "17f26c9bd253a68a81b39892efe44967c0e25a925c8190fd833b0c19b640f6e3"
       }
     ],
     "semantics": "research-view-model-not-runtime-state"

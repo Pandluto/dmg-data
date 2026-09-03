@@ -553,7 +553,10 @@ test('a real replay streams persisted runtime events before its job completes an
     ).then(response => response.json());
     const received = [];
     while (received.length < 5) {
-        const message = await nextSse(iterator);
+        // The full root suite runs CPU-heavy AKE audits in parallel. Keep the
+        // assertion bounded, but allow the real worker checkpoint enough time
+        // to reach the event loop under that documented load.
+        const message = await nextSse(iterator, 30_000);
         if (message.value.event === 'ria-event') received.push(message.value);
     }
     assert.deepEqual(received.map(message => message.id), [1, 2, 3, 4, 5]);

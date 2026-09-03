@@ -20,14 +20,16 @@
 
 | 命令 | 范围 |
 | --- | --- |
-| `npm run check:docs` | 当前文档入口、相对链接和顶层归档纪律 |
+| `npm run check:consistency` | 来源 pins、逐文件/语料哈希、资产索引和递归依赖闭包 |
+| `npm run docs:evidence:check` | 当前证据页与锁、目录和 audit 是否完全一致 |
+| `npm run check:docs` | 证据新鲜度、文档入口、Spec 结构、相对链接和顶层归档纪律 |
 | `npm test` | 根 parser、compiler、运行时、runner、状态机和 oracle 回归 |
 | `npm run simulate:pelica` | 固定精确链的佩丽卡场景 |
 | `npm run simulate:pelica-generic -- --no-write` | 通用单人链的佩丽卡装配与执行 |
 | `npm run verify:cross-character` | 陈千语、狼卫冻结跨角色场景 |
 | `npm run audit:ake-actions` | 全 SkillData/BuffData 动作编译覆盖 |
 | `npm run audit:ake-ability-events` | ability listener 消费者与生产者覆盖 |
-| `npm run audit:ake-operator-mechanisms` | 31 个角色的机制风险分类 |
+| `npm run audit:ake-operator-mechanisms` | 当前可选角色目录的机制风险分类 |
 | `npm --prefix demo/lts-ui run typecheck` | 前端 TypeScript 边界 |
 | `npm --prefix demo/lts-ui test` | 前端与 LTS 继承合同 |
 | `npm run demo:build` | AKE 工作台生产构建 |
@@ -35,7 +37,7 @@
 | `npm run ria:test -- --ria-case-id CASE --ria-session-id SESSION -- test/file.test.mjs` | opt-in Node test；失败时保留 interrupted investigation Run，退出码不变 |
 | `npm run ria -- doctor --json` | 从原始档案重建索引并校验 sealed Run 内容哈希 |
 
-`npm run check` 只组合当前文档检查和根测试；前端验证仍需按改动范围显式运行。
+`npm run check` 组合来源一致性、当前证据/文档检查和根测试；前端与 RIA 验证仍需按改动范围显式运行。
 
 完整 LTS UI 套件包含 AKE adapter/provider/runtime ledger、RIA UI sink、Sites mobile-share Worker、共享变速领域模型和 Canvas 结算合同。聚焦测试仍适合快速定位，但交付验收必须同时运行上表中的完整 `npm --prefix demo/lts-ui test`、typecheck 与 Demo build。
 
@@ -54,17 +56,15 @@
 
 “逐包一致”至少比较帧、来源、技能身份、伤害类型、raw/final 数值和状态变化；只比较总伤害会掩盖顺序、来源和错误抵消。
 
-## 生成审计快照
+## 当前生成审计
 
-以下数字来自 2026-08-28 在 tracked 基线 `f9a2067` 的代码与当前工作区审计脚本上重新生成的 JSON；文件本身是权威，表格只是带日期的索引。
+[当前证据快照](../evidence/current-snapshot.md)是版本、目录规模、三类审计数字与 missing 集合的唯一人类可读入口。它直接读取以下权威 JSON：
 
-| 报告 | 快照 |
-| --- | --- |
-| `derived/cleanroom/ake-action-coverage.json` | 3,517 个文件、27,289 个动作出现；9,128 executable、11,075 metadata-only、7,086 unresolved；calculator-core executable route coverage 约 96.62% |
-| `derived/cleanroom/ake-ability-event-audit.json` | 84 个事件键、1,072 个消费者组；30 类生产者完整，52 类缺少已知生产者，2 类含非法值 |
-| `derived/cleanroom/ake-operator-mechanism-audit.json` | 31 个角色、3,030 条 finding；866 条 combat risk，其中 279 blocking、165 partial、422 evidence-missing |
+- `derived/cleanroom/ake-action-coverage.json`；
+- `derived/cleanroom/ake-ability-event-audit.json`；
+- `derived/cleanroom/ake-operator-mechanism-audit.json`。
 
-动作覆盖刷新后不再把 `CastSkill` 列为阻塞来源类型；派生技能执行由专门测试验证。这个变化同时说明：旧审计不能在代码更新后继续当作当前结论。
+执行 `npm run docs:evidence` 更新页面，执行 `npm run docs:evidence:check` 只检查新鲜度。架构、测试和研究页不再复制一份“当前快照”；带日期的历史数字只保留在对应维护记录。
 
 ## 生成物维护
 

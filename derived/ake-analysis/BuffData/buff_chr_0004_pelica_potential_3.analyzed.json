@@ -5,14 +5,14 @@
     "id": "buff_chr_0004_pelica_potential_3",
     "generator": "AKEV3BuffData.analyzeBuff",
     "generatorWrapper": "scripts/export-ake-analysis.mjs",
-    "generatorWrapperSha256": "571c3da2e52854f78c3fe352b745de6555f5ead1f49c075538396d5185eff692",
+    "generatorWrapperSha256": "28f2daa895b708f4991d7f51146dfeb690e0226c3ad3be2a45f3996cac98a602",
     "akeDatabaseCommit": "1bb9549705eba2601affed4cb8a7ea69ba13b150",
-    "akedataJsonRevision": "2026-08-22T05:51:44.260485+08:00",
+    "akedataJsonRevision": "2026-09-01T22:53:25.945329+00:00",
     "inputs": [
       {
         "role": "raw",
         "path": "reference/public-data/akedata/Json/BuffData/buff_chr_0004_pelica_potential_3.json",
-        "sha256": "7661f7626e549801854ac85d805e77169893dff7515419861c5d0f93b8277754"
+        "sha256": "99de17bafaf7957c85f8ac2f7758272961b89e39e90ba761a5be24310b93ed17"
       },
       {
         "role": "analyzer",

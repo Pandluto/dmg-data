@@ -25,13 +25,15 @@ AKE 公开表 / SkillData / BuffData      Calc 公共请求与响应
 
 | 层 | 当前所有者 | 输出 |
 | --- | --- | --- |
-| 证据 | `reference/`、`fixtures/`、`sources.lock.json` | 固定来源、版本、哈希和黑盒观察 |
+| 证据 | `reference/`、`fixtures/`、`sources.lock.json` | 固定来源、版本、逐文件/语料哈希和黑盒观察 |
 | 规范化 | `ake-data-repository.mjs`、`ake-parser.mjs`、`ake-action-compiler.mjs`、`spec/` | 角色目录、依赖闭包、技能程序、Buff 定义和显式 unresolved |
 | 运行时 | `combat-runtime.mjs`、单人/小队 runner 与状态机 | 指令结果、事件 trace、Hit、状态、资源、冷却和最终快照 |
 | 投影 | `ake-timeline-projector.mjs`、`demo-service.mjs`、前端 ledger | API 报告、时间轴读取模型和逐 Hit 解释 |
 | 产品外壳 | `demo/lts-ui/` | 角色配置、共享变速排轴、详情、报告与交互 |
 
 依赖只允许由上向下。前端不得重新解释 AKE 动作或重新计算已经结算的伤害；运行时不得读取 UI 状态、Calc oracle 或第三方参考实现作为答案。
+
+文档不构成第六套运行层。Accepted Spec/ADR 约束目标，架构描述当前实现，生成证据汇总当前测量；三者按 [文档与证据系统](./documentation-system.md) 分工。
 
 ## 两条执行链
 
@@ -58,3 +60,5 @@ AKE 公开表 / SkillData / BuffData      Calc 公共请求与响应
 - AKE 与 Calc 快照版本不同；跨源数值差异必须先排除版本因素。
 - Endaxis 只提供机制目录、架构参照和测试维度，不提供本项目的权威数值或可复制实现。
 - 前端实时预演与服务端结算仍是两个结果等级；结算存在且 execution digest 匹配时，结算是唯一展示权威。
+
+当前版本、目录数量、语料哈希和审计范围见唯一的[生成证据快照](../evidence/current-snapshot.md)。

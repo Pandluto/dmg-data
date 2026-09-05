@@ -1,0 +1,580 @@
+{
+  "baselineCommit": "280a238",
+  "date": "2026-09-06",
+  "browser": {
+    "title": "终末地伤害工作台",
+    "route": "#/timeline",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 1633,
+      "height": 842,
+      "pixelRatio": 1.7999999523162842
+    }
+  },
+  "sessionId": "browser-20260905T172204916z-603c09af",
+  "activeTimelineId": "timeline-1788596477136-459dea68-fdfe-4ab9-9054-287b0e68d91a",
+  "checks": {
+    "executionDigestMatchesBaseline": true,
+    "operatorConfigsMatch": true,
+    "inputAfterCancelUnchanged": true,
+    "runAfterCancelUnchanged": true,
+    "lensClosedAfterCancel": true
+  },
+  "before": {
+    "buttons": [
+      {
+        "commandId": "vzlvjee0a",
+        "bounds": {
+          "x": 126.66667175292969,
+          "y": 161.9965362548828,
+          "width": 80,
+          "height": 60.000003814697266
+        }
+      },
+      {
+        "commandId": "kkopxnylg",
+        "bounds": {
+          "x": 126.66667175292969,
+          "y": 90.00000762939453,
+          "width": 80,
+          "height": 60.000003814697266
+        }
+      },
+      {
+        "commandId": "rckgq5cqt",
+        "bounds": {
+          "x": 286.66668701171875,
+          "y": 161.9965362548828,
+          "width": 80,
+          "height": 60.000003814697266
+        }
+      }
+    ],
+    "inputs": [
+      {
+        "id": "kkopxnylg",
+        "characterId": "chr_0026_lastrite",
+        "skillType": "B",
+        "runtimeSkillId": "chr_0026_lastrite_normal_skill",
+        "nodeIndex": 0,
+        "releaseAnchor": {
+          "schemaVersion": 1,
+          "kind": "group-start",
+          "debounceFrames": 0
+        }
+      },
+      {
+        "id": "vzlvjee0a",
+        "characterId": "chr_0027_tangtang",
+        "skillType": "A",
+        "runtimeSkillId": "chr_0027_tangtang_attack1",
+        "nodeIndex": 0,
+        "basicAttackStageCount": 5,
+        "basicAttackTailBundle": {
+          "id": "basic-tail:vzlvjee0a:rckgq5cqt",
+          "predecessorButtonId": "vzlvjee0a",
+          "successorButtonId": "rckgq5cqt",
+          "selectedStageCount": 5,
+          "blockingEndOffsetFrames": 103,
+          "immutable": true,
+          "editPolicy": "delete-successor-to-recompute"
+        },
+        "releaseAnchor": {
+          "schemaVersion": 1,
+          "kind": "group-start",
+          "debounceFrames": 0
+        }
+      },
+      {
+        "id": "rckgq5cqt",
+        "characterId": "chr_0027_tangtang",
+        "skillType": "B",
+        "runtimeSkillId": "chr_0027_tangtang_normal_skill",
+        "nodeIndex": 1,
+        "basicAttackTailBundle": "[CIRCULAR]",
+        "releaseAnchor": {
+          "schemaVersion": 1,
+          "kind": "action-end",
+          "sourceButtonId": "vzlvjee0a",
+          "debounceFrames": 0
+        }
+      }
+    ],
+    "summary": {
+      "totalDamage": 96655.45987098664,
+      "totalPoiseDamage": 28,
+      "dps": 6401.0238325156715,
+      "successfulCommands": 3,
+      "failedCommands": 0,
+      "delayedCommands": 1,
+      "calculatedCharacters": 2,
+      "unsupportedCharacters": 0
+    }
+  },
+  "after": {
+    "buttons": [
+      {
+        "commandId": "kkopxnylg",
+        "bounds": {
+          "x": 50.000003814697266,
+          "y": 105.00000762939453,
+          "width": 120.00000762939453,
+          "height": 90.00000762939453
+        }
+      },
+      {
+        "commandId": "vzlvjee0a",
+        "bounds": {
+          "x": 50.000003814697266,
+          "y": 206.9965362548828,
+          "width": 120.00000762939453,
+          "height": 90.00000762939453
+        }
+      },
+      {
+        "commandId": "rckgq5cqt",
+        "bounds": {
+          "x": 290,
+          "y": 206.9965362548828,
+          "width": 120.00000762939453,
+          "height": 90.00000762939453
+        }
+      }
+    ],
+    "inputs": [
+      {
+        "id": "kkopxnylg",
+        "characterId": "chr_0026_lastrite",
+        "skillType": "B",
+        "runtimeSkillId": "chr_0026_lastrite_normal_skill",
+        "nodeIndex": 0,
+        "releaseAnchor": {
+          "schemaVersion": 1,
+          "kind": "group-start",
+          "debounceFrames": 0
+        }
+      },
+      {
+        "id": "vzlvjee0a",
+        "characterId": "chr_0027_tangtang",
+        "skillType": "A",
+        "runtimeSkillId": "chr_0027_tangtang_attack1",
+        "nodeIndex": 0,
+        "basicAttackStageCount": 5,
+        "basicAttackTailBundle": {
+          "id": "basic-tail:vzlvjee0a:rckgq5cqt",
+          "predecessorButtonId": "vzlvjee0a",
+          "successorButtonId": "rckgq5cqt",
+          "selectedStageCount": 5,
+          "blockingEndOffsetFrames": 103,
+          "immutable": true,
+          "editPolicy": "delete-successor-to-recompute"
+        },
+        "releaseAnchor": {
+          "schemaVersion": 1,
+          "kind": "group-start",
+          "debounceFrames": 0
+        }
+      },
+      {
+        "id": "rckgq5cqt",
+        "characterId": "chr_0027_tangtang",
+        "skillType": "B",
+        "runtimeSkillId": "chr_0027_tangtang_normal_skill",
+        "nodeIndex": 1,
+        "basicAttackTailBundle": "[CIRCULAR]",
+        "releaseAnchor": {
+          "schemaVersion": 1,
+          "kind": "action-end",
+          "sourceButtonId": "vzlvjee0a",
+          "debounceFrames": 0
+        }
+      }
+    ],
+    "summary": {
+      "totalDamage": 96655.45987098664,
+      "totalPoiseDamage": 28,
+      "dps": 6401.0238325156715,
+      "successfulCommands": 3,
+      "failedCommands": 0,
+      "delayedCommands": 1,
+      "calculatedCharacters": 2,
+      "unsupportedCharacters": 0
+    },
+    "commands": [
+      {
+        "id": "kkopxnylg",
+        "requestedFrame": 0,
+        "actualFrame": 0,
+        "endFrame": 73
+      },
+      {
+        "id": "vzlvjee0a",
+        "requestedFrame": 0,
+        "actualFrame": 0,
+        "endFrame": 111
+      },
+      {
+        "id": "rckgq5cqt",
+        "requestedFrame": 103,
+        "actualFrame": 111,
+        "endFrame": 161
+      }
+    ]
+  },
+  "gesture": {
+    "id": "command-20260905T172439333z-054939ac",
+    "command": {
+      "op": "timeline-drag",
+      "timelineId": "timeline-1788596477136-459dea68-fdfe-4ab9-9054-287b0e68d91a",
+      "buttonId": "kkopxnylg",
+      "steps": [
+        {
+          "clientX": 200,
+          "clientY": 150,
+          "holdMs": 220
+        },
+        {
+          "clientX": 100,
+          "clientY": 230,
+          "holdMs": 260
+        }
+      ],
+      "finish": "cancel"
+    },
+    "status": "done",
+    "createdAt": "2026-09-05T17:24:39.333Z",
+    "result": {
+      "buttonId": "kkopxnylg",
+      "timelineId": "timeline-1788596477136-459dea68-fdfe-4ab9-9054-287b0e68d91a",
+      "finish": "cancel",
+      "stepsExecuted": 2,
+      "durationMs": 719,
+      "releaseLensOpened": true,
+      "clientSequenceFromExclusive": 84,
+      "clientSequenceToInclusive": 93,
+      "observationSections": [
+        "releaseLens",
+        "workbench",
+        "timeline"
+      ]
+    },
+    "error": null,
+    "completedAt": "2026-09-05T17:24:40.747Z"
+  },
+  "lockedTailRejection": {
+    "id": "command-20260905T172411462z-0f3eecf4",
+    "command": {
+      "op": "timeline-drag",
+      "timelineId": "timeline-1788596477136-459dea68-fdfe-4ab9-9054-287b0e68d91a",
+      "buttonId": "rckgq5cqt",
+      "steps": [
+        {
+          "clientX": 240,
+          "clientY": 230,
+          "holdMs": 220
+        },
+        {
+          "clientX": 100,
+          "clientY": 230,
+          "holdMs": 260
+        }
+      ],
+      "finish": "cancel"
+    },
+    "status": "error",
+    "createdAt": "2026-09-05T17:24:11.462Z",
+    "result": null,
+    "error": "Error: 按钮没有进入拖动状态；可能被当前排轴规则锁定。",
+    "completedAt": "2026-09-05T17:24:12.184Z"
+  },
+  "events": [
+    {
+      "clientSequence": 37,
+      "occurredAt": "2026-09-05T17:22:06.122Z",
+      "kind": "calculation",
+      "type": "AkeCalculationRequested",
+      "runId": "run-e48b9a74-01c4-4c0b-9ef3-caa084fe8167",
+      "payload": {
+        "enemyId": "eny_0007_mimicw",
+        "commandCount": 9,
+        "selectedCharacterIds": [
+          "chr_0026_lastrite",
+          "chr_0027_tangtang"
+        ],
+        "requestedEndFrame": 620,
+        "causedByClientSequence": 36,
+        "executionDigestSha256": "57cee92aba9051e54d9445128c3525ce4b828d65e9aa1a114281e9ce2beb97dd"
+      },
+      "sequence": 38,
+      "receivedAt": "2026-09-05T17:22:07.630Z",
+      "sessionId": "browser-20260905T172204916z-603c09af"
+    },
+    {
+      "clientSequence": 41,
+      "occurredAt": "2026-09-05T17:22:07.663Z",
+      "kind": "calculation",
+      "type": "AkeCalculationCompleted",
+      "runId": "run-e48b9a74-01c4-4c0b-9ef3-caa084fe8167",
+      "payload": {
+        "totalDamage": 511169.30090090353,
+        "hitCount": 199,
+        "successfulCommands": 9,
+        "failedCommands": 0,
+        "causedByClientSequence": 36,
+        "executionDigestSha256": "57cee92aba9051e54d9445128c3525ce4b828d65e9aa1a114281e9ce2beb97dd"
+      },
+      "sequence": 43,
+      "receivedAt": "2026-09-05T17:22:07.926Z",
+      "sessionId": "browser-20260905T172204916z-603c09af"
+    },
+    {
+      "clientSequence": 73,
+      "occurredAt": "2026-09-05T17:22:56.744Z",
+      "kind": "calculation",
+      "type": "AkeCalculationRequested",
+      "runId": "run-f799beb7-a1a1-4e62-a138-58c768e6b00b",
+      "payload": {
+        "enemyId": "eny_0007_mimicw",
+        "commandCount": 3,
+        "selectedCharacterIds": [
+          "chr_0026_lastrite",
+          "chr_0027_tangtang"
+        ],
+        "requestedEndFrame": 453,
+        "causedByClientSequence": 72,
+        "executionDigestSha256": "0469d4e9ff4098df39173dbee8bcda7d2ed1117cb3fe9ea9e8f3fbb21afb51b8"
+      },
+      "sequence": 77,
+      "receivedAt": "2026-09-05T17:22:57.292Z",
+      "sessionId": "browser-20260905T172204916z-603c09af"
+    },
+    {
+      "clientSequence": 76,
+      "occurredAt": "2026-09-05T17:22:57.201Z",
+      "kind": "calculation",
+      "type": "AkeCalculationCompleted",
+      "runId": "run-f799beb7-a1a1-4e62-a138-58c768e6b00b",
+      "payload": {
+        "totalDamage": 96655.45987098664,
+        "hitCount": 53,
+        "successfulCommands": 3,
+        "failedCommands": 0,
+        "causedByClientSequence": 72,
+        "executionDigestSha256": "0469d4e9ff4098df39173dbee8bcda7d2ed1117cb3fe9ea9e8f3fbb21afb51b8"
+      },
+      "sequence": 81,
+      "receivedAt": "2026-09-05T17:22:57.926Z",
+      "sessionId": "browser-20260905T172204916z-603c09af"
+    },
+    {
+      "clientSequence": 88,
+      "occurredAt": "2026-09-05T17:24:40.377Z",
+      "kind": "interaction",
+      "type": "DebugTimelineDragStep",
+      "runId": "run-f799beb7-a1a1-4e62-a138-58c768e6b00b",
+      "commandId": "command-20260905T172439333z-054939ac",
+      "payload": {
+        "step": 1,
+        "point": {
+          "clientX": 200,
+          "clientY": 150
+        },
+        "releaseLens": null
+      },
+      "sequence": 99,
+      "receivedAt": "2026-09-05T17:24:40.686Z",
+      "sessionId": "browser-20260905T172204916z-603c09af"
+    },
+    {
+      "clientSequence": 89,
+      "occurredAt": "2026-09-05T17:24:40.542Z",
+      "kind": "interaction",
+      "type": "ReleaseLensOpened",
+      "runId": "run-f799beb7-a1a1-4e62-a138-58c768e6b00b",
+      "payload": {
+        "sourceButtonId": "vzlvjee0a",
+        "candidateCount": 7,
+        "editing": false
+      },
+      "sequence": 100,
+      "receivedAt": "2026-09-05T17:24:40.689Z",
+      "sessionId": "browser-20260905T172204916z-603c09af"
+    },
+    {
+      "clientSequence": 90,
+      "occurredAt": "2026-09-05T17:24:40.639Z",
+      "kind": "interaction",
+      "type": "DebugTimelineDragStep",
+      "runId": "run-f799beb7-a1a1-4e62-a138-58c768e6b00b",
+      "commandId": "command-20260905T172439333z-054939ac",
+      "payload": {
+        "step": 2,
+        "point": {
+          "clientX": 100,
+          "clientY": 230
+        },
+        "releaseLens": {
+          "sourceButtonId": "vzlvjee0a",
+          "sourceName": "汤汤 · 崩你脑壳！ · F0",
+          "rect": {
+            "left": 12,
+            "top": 250.99305725097656,
+            "width": 520,
+            "height": 276
+          },
+          "sourceRect": {
+            "left": 56.00347137451172,
+            "top": 213,
+            "width": 23.993057250976562,
+            "height": 23.993057250976562
+          },
+          "tickRate": 30,
+          "candidateRevision": "[[\"kkopxnylg\",0,0,0,\"chr_0026_lastrite_normal_skill\",{\"schemaVersion\":1,\"kind\":\"group-start\",\"debounceFrames\":0},null,null],[\"vzlvjee0a\",0,1,0,\"chr_0027_tangtang_attack1\",{\"schemaVersion\":1,\"kind\":\"group-start\",\"debounceFrames\":0},5,null],[\"rckgq5cqt\",0,1,1,\"chr_0027_tangtang_normal_skill\",{\"schemaVersion\":1,\"kind\":\"action-end\",\"sourceButtonId\":\"vzlvjee0a\",\"debounceFrames\":0},null,null]]",
+          "draft": true,
+          "selectedAnchorId": "damage-hit:vzlvjee0a:preview-hit:0",
+          "offsetFrames": 6,
+          "frame": 9,
+          "anchor": {
+            "schemaVersion": 1,
+            "kind": "damage-hit",
+            "sourceButtonId": "vzlvjee0a",
+            "sourceHitId": "vzlvjee0a:preview-hit:0",
+            "sourceHitOffsetFrames": 3,
+            "debounceFrames": 6
+          },
+          "reason": null,
+          "note": "跨角色衔接；沿用当前主控，松手后核验资源与触发条件",
+          "editing": false,
+          "candidates": [
+            {
+              "id": "action-start:vzlvjee0a",
+              "label": "同时起手",
+              "frame": 0,
+              "anchor": {
+                "schemaVersion": 1,
+                "kind": "action-start",
+                "sourceButtonId": "vzlvjee0a",
+                "debounceFrames": 0
+              }
+            },
+            {
+              "id": "damage-hit:vzlvjee0a:preview-hit:0",
+              "label": "第 1 击后",
+              "frame": 3,
+              "anchor": {
+                "schemaVersion": 1,
+                "kind": "damage-hit",
+                "sourceButtonId": "vzlvjee0a",
+                "sourceHitId": "vzlvjee0a:preview-hit:0",
+                "sourceHitOffsetFrames": 3,
+                "debounceFrames": 6
+              }
+            },
+            {
+              "id": "damage-hit:vzlvjee0a:preview-hit:1",
+              "label": "第 2 击后",
+              "frame": 17,
+              "anchor": {
+                "schemaVersion": 1,
+                "kind": "damage-hit",
+                "sourceButtonId": "vzlvjee0a",
+                "sourceHitId": "vzlvjee0a:preview-hit:1",
+                "sourceHitOffsetFrames": 17,
+                "debounceFrames": 6
+              }
+            },
+            {
+              "id": "damage-hit:vzlvjee0a:preview-hit:2",
+              "label": "第 3 击后",
+              "frame": 43,
+              "anchor": {
+                "schemaVersion": 1,
+                "kind": "damage-hit",
+                "sourceButtonId": "vzlvjee0a",
+                "sourceHitId": "vzlvjee0a:preview-hit:2",
+                "sourceHitOffsetFrames": 43,
+                "debounceFrames": 6
+              }
+            },
+            {
+              "id": "damage-hit:vzlvjee0a:preview-hit:3",
+              "label": "第 4 击后",
+              "frame": 74,
+              "anchor": {
+                "schemaVersion": 1,
+                "kind": "damage-hit",
+                "sourceButtonId": "vzlvjee0a",
+                "sourceHitId": "vzlvjee0a:preview-hit:3",
+                "sourceHitOffsetFrames": 74,
+                "debounceFrames": 6
+              }
+            },
+            {
+              "id": "damage-hit:vzlvjee0a:preview-hit:4",
+              "label": "第 5 击后",
+              "frame": 97,
+              "anchor": {
+                "schemaVersion": 1,
+                "kind": "damage-hit",
+                "sourceButtonId": "vzlvjee0a",
+                "sourceHitId": "vzlvjee0a:preview-hit:4",
+                "sourceHitOffsetFrames": 97,
+                "debounceFrames": 6
+              }
+            },
+            {
+              "id": "action-end:vzlvjee0a",
+              "label": "动作结束后",
+              "frame": 111,
+              "anchor": {
+                "schemaVersion": 1,
+                "kind": "action-end",
+                "sourceButtonId": "vzlvjee0a",
+                "debounceFrames": 0
+              }
+            }
+          ]
+        }
+      },
+      "sequence": 101,
+      "receivedAt": "2026-09-05T17:24:40.693Z",
+      "sessionId": "browser-20260905T172204916z-603c09af"
+    },
+    {
+      "clientSequence": 93,
+      "occurredAt": "2026-09-05T17:24:40.640Z",
+      "kind": "interaction",
+      "type": "ReleaseLensCancelled",
+      "runId": "run-f799beb7-a1a1-4e62-a138-58c768e6b00b",
+      "payload": {
+        "buttonId": "kkopxnylg"
+      },
+      "sequence": 104,
+      "receivedAt": "2026-09-05T17:24:40.705Z",
+      "sessionId": "browser-20260905T172204916z-603c09af"
+    },
+    {
+      "clientSequence": 100,
+      "occurredAt": "2026-09-05T17:28:12.923Z",
+      "kind": "interaction",
+      "type": "click",
+      "runId": "run-f799beb7-a1a1-4e62-a138-58c768e6b00b",
+      "commandId": null,
+      "payload": {
+        "target": {
+          "tag": "BUTTON",
+          "id": "",
+          "role": null,
+          "label": "寒冷附着 · 叠层并刷新 1→2层 · 4.47秒 / F134 · 汤汤",
+          "commandId": null,
+          "name": null,
+          "inputType": "button"
+        }
+      },
+      "sequence": 119,
+      "receivedAt": "2026-09-05T17:28:12.957Z",
+      "sessionId": "browser-20260905T172204916z-603c09af"
+    }
+  ]
+}

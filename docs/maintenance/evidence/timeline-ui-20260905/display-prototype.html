@@ -16,7 +16,7 @@ const state={caseKey:'wulfa',mode:'compact',expanded:false,selected:7,focus:null
 const select=$('[data-case]');cases.forEach(c=>{const o=document.createElement('option');o.value=c.key;o.textContent=c.name;select.append(o)});
 const el=(tag,attrs,text)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const[k,v]of Object.entries(attrs||{}))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e};
 const number=n=>n.toLocaleString('zh-CN',{maximumFractionDigits:0});const frame=f=>f==null?'—':`F${f}`;
-const text=(svg,x,y,s,attrs={})=>svg.append(el('text',{x,y,...attrs},s));
+const text=(svg,x,y,s,attrs={})=>{const e=el('text',{x,y,...attrs},s);if(attrs.fill)e.style.fill=attrs.fill;svg.append(e)};
 function groups(c){const map=new Map();for(const h of c.hits){if(!map.has(h.group))map.set(h.group,[]);map.get(h.group).push(h)}return [...map.values()].map(h=>h.sort((a,b)=>a.f-b.f))}
 function render(){
  const data=cases.find(c=>c.key===state.caseKey),selected=data.commands.find(c=>c.id===state.selected)||data.commands[0];state.selected=selected.id;select.value=data.key;

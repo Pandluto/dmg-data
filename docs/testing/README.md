@@ -16,6 +16,8 @@
 
 低层测试通过不能替代高层证据；Calc 对拍也不能证明未捕获场景。
 
+引擎探索的装备选择、战斗热启动与服务预热、有限战技排列与逐因果对照，按 [Agent 实验方法](../guides/agent-development.md#实验) 执行；已跑范围与未决提案查 [探索记录](../maintenance/engine-exploration.md)。
+
 ## 常用命令
 
 | 命令 | 范围 |
@@ -39,7 +41,7 @@
 
 `npm run check` 组合来源一致性、当前证据/文档检查和根测试；前端与 RIA 验证仍需按改动范围显式运行。
 
-完整 LTS UI 套件包含 AKE adapter/provider/runtime ledger、RIA UI sink、Sites mobile-share Worker、共享变速领域模型和 Canvas 结算合同。聚焦测试仍适合快速定位，但交付验收必须同时运行上表中的完整 `npm --prefix demo/lts-ui test`、typecheck 与 Demo build。
+完整 LTS UI 套件包含 AKE adapter/provider/runtime ledger、RIA UI sink、Sites mobile-share Worker、共享变速领域模型和 Canvas 结算合同。交付验证按实际改动选择受影响的行为检查；前端代码变化运行 typecheck 与 Demo build，涉及真实交互时验证 Chrome/RIA 路径。只有影响跨域公共合同、存在未定位回归或本轮用户要求时扩大到完整套件；纯文档更新不触发业务测试。
 
 ## Calc fixture 范围
 

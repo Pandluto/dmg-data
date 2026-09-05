@@ -6,6 +6,8 @@
 
 | 想回答的问题 | 入口 |
 | --- | --- |
+| 特殊术语是什么意思，某位角色或解包数据已有何结论 | [知识库路由](./knowledge/README.md) |
+| Agent 如何开展实验、分工、记录发现和提出优化 | [开发约定](../AGENTS.md)、[实验与自迭代](./guides/agent-development.md) |
 | 项目现在由哪些组件组成 | [架构事实源](./architecture/README.md) |
 | 一项能力必须满足什么 | [当前 Spec](./specs/README.md) |
 | 为什么采用某个跨模块选择 | [ADR 索引](./architecture/decisions/README.md) |

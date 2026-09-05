@@ -77,7 +77,7 @@ for (const entryPoint of requiredEntryPoints) {
 
 const topLevelEntries = await readdir(docsRoot, { withFileTypes: true });
 const allowedTopLevelDirectories = new Set([
-  'architecture', 'archive', 'evidence', 'guides', 'maintenance', 'research', 'specs', 'testing'
+  'architecture', 'archive', 'evidence', 'guides', 'knowledge', 'maintenance', 'research', 'specs', 'testing'
 ]);
 for (const entry of topLevelEntries) {
   if (entry.isFile() && /^\d{2}-.*\.md$/u.test(entry.name)) {
@@ -93,6 +93,9 @@ for (const entry of topLevelEntries) {
 
 const markdownFiles = [
   path.join(repositoryRoot, 'README.md'),
+  path.join(repositoryRoot, 'AGENTS.md'),
+  path.join(repositoryRoot, 'CONTEXT.md'),
+  path.join(repositoryRoot, 'H.MD'),
   path.join(repositoryRoot, 'NOTICE.md'),
   ...(await collectCurrentMarkdown(docsRoot))
 ].filter((filePath, index, files) => files.indexOf(filePath) === index && filePath && path.extname(filePath) === '.md');

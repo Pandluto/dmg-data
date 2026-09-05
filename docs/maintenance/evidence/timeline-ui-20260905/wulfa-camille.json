@@ -1,0 +1,3813 @@
+{
+  "schemaVersion": 1,
+  "purpose": "同一全局战斗时间上的输入、动作、伤害、状态、窗口；仅可视化研究，不改存档/生产代码",
+  "generatedAt": "2026-09-05T13:42:50.015Z",
+  "evidenceScope": "只读 RIA 已有真实结果；frame 单位为30 FPS；结束时刻要区分命令动作实例结束与最后一次观察到的 HP 伤害；success 不等于外部游戏验证。",
+  "versions": {
+    "current": {
+      "key": "current",
+      "file": "wulfa-browser-result.json",
+      "caseId": "browser-case-20260905T133622928z-9081bc9a",
+      "runId": "run-08ffb209-74f0-45ac-a9a8-84077e06b500",
+      "note": "本轮读取旧保存文档后重算；其 E1 输入为 F62。实际 UI 数据，不能与旧 fixture 当作相同输入对照。",
+      "resultFile": "artifacts/cases/browser-case-20260905T133622928z-9081bc9a/runs/run-08ffb209-74f0-45ac-a9a8-84077e06b500/result.json",
+      "generatedAt": "2026-09-05T13:36:24.916Z",
+      "tickRate": 30,
+      "observationHorizonFrame": 792,
+      "summary": {
+        "hitCount": 114,
+        "hpHitCount": 79,
+        "poiseHitCount": 35,
+        "totalPoiseDamage": 100,
+        "totalDamage": 118173.72537302248,
+        "byCharacterId": {
+          "chr_0028_wulfa": {
+            "hitCount": 92,
+            "hpHitCount": 62,
+            "poiseHitCount": 30,
+            "totalDamage": 82322.64511149436,
+            "totalPoiseDamage": 45
+          },
+          "chr_0033_camille": {
+            "hitCount": 22,
+            "hpHitCount": 17,
+            "poiseHitCount": 5,
+            "totalDamage": 35851.08026152807,
+            "totalPoiseDamage": 55
+          }
+        },
+        "damageByType": {
+          "Fire": 91005.79136517063,
+          "Physical": 27167.93400785183
+        },
+        "dps": 4476.277476250852,
+        "successfulCommands": 8,
+        "failedCommands": 0,
+        "delayedCommands": 3
+      },
+      "firstHpHitFrame": 12,
+      "lastObservedHpHitFrame": 562,
+      "distinctHpFrames": 73,
+      "commands": [
+        {
+          "id": "a9g4ixbs3",
+          "label": "洛茜战技",
+          "actorId": "chr_0028_wulfa",
+          "actor": "洛茜",
+          "inputType": "NormalSkill",
+          "effectiveTypes": [
+            "NormalSkill"
+          ],
+          "inputSkillId": "chr_0028_wulfa_normal_skill",
+          "executedSkillIds": [
+            "chr_0028_wulfa_normal_skill"
+          ],
+          "castId": "command-cast:chr_0028_wulfa:1",
+          "requestedFrame": 0,
+          "startFrame": 0,
+          "actionEndFrame": 62,
+          "completion": "Interrupted",
+          "delayFrames": 0,
+          "success": true,
+          "reason": null,
+          "hpHitCount": 7,
+          "firstHpHitFrame": 16,
+          "lastObservedHpHitFrame": 56,
+          "firstDamageDelayFrames": 16,
+          "postActionEndHitCount": 0,
+          "lastObservedDamageAfterActionEndFrames": 0,
+          "directDamageFrames": [
+            16,
+            22,
+            35
+          ],
+          "totalDamage": 5983.495163867886,
+          "damageGroups": [
+            {
+              "key": "chr_0028_wulfa_normal_skill||0.576",
+              "skillId": "chr_0028_wulfa_normal_skill",
+              "sourceBuffId": null,
+              "atkScale": 0.576,
+              "hits": [
+                {
+                  "id": "runtime-hit:3",
+                  "frame": 16,
+                  "damage": 1171.386676224,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[23][1].actionOnTick[2..][1]"
+                },
+                {
+                  "id": "runtime-hit:4",
+                  "frame": 22,
+                  "damage": 1171.386676224,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[24][1].actionOnTick[2..][0]"
+                }
+              ],
+              "count": 2,
+              "firstFrame": 16,
+              "lastFrame": 22,
+              "totalDamage": 2342.773352448
+            },
+            {
+              "key": "chr_0028_wulfa_normal_skill||0.768",
+              "skillId": "chr_0028_wulfa_normal_skill",
+              "sourceBuffId": null,
+              "atkScale": 0.768,
+              "hits": [
+                {
+                  "id": "runtime-hit:5",
+                  "frame": 35,
+                  "damage": 1561.8489016320002,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][2].actionOnTick[0].failure[1]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 35,
+              "lastFrame": 35,
+              "totalDamage": 1561.8489016320002
+            },
+            {
+              "key": "chr_0028_wulfa_normal_skill|buff_chr_0028_wulfa_tut_normalskill_failure|0.3",
+              "skillId": "chr_0028_wulfa_normal_skill",
+              "sourceBuffId": "buff_chr_0028_wulfa_tut_normalskill_failure",
+              "atkScale": 0.3,
+              "hits": [
+                {
+                  "id": "runtime-hit:7",
+                  "frame": 47,
+                  "damage": 519.7182274469715,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:9",
+                  "frame": 50,
+                  "damage": 519.7182274469715,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:11",
+                  "frame": 53,
+                  "damage": 519.7182274469715,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:13",
+                  "frame": 56,
+                  "damage": 519.7182274469715,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                }
+              ],
+              "count": 4,
+              "firstFrame": 47,
+              "lastFrame": 56,
+              "totalDamage": 2078.872909787886
+            }
+          ]
+        },
+        {
+          "id": "layvjlbbk",
+          "label": "卡缪战技",
+          "actorId": "chr_0033_camille",
+          "actor": "卡缪",
+          "inputType": "NormalSkill",
+          "effectiveTypes": [
+            "NormalSkill"
+          ],
+          "inputSkillId": "chr_0033_camille_normal_skill",
+          "executedSkillIds": [
+            "chr_0033_camille_normal_skill_abilityrange_first"
+          ],
+          "castId": "command-cast:chr_0033_camille:1",
+          "requestedFrame": 0,
+          "startFrame": 0,
+          "actionEndFrame": 26,
+          "completion": "Completed",
+          "delayFrames": 0,
+          "success": true,
+          "reason": null,
+          "hpHitCount": 1,
+          "firstHpHitFrame": 12,
+          "lastObservedHpHitFrame": 12,
+          "firstDamageDelayFrames": 12,
+          "postActionEndHitCount": 0,
+          "lastObservedDamageAfterActionEndFrames": 0,
+          "directDamageFrames": [
+            12
+          ],
+          "totalDamage": 4185.009826643286,
+          "damageGroups": [
+            {
+              "key": "chr_0033_camille_normal_skill_abilityrange_first||2",
+              "skillId": "chr_0033_camille_normal_skill_abilityrange_first",
+              "sourceBuffId": null,
+              "atkScale": 2,
+              "hits": [
+                {
+                  "id": "runtime-hit:1",
+                  "frame": 12,
+                  "damage": 4185.009826643286,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[5][1]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 12,
+              "lastFrame": 12,
+              "totalDamage": 4185.009826643286
+            }
+          ]
+        },
+        {
+          "id": "1j9udz734",
+          "label": "洛茜连携第一段",
+          "actorId": "chr_0028_wulfa",
+          "actor": "洛茜",
+          "inputType": "ComboSkill",
+          "effectiveTypes": [
+            "ComboSkill"
+          ],
+          "inputSkillId": "chr_0028_wulfa_combo_2_skill",
+          "executedSkillIds": [
+            "chr_0028_wulfa_combo_2_skill"
+          ],
+          "castId": "command-cast:chr_0028_wulfa:2",
+          "requestedFrame": 62,
+          "startFrame": 62,
+          "actionEndFrame": 119,
+          "completion": "Interrupted",
+          "delayFrames": 0,
+          "success": true,
+          "reason": null,
+          "hpHitCount": 13,
+          "firstHpHitFrame": 72,
+          "lastObservedHpHitFrame": 114,
+          "firstDamageDelayFrames": 10,
+          "postActionEndHitCount": 0,
+          "lastObservedDamageAfterActionEndFrames": 0,
+          "directDamageFrames": [
+            75,
+            86
+          ],
+          "totalDamage": 5310.117045293942,
+          "damageGroups": [
+            {
+              "key": "chr_0028_wulfa_combo_2_skill|buff_chr_0028_wulfa_normal_defup|0.3",
+              "skillId": "chr_0028_wulfa_combo_2_skill",
+              "sourceBuffId": "buff_chr_0028_wulfa_normal_defup",
+              "atkScale": 0.3,
+              "hits": [
+                {
+                  "id": "runtime-hit:15",
+                  "frame": 72,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:19",
+                  "frame": 75,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:21",
+                  "frame": 78,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:23",
+                  "frame": 81,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                }
+              ],
+              "count": 4,
+              "firstFrame": 72,
+              "lastFrame": 81,
+              "totalDamage": 1039.436454893943
+            },
+            {
+              "key": "chr_0028_wulfa_combo_2_skill||0.5249999999999999",
+              "skillId": "chr_0028_wulfa_combo_2_skill",
+              "sourceBuffId": null,
+              "atkScale": 0.5249999999999999,
+              "hits": [
+                {
+                  "id": "runtime-hit:17",
+                  "frame": 75,
+                  "damage": 1067.6701475999998,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[10][1].actionOnTick[2]"
+                },
+                {
+                  "id": "runtime-hit:25",
+                  "frame": 86,
+                  "damage": 1067.6701475999998,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[11][1].actionOnTick[2]"
+                }
+              ],
+              "count": 2,
+              "firstFrame": 75,
+              "lastFrame": 86,
+              "totalDamage": 2135.3402951999997
+            },
+            {
+              "key": "chr_0028_wulfa_combo_2_skill|buff_chr_0028_wulfa_combo_2_damage|0.15000000000000002",
+              "skillId": "chr_0028_wulfa_combo_2_skill",
+              "sourceBuffId": "buff_chr_0028_wulfa_combo_2_damage",
+              "atkScale": 0.15000000000000002,
+              "hits": [
+                {
+                  "id": "runtime-hit:27",
+                  "frame": 95,
+                  "damage": 305.04861360000007,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:28",
+                  "frame": 99,
+                  "damage": 305.04861360000007,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:29",
+                  "frame": 103,
+                  "damage": 305.04861360000007,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:30",
+                  "frame": 105,
+                  "damage": 305.04861360000007,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:32",
+                  "frame": 108,
+                  "damage": 305.04861360000007,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:34",
+                  "frame": 111,
+                  "damage": 305.04861360000007,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:36",
+                  "frame": 114,
+                  "damage": 305.04861360000007,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                }
+              ],
+              "count": 7,
+              "firstFrame": 95,
+              "lastFrame": 114,
+              "totalDamage": 2135.3402952
+            }
+          ]
+        },
+        {
+          "id": "j1xnfsn7v",
+          "label": "洛茜连携第二段",
+          "actorId": "chr_0028_wulfa",
+          "actor": "洛茜",
+          "inputType": "ComboSkill",
+          "effectiveTypes": [
+            "ComboSkill"
+          ],
+          "inputSkillId": "chr_0028_wulfa_combo_3_skill",
+          "executedSkillIds": [
+            "chr_0028_wulfa_combo_3_skill"
+          ],
+          "castId": "command-cast:chr_0028_wulfa:3",
+          "requestedFrame": 119,
+          "startFrame": 119,
+          "actionEndFrame": 384,
+          "completion": "Interrupted",
+          "delayFrames": 0,
+          "success": true,
+          "reason": null,
+          "hpHitCount": 14,
+          "firstHpHitFrame": 129,
+          "lastObservedHpHitFrame": 167,
+          "firstDamageDelayFrames": 10,
+          "postActionEndHitCount": 0,
+          "lastObservedDamageAfterActionEndFrames": 0,
+          "directDamageFrames": [
+            148
+          ],
+          "totalDamage": 15874.321798689989,
+          "damageGroups": [
+            {
+              "key": "chr_0028_wulfa_combo_3_skill|buff_chr_0028_wulfa_normal_defup|0.3",
+              "skillId": "chr_0028_wulfa_combo_3_skill",
+              "sourceBuffId": "buff_chr_0028_wulfa_normal_defup",
+              "atkScale": 0.3,
+              "hits": [
+                {
+                  "id": "runtime-hit:38",
+                  "frame": 129,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:40",
+                  "frame": 132,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:42",
+                  "frame": 135,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:44",
+                  "frame": 138,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                }
+              ],
+              "count": 4,
+              "firstFrame": 129,
+              "lastFrame": 138,
+              "totalDamage": 1039.436454893943
+            },
+            {
+              "key": "chr_0028_wulfa_combo_3_skill|buff_physical_airborne|1.4724489795918365",
+              "skillId": "chr_0028_wulfa_combo_3_skill",
+              "sourceBuffId": "buff_physical_airborne",
+              "atkScale": 1.4724489795918365,
+              "hits": [
+                {
+                  "id": "runtime-hit:46",
+                  "frame": 148,
+                  "damage": 2994.456798808163,
+                  "semanticHitType": "airborne",
+                  "sourcePath": "buffEventAction[0].actions[1][1]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 148,
+              "lastFrame": 148,
+              "totalDamage": 2994.456798808163
+            },
+            {
+              "key": "chr_0028_wulfa_combo_3_skill||4.8",
+              "skillId": "chr_0028_wulfa_combo_3_skill",
+              "sourceBuffId": null,
+              "atkScale": 4.8,
+              "hits": [
+                {
+                  "id": "runtime-hit:48",
+                  "frame": 148,
+                  "damage": 9761.5556352,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[21][2].actionOnTick[8]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 148,
+              "lastFrame": 148,
+              "totalDamage": 9761.5556352
+            },
+            {
+              "key": "chr_0028_wulfa_combo_3_skill|buff_chr_0028_wulfa_tut_comboskill_success|0.3",
+              "skillId": "chr_0028_wulfa_combo_3_skill",
+              "sourceBuffId": "buff_chr_0028_wulfa_tut_comboskill_success",
+              "atkScale": 0.3,
+              "hits": [
+                {
+                  "id": "runtime-hit:50",
+                  "frame": 158,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:54",
+                  "frame": 161,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:58",
+                  "frame": 164,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:62",
+                  "frame": 167,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                }
+              ],
+              "count": 4,
+              "firstFrame": 158,
+              "lastFrame": 167,
+              "totalDamage": 1039.436454893943
+            },
+            {
+              "key": "chr_0028_wulfa_combo_3_skill|buff_chr_0028_wulfa_tut_comboskill_finish|0.3",
+              "skillId": "chr_0028_wulfa_combo_3_skill",
+              "sourceBuffId": "buff_chr_0028_wulfa_tut_comboskill_finish",
+              "atkScale": 0.3,
+              "hits": [
+                {
+                  "id": "runtime-hit:52",
+                  "frame": 158,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:56",
+                  "frame": 161,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:60",
+                  "frame": 164,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:64",
+                  "frame": 167,
+                  "damage": 259.85911372348573,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                }
+              ],
+              "count": 4,
+              "firstFrame": 158,
+              "lastFrame": 167,
+              "totalDamage": 1039.436454893943
+            }
+          ]
+        },
+        {
+          "id": "97hwmxt5u",
+          "label": "卡缪终结技",
+          "actorId": "chr_0033_camille",
+          "actor": "卡缪",
+          "inputType": "UltimateSkill",
+          "effectiveTypes": [
+            "UltimateSkill"
+          ],
+          "inputSkillId": "chr_0033_camille_ultimate_skill",
+          "executedSkillIds": [
+            "chr_0033_camille_ultimate_skill"
+          ],
+          "castId": "command-cast:chr_0033_camille:2",
+          "requestedFrame": 127,
+          "startFrame": 127,
+          "actionEndFrame": 262,
+          "completion": "Interrupted",
+          "delayFrames": 0,
+          "success": true,
+          "reason": null,
+          "hpHitCount": 9,
+          "firstHpHitFrame": 212,
+          "lastObservedHpHitFrame": 257,
+          "firstDamageDelayFrames": 85,
+          "postActionEndHitCount": 0,
+          "lastObservedDamageAfterActionEndFrames": 0,
+          "directDamageFrames": [
+            212,
+            214,
+            216,
+            218,
+            220,
+            222,
+            224,
+            241,
+            257
+          ],
+          "totalDamage": 12959.083808672614,
+          "damageGroups": [
+            {
+              "key": "chr_0033_camille_ultimate_skill||0.4",
+              "skillId": "chr_0033_camille_ultimate_skill",
+              "sourceBuffId": null,
+              "atkScale": 0.4,
+              "hits": [
+                {
+                  "id": "runtime-hit:66",
+                  "frame": 212,
+                  "damage": 837.0019653286572,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:67",
+                  "frame": 214,
+                  "damage": 837.0019653286572,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:68",
+                  "frame": 216,
+                  "damage": 837.0019653286572,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:69",
+                  "frame": 218,
+                  "damage": 837.0019653286572,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:70",
+                  "frame": 220,
+                  "damage": 837.0019653286572,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:71",
+                  "frame": 222,
+                  "damage": 837.0019653286572,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:72",
+                  "frame": 224,
+                  "damage": 837.0019653286572,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[0]"
+                }
+              ],
+              "count": 7,
+              "firstFrame": 212,
+              "lastFrame": 224,
+              "totalDamage": 5859.0137573006
+            },
+            {
+              "key": "chr_0033_camille_ultimate_skill||1.2",
+              "skillId": "chr_0033_camille_ultimate_skill",
+              "sourceBuffId": null,
+              "atkScale": 1.2,
+              "hits": [
+                {
+                  "id": "runtime-hit:73",
+                  "frame": 241,
+                  "damage": 2511.005895985971,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[26][0].actionOnTick[0]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 241,
+              "lastFrame": 241,
+              "totalDamage": 2511.005895985971
+            },
+            {
+              "key": "chr_0033_camille_ultimate_skill||2.001",
+              "skillId": "chr_0033_camille_ultimate_skill",
+              "sourceBuffId": null,
+              "atkScale": 2.001,
+              "hits": [
+                {
+                  "id": "runtime-hit:74",
+                  "frame": 257,
+                  "damage": 4589.064155386042,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[27][0].actionOnTick[2]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 257,
+              "lastFrame": 257,
+              "totalDamage": 4589.064155386042
+            }
+          ]
+        },
+        {
+          "id": "fg66v6xxz",
+          "label": "卡缪强化战技→派生连携",
+          "actorId": "chr_0033_camille",
+          "actor": "卡缪",
+          "inputType": "NormalSkill",
+          "effectiveTypes": [
+            "ComboSkill"
+          ],
+          "inputSkillId": "chr_0033_camille_normal_skill_2",
+          "executedSkillIds": [
+            "chr_0033_camille_combo_skill_2"
+          ],
+          "castId": "command-cast:chr_0033_camille:3",
+          "requestedFrame": 260,
+          "startFrame": 262,
+          "actionEndFrame": 348,
+          "completion": "Completed",
+          "delayFrames": 2,
+          "success": true,
+          "reason": null,
+          "hpHitCount": 4,
+          "firstHpHitFrame": 282,
+          "lastObservedHpHitFrame": 332,
+          "firstDamageDelayFrames": 20,
+          "postActionEndHitCount": 0,
+          "lastObservedDamageAfterActionEndFrames": 0,
+          "directDamageFrames": [],
+          "totalDamage": 11466.926925002605,
+          "damageGroups": [
+            {
+              "key": "chr_0033_camille_combo_skill_2|buff_chr_0033_camille_cast_combo2|0.6",
+              "skillId": "chr_0033_camille_combo_skill_2",
+              "sourceBuffId": "buff_chr_0033_camille_cast_combo2",
+              "atkScale": 0.6,
+              "hits": [
+                {
+                  "id": "runtime-hit:76",
+                  "frame": 282,
+                  "damage": 1376.0312310003126,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "actionGroupData.timelineActions[39][0].actionOnTick[1]"
+                },
+                {
+                  "id": "runtime-hit:77",
+                  "frame": 295,
+                  "damage": 1376.0312310003126,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "actionGroupData.timelineActions[40][0].actionOnTick[2]"
+                },
+                {
+                  "id": "runtime-hit:79",
+                  "frame": 311,
+                  "damage": 1376.0312310003126,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "actionGroupData.timelineActions[41][0].actionOnTick[1]"
+                }
+              ],
+              "count": 3,
+              "firstFrame": 282,
+              "lastFrame": 311,
+              "totalDamage": 4128.0936930009375
+            },
+            {
+              "key": "chr_0033_camille_combo_skill_2|buff_chr_0033_camille_cast_combo2|3.2",
+              "skillId": "chr_0033_camille_combo_skill_2",
+              "sourceBuffId": "buff_chr_0033_camille_cast_combo2",
+              "atkScale": 3.2,
+              "hits": [
+                {
+                  "id": "runtime-hit:80",
+                  "frame": 332,
+                  "damage": 7338.833232001667,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "actionGroupData.timelineActions[42][0].actionOnTick[4].success[0]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 332,
+              "lastFrame": 332,
+              "totalDamage": 7338.833232001667
+            }
+          ]
+        },
+        {
+          "id": "7k8i2b6rg",
+          "label": "卡缪连携",
+          "actorId": "chr_0033_camille",
+          "actor": "卡缪",
+          "inputType": "ComboSkill",
+          "effectiveTypes": [
+            "ComboSkill"
+          ],
+          "inputSkillId": "chr_0033_camille_combo_skill",
+          "executedSkillIds": [
+            "chr_0033_camille_combo_skill"
+          ],
+          "castId": "command-cast:chr_0033_camille:4",
+          "requestedFrame": 284,
+          "startFrame": 348,
+          "actionEndFrame": 468,
+          "completion": "Completed",
+          "delayFrames": 64,
+          "success": true,
+          "reason": null,
+          "hpHitCount": 3,
+          "firstHpHitFrame": 367,
+          "lastObservedHpHitFrame": 395,
+          "firstDamageDelayFrames": 19,
+          "postActionEndHitCount": 0,
+          "lastObservedDamageAfterActionEndFrames": 0,
+          "directDamageFrames": [
+            367,
+            375,
+            395
+          ],
+          "totalDamage": 7240.059701209564,
+          "damageGroups": [
+            {
+              "key": "chr_0033_camille_combo_skill||0.6",
+              "skillId": "chr_0033_camille_combo_skill",
+              "sourceBuffId": null,
+              "atkScale": 0.6,
+              "hits": [
+                {
+                  "id": "runtime-hit:82",
+                  "frame": 367,
+                  "damage": 1448.0119402419127,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[1]"
+                },
+                {
+                  "id": "runtime-hit:83",
+                  "frame": 375,
+                  "damage": 1448.0119402419127,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[26][0].actionOnTick[1]"
+                }
+              ],
+              "count": 2,
+              "firstFrame": 367,
+              "lastFrame": 375,
+              "totalDamage": 2896.0238804838255
+            },
+            {
+              "key": "chr_0033_camille_combo_skill||1.8",
+              "skillId": "chr_0033_camille_combo_skill",
+              "sourceBuffId": null,
+              "atkScale": 1.8,
+              "hits": [
+                {
+                  "id": "runtime-hit:84",
+                  "frame": 395,
+                  "damage": 4344.035820725739,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[27][0].actionOnTick[3].success[0]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 395,
+              "lastFrame": 395,
+              "totalDamage": 4344.035820725739
+            }
+          ]
+        },
+        {
+          "id": "v605nh6s1",
+          "label": "洛茜终结技",
+          "actorId": "chr_0028_wulfa",
+          "actor": "洛茜",
+          "inputType": "UltimateSkill",
+          "effectiveTypes": [
+            "UltimateSkill"
+          ],
+          "inputSkillId": "chr_0028_wulfa_ultimate_skill",
+          "executedSkillIds": [
+            "chr_0028_wulfa_ultimate_skill"
+          ],
+          "castId": "command-cast:chr_0028_wulfa:4",
+          "requestedFrame": 337,
+          "startFrame": 401,
+          "actionEndFrame": 557,
+          "completion": "Completed",
+          "delayFrames": 64,
+          "success": true,
+          "reason": null,
+          "hpHitCount": 28,
+          "firstHpHitFrame": 465,
+          "lastObservedHpHitFrame": 562,
+          "firstDamageDelayFrames": 64,
+          "postActionEndHitCount": 1,
+          "lastObservedDamageAfterActionEndFrames": 5,
+          "directDamageFrames": [
+            465,
+            467,
+            468,
+            471,
+            473,
+            476,
+            477,
+            479,
+            480,
+            482,
+            485,
+            486,
+            489,
+            490,
+            492,
+            494,
+            496,
+            498,
+            499,
+            501,
+            504,
+            505,
+            508,
+            510,
+            513,
+            524,
+            533
+          ],
+          "totalDamage": 55154.711103642476,
+          "damageGroups": [
+            {
+              "key": "chr_0028_wulfa_ultimate_skill||0.24",
+              "skillId": "chr_0028_wulfa_ultimate_skill",
+              "sourceBuffId": null,
+              "atkScale": 0.24,
+              "hits": [
+                {
+                  "id": "runtime-hit:86",
+                  "frame": 465,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[40][1].success[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:87",
+                  "frame": 467,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[41][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:88",
+                  "frame": 468,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[42][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:89",
+                  "frame": 471,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[43][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:90",
+                  "frame": 473,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[44][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:91",
+                  "frame": 476,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[45][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:92",
+                  "frame": 477,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[46][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:93",
+                  "frame": 479,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[47][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:94",
+                  "frame": 480,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[48][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:95",
+                  "frame": 482,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[49][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:96",
+                  "frame": 485,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[50][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:97",
+                  "frame": 486,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[51][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:98",
+                  "frame": 489,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[52][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:99",
+                  "frame": 490,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[53][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:100",
+                  "frame": 492,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[54][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:101",
+                  "frame": 494,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[55][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:102",
+                  "frame": 496,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[56][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:103",
+                  "frame": 498,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[57][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:104",
+                  "frame": 499,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[58][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:105",
+                  "frame": 501,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[59][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:106",
+                  "frame": 504,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[60][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:107",
+                  "frame": 505,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[61][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:108",
+                  "frame": 508,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[62][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:109",
+                  "frame": 510,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[63][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:110",
+                  "frame": 513,
+                  "damage": 744.0921490932635,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[64][1].failure[3].success[0]"
+                }
+              ],
+              "count": 25,
+              "firstFrame": 465,
+              "lastFrame": 513,
+              "totalDamage": 18602.303727331586
+            },
+            {
+              "key": "chr_0028_wulfa_ultimate_skill||2.5",
+              "skillId": "chr_0028_wulfa_ultimate_skill",
+              "sourceBuffId": null,
+              "atkScale": 2.5,
+              "hits": [
+                {
+                  "id": "runtime-hit:111",
+                  "frame": 524,
+                  "damage": 7750.959886388162,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[19][1].actionOnTick[0]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 524,
+              "lastFrame": 524,
+              "totalDamage": 7750.959886388162
+            },
+            {
+              "key": "chr_0028_wulfa_ultimate_skill||7.5",
+              "skillId": "chr_0028_wulfa_ultimate_skill",
+              "sourceBuffId": null,
+              "atkScale": 7.5,
+              "hits": [
+                {
+                  "id": "runtime-hit:112",
+                  "frame": 533,
+                  "damage": 23252.879659164486,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[20][1].actionOnTick[0].failure[1]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 533,
+              "lastFrame": 533,
+              "totalDamage": 23252.879659164486
+            },
+            {
+              "key": "chr_0028_wulfa_ultimate_skill|buff_common_fire_fire_triggered|2.326530612244898",
+              "skillId": "chr_0028_wulfa_ultimate_skill",
+              "sourceBuffId": "buff_common_fire_fire_triggered",
+              "atkScale": 2.326530612244898,
+              "hits": [
+                {
+                  "id": "runtime-hit:114",
+                  "frame": 562,
+                  "damage": 5548.567830758244,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[1].actions[1][1]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 562,
+              "lastFrame": 562,
+              "totalDamage": 5548.567830758244
+            }
+          ]
+        }
+      ],
+      "comboWindows": [
+        {
+          "id": "combo-window:1",
+          "pendingId": 1,
+          "ruleId": "wulfa.no-guard-with-spell-infliction",
+          "characterId": "chr_0028_wulfa",
+          "skillId": "chr_0028_wulfa_combo_2_skill",
+          "sourceCommandId": null,
+          "createdFrame": 35,
+          "createdSeconds": 1.1666666666666667,
+          "expireFrame": 214,
+          "expireSeconds": 7.133333333333334,
+          "consumedFrame": 62,
+          "consumedCommandId": "1j9udz734",
+          "state": "consumed",
+          "reason": "CAST_SUCCESS",
+          "triggerTargetId": "eny_0007_mimicw"
+        },
+        {
+          "id": "combo-window:2",
+          "pendingId": 2,
+          "ruleId": "ake-trigger-combo:actionGroupData.timelineActions[21][1].success[0].success[0]",
+          "characterId": "chr_0028_wulfa",
+          "skillId": "chr_0028_wulfa_combo_3_skill",
+          "sourceCommandId": null,
+          "createdFrame": 99,
+          "createdSeconds": 3.3,
+          "expireFrame": 278,
+          "expireSeconds": 9.266666666666667,
+          "consumedFrame": 119,
+          "consumedCommandId": "j1xnfsn7v",
+          "state": "consumed",
+          "reason": "CAST_SUCCESS",
+          "triggerTargetId": "eny_0007_mimicw"
+        }
+      ],
+      "timedInputWindows": [
+        {
+          "id": "timed-input:1",
+          "ownerId": "chr_0028_wulfa",
+          "inputTypes": [
+            "ComboSkill"
+          ],
+          "createdFrame": 99,
+          "startFrame": 114,
+          "startSeconds": 3.8,
+          "endFrameExclusive": 126,
+          "endSecondsExclusive": 4.2,
+          "resolvedFrame": 119,
+          "resolvedCommandId": "j1xnfsn7v",
+          "state": "resolved",
+          "boundary": "start-inclusive-end-exclusive",
+          "sourceCommandId": "1j9udz734",
+          "sourceBuffId": null,
+          "sourceSkillId": "chr_0028_wulfa_combo_2_skill",
+          "reason": "ShowComboRingQte",
+          "label": "洛茜连携第二段精准输入窗",
+          "lastLegalFrame": 125,
+          "preferredInteriorFrame": 119,
+          "preferredInteriorReason": "沿用本次已成功输入，非将区间中点冒充唯一合法点"
+        }
+      ],
+      "comboEvents": [
+        {
+          "id": "team-combo-event:1",
+          "type": "grant",
+          "frame": 332,
+          "before": 0,
+          "after": 1,
+          "actorId": "chr_0033_camille",
+          "actor": "卡缪",
+          "sourceCastId": "command-cast:chr_0033_camille:3",
+          "sourceCommandId": "fg66v6xxz",
+          "sourceLabel": "卡缪强化战技→派生连携",
+          "grantIds": [
+            "ake-combo:actionGroupData.timelineActions[42][0].actionOnTick[1].success[0].sequenceActionData[0]:derived-cast:chr_0033_camille:chr_0033_camille_combo_skill_2:1:332:1"
+          ]
+        },
+        {
+          "id": "team-combo-event:2",
+          "type": "grant",
+          "frame": 395,
+          "before": 1,
+          "after": 2,
+          "actorId": "chr_0033_camille",
+          "actor": "卡缪",
+          "sourceCastId": "command-cast:chr_0033_camille:4",
+          "sourceCommandId": "7k8i2b6rg",
+          "sourceLabel": "卡缪连携",
+          "grantIds": [
+            "ake-combo:actionGroupData.timelineActions[27][0].actionOnTick[1].success[2].success[0]:command-cast:chr_0033_camille:4:395:2"
+          ]
+        },
+        {
+          "id": "team-combo-event:3",
+          "type": "consume",
+          "frame": 401,
+          "before": 2,
+          "after": 0,
+          "actorId": "chr_0028_wulfa",
+          "actor": "洛茜",
+          "sourceCastId": "command-cast:chr_0028_wulfa:4",
+          "sourceCommandId": "v605nh6s1",
+          "sourceLabel": "洛茜终结技",
+          "grantIds": [
+            "ake-combo:actionGroupData.timelineActions[42][0].actionOnTick[1].success[0].sequenceActionData[0]:derived-cast:chr_0033_camille:chr_0033_camille_combo_skill_2:1:332:1",
+            "ake-combo:actionGroupData.timelineActions[27][0].actionOnTick[1].success[2].success[0]:command-cast:chr_0033_camille:4:395:2"
+          ]
+        }
+      ],
+      "criticalAnchors": [
+        {
+          "kind": "team-combo-grant",
+          "frame": 332,
+          "commandId": "fg66v6xxz",
+          "label": "卡缪强化战技→派生连携：连击 0→1",
+          "eventId": "team-combo-event:1"
+        },
+        {
+          "kind": "team-combo-grant",
+          "frame": 395,
+          "commandId": "7k8i2b6rg",
+          "label": "卡缪连携：连击 1→2",
+          "eventId": "team-combo-event:2"
+        },
+        {
+          "kind": "team-combo-consume",
+          "frame": 401,
+          "commandId": "v605nh6s1",
+          "label": "洛茜终结技：连击 2→0",
+          "eventId": "team-combo-event:3"
+        },
+        {
+          "kind": "timed-window-start",
+          "frame": 114,
+          "commandId": "1j9udz734",
+          "label": "精准窗开启（含）"
+        },
+        {
+          "kind": "timed-window-preferred",
+          "frame": 119,
+          "commandId": "j1xnfsn7v",
+          "label": "本次成功二段输入"
+        },
+        {
+          "kind": "timed-window-end-exclusive",
+          "frame": 126,
+          "commandId": "1j9udz734",
+          "label": "精准窗关闭（不含）"
+        }
+      ],
+      "dependency": {
+        "sourceCommandId": "7k8i2b6rg",
+        "kind": "damage-hit",
+        "sourceSkillId": "chr_0033_camille_combo_skill",
+        "sourceTimelineFrame": 47,
+        "resolvedSourceHitFrame": 395,
+        "delayFrames": 6,
+        "targetCommandId": "v605nh6s1",
+        "targetResolvedFrame": 401,
+        "description": "卡缪连携最后一击（发第2层连击）后6帧接洛茜Q；不是等待卡缪动作实例结束"
+      },
+      "sourceAlerts": [
+        {
+          "sourceBuffId": "buff_chr_0028_wulfa_tut_normalskill_failure",
+          "note": "报告中出现教程命名 Buff 伤害；当前证据不推定其为真实战斗规则，需后续引擎核验"
+        },
+        {
+          "sourceBuffId": "buff_chr_0028_wulfa_tut_comboskill_success",
+          "note": "报告中出现教程命名 Buff 伤害；当前证据不推定其为真实战斗规则，需后续引擎核验"
+        },
+        {
+          "sourceBuffId": "buff_chr_0028_wulfa_tut_comboskill_finish",
+          "note": "报告中出现教程命名 Buff 伤害；当前证据不推定其为真实战斗规则，需后续引擎核验"
+        }
+      ]
+    },
+    "historical": {
+      "key": "historical",
+      "file": "wulfa-result.json",
+      "caseId": "browser-case-20260905T052050499z-f425b4d9",
+      "runId": "run-4a966e6b-db65-475f-98bf-6d3f6f855c4d",
+      "note": "2026-09-05 05:21 UTC 封存；E1 输入 F94，首 B 的长 DOT 和教程 Buff 来源仅证明旧运行时产生过这些记录，不证明当前引擎或游戏规则正确。",
+      "resultFile": "artifacts/cases/browser-case-20260905T052050499z-f425b4d9/runs/run-4a966e6b-db65-475f-98bf-6d3f6f855c4d/result.json",
+      "generatedAt": "2026-09-05T05:21:04.538Z",
+      "tickRate": 30,
+      "observationHorizonFrame": 824,
+      "summary": {
+        "hitCount": 354,
+        "hpHitCount": 211,
+        "poiseHitCount": 143,
+        "totalPoiseDamage": 115,
+        "totalDamage": 193828.6851007178,
+        "byCharacterId": {
+          "chr_0028_wulfa": {
+            "hitCount": 332,
+            "hpHitCount": 194,
+            "poiseHitCount": 138,
+            "totalDamage": 154177.67638700356,
+            "totalPoiseDamage": 60
+          },
+          "chr_0033_camille": {
+            "hitCount": 22,
+            "hpHitCount": 17,
+            "poiseHitCount": 5,
+            "totalDamage": 39651.00871371425,
+            "totalPoiseDamage": 55
+          }
+        },
+        "damageByType": {
+          "Fire": 96417.4311692915,
+          "Physical": 97411.2539314268
+        },
+        "dps": 7056.869603181473,
+        "successfulCommands": 8,
+        "failedCommands": 0,
+        "delayedCommands": 3
+      },
+      "firstHpHitFrame": 12,
+      "lastObservedHpHitFrame": 818,
+      "distinctHpFrames": 184,
+      "commands": [
+        {
+          "id": "a9g4ixbs3",
+          "label": "洛茜战技",
+          "actorId": "chr_0028_wulfa",
+          "actor": "洛茜",
+          "inputType": "NormalSkill",
+          "effectiveTypes": [
+            "NormalSkill"
+          ],
+          "inputSkillId": "chr_0028_wulfa_normal_skill",
+          "executedSkillIds": [
+            "chr_0028_wulfa_normal_skill",
+            "chr_0028_wulfa_normal_skill_projhit2",
+            "chr_0028_wulfa_normal_skill_projhit3",
+            "chr_0028_wulfa_normal_skill_projhit4",
+            "chr_0028_wulfa_normal_skill_projhit5"
+          ],
+          "castId": "command-cast:chr_0028_wulfa:1",
+          "requestedFrame": 0,
+          "startFrame": 0,
+          "actionEndFrame": 94,
+          "completion": "Interrupted",
+          "delayFrames": 0,
+          "success": true,
+          "reason": null,
+          "hpHitCount": 139,
+          "firstHpHitFrame": 16,
+          "lastObservedHpHitFrame": 818,
+          "firstDamageDelayFrames": 16,
+          "postActionEndHitCount": 113,
+          "lastObservedDamageAfterActionEndFrames": 724,
+          "directDamageFrames": [
+            16,
+            22,
+            35,
+            52,
+            52,
+            52,
+            52
+          ],
+          "totalDamage": 82383.48384308125,
+          "damageGroups": [
+            {
+              "key": "chr_0028_wulfa_normal_skill||0.576",
+              "skillId": "chr_0028_wulfa_normal_skill",
+              "sourceBuffId": null,
+              "atkScale": 0.576,
+              "hits": [
+                {
+                  "id": "runtime-hit:3",
+                  "frame": 16,
+                  "damage": 957.2364656640001,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[23][1].actionOnTick[2..][1]"
+                },
+                {
+                  "id": "runtime-hit:4",
+                  "frame": 22,
+                  "damage": 957.2364656640001,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[24][1].actionOnTick[2..][0]"
+                }
+              ],
+              "count": 2,
+              "firstFrame": 16,
+              "lastFrame": 22,
+              "totalDamage": 1914.4729313280002
+            },
+            {
+              "key": "chr_0028_wulfa_normal_skill||0.768",
+              "skillId": "chr_0028_wulfa_normal_skill",
+              "sourceBuffId": null,
+              "atkScale": 0.768,
+              "hits": [
+                {
+                  "id": "runtime-hit:5",
+                  "frame": 35,
+                  "damage": 1276.3152875520002,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][2].actionOnTick[0].failure[1]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 35,
+              "lastFrame": 35,
+              "totalDamage": 1276.3152875520002
+            },
+            {
+              "key": "chr_0028_wulfa_normal_skill|buff_chr_0028_wulfa_normal_defup|0.3",
+              "skillId": "chr_0028_wulfa_normal_skill",
+              "sourceBuffId": "buff_chr_0028_wulfa_normal_defup",
+              "atkScale": 0.3,
+              "hits": [
+                {
+                  "id": "runtime-hit:7",
+                  "frame": 47,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:9",
+                  "frame": 50,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:20",
+                  "frame": 53,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:22",
+                  "frame": 56,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                }
+              ],
+              "count": 4,
+              "firstFrame": 47,
+              "lastFrame": 56,
+              "totalDamage": 1432.6455724137934
+            },
+            {
+              "key": "chr_0028_wulfa_normal_skill_projhit2|buff_chr_0028_wulfa_normal_bleed|0.3",
+              "skillId": "chr_0028_wulfa_normal_skill_projhit2",
+              "sourceBuffId": "buff_chr_0028_wulfa_normal_bleed",
+              "atkScale": 0.3,
+              "hits": [
+                {
+                  "id": "runtime-hit:11",
+                  "frame": 52,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:26",
+                  "frame": 62,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:32",
+                  "frame": 65,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:38",
+                  "frame": 68,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:44",
+                  "frame": 71,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:48",
+                  "frame": 82,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:65",
+                  "frame": 112,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:85",
+                  "frame": 142,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:106",
+                  "frame": 172,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:135",
+                  "frame": 202,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:144",
+                  "frame": 232,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:160",
+                  "frame": 262,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:172",
+                  "frame": 292,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:182",
+                  "frame": 322,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:194",
+                  "frame": 352,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:205",
+                  "frame": 382,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:216",
+                  "frame": 412,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:229",
+                  "frame": 499,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:253",
+                  "frame": 529,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:271",
+                  "frame": 559,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:282",
+                  "frame": 589,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:292",
+                  "frame": 619,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:301",
+                  "frame": 649,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:310",
+                  "frame": 679,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:319",
+                  "frame": 709,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:328",
+                  "frame": 739,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:337",
+                  "frame": 769,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:346",
+                  "frame": 799,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                }
+              ],
+              "count": 28,
+              "firstFrame": 52,
+              "lastFrame": 799,
+              "totalDamage": 15634.862272512006
+            },
+            {
+              "key": "chr_0028_wulfa_normal_skill_projhit2||0.72",
+              "skillId": "chr_0028_wulfa_normal_skill_projhit2",
+              "sourceBuffId": null,
+              "atkScale": 0.72,
+              "hits": [
+                {
+                  "id": "runtime-hit:12",
+                  "frame": 52,
+                  "damage": 1571.598487218881,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[1][0].actionOnTick[3].success[0].failure[0].failure[0].success[0].failure[0].success[1]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 52,
+              "lastFrame": 52,
+              "totalDamage": 1571.598487218881
+            },
+            {
+              "key": "chr_0028_wulfa_normal_skill_projhit3||0.72",
+              "skillId": "chr_0028_wulfa_normal_skill_projhit3",
+              "sourceBuffId": null,
+              "atkScale": 0.72,
+              "hits": [
+                {
+                  "id": "runtime-hit:14",
+                  "frame": 52,
+                  "damage": 1571.598487218881,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[1][0].actionOnTick[4].failure[0]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 52,
+              "lastFrame": 52,
+              "totalDamage": 1571.598487218881
+            },
+            {
+              "key": "chr_0028_wulfa_normal_skill_projhit4||0.72",
+              "skillId": "chr_0028_wulfa_normal_skill_projhit4",
+              "sourceBuffId": null,
+              "atkScale": 0.72,
+              "hits": [
+                {
+                  "id": "runtime-hit:16",
+                  "frame": 52,
+                  "damage": 1571.598487218881,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[1][0].actionOnTick[3].failure[0]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 52,
+              "lastFrame": 52,
+              "totalDamage": 1571.598487218881
+            },
+            {
+              "key": "chr_0028_wulfa_normal_skill_projhit5||0.72",
+              "skillId": "chr_0028_wulfa_normal_skill_projhit5",
+              "sourceBuffId": null,
+              "atkScale": 0.72,
+              "hits": [
+                {
+                  "id": "runtime-hit:18",
+                  "frame": 52,
+                  "damage": 1571.598487218881,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[1][0].actionOnTick[3].failure[0]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 52,
+              "lastFrame": 52,
+              "totalDamage": 1571.598487218881
+            },
+            {
+              "key": "chr_0028_wulfa_normal_skill|buff_chr_0028_wulfa_normal_smarttarget|0.3",
+              "skillId": "chr_0028_wulfa_normal_skill",
+              "sourceBuffId": "buff_chr_0028_wulfa_normal_smarttarget",
+              "atkScale": 0.3,
+              "hits": [
+                {
+                  "id": "runtime-hit:24",
+                  "frame": 62,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:30",
+                  "frame": 65,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:36",
+                  "frame": 68,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:42",
+                  "frame": 71,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                }
+              ],
+              "count": 4,
+              "firstFrame": 62,
+              "lastFrame": 71,
+              "totalDamage": 2233.551753216
+            },
+            {
+              "key": "chr_0028_wulfa_normal_skill_projhit2|buff_chr_0028_wulfa_normal_bleed_effect|0.3",
+              "skillId": "chr_0028_wulfa_normal_skill_projhit2",
+              "sourceBuffId": "buff_chr_0028_wulfa_normal_bleed_effect",
+              "atkScale": 0.3,
+              "hits": [
+                {
+                  "id": "runtime-hit:28",
+                  "frame": 62,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:34",
+                  "frame": 65,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:40",
+                  "frame": 68,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:46",
+                  "frame": 71,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:49",
+                  "frame": 92,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:51",
+                  "frame": 95,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:53",
+                  "frame": 98,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:55",
+                  "frame": 101,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:70",
+                  "frame": 122,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:72",
+                  "frame": 125,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:75",
+                  "frame": 128,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:77",
+                  "frame": 131,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:90",
+                  "frame": 152,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:92",
+                  "frame": 155,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:94",
+                  "frame": 158,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:96",
+                  "frame": 161,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:111",
+                  "frame": 182,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:113",
+                  "frame": 185,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:115",
+                  "frame": 188,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:121",
+                  "frame": 191,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:136",
+                  "frame": 212,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:138",
+                  "frame": 215,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:140",
+                  "frame": 218,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:142",
+                  "frame": 221,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:145",
+                  "frame": 242,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:148",
+                  "frame": 245,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:151",
+                  "frame": 248,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:155",
+                  "frame": 251,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:161",
+                  "frame": 272,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:164",
+                  "frame": 275,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:166",
+                  "frame": 278,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:168",
+                  "frame": 281,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:173",
+                  "frame": 302,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:175",
+                  "frame": 305,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:177",
+                  "frame": 308,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:179",
+                  "frame": 311,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:185",
+                  "frame": 332,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:187",
+                  "frame": 335,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:189",
+                  "frame": 338,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:191",
+                  "frame": 341,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:195",
+                  "frame": 362,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:199",
+                  "frame": 365,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:201",
+                  "frame": 368,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:203",
+                  "frame": 371,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:206",
+                  "frame": 392,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:208",
+                  "frame": 395,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:210",
+                  "frame": 398,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:213",
+                  "frame": 401,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:217",
+                  "frame": 422,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:219",
+                  "frame": 425,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:223",
+                  "frame": 428,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:225",
+                  "frame": 431,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:235",
+                  "frame": 509,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:239",
+                  "frame": 512,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:242",
+                  "frame": 515,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:246",
+                  "frame": 518,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:259",
+                  "frame": 539,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:263",
+                  "frame": 542,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:266",
+                  "frame": 545,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:268",
+                  "frame": 548,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:274",
+                  "frame": 569,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:276",
+                  "frame": 572,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:278",
+                  "frame": 575,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:280",
+                  "frame": 578,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:284",
+                  "frame": 599,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:286",
+                  "frame": 602,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:288",
+                  "frame": 605,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:290",
+                  "frame": 608,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:293",
+                  "frame": 629,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:295",
+                  "frame": 632,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:297",
+                  "frame": 635,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:299",
+                  "frame": 638,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:302",
+                  "frame": 659,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:304",
+                  "frame": 662,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:306",
+                  "frame": 665,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:308",
+                  "frame": 668,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:311",
+                  "frame": 689,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:313",
+                  "frame": 692,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:315",
+                  "frame": 695,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:317",
+                  "frame": 698,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:320",
+                  "frame": 719,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:322",
+                  "frame": 722,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:324",
+                  "frame": 725,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:326",
+                  "frame": 728,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:329",
+                  "frame": 749,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:331",
+                  "frame": 752,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:333",
+                  "frame": 755,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:335",
+                  "frame": 758,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:338",
+                  "frame": 779,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:340",
+                  "frame": 782,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:342",
+                  "frame": 785,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:344",
+                  "frame": 788,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:347",
+                  "frame": 809,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:349",
+                  "frame": 812,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:351",
+                  "frame": 815,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:353",
+                  "frame": 818,
+                  "damage": 558.387938304,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                }
+              ],
+              "count": 96,
+              "firstFrame": 62,
+              "lastFrame": 818,
+              "totalDamage": 53605.24207718389
+            }
+          ]
+        },
+        {
+          "id": "layvjlbbk",
+          "label": "卡缪战技",
+          "actorId": "chr_0033_camille",
+          "actor": "卡缪",
+          "inputType": "NormalSkill",
+          "effectiveTypes": [
+            "NormalSkill"
+          ],
+          "inputSkillId": "chr_0033_camille_normal_skill",
+          "executedSkillIds": [
+            "chr_0033_camille_normal_skill_abilityrange_first"
+          ],
+          "castId": "command-cast:chr_0033_camille:1",
+          "requestedFrame": 0,
+          "startFrame": 0,
+          "actionEndFrame": 26,
+          "completion": "Completed",
+          "delayFrames": 0,
+          "success": true,
+          "reason": null,
+          "hpHitCount": 1,
+          "firstHpHitFrame": 12,
+          "lastObservedHpHitFrame": 12,
+          "firstDamageDelayFrames": 12,
+          "postActionEndHitCount": 0,
+          "lastObservedDamageAfterActionEndFrames": 0,
+          "directDamageFrames": [
+            12
+          ],
+          "totalDamage": 4185.009826643286,
+          "damageGroups": [
+            {
+              "key": "chr_0033_camille_normal_skill_abilityrange_first||2",
+              "skillId": "chr_0033_camille_normal_skill_abilityrange_first",
+              "sourceBuffId": null,
+              "atkScale": 2,
+              "hits": [
+                {
+                  "id": "runtime-hit:1",
+                  "frame": 12,
+                  "damage": 4185.009826643286,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[5][1]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 12,
+              "lastFrame": 12,
+              "totalDamage": 4185.009826643286
+            }
+          ]
+        },
+        {
+          "id": "1j9udz734",
+          "label": "洛茜连携第一段",
+          "actorId": "chr_0028_wulfa",
+          "actor": "洛茜",
+          "inputType": "ComboSkill",
+          "effectiveTypes": [
+            "ComboSkill"
+          ],
+          "inputSkillId": "chr_0028_wulfa_combo_2_skill",
+          "executedSkillIds": [
+            "chr_0028_wulfa_combo_2_skill"
+          ],
+          "castId": "command-cast:chr_0028_wulfa:2",
+          "requestedFrame": 94,
+          "startFrame": 94,
+          "actionEndFrame": 151,
+          "completion": "Interrupted",
+          "delayFrames": 0,
+          "success": true,
+          "reason": null,
+          "hpHitCount": 13,
+          "firstHpHitFrame": 104,
+          "lastObservedHpHitFrame": 146,
+          "firstDamageDelayFrames": 10,
+          "postActionEndHitCount": 0,
+          "lastObservedDamageAfterActionEndFrames": 0,
+          "directDamageFrames": [
+            107,
+            118
+          ],
+          "totalDamage": 5341.361140541794,
+          "damageGroups": [
+            {
+              "key": "chr_0028_wulfa_combo_2_skill|buff_chr_0028_wulfa_normal_defup|0.3",
+              "skillId": "chr_0028_wulfa_combo_2_skill",
+              "sourceBuffId": "buff_chr_0028_wulfa_normal_defup",
+              "atkScale": 0.3,
+              "hits": [
+                {
+                  "id": "runtime-hit:57",
+                  "frame": 104,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:61",
+                  "frame": 107,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:63",
+                  "frame": 110,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:66",
+                  "frame": 113,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                }
+              ],
+              "count": 4,
+              "firstFrame": 104,
+              "lastFrame": 113,
+              "totalDamage": 1432.6455724137934
+            },
+            {
+              "key": "chr_0028_wulfa_combo_2_skill||0.5249999999999999",
+              "skillId": "chr_0028_wulfa_combo_2_skill",
+              "sourceBuffId": null,
+              "atkScale": 0.5249999999999999,
+              "hits": [
+                {
+                  "id": "runtime-hit:59",
+                  "frame": 107,
+                  "damage": 977.178892032,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[10][1].actionOnTick[2]"
+                },
+                {
+                  "id": "runtime-hit:68",
+                  "frame": 118,
+                  "damage": 977.178892032,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[11][1].actionOnTick[2]"
+                }
+              ],
+              "count": 2,
+              "firstFrame": 107,
+              "lastFrame": 118,
+              "totalDamage": 1954.357784064
+            },
+            {
+              "key": "chr_0028_wulfa_combo_2_skill|buff_chr_0028_wulfa_combo_2_damage|0.15000000000000002",
+              "skillId": "chr_0028_wulfa_combo_2_skill",
+              "sourceBuffId": "buff_chr_0028_wulfa_combo_2_damage",
+              "atkScale": 0.15000000000000002,
+              "hits": [
+                {
+                  "id": "runtime-hit:74",
+                  "frame": 127,
+                  "damage": 279.19396915200014,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:79",
+                  "frame": 131,
+                  "damage": 279.19396915200014,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:80",
+                  "frame": 135,
+                  "damage": 279.19396915200014,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[0].actions[0][0]"
+                },
+                {
+                  "id": "runtime-hit:81",
+                  "frame": 137,
+                  "damage": 279.19396915200014,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:83",
+                  "frame": 140,
+                  "damage": 279.19396915200014,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:86",
+                  "frame": 143,
+                  "damage": 279.19396915200014,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:88",
+                  "frame": 146,
+                  "damage": 279.19396915200014,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                }
+              ],
+              "count": 7,
+              "firstFrame": 127,
+              "lastFrame": 146,
+              "totalDamage": 1954.357784064001
+            }
+          ]
+        },
+        {
+          "id": "j1xnfsn7v",
+          "label": "洛茜连携第二段",
+          "actorId": "chr_0028_wulfa",
+          "actor": "洛茜",
+          "inputType": "ComboSkill",
+          "effectiveTypes": [
+            "ComboSkill"
+          ],
+          "inputSkillId": "chr_0028_wulfa_combo_3_skill",
+          "executedSkillIds": [
+            "chr_0028_wulfa_combo_3_skill"
+          ],
+          "castId": "command-cast:chr_0028_wulfa:3",
+          "requestedFrame": 151,
+          "startFrame": 151,
+          "actionEndFrame": 416,
+          "completion": "Interrupted",
+          "delayFrames": 0,
+          "success": true,
+          "reason": null,
+          "hpHitCount": 14,
+          "firstHpHitFrame": 161,
+          "lastObservedHpHitFrame": 199,
+          "firstDamageDelayFrames": 10,
+          "postActionEndHitCount": 0,
+          "lastObservedDamageAfterActionEndFrames": 0,
+          "directDamageFrames": [
+            180
+          ],
+          "totalDamage": 15972.802896679093,
+          "damageGroups": [
+            {
+              "key": "chr_0028_wulfa_combo_3_skill|buff_chr_0028_wulfa_normal_defup|0.3",
+              "skillId": "chr_0028_wulfa_combo_3_skill",
+              "sourceBuffId": "buff_chr_0028_wulfa_normal_defup",
+              "atkScale": 0.3,
+              "hits": [
+                {
+                  "id": "runtime-hit:98",
+                  "frame": 161,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:100",
+                  "frame": 164,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:102",
+                  "frame": 167,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:104",
+                  "frame": 170,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                }
+              ],
+              "count": 4,
+              "firstFrame": 161,
+              "lastFrame": 170,
+              "totalDamage": 1432.6455724137934
+            },
+            {
+              "key": "chr_0028_wulfa_combo_3_skill|buff_physical_airborne|1.4724489795918365",
+              "skillId": "chr_0028_wulfa_combo_3_skill",
+              "sourceBuffId": "buff_physical_airborne",
+              "atkScale": 1.4724489795918365,
+              "hits": [
+                {
+                  "id": "runtime-hit:107",
+                  "frame": 180,
+                  "damage": 2740.6591665737146,
+                  "semanticHitType": "airborne",
+                  "sourcePath": "buffEventAction[0].actions[1][1]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 180,
+              "lastFrame": 180,
+              "totalDamage": 2740.6591665737146
+            },
+            {
+              "key": "chr_0028_wulfa_combo_3_skill||4.8",
+              "skillId": "chr_0028_wulfa_combo_3_skill",
+              "sourceBuffId": null,
+              "atkScale": 4.8,
+              "hits": [
+                {
+                  "id": "runtime-hit:109",
+                  "frame": 180,
+                  "damage": 8934.207012864,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[21][2].actionOnTick[8]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 180,
+              "lastFrame": 180,
+              "totalDamage": 8934.207012864
+            },
+            {
+              "key": "chr_0028_wulfa_combo_3_skill|buff_chr_0028_wulfa_tut_comboskill_success|0.3",
+              "skillId": "chr_0028_wulfa_combo_3_skill",
+              "sourceBuffId": "buff_chr_0028_wulfa_tut_comboskill_success",
+              "atkScale": 0.3,
+              "hits": [
+                {
+                  "id": "runtime-hit:117",
+                  "frame": 190,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:123",
+                  "frame": 193,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:127",
+                  "frame": 196,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:131",
+                  "frame": 199,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                }
+              ],
+              "count": 4,
+              "firstFrame": 190,
+              "lastFrame": 199,
+              "totalDamage": 1432.6455724137934
+            },
+            {
+              "key": "chr_0028_wulfa_combo_3_skill|buff_chr_0028_wulfa_tut_comboskill_finish|0.3",
+              "skillId": "chr_0028_wulfa_combo_3_skill",
+              "sourceBuffId": "buff_chr_0028_wulfa_tut_comboskill_finish",
+              "atkScale": 0.3,
+              "hits": [
+                {
+                  "id": "runtime-hit:119",
+                  "frame": 190,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:125",
+                  "frame": 193,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:129",
+                  "frame": 196,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:133",
+                  "frame": 199,
+                  "damage": 358.16139310344835,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "timelineActions[0][0].actionOnTick[0]"
+                }
+              ],
+              "count": 4,
+              "firstFrame": 190,
+              "lastFrame": 199,
+              "totalDamage": 1432.6455724137934
+            }
+          ]
+        },
+        {
+          "id": "97hwmxt5u",
+          "label": "卡缪终结技",
+          "actorId": "chr_0033_camille",
+          "actor": "卡缪",
+          "inputType": "UltimateSkill",
+          "effectiveTypes": [
+            "UltimateSkill"
+          ],
+          "inputSkillId": "chr_0033_camille_ultimate_skill",
+          "executedSkillIds": [
+            "chr_0033_camille_ultimate_skill"
+          ],
+          "castId": "command-cast:chr_0033_camille:2",
+          "requestedFrame": 159,
+          "startFrame": 159,
+          "actionEndFrame": 294,
+          "completion": "Interrupted",
+          "delayFrames": 0,
+          "success": true,
+          "reason": null,
+          "hpHitCount": 9,
+          "firstHpHitFrame": 244,
+          "lastObservedHpHitFrame": 289,
+          "firstDamageDelayFrames": 85,
+          "postActionEndHitCount": 0,
+          "lastObservedDamageAfterActionEndFrames": 0,
+          "directDamageFrames": [
+            244,
+            246,
+            248,
+            250,
+            252,
+            254,
+            256,
+            273,
+            289
+          ],
+          "totalDamage": 14514.173865713328,
+          "damageGroups": [
+            {
+              "key": "chr_0033_camille_ultimate_skill||0.4",
+              "skillId": "chr_0033_camille_ultimate_skill",
+              "sourceBuffId": null,
+              "atkScale": 0.4,
+              "hits": [
+                {
+                  "id": "runtime-hit:147",
+                  "frame": 244,
+                  "damage": 937.4422011680962,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:150",
+                  "frame": 246,
+                  "damage": 937.4422011680962,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:153",
+                  "frame": 248,
+                  "damage": 937.4422011680962,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:154",
+                  "frame": 250,
+                  "damage": 937.4422011680962,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:157",
+                  "frame": 252,
+                  "damage": 937.4422011680962,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:158",
+                  "frame": 254,
+                  "damage": 937.4422011680962,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[0]"
+                },
+                {
+                  "id": "runtime-hit:159",
+                  "frame": 256,
+                  "damage": 937.4422011680962,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[0]"
+                }
+              ],
+              "count": 7,
+              "firstFrame": 244,
+              "lastFrame": 256,
+              "totalDamage": 6562.095408176673
+            },
+            {
+              "key": "chr_0033_camille_ultimate_skill||1.2",
+              "skillId": "chr_0033_camille_ultimate_skill",
+              "sourceBuffId": null,
+              "atkScale": 1.2,
+              "hits": [
+                {
+                  "id": "runtime-hit:163",
+                  "frame": 273,
+                  "damage": 2812.326603504288,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[26][0].actionOnTick[0]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 273,
+              "lastFrame": 273,
+              "totalDamage": 2812.326603504288
+            },
+            {
+              "key": "chr_0033_camille_ultimate_skill||2.001",
+              "skillId": "chr_0033_camille_ultimate_skill",
+              "sourceBuffId": null,
+              "atkScale": 2.001,
+              "hits": [
+                {
+                  "id": "runtime-hit:170",
+                  "frame": 289,
+                  "damage": 5139.751854032368,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[27][0].actionOnTick[2]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 289,
+              "lastFrame": 289,
+              "totalDamage": 5139.751854032368
+            }
+          ]
+        },
+        {
+          "id": "fg66v6xxz",
+          "label": "卡缪强化战技→派生连携",
+          "actorId": "chr_0033_camille",
+          "actor": "卡缪",
+          "inputType": "NormalSkill",
+          "effectiveTypes": [
+            "ComboSkill"
+          ],
+          "inputSkillId": "chr_0033_camille_normal_skill_2",
+          "executedSkillIds": [
+            "chr_0033_camille_combo_skill_2"
+          ],
+          "castId": "command-cast:chr_0033_camille:3",
+          "requestedFrame": 292,
+          "startFrame": 294,
+          "actionEndFrame": 380,
+          "completion": "Interrupted",
+          "delayFrames": 2,
+          "success": true,
+          "reason": "CENTER_STATE_BLOCKED",
+          "hpHitCount": 4,
+          "firstHpHitFrame": 314,
+          "lastObservedHpHitFrame": 364,
+          "firstDamageDelayFrames": 20,
+          "postActionEndHitCount": 0,
+          "lastObservedDamageAfterActionEndFrames": 0,
+          "directDamageFrames": [],
+          "totalDamage": 12842.95815600292,
+          "damageGroups": [
+            {
+              "key": "chr_0033_camille_combo_skill_2|buff_chr_0033_camille_cast_combo2|0.6",
+              "skillId": "chr_0033_camille_combo_skill_2",
+              "sourceBuffId": "buff_chr_0033_camille_cast_combo2",
+              "atkScale": 0.6,
+              "hits": [
+                {
+                  "id": "runtime-hit:181",
+                  "frame": 314,
+                  "damage": 1541.1549787203505,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "actionGroupData.timelineActions[39][0].actionOnTick[1]"
+                },
+                {
+                  "id": "runtime-hit:183",
+                  "frame": 327,
+                  "damage": 1541.1549787203505,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "actionGroupData.timelineActions[40][0].actionOnTick[2]"
+                },
+                {
+                  "id": "runtime-hit:193",
+                  "frame": 343,
+                  "damage": 1541.1549787203505,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "actionGroupData.timelineActions[41][0].actionOnTick[1]"
+                }
+              ],
+              "count": 3,
+              "firstFrame": 314,
+              "lastFrame": 343,
+              "totalDamage": 4623.464936161052
+            },
+            {
+              "key": "chr_0033_camille_combo_skill_2|buff_chr_0033_camille_cast_combo2|3.2",
+              "skillId": "chr_0033_camille_combo_skill_2",
+              "sourceBuffId": "buff_chr_0033_camille_cast_combo2",
+              "atkScale": 3.2,
+              "hits": [
+                {
+                  "id": "runtime-hit:197",
+                  "frame": 364,
+                  "damage": 8219.493219841868,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "actionGroupData.timelineActions[42][0].actionOnTick[4].success[0]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 364,
+              "lastFrame": 364,
+              "totalDamage": 8219.493219841868
+            }
+          ]
+        },
+        {
+          "id": "7k8i2b6rg",
+          "label": "卡缪连携",
+          "actorId": "chr_0033_camille",
+          "actor": "卡缪",
+          "inputType": "ComboSkill",
+          "effectiveTypes": [
+            "ComboSkill"
+          ],
+          "inputSkillId": "chr_0033_camille_combo_skill",
+          "executedSkillIds": [
+            "chr_0033_camille_combo_skill"
+          ],
+          "castId": "command-cast:chr_0033_camille:4",
+          "requestedFrame": 316,
+          "startFrame": 380,
+          "actionEndFrame": 500,
+          "completion": "Completed",
+          "delayFrames": 64,
+          "success": true,
+          "reason": "CENTER_STATE_BLOCKED",
+          "hpHitCount": 3,
+          "firstHpHitFrame": 399,
+          "lastObservedHpHitFrame": 427,
+          "firstDamageDelayFrames": 19,
+          "postActionEndHitCount": 0,
+          "lastObservedDamageAfterActionEndFrames": 0,
+          "directDamageFrames": [
+            399,
+            407,
+            427
+          ],
+          "totalDamage": 8108.866865354713,
+          "damageGroups": [
+            {
+              "key": "chr_0033_camille_combo_skill||0.6",
+              "skillId": "chr_0033_camille_combo_skill",
+              "sourceBuffId": null,
+              "atkScale": 0.6,
+              "hits": [
+                {
+                  "id": "runtime-hit:212",
+                  "frame": 399,
+                  "damage": 1621.7733730709424,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[25][0].actionOnTick[1]"
+                },
+                {
+                  "id": "runtime-hit:215",
+                  "frame": 407,
+                  "damage": 1621.7733730709424,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[26][0].actionOnTick[1]"
+                }
+              ],
+              "count": 2,
+              "firstFrame": 399,
+              "lastFrame": 407,
+              "totalDamage": 3243.546746141885
+            },
+            {
+              "key": "chr_0033_camille_combo_skill||1.8",
+              "skillId": "chr_0033_camille_combo_skill",
+              "sourceBuffId": null,
+              "atkScale": 1.8,
+              "hits": [
+                {
+                  "id": "runtime-hit:221",
+                  "frame": 427,
+                  "damage": 4865.320119212828,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[27][0].actionOnTick[3].success[0]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 427,
+              "lastFrame": 427,
+              "totalDamage": 4865.320119212828
+            }
+          ]
+        },
+        {
+          "id": "v605nh6s1",
+          "label": "洛茜终结技",
+          "actorId": "chr_0028_wulfa",
+          "actor": "洛茜",
+          "inputType": "UltimateSkill",
+          "effectiveTypes": [
+            "UltimateSkill"
+          ],
+          "inputSkillId": "chr_0028_wulfa_ultimate_skill",
+          "executedSkillIds": [
+            "chr_0028_wulfa_ultimate_skill"
+          ],
+          "castId": "command-cast:chr_0028_wulfa:4",
+          "requestedFrame": 369,
+          "startFrame": 433,
+          "actionEndFrame": 589,
+          "completion": "Completed",
+          "delayFrames": 64,
+          "success": true,
+          "reason": "RELEASE_ANCHOR_PENDING",
+          "hpHitCount": 28,
+          "firstHpHitFrame": 497,
+          "lastObservedHpHitFrame": 594,
+          "firstDamageDelayFrames": 64,
+          "postActionEndHitCount": 1,
+          "lastObservedDamageAfterActionEndFrames": 5,
+          "directDamageFrames": [
+            497,
+            499,
+            500,
+            503,
+            505,
+            508,
+            509,
+            511,
+            512,
+            514,
+            517,
+            518,
+            521,
+            522,
+            524,
+            526,
+            528,
+            530,
+            531,
+            533,
+            536,
+            537,
+            540,
+            542,
+            545,
+            556,
+            565
+          ],
+          "totalDamage": 50480.0285067017,
+          "damageGroups": [
+            {
+              "key": "chr_0028_wulfa_ultimate_skill||0.24",
+              "skillId": "chr_0028_wulfa_ultimate_skill",
+              "sourceBuffId": null,
+              "atkScale": 0.24,
+              "hits": [
+                {
+                  "id": "runtime-hit:227",
+                  "frame": 497,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[40][1].success[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:228",
+                  "frame": 499,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[41][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:230",
+                  "frame": 500,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[42][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:231",
+                  "frame": 503,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[43][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:232",
+                  "frame": 505,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[44][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:233",
+                  "frame": 508,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[45][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:234",
+                  "frame": 509,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[46][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:237",
+                  "frame": 511,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[47][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:238",
+                  "frame": 512,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[48][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:241",
+                  "frame": 514,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[49][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:244",
+                  "frame": 517,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[50][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:245",
+                  "frame": 518,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[51][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:248",
+                  "frame": 521,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[52][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:249",
+                  "frame": 522,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[53][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:250",
+                  "frame": 524,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[54][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:251",
+                  "frame": 526,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[55][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:252",
+                  "frame": 528,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[56][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:254",
+                  "frame": 530,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[57][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:255",
+                  "frame": 531,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[58][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:256",
+                  "frame": 533,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[59][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:257",
+                  "frame": 536,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[60][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:258",
+                  "frame": 537,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[61][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:261",
+                  "frame": 540,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[62][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:262",
+                  "frame": 542,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[63][1].failure[3].success[0]"
+                },
+                {
+                  "id": "runtime-hit:265",
+                  "frame": 545,
+                  "damage": 681.0260111281817,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[64][1].failure[3].success[0]"
+                }
+              ],
+              "count": 25,
+              "firstFrame": 497,
+              "lastFrame": 545,
+              "totalDamage": 17025.650278204546
+            },
+            {
+              "key": "chr_0028_wulfa_ultimate_skill||2.5",
+              "skillId": "chr_0028_wulfa_ultimate_skill",
+              "sourceBuffId": null,
+              "atkScale": 2.5,
+              "hits": [
+                {
+                  "id": "runtime-hit:270",
+                  "frame": 556,
+                  "damage": 7094.020949251894,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[19][1].actionOnTick[0]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 556,
+              "lastFrame": 556,
+              "totalDamage": 7094.020949251894
+            },
+            {
+              "key": "chr_0028_wulfa_ultimate_skill||7.5",
+              "skillId": "chr_0028_wulfa_ultimate_skill",
+              "sourceBuffId": null,
+              "atkScale": 7.5,
+              "hits": [
+                {
+                  "id": "runtime-hit:272",
+                  "frame": 565,
+                  "damage": 21282.062847755682,
+                  "semanticHitType": "skill",
+                  "sourcePath": "actionGroupData.timelineActions[20][1].actionOnTick[0].success[1]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 565,
+              "lastFrame": 565,
+              "totalDamage": 21282.062847755682
+            },
+            {
+              "key": "chr_0028_wulfa_ultimate_skill|buff_common_fire_fire_triggered|2.326530612244898",
+              "skillId": "chr_0028_wulfa_ultimate_skill",
+              "sourceBuffId": "buff_common_fire_fire_triggered",
+              "atkScale": 2.326530612244898,
+              "hits": [
+                {
+                  "id": "runtime-hit:283",
+                  "frame": 594,
+                  "damage": 5078.294431489581,
+                  "semanticHitType": "buff-derived",
+                  "sourcePath": "buffEventAction[1].actions[1][1]"
+                }
+              ],
+              "count": 1,
+              "firstFrame": 594,
+              "lastFrame": 594,
+              "totalDamage": 5078.294431489581
+            }
+          ]
+        }
+      ],
+      "comboWindows": [
+        {
+          "id": "combo-window:1",
+          "pendingId": 1,
+          "ruleId": "wulfa.no-guard-with-spell-infliction",
+          "characterId": "chr_0028_wulfa",
+          "skillId": "chr_0028_wulfa_combo_2_skill",
+          "sourceCommandId": null,
+          "createdFrame": 35,
+          "createdSeconds": 1.1666666666666667,
+          "expireFrame": 214,
+          "expireSeconds": 7.133333333333334,
+          "consumedFrame": 94,
+          "consumedCommandId": "1j9udz734",
+          "state": "consumed",
+          "reason": "CAST_SUCCESS",
+          "triggerTargetId": "eny_0007_mimicw"
+        },
+        {
+          "id": "combo-window:2",
+          "pendingId": 2,
+          "ruleId": "ake-trigger-combo:actionGroupData.timelineActions[21][1].success[0].success[0]",
+          "characterId": "chr_0028_wulfa",
+          "skillId": "chr_0028_wulfa_combo_3_skill",
+          "sourceCommandId": null,
+          "createdFrame": 131,
+          "createdSeconds": 4.366666666666666,
+          "expireFrame": 310,
+          "expireSeconds": 10.333333333333334,
+          "consumedFrame": 151,
+          "consumedCommandId": "j1xnfsn7v",
+          "state": "consumed",
+          "reason": "CAST_SUCCESS",
+          "triggerTargetId": "eny_0007_mimicw"
+        }
+      ],
+      "timedInputWindows": [
+        {
+          "id": "timed-input:1",
+          "ownerId": "chr_0028_wulfa",
+          "inputTypes": [
+            "ComboSkill"
+          ],
+          "createdFrame": 131,
+          "startFrame": 146,
+          "startSeconds": 4.866666666666666,
+          "endFrameExclusive": 158,
+          "endSecondsExclusive": 5.266666666666667,
+          "resolvedFrame": 151,
+          "resolvedCommandId": "j1xnfsn7v",
+          "state": "resolved",
+          "boundary": "start-inclusive-end-exclusive",
+          "sourceCommandId": "1j9udz734",
+          "sourceBuffId": null,
+          "sourceSkillId": "chr_0028_wulfa_combo_2_skill",
+          "reason": "ShowComboRingQte",
+          "label": "洛茜连携第二段精准输入窗",
+          "lastLegalFrame": 157,
+          "preferredInteriorFrame": 151,
+          "preferredInteriorReason": "沿用本次已成功输入，非将区间中点冒充唯一合法点"
+        }
+      ],
+      "comboEvents": [
+        {
+          "id": "team-combo-event:1",
+          "type": "grant",
+          "frame": 364,
+          "before": 0,
+          "after": 1,
+          "actorId": "chr_0033_camille",
+          "actor": "卡缪",
+          "sourceCastId": "command-cast:chr_0033_camille:3",
+          "sourceCommandId": "fg66v6xxz",
+          "sourceLabel": "卡缪强化战技→派生连携",
+          "grantIds": [
+            "ake-combo:actionGroupData.timelineActions[42][0].actionOnTick[1].success[0].sequenceActionData[0]:derived-cast:chr_0033_camille:chr_0033_camille_combo_skill_2:1:364:1"
+          ]
+        },
+        {
+          "id": "team-combo-event:2",
+          "type": "grant",
+          "frame": 427,
+          "before": 1,
+          "after": 2,
+          "actorId": "chr_0033_camille",
+          "actor": "卡缪",
+          "sourceCastId": "command-cast:chr_0033_camille:4",
+          "sourceCommandId": "7k8i2b6rg",
+          "sourceLabel": "卡缪连携",
+          "grantIds": [
+            "ake-combo:actionGroupData.timelineActions[27][0].actionOnTick[1].success[2].success[0]:command-cast:chr_0033_camille:4:427:2"
+          ]
+        },
+        {
+          "id": "team-combo-event:3",
+          "type": "consume",
+          "frame": 433,
+          "before": 2,
+          "after": 0,
+          "actorId": "chr_0028_wulfa",
+          "actor": "洛茜",
+          "sourceCastId": "command-cast:chr_0028_wulfa:4",
+          "sourceCommandId": "v605nh6s1",
+          "sourceLabel": "洛茜终结技",
+          "grantIds": [
+            "ake-combo:actionGroupData.timelineActions[42][0].actionOnTick[1].success[0].sequenceActionData[0]:derived-cast:chr_0033_camille:chr_0033_camille_combo_skill_2:1:364:1",
+            "ake-combo:actionGroupData.timelineActions[27][0].actionOnTick[1].success[2].success[0]:command-cast:chr_0033_camille:4:427:2"
+          ]
+        }
+      ],
+      "criticalAnchors": [
+        {
+          "kind": "team-combo-grant",
+          "frame": 364,
+          "commandId": "fg66v6xxz",
+          "label": "卡缪强化战技→派生连携：连击 0→1",
+          "eventId": "team-combo-event:1"
+        },
+        {
+          "kind": "team-combo-grant",
+          "frame": 427,
+          "commandId": "7k8i2b6rg",
+          "label": "卡缪连携：连击 1→2",
+          "eventId": "team-combo-event:2"
+        },
+        {
+          "kind": "team-combo-consume",
+          "frame": 433,
+          "commandId": "v605nh6s1",
+          "label": "洛茜终结技：连击 2→0",
+          "eventId": "team-combo-event:3"
+        },
+        {
+          "kind": "timed-window-start",
+          "frame": 146,
+          "commandId": "1j9udz734",
+          "label": "精准窗开启（含）"
+        },
+        {
+          "kind": "timed-window-preferred",
+          "frame": 151,
+          "commandId": "j1xnfsn7v",
+          "label": "本次成功二段输入"
+        },
+        {
+          "kind": "timed-window-end-exclusive",
+          "frame": 158,
+          "commandId": "1j9udz734",
+          "label": "精准窗关闭（不含）"
+        }
+      ],
+      "dependency": {
+        "sourceCommandId": "7k8i2b6rg",
+        "kind": "damage-hit",
+        "sourceSkillId": "chr_0033_camille_combo_skill",
+        "sourceTimelineFrame": 47,
+        "resolvedSourceHitFrame": 427,
+        "delayFrames": 6,
+        "targetCommandId": "v605nh6s1",
+        "targetResolvedFrame": 433,
+        "description": "卡缪连携最后一击（发第2层连击）后6帧接洛茜Q；不是等待卡缪动作实例结束"
+      },
+      "sourceAlerts": [
+        {
+          "sourceBuffId": "buff_chr_0028_wulfa_tut_comboskill_success",
+          "note": "报告中出现教程命名 Buff 伤害；当前证据不推定其为真实战斗规则，需后续引擎核验"
+        },
+        {
+          "sourceBuffId": "buff_chr_0028_wulfa_tut_comboskill_finish",
+          "note": "报告中出现教程命名 Buff 伤害；当前证据不推定其为真实战斗规则，需后续引擎核验"
+        }
+      ]
+    }
+  },
+  "uiMustSupport": [
+    {
+      "intent": "等待连击达到2层再接终结技",
+      "evidence": "卡缪 F332、F395 分别发放，洛茜 F401 消费两层",
+      "representation": "资源层数事件作为可选锚点，携带来源与运行时eventID；层数并非动作按钮静态标签。"
+    },
+    {
+      "intent": "在上一段精准窗口内部接第二段",
+      "evidence": "洛茜窗口[114,126)，F119成功；普通连携窗口99→278完全不同",
+      "representation": "显示窄窗口胶囊，可选合法区间内帧；闭开边界显式。"
+    },
+    {
+      "intent": "等最后一击而不等动作实例寿命结束",
+      "evidence": "卡缪E最后伤害F395，实例F468才结束；洛茜Q输入F401",
+      "representation": "命中/资源事件/可接续/动作结束/效果结束分别提供锚点，词义不可混用。"
+    },
+    {
+      "intent": "把27段终结技读作一段爆发，同时可展开精查",
+      "evidence": "洛茜Q直接伤害27段F465–533，其中25段0.24倍率F465–513，终结两段F524与F533",
+      "representation": "密集等类tick聚合为可展开带，首尾、段数、合计伤害保留；关键终结击独立标记。"
+    },
+    {
+      "intent": "看懂按下后为什么没伤害",
+      "evidence": "卡缪Q输入F127→F212首伤，前85帧；洛茜Q输入F401→F465首伤，前64帧",
+      "representation": "动作占用条与出伤带分离，前摇/暂停区间明确，视觉压缩标出真实经过时长。"
+    },
+    {
+      "intent": "尾伤脱离动作结束后仍保留归属",
+      "evidence": "当前洛茜Q动作F557结束，火焰反应F562继续；历史B长尾跨越多个后继动作（不可混进当前数据）",
+      "representation": "持续效果子轨、终端事件、派生归属连线；效果结束不作为所有后继动作的默认阻塞。"
+    },
+    {
+      "intent": "压缩画面而不改战斗时序",
+      "evidence": "同一F395应在两个角色行、连击状态行、伤害行拥有同一x；精准窗只有12帧",
+      "representation": "全局单调时间映射，焦点窗口局部放大，重复tick语义聚合；所有轨共享刻度，不按技能独立拉伸。"
+    }
+  ],
+  "visualCompressionRecommendations": {
+    "preserve": [
+      "真实全局帧序",
+      "同帧跨角色垂直对齐",
+      "输入与事件依赖方向",
+      "窗口左右边界",
+      "关键命中与资源变化",
+      "来源rootCastId"
+    ],
+    "aggregateOnly": [
+      "来源和属性一致的重复伤害段",
+      "长尾持续效果的中间tick"
+    ],
+    "alwaysVisible": [
+      "首末命中",
+      "消费/发放事件",
+      "窗口",
+      "用户选中锚点",
+      "合法/缺失来源状态"
+    ],
+    "expandOnDemand": [
+      "每一段命中",
+      "暂停或局部时间说明",
+      "完整状态因果账本"
+    ],
+    "avoid": [
+      "以伤害进度对齐后使不同时刻看似同时发生",
+      "为每个角色使用不同时间缩放",
+      "将行动结束等同持续效果结束",
+      "用整个动作宽度承载全部DOT并挤开后继动作",
+      "因压缩而把精准窗缩成不可点细线",
+      "把未验证教程来源命中称作游戏真实伤害"
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "date": "2026-09-05",
+  "codeBaseline": "1c11c17d1211d3431981f916b674ebe4420a13da",
+  "implementationStatus": "Research only; runtime contains pre-existing uncommitted changes",
+  "savedDocument": {
+    "id": "timeline-1788596477136-459dea68-fdfe-4ab9-9054-287b0e68d91a",
+    "label": "别礼·汤汤｜零潜热启动·四层寒冷爆发",
+    "checkout": {
+      "timelineId": "timeline-1788596477136-459dea68-fdfe-4ab9-9054-287b0e68d91a",
+      "targetType": "work-node",
+      "targetId": "ai-timeline-node-81846f75-4459-4b94-ac3d-0c15ab319424",
+      "updatedAt": 1788615282772
+    },
+    "semanticRoundTripVerified": true,
+    "normalizations": [
+      "updatedAt",
+      "derived lineIndex",
+      "missing buffIds to empty list",
+      "denormalized skillButtonTable timestamps"
+    ]
+  },
+  "cases": [
+    {
+      "role": "current saved failed landing",
+      "caseId": "browser-case-20260905T132047482z-040b34e0",
+      "runId": "run-c33b9303-0b16-4736-ad62-d6d2bd942d43"
+    },
+    {
+      "role": "prior verified landing",
+      "caseId": "browser-case-20260905T130421155z-d958b904",
+      "runId": "run-2770cd23-ede6-4639-9a42-3dcd23bfaa0c"
+    },
+    {
+      "role": "restored current Wulfa Camille",
+      "caseId": "browser-case-20260905T133622928z-9081bc9a",
+      "runId": "run-08ffb209-74f0-45ac-a9a8-84077e06b500"
+    }
+  ],
+  "visualization": "timeline-compression.html in thread visualization directory; display-only, no runtime write",
+  "claims": "Current run facts and UI source audit; not game-rule correctness certification"
+}

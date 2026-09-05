@@ -1,0 +1,110 @@
+{
+  "sessionId": "browser-20260905T164426715z-542c0c63",
+  "runId": "run-af14dfe8-6bf9-485d-88ee-56189b202b3a",
+  "summary": {
+    "totalDamage": 118173.72537302248,
+    "totalPoiseDamage": 100,
+    "dps": 4476.277476250852,
+    "successfulCommands": 8,
+    "failedCommands": 0,
+    "delayedCommands": 3,
+    "calculatedCharacters": 2,
+    "unsupportedCharacters": 0
+  },
+  "releaseLens": {
+    "sourceButtonId": "7k8i2b6rg",
+    "sourceName": "卡缪 · 锥心之棘 · F356",
+    "rect": {
+      "left": 282.6666946411133,
+      "top": 202.99307250976562,
+      "width": 520,
+      "height": 276
+    },
+    "sourceRect": {
+      "left": 530.670166015625,
+      "top": 165.00001525878906,
+      "width": 23.993057250976562,
+      "height": 23.993057250976562
+    },
+    "tickRate": 30,
+    "candidateRevision": "[[\"a9g4ixbs3\",0,0,0,\"chr_0028_wulfa_normal_skill\",{\"schemaVersion\":1,\"kind\":\"group-start\",\"debounceFrames\":0},null,null],[\"1j9udz734\",0,0,1,\"chr_0028_wulfa_combo_2_skill\",{\"schemaVersion\":1,\"kind\":\"damage-hit\",\"sourceButtonId\":\"a9g4ixbs3\",\"sourceHitId\":\"a9g4ixbs3:preview-hit:132\",\"sourceHitOffsetFrames\":815,\"debounceFrames\":6},null,null],[\"j1xnfsn7v\",0,0,2,\"chr_0028_wulfa_combo_2_skill\",{\"schemaVersion\":1,\"kind\":\"timed-input\",\"sourceButtonId\":\"1j9udz734\",\"sourceTimedInputId\":\"combo:ake-trigger-combo:actionGroupData.timelineActions[21][1].success[0].success[0]:1\",\"sourceTimedInputOffsetFrames\":57,\"debounceFrames\":0},null,null],[\"v605nh6s1\",0,0,5,\"chr_0028_wulfa_ultimate_skill\",{\"schemaVersion\":1,\"kind\":\"damage-hit\",\"sourceButtonId\":\"7k8i2b6rg\",\"sourceHitId\":\"7k8i2b6rg:preview-hit:2\",\"sourceHitOffsetFrames\":47,\"debounceFrames\":6},null,null],[\"layvjlbbk\",0,1,0,\"chr_0033_camille_normal_skill\",{\"schemaVersion\":1,\"kind\":\"group-start\",\"debounceFrames\":0},null,null],[\"97hwmxt5u\",0,1,2,\"chr_0033_camille_ultimate_skill\",{\"schemaVersion\":1,\"kind\":\"action-end\",\"sourceButtonId\":\"1j9udz734\",\"debounceFrames\":0},null,null],[\"fg66v6xxz\",0,1,3,\"chr_0033_camille_normal_skill\",{\"schemaVersion\":1,\"kind\":\"action-end\",\"sourceButtonId\":\"97hwmxt5u\",\"debounceFrames\":0},null,null],[\"7k8i2b6rg\",0,1,4,\"chr_0033_camille_combo_skill\",{\"schemaVersion\":1,\"kind\":\"action-end\",\"sourceButtonId\":\"fg66v6xxz\",\"debounceFrames\":0},null,null]]",
+    "draft": true,
+    "selectedAnchorId": "damage-hit:7k8i2b6rg:preview-hit:2",
+    "offsetFrames": 6,
+    "frame": 409,
+    "anchor": {
+      "schemaVersion": 1,
+      "kind": "damage-hit",
+      "sourceButtonId": "7k8i2b6rg",
+      "sourceHitId": "7k8i2b6rg:preview-hit:2",
+      "sourceHitOffsetFrames": 47,
+      "debounceFrames": 6
+    },
+    "reason": null,
+    "note": "来源连携门槛待核验；接点可规划不等于整段已验证",
+    "editing": true,
+    "candidates": [
+      {
+        "id": "action-start:7k8i2b6rg",
+        "label": "同时起手",
+        "frame": 356,
+        "anchor": {
+          "schemaVersion": 1,
+          "kind": "action-start",
+          "sourceButtonId": "7k8i2b6rg",
+          "debounceFrames": 0
+        }
+      },
+      {
+        "id": "damage-hit:7k8i2b6rg:preview-hit:0",
+        "label": "第 1 击后",
+        "frame": 375,
+        "anchor": {
+          "schemaVersion": 1,
+          "kind": "damage-hit",
+          "sourceButtonId": "7k8i2b6rg",
+          "sourceHitId": "7k8i2b6rg:preview-hit:0",
+          "sourceHitOffsetFrames": 19,
+          "debounceFrames": 6
+        }
+      },
+      {
+        "id": "damage-hit:7k8i2b6rg:preview-hit:1",
+        "label": "第 2 击后",
+        "frame": 383,
+        "anchor": {
+          "schemaVersion": 1,
+          "kind": "damage-hit",
+          "sourceButtonId": "7k8i2b6rg",
+          "sourceHitId": "7k8i2b6rg:preview-hit:1",
+          "sourceHitOffsetFrames": 27,
+          "debounceFrames": 6
+        }
+      },
+      {
+        "id": "damage-hit:7k8i2b6rg:preview-hit:2",
+        "label": "第 3 击后",
+        "frame": 403,
+        "anchor": {
+          "schemaVersion": 1,
+          "kind": "damage-hit",
+          "sourceButtonId": "7k8i2b6rg",
+          "sourceHitId": "7k8i2b6rg:preview-hit:2",
+          "sourceHitOffsetFrames": 47,
+          "debounceFrames": 6
+        }
+      },
+      {
+        "id": "action-end:7k8i2b6rg",
+        "label": "动作结束后",
+        "frame": 476,
+        "anchor": {
+          "schemaVersion": 1,
+          "kind": "action-end",
+          "sourceButtonId": "7k8i2b6rg",
+          "debounceFrames": 0
+        }
+      }
+    ]
+  }
+}

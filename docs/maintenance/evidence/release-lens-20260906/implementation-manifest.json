@@ -1,0 +1,59 @@
+{
+  "baselineCommit": "41af727",
+  "date": "2026-09-06",
+  "authority": "current worktree including pre-existing uncommitted development",
+  "files": [
+    {
+      "path": "demo/lts-ui/src/components/CanvasBoard/hooks/useCanvasDrag.ts",
+      "sha256": "174ed4d0ea8ff481e7f5b0af348f86a7cbd18f51e1ccf18c1c1eb8c9034e2201"
+    },
+    {
+      "path": "demo/lts-ui/src/components/CanvasBoard/hooks/releaseLensModel.ts",
+      "sha256": "bbade80017c220fb6d125c9f4c52a1e02539ab0dc261a739f0b3a4c2d734e6e2"
+    },
+    {
+      "path": "demo/lts-ui/src/components/CanvasBoard/hooks/releaseLensModel.test.ts",
+      "sha256": "8615e674eb317aa98c93ffe160e6e27c9472105ecc50c4775bf3da068d3a16f3"
+    },
+    {
+      "path": "demo/lts-ui/src/components/CanvasBoard/components/ReleaseLens.tsx",
+      "sha256": "1fbf7320161cd4edf64a539e15c11dbcc9f8ca4473152dbf735c0706dce33655"
+    },
+    {
+      "path": "demo/lts-ui/src/components/CanvasBoard/components/ReleaseLens.css",
+      "sha256": "ee820c2b9ab83163556fae698c4732ec6a2d1debcda2c9d8515d9316b2579215"
+    },
+    {
+      "path": "demo/lts-ui/src/components/CanvasBoard/components/CanvasArea.tsx",
+      "sha256": "510e9bb1f5b6ff903bc8767e95c8d60fe05bc3b3828dde4030b54efebc5dc8a5"
+    },
+    {
+      "path": "demo/lts-ui/src/components/CanvasBoard/SkillButton.tsx",
+      "sha256": "4e78037f83aa8a5ac44df1f4ad22cffab82d1630b0083eebf1e1f2c550074d6e"
+    },
+    {
+      "path": "demo/lts-ui/src/components/CanvasBoard/index.tsx",
+      "sha256": "05f5c239b9dd24fb7936b18da2401138116bebebc1a75e8b35b668d63724e4c7"
+    },
+    {
+      "path": "demo/lts-ui/src/core/domain/releaseAnchorGraph.ts",
+      "sha256": "10d8fe3718cd7b0dfa6323cc4841a261a0352bc517f61d121c90b080058947bf"
+    },
+    {
+      "path": "demo/lts-ui/src/integrations/ake/akeProvider.ts",
+      "sha256": "fcec26bbf6d429c1674a31a299e5cf5ee33467608dbf08e97ed5da4978798365"
+    },
+    {
+      "path": "demo/lts-ui/src/integrations/ake/riaLiveDebug.ts",
+      "sha256": "6f4e2a787bceae64e2827bc999e992ceeb141197da3279813f60168ab4ce36ac"
+    },
+    {
+      "path": "src/ria/live-debug.mjs",
+      "sha256": "b16d0b72c533c72cebb9b38e8e83780558edea6782634abd8995aed5ba700321"
+    },
+    {
+      "path": "src/core/ake-squad-scenario-runner.mjs",
+      "sha256": "eb2c8652bb0459a297d8cab015fc838ad44d4abc6260ec743c57b63a0e398662"
+    }
+  ]
+}

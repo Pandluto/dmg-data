@@ -1,0 +1,736 @@
+{
+  "old": {
+    "caseId": "browser-case-20260905T133622928z-9081bc9a",
+    "runId": "run-08ffb209-74f0-45ac-a9a8-84077e06b500",
+    "fixtureHash": "787f0b5521558f6cc398aa7a63072f6825f7d08ca905068a3313228c9ae3501c",
+    "versions": {
+      "archiveSchemaVersion": 1,
+      "engineVersion": "0.1.0",
+      "rulesHash": "2e3f205058e1642a868cfa0475813edd24d9fda44a7505b4c8d13299732d7505",
+      "dataHash": "821bf4b873d284fcbad376e0f436cacc0739f86079f05535c28af4d5c18ef518",
+      "executableHash": "50ac4d2198ba08c2bf438fafbe7cda9a0a05a61837226c7ff7f9dd4db76f0b84",
+      "recorderHash": "a5fc38d81d2e2c351831c986dbfbc48ea730f0e7b18fe24b05cd08010745da68"
+    }
+  },
+  "new": {
+    "caseId": "browser-case-20260905T155048197z-3d7add03",
+    "runId": "run-1e6d075f-3228-4540-8ea6-dcc8870971e8",
+    "fixtureHash": "75b96d17bcffd6696645058103977f4ce91c806303f684a031d67f1964269dcf",
+    "versions": {
+      "archiveSchemaVersion": 1,
+      "engineVersion": "0.1.0",
+      "rulesHash": "eb6a2069b2124d25ea806c3c8ebe226e3428375ec4ea41e705bc271fbdf787ef",
+      "dataHash": "821bf4b873d284fcbad376e0f436cacc0739f86079f05535c28af4d5c18ef518",
+      "executableHash": "c0d2f733b48a7938f38de35f326bd4535fd77d03dd9cc34cdd68f6275579a9cd",
+      "recorderHash": "ae64caf08f9b6877ca7a9adf3e362931fe0732343ad88ce5d4c9f73cb721a634"
+    }
+  },
+  "commandsOld": [
+    {
+      "commandId": "a9g4ixbs3",
+      "requestedFrame": 0,
+      "actualFrame": 0,
+      "endFrame": 62,
+      "completion": "Interrupted"
+    },
+    {
+      "commandId": "layvjlbbk",
+      "requestedFrame": 0,
+      "actualFrame": 0,
+      "endFrame": 26,
+      "completion": "Completed"
+    },
+    {
+      "commandId": "1j9udz734",
+      "requestedFrame": 62,
+      "actualFrame": 62,
+      "endFrame": 119,
+      "completion": "Interrupted"
+    },
+    {
+      "commandId": "j1xnfsn7v",
+      "requestedFrame": 119,
+      "actualFrame": 119,
+      "endFrame": 384,
+      "completion": "Interrupted"
+    },
+    {
+      "commandId": "97hwmxt5u",
+      "requestedFrame": 127,
+      "actualFrame": 127,
+      "endFrame": 262,
+      "completion": "Interrupted"
+    },
+    {
+      "commandId": "fg66v6xxz",
+      "requestedFrame": 260,
+      "actualFrame": 262,
+      "endFrame": 348,
+      "completion": "Completed"
+    },
+    {
+      "commandId": "7k8i2b6rg",
+      "requestedFrame": 284,
+      "actualFrame": 348,
+      "endFrame": 468,
+      "completion": "Completed"
+    },
+    {
+      "commandId": "v605nh6s1",
+      "requestedFrame": 337,
+      "actualFrame": 401,
+      "endFrame": 557,
+      "completion": "Completed"
+    }
+  ],
+  "commandsNew": [
+    {
+      "commandId": "a9g4ixbs3",
+      "requestedFrame": 0,
+      "actualFrame": 0,
+      "endFrame": 62,
+      "completion": "Interrupted"
+    },
+    {
+      "commandId": "layvjlbbk",
+      "requestedFrame": 0,
+      "actualFrame": 0,
+      "endFrame": 26,
+      "completion": "Completed"
+    },
+    {
+      "commandId": "1j9udz734",
+      "requestedFrame": 62,
+      "actualFrame": 62,
+      "endFrame": 119,
+      "completion": "Interrupted"
+    },
+    {
+      "commandId": "j1xnfsn7v",
+      "requestedFrame": 119,
+      "actualFrame": 119,
+      "endFrame": 384,
+      "completion": "Interrupted"
+    },
+    {
+      "commandId": "97hwmxt5u",
+      "requestedFrame": 127,
+      "actualFrame": 119,
+      "endFrame": 270,
+      "completion": "Completed"
+    },
+    {
+      "commandId": "fg66v6xxz",
+      "requestedFrame": 260,
+      "actualFrame": 270,
+      "endFrame": 356,
+      "completion": "Completed"
+    },
+    {
+      "commandId": "7k8i2b6rg",
+      "requestedFrame": 284,
+      "actualFrame": 356,
+      "endFrame": 476,
+      "completion": "Completed"
+    },
+    {
+      "commandId": "v605nh6s1",
+      "requestedFrame": 337,
+      "actualFrame": 409,
+      "endFrame": 565,
+      "completion": "Completed"
+    }
+  ],
+  "ablations": [
+    {
+      "name": "old-fixed",
+      "commands": [
+        {
+          "id": "a9g4ixbs3",
+          "actual": 0,
+          "end": 62,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "layvjlbbk",
+          "actual": 0,
+          "end": 26,
+          "completion": "Completed"
+        },
+        {
+          "id": "1j9udz734",
+          "actual": 62,
+          "end": 119,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "j1xnfsn7v",
+          "actual": 119,
+          "end": 384,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "97hwmxt5u",
+          "actual": 127,
+          "end": 262,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "fg66v6xxz",
+          "actual": 262,
+          "end": 348,
+          "completion": "Completed"
+        },
+        {
+          "id": "7k8i2b6rg",
+          "actual": 348,
+          "end": 468,
+          "completion": "Completed"
+        },
+        {
+          "id": "v605nh6s1",
+          "actual": 401,
+          "end": 557,
+          "completion": "Completed"
+        }
+      ],
+      "damage": 118173.72537302248,
+      "identicalOldCommandsAndHP": true
+    },
+    {
+      "name": "only-timed",
+      "commands": [
+        {
+          "id": "a9g4ixbs3",
+          "actual": 0,
+          "end": 62,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "layvjlbbk",
+          "actual": 0,
+          "end": 26,
+          "completion": "Completed"
+        },
+        {
+          "id": "1j9udz734",
+          "actual": 62,
+          "end": 119,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "j1xnfsn7v",
+          "actual": 119,
+          "end": 384,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "97hwmxt5u",
+          "actual": 127,
+          "end": 262,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "fg66v6xxz",
+          "actual": 262,
+          "end": 348,
+          "completion": "Completed"
+        },
+        {
+          "id": "7k8i2b6rg",
+          "actual": 348,
+          "end": 468,
+          "completion": "Completed"
+        },
+        {
+          "id": "v605nh6s1",
+          "actual": 401,
+          "end": 557,
+          "completion": "Completed"
+        }
+      ],
+      "damage": 118173.72537302248
+    },
+    {
+      "name": "plus-q-start",
+      "commands": [
+        {
+          "id": "a9g4ixbs3",
+          "actual": 0,
+          "end": 62,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "layvjlbbk",
+          "actual": 0,
+          "end": 26,
+          "completion": "Completed"
+        },
+        {
+          "id": "1j9udz734",
+          "actual": 62,
+          "end": 119,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "j1xnfsn7v",
+          "actual": 119,
+          "end": 384,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "97hwmxt5u",
+          "actual": 119,
+          "end": 262,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "fg66v6xxz",
+          "actual": 262,
+          "end": 348,
+          "completion": "Completed"
+        },
+        {
+          "id": "7k8i2b6rg",
+          "actual": 348,
+          "end": 468,
+          "completion": "Completed"
+        },
+        {
+          "id": "v605nh6s1",
+          "actual": 401,
+          "end": 557,
+          "completion": "Completed"
+        }
+      ],
+      "damage": 118173.72537302248
+    },
+    {
+      "name": "plus-q-end",
+      "commands": [
+        {
+          "id": "a9g4ixbs3",
+          "actual": 0,
+          "end": 62,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "layvjlbbk",
+          "actual": 0,
+          "end": 26,
+          "completion": "Completed"
+        },
+        {
+          "id": "1j9udz734",
+          "actual": 62,
+          "end": 119,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "j1xnfsn7v",
+          "actual": 119,
+          "end": 384,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "97hwmxt5u",
+          "actual": 119,
+          "end": 270,
+          "completion": "Completed"
+        },
+        {
+          "id": "fg66v6xxz",
+          "actual": 270,
+          "end": 356,
+          "completion": "Completed"
+        },
+        {
+          "id": "7k8i2b6rg",
+          "actual": 356,
+          "end": 476,
+          "completion": "Completed"
+        },
+        {
+          "id": "v605nh6s1",
+          "actual": 409,
+          "end": 565,
+          "completion": "Completed"
+        }
+      ],
+      "damage": 118173.72537302248
+    },
+    {
+      "name": "current-all",
+      "commands": [
+        {
+          "id": "a9g4ixbs3",
+          "actual": 0,
+          "end": 62,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "layvjlbbk",
+          "actual": 0,
+          "end": 26,
+          "completion": "Completed"
+        },
+        {
+          "id": "1j9udz734",
+          "actual": 62,
+          "end": 119,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "j1xnfsn7v",
+          "actual": 119,
+          "end": 384,
+          "completion": "Interrupted"
+        },
+        {
+          "id": "97hwmxt5u",
+          "actual": 119,
+          "end": 270,
+          "completion": "Completed"
+        },
+        {
+          "id": "fg66v6xxz",
+          "actual": 270,
+          "end": 356,
+          "completion": "Completed"
+        },
+        {
+          "id": "7k8i2b6rg",
+          "actual": 356,
+          "end": 476,
+          "completion": "Completed"
+        },
+        {
+          "id": "v605nh6s1",
+          "actual": 409,
+          "end": 565,
+          "completion": "Completed"
+        }
+      ],
+      "damage": 118173.72537302248
+    }
+  ],
+  "clockPauses": {
+    "old": [
+      {
+        "sequence": 1939,
+        "frame": 120,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": []
+      },
+      {
+        "sequence": 1944,
+        "frame": 121,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": []
+      },
+      {
+        "sequence": 1949,
+        "frame": 122,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": []
+      },
+      {
+        "sequence": 1958,
+        "frame": 123,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": []
+      },
+      {
+        "sequence": 1963,
+        "frame": 124,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": []
+      },
+      {
+        "sequence": 1968,
+        "frame": 125,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": []
+      },
+      {
+        "sequence": 1980,
+        "frame": 126,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": []
+      },
+      {
+        "sequence": 1985,
+        "frame": 127,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": []
+      },
+      {
+        "sequence": 2063,
+        "frame": 128,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          261
+        ]
+      },
+      {
+        "sequence": 2072,
+        "frame": 129,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          262
+        ]
+      },
+      {
+        "sequence": 2098,
+        "frame": 130,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          263
+        ]
+      },
+      {
+        "sequence": 2103,
+        "frame": 131,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          264
+        ]
+      },
+      {
+        "sequence": 2108,
+        "frame": 132,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          265
+        ]
+      },
+      {
+        "sequence": 2129,
+        "frame": 133,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          266
+        ]
+      },
+      {
+        "sequence": 2134,
+        "frame": 134,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          267
+        ]
+      },
+      {
+        "sequence": 2150,
+        "frame": 135,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          268
+        ]
+      },
+      {
+        "sequence": 2175,
+        "frame": 136,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          269
+        ]
+      },
+      {
+        "sequence": 2180,
+        "frame": 137,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          270
+        ]
+      }
+    ],
+    "new": [
+      {
+        "sequence": 2012,
+        "frame": 120,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          253
+        ]
+      },
+      {
+        "sequence": 2017,
+        "frame": 121,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          254
+        ]
+      },
+      {
+        "sequence": 2022,
+        "frame": 122,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          255
+        ]
+      },
+      {
+        "sequence": 2031,
+        "frame": 123,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          256
+        ]
+      },
+      {
+        "sequence": 2036,
+        "frame": 124,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          257
+        ]
+      },
+      {
+        "sequence": 2041,
+        "frame": 125,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          258
+        ]
+      },
+      {
+        "sequence": 2053,
+        "frame": 126,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          259
+        ]
+      },
+      {
+        "sequence": 2058,
+        "frame": 127,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          260
+        ]
+      },
+      {
+        "sequence": 2063,
+        "frame": 128,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          261
+        ]
+      },
+      {
+        "sequence": 2072,
+        "frame": 129,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          262
+        ]
+      },
+      {
+        "sequence": 2098,
+        "frame": 130,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          263
+        ]
+      },
+      {
+        "sequence": 2103,
+        "frame": 131,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          264
+        ]
+      },
+      {
+        "sequence": 2108,
+        "frame": 132,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          265
+        ]
+      },
+      {
+        "sequence": 2129,
+        "frame": 133,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          266
+        ]
+      },
+      {
+        "sequence": 2134,
+        "frame": 134,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          267
+        ]
+      },
+      {
+        "sequence": 2150,
+        "frame": 135,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          268
+        ]
+      },
+      {
+        "sequence": 2175,
+        "frame": 136,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          269
+        ]
+      },
+      {
+        "sequence": 2180,
+        "frame": 137,
+        "sourceSkillId": "chr_0028_wulfa_combo_3_skill",
+        "excludedTicks": 1,
+        "naturalEndDeadline": [
+          270
+        ]
+      }
+    ]
+  },
+  "sameDamage": true,
+  "damage": 118173.72537302248,
+  "hpHitCount": 79,
+  "naturalDurationLocalFrames": 133,
+  "normalSkillAllowedAtLocalFrame": 125
+}

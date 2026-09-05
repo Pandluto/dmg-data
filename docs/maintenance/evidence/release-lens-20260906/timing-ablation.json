@@ -1,0 +1,273 @@
+[
+  {
+    "name": "old-fixed",
+    "commands": [
+      {
+        "id": "a9g4ixbs3",
+        "actual": 0,
+        "end": 62,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "layvjlbbk",
+        "actual": 0,
+        "end": 26,
+        "completion": "Completed"
+      },
+      {
+        "id": "1j9udz734",
+        "actual": 62,
+        "end": 119,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "j1xnfsn7v",
+        "actual": 119,
+        "end": 384,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "97hwmxt5u",
+        "actual": 127,
+        "end": 262,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "fg66v6xxz",
+        "actual": 262,
+        "end": 348,
+        "completion": "Completed"
+      },
+      {
+        "id": "7k8i2b6rg",
+        "actual": 348,
+        "end": 468,
+        "completion": "Completed"
+      },
+      {
+        "id": "v605nh6s1",
+        "actual": 401,
+        "end": 557,
+        "completion": "Completed"
+      }
+    ],
+    "damage": 118173.72537302248,
+    "identicalOldCommandsAndHP": true
+  },
+  {
+    "name": "only-timed",
+    "commands": [
+      {
+        "id": "a9g4ixbs3",
+        "actual": 0,
+        "end": 62,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "layvjlbbk",
+        "actual": 0,
+        "end": 26,
+        "completion": "Completed"
+      },
+      {
+        "id": "1j9udz734",
+        "actual": 62,
+        "end": 119,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "j1xnfsn7v",
+        "actual": 119,
+        "end": 384,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "97hwmxt5u",
+        "actual": 127,
+        "end": 262,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "fg66v6xxz",
+        "actual": 262,
+        "end": 348,
+        "completion": "Completed"
+      },
+      {
+        "id": "7k8i2b6rg",
+        "actual": 348,
+        "end": 468,
+        "completion": "Completed"
+      },
+      {
+        "id": "v605nh6s1",
+        "actual": 401,
+        "end": 557,
+        "completion": "Completed"
+      }
+    ],
+    "damage": 118173.72537302248
+  },
+  {
+    "name": "plus-q-start",
+    "commands": [
+      {
+        "id": "a9g4ixbs3",
+        "actual": 0,
+        "end": 62,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "layvjlbbk",
+        "actual": 0,
+        "end": 26,
+        "completion": "Completed"
+      },
+      {
+        "id": "1j9udz734",
+        "actual": 62,
+        "end": 119,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "j1xnfsn7v",
+        "actual": 119,
+        "end": 384,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "97hwmxt5u",
+        "actual": 119,
+        "end": 262,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "fg66v6xxz",
+        "actual": 262,
+        "end": 348,
+        "completion": "Completed"
+      },
+      {
+        "id": "7k8i2b6rg",
+        "actual": 348,
+        "end": 468,
+        "completion": "Completed"
+      },
+      {
+        "id": "v605nh6s1",
+        "actual": 401,
+        "end": 557,
+        "completion": "Completed"
+      }
+    ],
+    "damage": 118173.72537302248
+  },
+  {
+    "name": "plus-q-end",
+    "commands": [
+      {
+        "id": "a9g4ixbs3",
+        "actual": 0,
+        "end": 62,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "layvjlbbk",
+        "actual": 0,
+        "end": 26,
+        "completion": "Completed"
+      },
+      {
+        "id": "1j9udz734",
+        "actual": 62,
+        "end": 119,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "j1xnfsn7v",
+        "actual": 119,
+        "end": 384,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "97hwmxt5u",
+        "actual": 119,
+        "end": 270,
+        "completion": "Completed"
+      },
+      {
+        "id": "fg66v6xxz",
+        "actual": 270,
+        "end": 356,
+        "completion": "Completed"
+      },
+      {
+        "id": "7k8i2b6rg",
+        "actual": 356,
+        "end": 476,
+        "completion": "Completed"
+      },
+      {
+        "id": "v605nh6s1",
+        "actual": 409,
+        "end": 565,
+        "completion": "Completed"
+      }
+    ],
+    "damage": 118173.72537302248
+  },
+  {
+    "name": "current-all",
+    "commands": [
+      {
+        "id": "a9g4ixbs3",
+        "actual": 0,
+        "end": 62,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "layvjlbbk",
+        "actual": 0,
+        "end": 26,
+        "completion": "Completed"
+      },
+      {
+        "id": "1j9udz734",
+        "actual": 62,
+        "end": 119,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "j1xnfsn7v",
+        "actual": 119,
+        "end": 384,
+        "completion": "Interrupted"
+      },
+      {
+        "id": "97hwmxt5u",
+        "actual": 119,
+        "end": 270,
+        "completion": "Completed"
+      },
+      {
+        "id": "fg66v6xxz",
+        "actual": 270,
+        "end": 356,
+        "completion": "Completed"
+      },
+      {
+        "id": "7k8i2b6rg",
+        "actual": 356,
+        "end": 476,
+        "completion": "Completed"
+      },
+      {
+        "id": "v605nh6s1",
+        "actual": 409,
+        "end": 565,
+        "completion": "Completed"
+      }
+    ],
+    "damage": 118173.72537302248
+  }
+]

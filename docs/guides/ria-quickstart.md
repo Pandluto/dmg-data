@@ -211,3 +211,14 @@ npm run ria -- prune --case-id CASE_ID --apply --json
 - 创建 Case 时可设 `--retention-days`、`--max-runs` 和 `--compression gzip`；
 - `compression=none` 使用可重建稀疏 byte index；sealed gzip 查询会从压缩流起点顺序解压，capabilities 会明确报告这一性能差异；
 - fixture、config、result 与 event 在持久化前递归脱敏，服务限制 1 MiB 请求体，单事件和单 Run 也有独立体积上限；Run 上限在落盘前检查，commands/events/snapshots/UI actions 共用额度。
+
+### 接续放大镜观察
+
+Live snapshot 的 `releaseLens` section 在展开时提供来源按钮、候选版本、每个事件的语义标签/帧与窗口边界、选中关系、非负偏移、草稿帧、不可提交原因和待核验说明；关闭时为 `active: false`。这些是交互草稿，必须与 `timeline` 的已保存关系及 `calculation` 的 Run/结算状态分别读取。
+
+`ReleaseLensOpened`、`ReleaseLensCancelled`、`ReleaseLensCommitted` 记录展开、取消和有效提交。核对一轮操作时先冻结输入与 Run，操作期间读取草稿，再比较保存输入和新的计算记录；不能仅凭菱形为高亮色断言机制已验证。不要为读取草稿主动发送重算命令，否则无法判断显示是否触发了计算。
+
+
+`timeline-drag` 用于复现真实页面已有按钮的长按/拖动处理链。先读取 capabilities 与当前 `timeline` 身份，再以 `ui.controls.bounds` 或 `releaseLens.rect/sourceRect` 得到视口 client 坐标。命令接收当前 `timelineId`、已有 `buttonId`、`steps: [{clientX, clientY, holdMs}]` 和 `finish: "release" | "cancel"`。自动先长按 220 ms；最多 12 步，每步停留最多 1000 ms，总等待最多 5 秒；页面必须可见，同一连接不可重入。它不能创建任意选择器、执行 JavaScript 或绕过工作台准入。
+
+命令明确标记 `synthetic: true`，证明的是当前 Chrome DOM 处理链，不能冒充原生鼠标手感。`DebugTimelineDragStep` 附当时的放大镜快照，避免短操作被普通快照采样间隔漏掉；结果返回 `releaseLensOpened` 与事件游标。完整结论仍须比对 `timeline` 保存关系和 `calculation` Run。先以 `finish: "cancel"` 核对草稿，再使用 `release`，验证完恢复原输入。

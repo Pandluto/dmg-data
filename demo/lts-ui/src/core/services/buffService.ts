@@ -12,6 +12,7 @@ import {
   getBuffById,
   upsertBuff,
   removeBuffById,
+  setAllBuffList,
   getAllBuffList,
 } from '../repositories';
 import { calculateBuffedPanel } from '../calculators/buffCalculator';
@@ -378,20 +379,38 @@ export function clearButtonBuffs(buttonId: string): void {
  * @param oldSelectedBuff - 删除前保存的 buffId 列表
  */
 export function cleanupBuffsOnButtonRemove(oldSelectedBuff: string[]): void {
-  // 对旧 selectedBuff 逐个 refCount - 1，0 时删除实体
-  oldSelectedBuff.forEach(buffId => {
-    const buff = getBuffById(buffId);
-    if (buff) {
-      const newRefCount = (buff.refCount || 1) - 1;
-      if (newRefCount <= 0) {
-        removeBuffById(buffId);
-        delete buffCache[buffId];
-      } else {
-        upsertBuff({ ...buff, refCount: newRefCount });
-        buffCache[buffId] = { ...buff, refCount: newRefCount };
-      }
-    }
+  cleanupBuffsOnButtonsRemove(oldSelectedBuff);
+}
+
+/**
+ * Batch form of the single-button cleanup rule. It applies the same
+ * refCount-minus-one semantics, but writes the resulting Buff table once so a
+ * timeline batch deletion cannot expose one-button-at-a-time intermediate
+ * state to another reader.
+ */
+export function cleanupBuffsOnButtonsRemove(oldSelectedBuff: readonly string[]): void {
+  const decrementByBuffId = new Map<string, number>();
+  oldSelectedBuff.forEach((buffId) => {
+    decrementByBuffId.set(buffId, (decrementByBuffId.get(buffId) ?? 0) + 1);
   });
+  if (decrementByBuffId.size === 0) return;
+
+  const nextBuffList = getAllBuffList().flatMap((buff) => {
+    const decrement = decrementByBuffId.get(buff.id);
+    if (!decrement) return [buff];
+
+    const nextRefCount = (buff.refCount || 1) - decrement;
+    if (nextRefCount <= 0) {
+      delete buffCache[buff.id];
+      return [];
+    }
+
+    const nextBuff = { ...buff, refCount: nextRefCount };
+    buffCache[buff.id] = nextBuff;
+    return [nextBuff];
+  });
+
+  setAllBuffList(nextBuffList);
 }
 
 /**

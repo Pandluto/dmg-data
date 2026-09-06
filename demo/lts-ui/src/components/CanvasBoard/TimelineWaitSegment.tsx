@@ -11,6 +11,7 @@ interface TimelineWaitSegmentProps {
   endFrame: number | null;
   tickRate: number;
   isBrowseMode?: boolean;
+  isBatchSelected?: boolean;
   isDragDisabled?: boolean;
   onMouseDown: (event: MouseEvent, buttonId: string) => void;
   onContextMenu: (event: MouseEvent, buttonId: string) => void;
@@ -103,6 +104,7 @@ export function TimelineWaitSegment({
   endFrame,
   tickRate,
   isBrowseMode = false,
+  isBatchSelected = false,
   isDragDisabled = false,
   onMouseDown,
   onContextMenu,
@@ -182,8 +184,9 @@ export function TimelineWaitSegment({
   return (
     <>
       <div
-        className={`timeline-wait-segment ${modeClass}${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-drag-disabled' : ''}${isBrowseMode ? ' is-browse-mode' : ''}`}
+        className={`timeline-wait-segment ${modeClass}${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-drag-disabled' : ''}${isBrowseMode ? ' is-browse-mode' : ''}${isBatchSelected ? ' is-batch-selected' : ''}`}
         data-skill-button-id={button.id}
+        data-batch-selected={isBatchSelected || undefined}
         data-timeline-module={button.timelineModuleKind}
         data-wait-mode={isLaneWait ? laneConfig.mode : forcedConfig.mode}
         role="button"

@@ -30,6 +30,7 @@ assert.match(html, /极限闪避/);
 assert.match(html, /切人/);
 assert.match(html, /普通等待接尾链/);
 assert.match(html, /强制等待只吸附组边界/);
+assert.match(html, /批量选择/);
 assert.equal((html.match(/sandbox-timeline-module/g) ?? []).length, 5);
 
 const waitDialogHtml = renderToStaticMarkup(

@@ -1109,6 +1109,64 @@
   -ms-overflow-style: none;
 }
 
+/* Batch timeline selection lives above the operation layer and owns pointer
+ * input while armed. The first cursor is a small pin with its hotspot at the
+ * tip; crosshair keeps the mode usable when a browser rejects data cursors. */
+.canvas-container.is-batch-selection-mode,
+.canvas-batch-selection-layer {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M1 1 14 6 8 8 6 14Z' fill='%23111111' stroke='%23ffffff' stroke-width='1'/%3E%3C/svg%3E") 1 1, crosshair;
+}
+
+.canvas-batch-selection-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  min-width: 100%;
+  min-height: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.canvas-batch-selection-rect {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid rgba(26, 95, 112, 0.72);
+  background: rgba(111, 204, 218, 0.17);
+  pointer-events: none;
+}
+
+.canvas-batch-undo-notice {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  z-index: 5100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 30px;
+  padding: 4px 8px 4px 10px;
+  border: 1px solid rgba(26, 95, 112, 0.72);
+  background: rgba(239, 251, 252, 0.96);
+  color: #174f5c;
+  font-size: 11px;
+  transform: translateX(-50%);
+  box-shadow: 0 3px 10px rgba(23, 75, 80, 0.14);
+}
+
+.canvas-batch-undo-notice button {
+  padding: 3px 7px;
+  border: 1px solid #1a5f70;
+  background: #ffffff;
+  color: #174f5c;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.canvas-batch-undo-notice button:hover {
+  background: rgba(26, 95, 112, 0.1);
+}
+
 /*
  * The tide backdrop nodes stay mounted so the optional theme can activate
  * without rebuilding the timeline. Keep them out of normal layout before the
@@ -2291,6 +2349,10 @@
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.92), 0 0 0 4px var(--wait-segment-color);
 }
 
+.timeline-wait-segment.is-batch-selected .timeline-wait-track {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #1a5f70;
+}
+
 .timeline-wait-segment.dragging {
   z-index: 40;
   cursor: grabbing;
@@ -2458,6 +2520,10 @@
 .timeline-switch-cursor.is-end > b { right: -1px; text-align: right; }
 .timeline-operator-switch-segment.selected .timeline-switch-track {
   box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--switch-color);
+}
+
+.timeline-operator-switch-segment.is-batch-selected .timeline-switch-track {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #1a5f70;
 }
 
 .canvas-release-snap-point {

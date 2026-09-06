@@ -305,6 +305,7 @@ interface SkillButtonProps {
   onConfigureTimelineModule?: (button: SkillButtonType) => void;
   skillChangeOptions?: SkillButtonSkillOption[];
   isBrowseMode?: boolean;
+  isBatchSelected?: boolean;
   isInspectMode?: boolean;
   isDragDisabled?: boolean;
   resistanceRevision?: number;
@@ -356,6 +357,7 @@ export function SkillButtonComponent({
   onConfigureTimelineModule,
   skillChangeOptions = [],
   isBrowseMode = false,
+  isBatchSelected = false,
   isInspectMode = false,
   isDragDisabled = false,
   resistanceRevision = 0,
@@ -2190,7 +2192,7 @@ export function SkillButtonComponent({
   return (
     <>
       <div
-        className={`canvas-skill-button ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${isLocked ? 'locked' : ''} ${timelineModuleKind ? `is-timeline-module is-${timelineModuleKind}` : ''} ${basicAttackTailBundle ? `is-basic-tail-bundled ${isBasicTailPredecessor ? 'is-basic-tail-predecessor' : 'is-basic-tail-successor'}` : ''} ${isBrowseMode ? 'is-browse-mode' : ''} ${isBrowseMode && isDotButton ? 'is-browse-dot' : ''} ${isInspectMode ? 'is-inspect-mode' : ''} ${isDragDisabled ? 'is-drag-disabled' : ''} ${akeSettlement ? `has-ake-settlement is-ake-${akeSettlement.state}` : ''} ${akePreviewCommand ? `has-ake-preview is-ake-${akePreviewCommand.state} is-ake-verdict-${akePreviewCommand.releaseVerdict}${akeResolvedEnhancedForm ? ' is-ake-enhanced-form' : ''}${akeUsesSharedProjection ? ' uses-shared-projection' : ''}` : ''}`}
+        className={`canvas-skill-button ${isSelected ? 'selected' : ''} ${isBatchSelected ? 'is-batch-selected' : ''} ${isDragging ? 'dragging' : ''} ${isLocked ? 'locked' : ''} ${timelineModuleKind ? `is-timeline-module is-${timelineModuleKind}` : ''} ${basicAttackTailBundle ? `is-basic-tail-bundled ${isBasicTailPredecessor ? 'is-basic-tail-predecessor' : 'is-basic-tail-successor'}` : ''} ${isBrowseMode ? 'is-browse-mode' : ''} ${isBrowseMode && isDotButton ? 'is-browse-dot' : ''} ${isInspectMode ? 'is-inspect-mode' : ''} ${isDragDisabled ? 'is-drag-disabled' : ''} ${akeSettlement ? `has-ake-settlement is-ake-${akeSettlement.state}` : ''} ${akePreviewCommand ? `has-ake-preview is-ake-${akePreviewCommand.state} is-ake-verdict-${akePreviewCommand.releaseVerdict}${akeResolvedEnhancedForm ? ' is-ake-enhanced-form' : ''}${akeUsesSharedProjection ? ' uses-shared-projection' : ''}` : ''}`}
         data-liquid-glass-skill="true"
         data-combat-inspected={isCombatInspected || undefined}
         role={onInspect ? 'button' : undefined}
@@ -2201,6 +2203,7 @@ export function SkillButtonComponent({
           if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onInspect(); }
         } : undefined}
         data-skill-button-id={button.id}
+        data-batch-selected={isBatchSelected || undefined}
         data-skill-type={skillType}
         data-timeline-module={timelineModuleKind ?? undefined}
         data-ake-frame={akePreviewFrame ?? undefined}

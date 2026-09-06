@@ -26,17 +26,25 @@ import {
 } from '../calculators/gridSnapLayout';
 import { synchronizeTimelineButtonBuffMirrors } from '../domain/timelineButtonBuffMirror';
 import { getTimelineDeleteBlockReason } from '../domain/timelineQueuePolicy';
+import { planTimelineBatchRemoval } from '../domain/timelineBatchRemoval';
 import { resolveInitialControllerLaneId } from '../domain/operatorControlTimeline';
 import {
   getSkillButtonById,
   getSkillButtonTable,
+  getAllBuffList,
+  replaceSkillButtonTable,
   setSkillButtonTable,
+  setAllBuffList,
   upsertSkillButton,
   removeSkillButtonById,
   saveTimelineData as saveTimelineRepo,
   loadTimelineData as loadTimelineRepo,
 } from '../repositories';
-import { cleanupBuffsOnButtonRemove, recomputeSkillButtonPanel } from './buffService';
+import {
+  cleanupBuffsOnButtonRemove,
+  cleanupBuffsOnButtonsRemove,
+  recomputeSkillButtonPanel,
+} from './buffService';
 
 /**
  * 创建空的 Timeline 数据
@@ -710,6 +718,88 @@ export function removeSkillButton(
 
   saveTimelineRepo(newTimelineData);
   return newTimelineData;
+}
+
+/**
+ * Delete several timeline buttons as one logical mutation.
+ *
+ * The planner has already proved that every selected ID can be removed by
+ * repeatedly applying the normal tail policy to a private queue copy. Only
+ * after that proof do we touch the button table, Buff references, and queue
+ * snapshot. The React hook can therefore publish one new timeline state and
+ * the calculation effects observe one batch change.
+ */
+export function removeSkillButtons(
+  timelineData: TimelineData,
+  buttonIds: readonly string[],
+): {
+  removedButtonIds: string[];
+  removalOrder: string[];
+  newTimelineData: TimelineData;
+} {
+  const plan = planTimelineBatchRemoval(timelineData, buttonIds);
+  if (!plan.ok) {
+    throw new Error(plan.reason);
+  }
+
+  const currentSkillButtonTable = getSkillButtonTable();
+  const currentBuffList = getAllBuffList();
+  const nextSkillButtonTable = { ...currentSkillButtonTable };
+  const removedButtonBuffRefs: string[] = [];
+
+  // Use the same persisted button fields as single deletion, while falling
+  // back to the queue copy for legacy/imported records missing from the table.
+  const timelineButtonById = new Map(
+    timelineData.staffLines.flatMap((line) => line.buttons).map((button) => [button.id, button]),
+  );
+  const removedButtonIdSet = new Set(plan.selectedButtonIds);
+
+  plan.removalOrder.forEach((buttonId) => {
+    const persistedButton = nextSkillButtonTable[buttonId];
+    const timelineButton = timelineButtonById.get(buttonId);
+    const selectedBuff = persistedButton?.selectedBuff ?? [];
+    removedButtonBuffRefs.push(...selectedBuff);
+    delete nextSkillButtonTable[buttonId];
+
+    const tailBundle = persistedButton?.basicAttackTailBundle ?? timelineButton?.basicAttackTailBundle;
+    const tailPeerId = tailBundle
+      ? tailBundle.predecessorButtonId === buttonId
+        ? tailBundle.successorButtonId
+        : tailBundle.predecessorButtonId
+      : null;
+    if (tailPeerId && !removedButtonIdSet.has(tailPeerId)) {
+      const persistedPeer = nextSkillButtonTable[tailPeerId];
+      if (persistedPeer) {
+        nextSkillButtonTable[tailPeerId] = clearBasicAttackTailFields(persistedPeer);
+      }
+    }
+  });
+
+  // These repository writes are intentionally ordered as a single logical
+  // commit. In particular, do not call removeSkillButton in a loop here:
+  // that would publish intermediate queues and repeatedly synchronize storage.
+  const newTimelineData: TimelineData = {
+    ...plan.timelineData,
+    updatedAt: Date.now(),
+  };
+  try {
+    replaceSkillButtonTable(nextSkillButtonTable);
+    cleanupBuffsOnButtonsRemove(removedButtonBuffRefs);
+    saveTimelineRepo(newTimelineData);
+  } catch (error) {
+    // The normal browser repositories are non-throwing, but keep the batch
+    // contract atomic if a custom storage bridge rejects one write.
+    replaceSkillButtonTable(currentSkillButtonTable);
+    setAllBuffList(currentBuffList);
+    saveTimelineRepo(timelineData);
+    throw error;
+  }
+
+  return {
+    removedButtonIds: plan.selectedButtonIds,
+    removalOrder: plan.removalOrder,
+    newTimelineData,
+  };
 }
 
 /**

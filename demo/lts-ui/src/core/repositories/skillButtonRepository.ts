@@ -149,6 +149,15 @@ export function setSkillButtonTable(table: SkillButtonTable): void {
 }
 
 /**
+ * Replace the button table without synchronizing the currently persisted
+ * timeline. Timeline services use this during a multi-record commit so the
+ * table and its final queue snapshot are written as one logical mutation.
+ */
+export function replaceSkillButtonTable(table: SkillButtonTable): void {
+  safeSessionStorage.setItem(STORAGE_KEYS.SKILL_BUTTON_TABLE, JSON.stringify(table));
+}
+
+/**
  * 根据 ID 获取单个 button
  */
 export function getSkillButtonById(buttonId: string): PersistedSkillButton | null {

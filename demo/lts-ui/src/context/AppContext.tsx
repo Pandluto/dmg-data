@@ -152,6 +152,7 @@ type AppAction =
   | { type: 'ADD_SKILL_BUTTON'; button: SkillButton }
   | { type: 'SET_SKILL_BUTTONS'; buttons: SkillButton[] }
   | { type: 'REMOVE_SKILL_BUTTON'; buttonId: string }
+  | { type: 'REMOVE_SKILL_BUTTONS'; buttonIds: string[] }
   | {
       type: 'SET_SKILL_BUTTON_POSITION';
       buttonId: string;
@@ -292,6 +293,30 @@ function appReducer(state: AppState, action: AppAction): AppState {
           .filter(button => button.id !== action.buttonId)
           .map((button) => {
             if (button.id !== peerId) return button;
+            const next = { ...button };
+            delete next.basicAttackStageCount;
+            delete next.basicAttackTailBundle;
+            return next;
+          }),
+      };
+    }
+
+    case 'REMOVE_SKILL_BUTTONS': {
+      const removedIds = new Set(action.buttonIds);
+      const peerIds = new Set<string>();
+      state.skillButtons.forEach((button) => {
+        if (!removedIds.has(button.id) || !button.basicAttackTailBundle) return;
+        const peerId = button.basicAttackTailBundle.predecessorButtonId === button.id
+          ? button.basicAttackTailBundle.successorButtonId
+          : button.basicAttackTailBundle.predecessorButtonId;
+        if (!removedIds.has(peerId)) peerIds.add(peerId);
+      });
+      return {
+        ...state,
+        skillButtons: state.skillButtons
+          .filter((button) => !removedIds.has(button.id))
+          .map((button) => {
+            if (!peerIds.has(button.id)) return button;
             const next = { ...button };
             delete next.basicAttackStageCount;
             delete next.basicAttackTailBundle;

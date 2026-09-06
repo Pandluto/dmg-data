@@ -12,6 +12,7 @@ interface TimelineOperatorSwitchSegmentProps {
   frame: number | null;
   tickRate: number;
   isBrowseMode?: boolean;
+  isBatchSelected?: boolean;
   isDragDisabled?: boolean;
   onMouseDown: (event: MouseEvent, buttonId: string) => void;
   onContextMenu: (event: MouseEvent, buttonId: string) => void;
@@ -37,6 +38,7 @@ export function TimelineOperatorSwitchSegment({
   frame,
   tickRate,
   isBrowseMode = false,
+  isBatchSelected = false,
   isDragDisabled = false,
   onMouseDown,
   onContextMenu,
@@ -79,8 +81,9 @@ export function TimelineOperatorSwitchSegment({
   return (
     <>
       <div
-        className={`timeline-operator-switch-segment${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-drag-disabled' : ''}${isBrowseMode ? ' is-browse-mode' : ''}`}
+        className={`timeline-operator-switch-segment${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-drag-disabled' : ''}${isBrowseMode ? ' is-browse-mode' : ''}${isBatchSelected ? ' is-batch-selected' : ''}`}
         data-skill-button-id={button.id}
+        data-batch-selected={isBatchSelected || undefined}
         data-timeline-module="operator-switch"
         role="button"
         tabIndex={isBrowseMode ? -1 : 0}

@@ -18,6 +18,7 @@ import {
 import { useCanvasWidth } from './hooks/useCanvasWidth';
 import { useSelectStart } from './hooks/useSelectStart';
 import { useCanvasDrag } from './hooks/useCanvasDrag';
+import { useBatchTimelineSelection } from './hooks/useBatchTimelineSelection';
 import { useTimelineData } from '../../hooks/useTimelineData';
 import { CanvasArea } from './components/CanvasArea';
 import { DraggingOverlay } from './components/DraggingOverlay';
@@ -58,7 +59,10 @@ import {
 import {
   getSkillButtonById,
   getSkillButtonTable,
+  getAllBuffList,
+  replaceSkillButtonTable,
   saveTimelineData as saveTimelineRepo,
+  setAllBuffList,
   setSkillButtonTable,
   upsertSkillButton,
 } from '../../core/repositories';
@@ -66,6 +70,7 @@ import {
   addBuffToButton,
   attachExistingBuffsToButton,
   getBuffsByButtonId,
+  loadBuffsToCache,
   recomputeSkillButtonPanel,
   removeBuffFromButton,
 } from '../../core/services/buffService';
@@ -108,7 +113,7 @@ import './CanvasBoard.css';
 import { resolveRuntimeTemplateSkill } from '../../core/services/skillDamageTemplateResolver';
 import { buildDamageReportSnapshot } from '../../core/services/damageReportService';
 import { resolveInitialControllerLaneId } from '../../core/domain/operatorControlTimeline';
-import type { PersistedSkillButton } from '../../types/storage';
+import type { BuffList, PersistedSkillButton, SkillButtonTable } from '../../types/storage';
 import type { HitResistanceInput } from '../../types/storage';
 import DeferredNumberInput from '../DeferredNumberInput';
 import {
@@ -165,6 +170,7 @@ import {
   lockTailTransitionBundle,
 } from '../../core/domain/combatActionTailPlanner';
 import { getTimelineDeleteBlockReason } from '../../core/domain/timelineQueuePolicy';
+import { TimelineBatchContextMenu } from './TimelineBatchContextMenu';
 
 function getLegacySnapshotTimelineId(snapshotId: string): string {
   return `timeline-document-${snapshotId}`;
@@ -183,6 +189,35 @@ function checkoutIdentity(checkoutRef: TimelineCheckoutRef | null): string {
   if (!checkoutRef) return 'none';
   return `${checkoutRef.timelineId}:${checkoutRef.targetType}:${checkoutRef.targetId}`;
 }
+
+function cloneBatchSnapshotValue<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function batchTimelineContentSignature(timelineData: TimelineData): string {
+  return JSON.stringify({ ...timelineData, updatedAt: 0 });
+}
+
+function batchSkillButtonTableSignature(table: SkillButtonTable): string {
+  return JSON.stringify(Object.keys(table).sort().map((buttonId) => [buttonId, table[buttonId]]));
+}
+
+function batchBuffListSignature(buffList: BuffList): string {
+  return JSON.stringify([...buffList].sort((left, right) => left.id.localeCompare(right.id)));
+}
+
+type BatchDeleteUndoSnapshot = {
+  count: number;
+  timelineIdentity: string;
+  rosterSignature: string;
+  beforeTimelineData: TimelineData;
+  beforeSkillButtons: SkillButton[];
+  beforeSkillButtonTable: SkillButtonTable;
+  beforeBuffList: BuffList;
+  afterTimelineSignature: string;
+  afterSkillButtonTableSignature: string;
+  afterBuffListSignature: string;
+};
 
 const EMPTY_BATCH_TARGET_RESISTANCE: Required<HitResistanceInput> = {
   physicalResistance: 0,
@@ -600,6 +635,8 @@ export function CanvasBoard({
   const [sqliteTimelineWorkspaces, setSqliteTimelineWorkspaces] = useState<TimelineSqliteWorkspace[]>([]);
   const [restorePanelTab, setRestorePanelTab] = useState<'local' | 'shared' | 'sqlite'>('local');
   const [isBrowseMode, setIsBrowseMode] = useState(false);
+  const [isBatchMode, setIsBatchMode] = useState(false);
+  const [batchUndoSnapshot, setBatchUndoSnapshot] = useState<BatchDeleteUndoSnapshot | null>(null);
   const [isInspectMode, setIsInspectMode] = useState(false);
   const [isWorkNodePanelOpen, setIsWorkNodePanelOpen] = useState(false);
   const [workNodeRefreshKey, setWorkNodeRefreshKey] = useState(0);
@@ -741,11 +778,13 @@ export function CanvasBoard({
     timelineData,
     addSkillButton: addTimelineButton,
     removeSkillButton: removeTimelineButton,
+    removeSkillButtons: removeTimelineButtons,
     updateSkillButtonPosition,
     moveSkillButtonToStaff,
     saveTimelineData,
     loadTimelineData,
     replaceTimelineData,
+    getCurrentTimelineData,
     normalizeTimelineData,
     updateSkillButtonType: updateTimelineButtonType,
     updateBasicAttackTailBundle,
@@ -3566,6 +3605,60 @@ export function CanvasBoard({
     buttonId: string;
     position: { x: number; y: number };
   } | null>(null);
+  const [batchContextMenuState, setBatchContextMenuState] = useState<{
+    position: { x: number; y: number };
+  } | null>(null);
+
+  const exitBatchMode = useCallback(() => {
+    setIsBatchMode(false);
+    setBatchContextMenuState(null);
+    setContextMenuState(null);
+  }, []);
+
+  const batchSelectionResetKey = [
+    activeTimelineId,
+    checkoutIdentity(activeCheckoutRef),
+    selectedCharacters.map((character) => character.id).join(','),
+  ].join('|');
+  const batchSelection = useBatchTimelineSelection({
+    active: isBatchMode && !isBrowseMode,
+    canvasRef,
+    selectableButtonIds: skillButtons.map((button) => button.id),
+    resetKey: batchSelectionResetKey,
+    onExit: exitBatchMode,
+  });
+
+  useEffect(() => {
+    if (!batchContextMenuState) return undefined;
+    const close = () => setBatchContextMenuState(null);
+    window.addEventListener('pointerdown', close);
+    return () => window.removeEventListener('pointerdown', close);
+  }, [batchContextMenuState]);
+
+  useEffect(() => {
+    if (!isBatchMode || batchSelection.selectedButtonIds.length > 0) return;
+    setBatchContextMenuState(null);
+  }, [batchSelection.selectedButtonIds.length, isBatchMode]);
+
+  useEffect(() => {
+    if (!batchUndoSnapshot) return;
+    const currentTimelineIdentity = `${activeTimelineId}|${checkoutIdentity(activeCheckoutRef)}`;
+    const currentRosterSignature = selectedCharacters.map((character) => character.id).join('|');
+    const isCurrentBatchResult = currentTimelineIdentity === batchUndoSnapshot.timelineIdentity
+      && currentRosterSignature === batchUndoSnapshot.rosterSignature
+      && batchTimelineContentSignature(timelineData) === batchUndoSnapshot.afterTimelineSignature
+      && batchSkillButtonTableSignature(getSkillButtonTable()) === batchUndoSnapshot.afterSkillButtonTableSignature
+      && batchBuffListSignature(getAllBuffList()) === batchUndoSnapshot.afterBuffListSignature;
+    if (!isCurrentBatchResult) {
+      setBatchUndoSnapshot(null);
+    }
+  }, [
+    activeCheckoutRef,
+    activeTimelineId,
+    batchUndoSnapshot,
+    selectedCharacters,
+    timelineData,
+  ]);
 
   const [pendingCopy, setPendingCopy] = useState<{
     sourceButtonId: string;
@@ -3709,6 +3802,149 @@ export function CanvasBoard({
     pendingBasicAttackCut,
     selectedBasicAttackStageCount,
     updateBasicAttackTailBundle,
+  ]);
+
+  const handleToggleBrowseMode = useCallback(() => {
+    if (isBrowseMode) {
+      setIsBrowseMode(false);
+      return;
+    }
+    setIsBrowseMode(true);
+    setIsBatchMode(false);
+    setBatchContextMenuState(null);
+    setContextMenuState(null);
+  }, [isBrowseMode]);
+
+  const handleToggleBatchMode = useCallback(() => {
+    if (isBatchMode) {
+      exitBatchMode();
+      return;
+    }
+    setIsBatchMode(true);
+    setIsBrowseMode(false);
+    setBatchContextMenuState(null);
+    setContextMenuState(null);
+  }, [exitBatchMode, isBatchMode]);
+
+  const handleBatchContextMenu = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setContextMenuState(null);
+    if (!isBatchMode || batchSelection.selectedButtonIds.length === 0) {
+      setBatchContextMenuState(null);
+      return;
+    }
+    setBatchContextMenuState({
+      position: { x: event.clientX, y: event.clientY },
+    });
+  }, [batchSelection.selectedButtonIds.length, isBatchMode]);
+
+  const handleConfirmBatchRemove = useCallback(() => {
+    const selectedButtonIds = batchSelection.selectedButtonIds;
+    if (selectedButtonIds.length === 0) {
+      setBatchContextMenuState(null);
+      return;
+    }
+
+    const lockedButton = skillButtons.find((button) => (
+      selectedButtonIds.includes(button.id) && button.isLocked
+    ));
+    if (lockedButton) {
+      setBatchContextMenuState(null);
+      setWorkNodeSaveNotice(`“${lockedButton.skillDisplayName ?? lockedButton.skillType}”已锁定，不能批量删除。`);
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2800);
+      return;
+    }
+
+    const beforeTimelineData = cloneBatchSnapshotValue(getCurrentTimelineData());
+    const beforeSkillButtons = cloneBatchSnapshotValue(skillButtons);
+    const beforeSkillButtonTable = cloneBatchSnapshotValue(getSkillButtonTable());
+    const beforeBuffList = cloneBatchSnapshotValue(getAllBuffList());
+    const timelineIdentity = `${activeTimelineId}|${checkoutIdentity(activeCheckoutRef)}`;
+    const rosterSignature = selectedCharacters.map((character) => character.id).join('|');
+
+    try {
+      const result = removeTimelineButtons(selectedButtonIds);
+      const afterSkillButtonTable = getSkillButtonTable();
+      const afterBuffList = getAllBuffList();
+      setBatchUndoSnapshot({
+        count: result.removedButtonIds.length,
+        timelineIdentity,
+        rosterSignature,
+        beforeTimelineData,
+        beforeSkillButtons,
+        beforeSkillButtonTable,
+        beforeBuffList,
+        afterTimelineSignature: batchTimelineContentSignature(result.newTimelineData),
+        afterSkillButtonTableSignature: batchSkillButtonTableSignature(afterSkillButtonTable),
+        afterBuffListSignature: batchBuffListSignature(afterBuffList),
+      });
+      // One reducer action keeps the runtime projection aligned with the one
+      // service-level queue/table commit, including basic-attack peer cleanup.
+      dispatch({ type: 'REMOVE_SKILL_BUTTONS', buttonIds: result.removedButtonIds });
+      batchSelection.clearSelection();
+      setBatchContextMenuState(null);
+      setContextMenuState(null);
+      setWorkNodeSaveNotice(`已删除所选 ${result.removedButtonIds.length} 项。`);
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 2200);
+    } catch (error) {
+      setBatchContextMenuState(null);
+      const reason = error instanceof Error ? error.message : String(error);
+      setWorkNodeSaveNotice(`批量删除未执行：${reason}`);
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 3200);
+    }
+  }, [
+    activeCheckoutRef,
+    activeTimelineId,
+    batchSelection,
+    dispatch,
+    getCurrentTimelineData,
+    removeTimelineButtons,
+    selectedCharacters,
+    skillButtons,
+  ]);
+
+  const handleUndoBatchRemove = useCallback(() => {
+    const snapshot = batchUndoSnapshot;
+    if (!snapshot) return;
+
+    const currentTimelineIdentity = `${activeTimelineId}|${checkoutIdentity(activeCheckoutRef)}`;
+    const currentRosterSignature = selectedCharacters.map((character) => character.id).join('|');
+    const isCurrentBatchResult = currentTimelineIdentity === snapshot.timelineIdentity
+      && currentRosterSignature === snapshot.rosterSignature
+      && batchTimelineContentSignature(timelineData) === snapshot.afterTimelineSignature
+      && batchSkillButtonTableSignature(getSkillButtonTable()) === snapshot.afterSkillButtonTableSignature
+      && batchBuffListSignature(getAllBuffList()) === snapshot.afterBuffListSignature;
+    if (!isCurrentBatchResult) {
+      setBatchUndoSnapshot(null);
+      setWorkNodeSaveNotice('批量删除已发生后续变化，撤销入口已失效。');
+      window.setTimeout(() => setWorkNodeSaveNotice(''), 3000);
+      return;
+    }
+
+    replaceSkillButtonTable(cloneBatchSnapshotValue(snapshot.beforeSkillButtonTable));
+    setAllBuffList(cloneBatchSnapshotValue(snapshot.beforeBuffList));
+    loadBuffsToCache();
+    saveTimelineRepo(cloneBatchSnapshotValue(snapshot.beforeTimelineData));
+    replaceTimelineData(cloneBatchSnapshotValue(snapshot.beforeTimelineData));
+    dispatch({
+      type: 'SET_SKILL_BUTTONS',
+      buttons: cloneBatchSnapshotValue(snapshot.beforeSkillButtons),
+    });
+    batchSelection.clearSelection();
+    setBatchContextMenuState(null);
+    setBatchUndoSnapshot(null);
+    setWorkNodeSaveNotice(`已撤销批量删除（${snapshot.count} 项）。`);
+    window.setTimeout(() => setWorkNodeSaveNotice(''), 2400);
+  }, [
+    activeCheckoutRef,
+    activeTimelineId,
+    batchSelection,
+    batchUndoSnapshot,
+    dispatch,
+    replaceTimelineData,
+    selectedCharacters,
+    timelineData,
   ]);
 
   const handleConfirmRemoveSkillButton = () => {
@@ -4762,7 +4998,9 @@ export function CanvasBoard({
       onRefreshAvailableCandidates={handleRefreshAvailableCandidates}
       isRefreshingAvailableCandidates={isRefreshingAvailableCandidates}
       isBrowseMode={isBrowseMode}
-      onToggleBrowseMode={() => setIsBrowseMode((prev) => !prev)}
+      onToggleBrowseMode={handleToggleBrowseMode}
+      isBatchMode={isBatchMode}
+      onToggleBatchMode={handleToggleBatchMode}
       isInspectMode={isInspectMode}
       onInspectStart={() => setIsInspectMode(true)}
       onInspectEnd={() => setIsInspectMode(false)}
@@ -4814,6 +5052,19 @@ export function CanvasBoard({
   return (
     <div className={canvasBoardClassName}>
       {workNodeSaveNotice && <div className="canvas-work-node-save-notice" role="status">{workNodeSaveNotice}</div>}
+      {batchUndoSnapshot ? (
+        <div className="canvas-batch-undo-notice" role="status">
+          <span>{`已删除所选 ${batchUndoSnapshot.count} 项`}</span>
+          <button type="button" onClick={handleUndoBatchRemove}>撤销本次批量删除</button>
+        </div>
+      ) : null}
+      {isBatchMode && batchContextMenuState ? (
+        <TimelineBatchContextMenu
+          count={batchSelection.selectedButtonIds.length}
+          position={batchContextMenuState.position}
+          onDelete={handleConfirmBatchRemove}
+        />
+      ) : null}
       <div className="canvas-layout">
         <div className="canvas-background-layer">
           <div className="skew-panel" />
@@ -4848,6 +5099,12 @@ export function CanvasBoard({
             getSkillChangeOptions={getSkillChangeOptions}
             isDraggingActive={Boolean(draggingState)}
             isBrowseMode={isBrowseMode}
+            isBatchMode={isBatchMode}
+            batchSelectedButtonIds={batchSelection.selectedButtonIdSet}
+            batchSelectionRect={batchSelection.selectionRect}
+            onBatchPointerDown={batchSelection.handlePointerDown}
+            onBatchPointerCancel={batchSelection.handlePointerCancel}
+            onBatchContextMenu={handleBatchContextMenu}
             isInspectMode={isInspectMode}
             isDragDisabled={true}
             resistanceRevision={resistanceRevision}

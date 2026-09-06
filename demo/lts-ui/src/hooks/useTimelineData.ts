@@ -20,6 +20,7 @@ import {
   createEmptyTimelineData,
   addSkillButton as addSkillButtonService,
   removeSkillButton as removeSkillButtonService,
+  removeSkillButtons as removeSkillButtonsService,
   updateSkillButtonPosition as updateSkillButtonPositionService,
   moveSkillButtonToStaff as moveSkillButtonToStaffService,
   updateSelectedBuffList as updateSelectedBuffListService,
@@ -75,6 +76,12 @@ export function useTimelineData(selectedCharacters: { id?: string; name: string 
   const removeSkillButton = useCallback((staffIndex: number, buttonId: string) => {
     const newTimelineData = removeSkillButtonService(timelineDataRef.current, staffIndex, buttonId);
     setTimelineData(newTimelineData);
+  }, []);
+
+  const removeSkillButtons = useCallback((buttonIds: readonly string[]) => {
+    const result = removeSkillButtonsService(timelineDataRef.current, buttonIds);
+    setTimelineData(result.newTimelineData);
+    return result;
   }, []);
 
   const updateSkillButtonPosition = useCallback((
@@ -212,10 +219,13 @@ export function useTimelineData(selectedCharacters: { id?: string; name: string 
     setTimelineData(nextTimelineData);
   }, []);
 
+  const getCurrentTimelineData = useCallback(() => timelineDataRef.current, []);
+
   return {
     timelineData,
     addSkillButton,
     removeSkillButton,
+    removeSkillButtons,
     updateSkillButtonPosition,
     moveSkillButtonToStaff,
     updateSelectedBuffList,
@@ -229,6 +239,7 @@ export function useTimelineData(selectedCharacters: { id?: string; name: string 
     saveTimelineData,
     loadTimelineData,
     replaceTimelineData,
+    getCurrentTimelineData,
     normalizeTimelineData,
   };
 }

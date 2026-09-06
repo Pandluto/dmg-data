@@ -1,7 +1,7 @@
 import { TimelineStateMarkers } from './TimelineStateMarkers';
 import { getTimelineDeleteBlockReason } from '../../../core/domain/timelineQueuePolicy';
 import { forwardRef, useCallback, useMemo, useRef, type MutableRefObject, type CSSProperties } from 'react';
-import type { MouseEvent } from 'react';
+import type { MouseEvent, PointerEvent } from 'react';
 import { Character, SkillButton, CanvasConfig, SkillButtonSkillChangePayload, SkillButtonSkillOption } from '../../../types';
 import { SkillButtonComponent } from '../SkillButton';
 import { TimelineWaitSegment } from '../TimelineWaitSegment';
@@ -56,6 +56,7 @@ import {
   isLowMultiplierHitMarker,
 } from '../lingeringHitProjection';
 import type { CanvasDropTarget } from '../hooks/useCanvasDrag';
+import type { BatchSelectionRect } from '../batchSelectionGeometry';
 
 interface CanvasAreaProps {
   activeSkillButtonId?: string | null;
@@ -82,6 +83,12 @@ interface CanvasAreaProps {
   getSkillChangeOptions?: (button: SkillButton) => SkillButtonSkillOption[];
   isDraggingActive?: boolean;
   isBrowseMode?: boolean;
+  isBatchMode?: boolean;
+  batchSelectedButtonIds?: ReadonlySet<string>;
+  batchSelectionRect?: BatchSelectionRect | null;
+  onBatchPointerDown?: (event: PointerEvent<HTMLDivElement>) => void;
+  onBatchPointerCancel?: () => void;
+  onBatchContextMenu?: (event: MouseEvent<HTMLDivElement>) => void;
   isInspectMode?: boolean;
   isDragDisabled?: boolean;
   resistanceRevision?: number;
@@ -120,6 +127,12 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
   getSkillChangeOptions,
   isDraggingActive = false,
   isBrowseMode = false,
+  isBatchMode = false,
+  batchSelectedButtonIds = new Set<string>(),
+  batchSelectionRect = null,
+  onBatchPointerDown,
+  onBatchPointerCancel,
+  onBatchContextMenu,
   isInspectMode = false,
   isDragDisabled = false,
   resistanceRevision = 0,
@@ -565,6 +578,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           size={config.skillButtonSize}
           onMouseDown={(event) => onButtonMouseDown(event, button.id)}
           onContextMenu={(event) => onButtonContextMenu(event, button.id)}
+          isBatchSelected={batchSelectedButtonIds.has(button.id)}
           isBrowseMode={isBrowseMode}
           isInspectMode={isInspectMode}
           isDragDisabled={isDragDisabled}
@@ -614,6 +628,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
       isDragDisabled={isDragDisabled}
       onMouseDown={onButtonMouseDown}
       onContextMenu={onButtonContextMenu}
+      isBatchSelected={batchSelectedButtonIds.has(button.id)}
       onConfigure={onConfigureTimelineModule}
       contextMenuState={contextMenuState}
       onConfirmRemove={onConfirmRemove}
@@ -644,6 +659,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
       isDragDisabled={isDragDisabled}
       onMouseDown={onButtonMouseDown}
       onContextMenu={onButtonContextMenu}
+      isBatchSelected={batchSelectedButtonIds.has(button.id)}
       onConfigure={onConfigureTimelineModule}
       contextMenuState={contextMenuState}
       onConfirmRemove={onConfirmRemove}
@@ -1317,7 +1333,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
     <div className="canvas-area">
       <div
         ref={setCanvasRef}
-        className={`canvas-container${isDraggingActive ? ' is-dragging-active' : ''}${isBrowseMode ? ' is-browse-mode' : ''}`}
+        className={`canvas-container${isDraggingActive ? ' is-dragging-active' : ''}${isBrowseMode ? ' is-browse-mode' : ''}${isBatchMode ? ' is-batch-selection-mode' : ''}`}
         style={{
           '--grid-release-row-height': `${GRID_RELEASE_ROW_HEIGHT}px`,
           '--grid-operator-slot-height': `${GRID_OPERATOR_SLOT_HEIGHT}px`,
@@ -1348,6 +1364,32 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
         {renderSkillButtons()}
         {renderWaitSegments()}
         {renderOperatorSwitchSegments()}
+        {isBatchMode ? (
+          <div
+            className={`canvas-batch-selection-layer${batchSelectionRect ? ' is-dragging' : ''}`}
+            aria-label="批量选择画布"
+            onPointerDown={onBatchPointerDown}
+            onPointerCancel={onBatchPointerCancel}
+            onContextMenu={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onBatchContextMenu?.(event);
+            }}
+            onClick={(event) => event.stopPropagation()}
+          >
+            {batchSelectionRect ? (
+              <div
+                className="canvas-batch-selection-rect"
+                style={{
+                  left: batchSelectionRect.left,
+                  top: batchSelectionRect.top,
+                  width: batchSelectionRect.width,
+                  height: batchSelectionRect.height,
+                }}
+              />
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );

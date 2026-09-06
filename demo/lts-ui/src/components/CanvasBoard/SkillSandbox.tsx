@@ -43,6 +43,10 @@ interface SkillSandboxProps {
   isBrowseMode?: boolean;
   /** 切换浏览模式回调 */
   onToggleBrowseMode?: () => void;
+  /** 批量框选模式是否开启 */
+  isBatchMode?: boolean;
+  /** 切换批量框选模式回调 */
+  onToggleBatchMode?: () => void;
   /** 透视模式是否按住 */
   isInspectMode?: boolean;
   /** 开始透视模式 */
@@ -160,6 +164,8 @@ export function SkillSandbox({
   isRefreshingAvailableCandidates = false,
   isBrowseMode = false,
   onToggleBrowseMode,
+  isBatchMode = false,
+  onToggleBatchMode,
   isInspectMode = false,
   onInspectStart,
   onInspectEnd,
@@ -298,6 +304,19 @@ export function SkillSandbox({
               <path d="M12 7.6v12" />
               <path d="M6.4 8.5c1.4.1 2.5.4 3.4 1" />
               <path d="M17.6 8.5c-1.4.1-2.5.4-3.4 1" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className={`sandbox-reserved-action sandbox-reserved-action--batch${isBatchMode ? ' is-active' : ''}`}
+            aria-label="批量选择"
+            title="批量选择"
+            aria-pressed={isBatchMode}
+            onClick={onToggleBatchMode}
+          >
+            <svg className="sandbox-reserved-action-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="4" y="4" width="16" height="16" rx="1" strokeDasharray="3 2" />
+              <path d="M8 8h3M8 8v3M16 16h-3M16 16v-3" />
             </svg>
           </button>
           <button

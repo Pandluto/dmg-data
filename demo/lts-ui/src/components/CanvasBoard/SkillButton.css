@@ -890,6 +890,12 @@
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
+.canvas-skill-button.is-batch-selected .skill-button-base,
+.canvas-skill-button.is-batch-selected .skill-button-orb {
+  border-color: #1a5f70;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgba(26, 95, 112, 0.88);
+}
+
 .canvas-skill-button.dragging .skill-button-base,
 .canvas-skill-button.dragging .skill-button-orb {
   filter: none;
@@ -2256,6 +2262,10 @@
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.72);
   box-shadow: none;
+}
+
+.timeline-batch-context-menu {
+  width: 132px;
 }
 
 .context-menu-item {

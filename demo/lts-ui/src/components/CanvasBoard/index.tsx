@@ -3620,6 +3620,10 @@ export function CanvasBoard({
     checkoutIdentity(activeCheckoutRef),
     selectedCharacters.map((character) => character.id).join(','),
   ].join('|');
+  const handleBatchSelectionCancel = useCallback(() => {
+    setBatchContextMenuState(null);
+    setContextMenuState(null);
+  }, []);
   const batchSelection = useBatchTimelineSelection({
     // Batch mode owns the interaction layer while keeping the book's
     // read-only cards visible underneath it.
@@ -3628,7 +3632,13 @@ export function CanvasBoard({
     selectableButtonIds: skillButtons.map((button) => button.id),
     resetKey: batchSelectionResetKey,
     onExit: exitBatchMode,
+    onSelectionCancel: handleBatchSelectionCancel,
   });
+
+  const handleCancelBatchSelection = useCallback(() => {
+    batchSelection.clearSelection();
+    handleBatchSelectionCancel();
+  }, [batchSelection, handleBatchSelectionCancel]);
 
   useEffect(() => {
     if (!batchContextMenuState) return undefined;
@@ -5082,6 +5092,7 @@ export function CanvasBoard({
           count={batchSelection.selectedButtonIds.length}
           position={batchContextMenuState.position}
           onDelete={handleConfirmBatchRemove}
+          onCancelSelection={handleCancelBatchSelection}
         />
       ) : null}
       <div className="canvas-layout">

@@ -3,7 +3,7 @@ import type { MouseEvent, PointerEvent as ReactPointerEvent } from 'react';
 
 const TIMELINE_BATCH_CONTEXT_MENU_SIZE = {
   width: 132,
-  height: 34,
+  height: 68,
 } as const;
 
 export function clampTimelineBatchContextMenuPosition(
@@ -29,12 +29,14 @@ interface TimelineBatchContextMenuProps {
   count: number;
   position: { x: number; y: number };
   onDelete: () => void;
+  onCancelSelection: () => void;
 }
 
 export function TimelineBatchContextMenu({
   count,
   position,
   onDelete,
+  onCancelSelection,
 }: TimelineBatchContextMenuProps) {
   if (typeof document === 'undefined') return null;
 
@@ -49,6 +51,12 @@ export function TimelineBatchContextMenu({
     event.preventDefault();
     event.stopPropagation();
     onDelete();
+  };
+
+  const runCancelSelection = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onCancelSelection();
   };
 
   return createPortal(
@@ -68,6 +76,14 @@ export function TimelineBatchContextMenu({
         onClick={runDelete}
       >
         {`删除所选 ${count} 项`}
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        className="context-menu-item"
+        onClick={runCancelSelection}
+      >
+        取消选择
       </button>
     </div>,
     document.body,

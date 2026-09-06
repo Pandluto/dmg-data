@@ -14,6 +14,24 @@ interface UseBatchTimelineSelectionOptions {
   selectableButtonIds: readonly string[];
   resetKey: string;
   onExit: () => void;
+  onSelectionCancel: () => void;
+}
+
+export const BATCH_SELECTION_CLICK_SLOP_PX = 4;
+
+export function isBatchSelectionClick(
+  start: { x: number; y: number } | null,
+  end: { x: number; y: number },
+): boolean {
+  if (!start) return false;
+  return Math.hypot(end.x - start.x, end.y - start.y) <= BATCH_SELECTION_CLICK_SLOP_PX;
+}
+
+export function shouldExitBatchTimelineOnEscape(
+  selectedButtonCount: number,
+  hasDraft: boolean,
+): boolean {
+  return selectedButtonCount === 0 && !hasDraft;
 }
 
 export function shouldResetBatchTimelineSelection(
@@ -29,11 +47,14 @@ export function useBatchTimelineSelection({
   selectableButtonIds,
   resetKey,
   onExit,
+  onSelectionCancel,
 }: UseBatchTimelineSelectionOptions) {
   const [selectedButtonIds, setSelectedButtonIds] = useState<string[]>([]);
   const [draft, setDraft] = useState<BatchSelectionDraft | null>(null);
   const draftRef = useRef<BatchSelectionDraft | null>(null);
   const pointerIdRef = useRef<number | null>(null);
+  const pointerStartClientRef = useRef<{ x: number; y: number } | null>(null);
+  const pointerCaptureTargetRef = useRef<HTMLDivElement | null>(null);
   const previousResetKeyRef = useRef<string | null>(null);
   const selectableButtonIdsRef = useRef<ReadonlySet<string>>(new Set());
 
@@ -49,11 +70,26 @@ export function useBatchTimelineSelection({
     setSelectedButtonIds([]);
   }, []);
 
+  const releasePointerCapture = useCallback(() => {
+    const target = pointerCaptureTargetRef.current;
+    const pointerId = pointerIdRef.current;
+    if (target && pointerId !== null) {
+      try {
+        if (target.hasPointerCapture?.(pointerId)) target.releasePointerCapture?.(pointerId);
+      } catch {
+        // The pointer may already have been released by the browser.
+      }
+    }
+    pointerCaptureTargetRef.current = null;
+  }, []);
+
   const clearDraft = useCallback(() => {
+    releasePointerCapture();
     pointerIdRef.current = null;
+    pointerStartClientRef.current = null;
     draftRef.current = null;
     setDraft(null);
-  }, []);
+  }, [releasePointerCapture]);
 
   useEffect(() => {
     const resetKeyChanged = shouldResetBatchTimelineSelection(
@@ -71,16 +107,21 @@ export function useBatchTimelineSelection({
     if (!active) return undefined;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
+      if (event.key !== 'Escape' || event.repeat) return;
+      const shouldExit = shouldExitBatchTimelineOnEscape(
+        selectedButtonIds.length,
+        draftRef.current !== null,
+      );
       event.preventDefault();
       clearDraft();
       clearSelection();
-      onExit();
+      onSelectionCancel();
+      if (shouldExit) onExit();
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [active, clearDraft, clearSelection, onExit]);
+  }, [active, clearDraft, clearSelection, onExit, onSelectionCancel, selectedButtonIds.length]);
 
   const finishSelection = useCallback((selectionDraft: BatchSelectionDraft) => {
     const canvas = canvasRef.current;
@@ -104,6 +145,7 @@ export function useBatchTimelineSelection({
     event.preventDefault();
     event.stopPropagation();
     pointerIdRef.current = event.pointerId;
+    pointerStartClientRef.current = { x: event.clientX, y: event.clientY };
     const point = getBatchSelectionPoint(event, canvas);
     const nextDraft = {
       startX: point.x,
@@ -114,6 +156,7 @@ export function useBatchTimelineSelection({
     draftRef.current = nextDraft;
     setDraft(nextDraft);
     event.currentTarget.setPointerCapture?.(event.pointerId);
+    pointerCaptureTargetRef.current = event.currentTarget;
   }, [active, canvasRef]);
 
   useEffect(() => {
@@ -133,6 +176,16 @@ export function useBatchTimelineSelection({
     };
     const handlePointerUp = (event: PointerEvent) => {
       if (!matchesPointer(event) || !draftRef.current) return;
+      const isClick = isBatchSelectionClick(pointerStartClientRef.current, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+      if (isClick) {
+        clearDraft();
+        clearSelection();
+        onSelectionCancel();
+        return;
+      }
       finishSelection(draftRef.current);
     };
     const handlePointerCancel = (event: PointerEvent) => {
@@ -148,7 +201,15 @@ export function useBatchTimelineSelection({
       window.removeEventListener('pointerup', handlePointerUp);
       window.removeEventListener('pointercancel', handlePointerCancel);
     };
-  }, [active, canvasRef, clearDraft, draft, finishSelection]);
+  }, [
+    active,
+    canvasRef,
+    clearDraft,
+    clearSelection,
+    draft,
+    finishSelection,
+    onSelectionCancel,
+  ]);
 
   const normalizedSelectionRect: BatchSelectionRect | null = draft
     ? normalizeBatchSelectionRect(draft)

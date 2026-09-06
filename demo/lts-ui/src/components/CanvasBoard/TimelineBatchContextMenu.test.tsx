@@ -9,7 +9,7 @@ assert.deepEqual(
     { x: 999, y: 799 },
     { width: 1000, height: 800 },
   ),
-  { x: 868, y: 766 },
+  { x: 868, y: 732 },
 );
 assert.deepEqual(
   clampTimelineBatchContextMenuPosition(

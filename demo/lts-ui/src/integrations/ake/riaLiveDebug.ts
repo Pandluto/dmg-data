@@ -125,6 +125,7 @@ function captureUi() {
       dragSourceId: el.getAttribute('data-drag-source-id'),
       disabled: el.hasAttribute('disabled'), dragDisabled: el.getAttribute('data-drag-disabled') === 'true', selected: el.getAttribute('aria-selected'),
       expanded: el.getAttribute('aria-expanded'),
+      pressed: el.getAttribute('aria-pressed'), batchSelected: el.getAttribute('data-batch-selected') === 'true',
       value: el instanceof HTMLSelectElement ? el.value
         : el instanceof HTMLInputElement && ['number', 'range', 'checkbox', 'radio'].includes(el.type)
           ? ['checkbox', 'radio'].includes(el.type) ? el.checked : el.value : undefined,
@@ -141,6 +142,15 @@ function captureUi() {
   });
   publishRiaDebugSection('ui', { route: location.hash.split('?')[0], title: document.title,
     viewport: { width: innerWidth, height: innerHeight }, focused: targetInfo(document.activeElement), controls, images,
+    batchSelection: {
+      active: Boolean(document.querySelector('.canvas-batch-selection-layer')),
+      reading: Boolean(document.querySelector('.canvas-container.is-browse-mode')),
+      selectedButtonIds: [...document.querySelectorAll('[data-skill-button-id][data-batch-selected="true"]')]
+        .map(el => el.getAttribute('data-skill-button-id')),
+      menu: document.querySelector('.timeline-batch-context-menu')?.textContent?.trim() ?? null,
+      notice: document.querySelector('.canvas-work-node-save-notice')?.textContent?.trim() ?? null,
+      undoAvailable: Boolean(document.querySelector('.canvas-batch-undo-notice')),
+    },
     dragPreviews: [...document.querySelectorAll<HTMLElement>('.dragging-skill-button-preview')].map(el => {
       const r = el.getBoundingClientRect(); const style = getComputedStyle(el);
       return { text: el.textContent, bounds: { x: r.x, y: r.y, width: r.width, height: r.height },

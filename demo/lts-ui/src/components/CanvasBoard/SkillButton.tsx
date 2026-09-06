@@ -2147,6 +2147,8 @@ export function SkillButtonComponent({
           : timelineModuleKind === 'operator-switch'
             ? '切'
             : isDotButton ? '~' : skillType;
+  const readingStatePreview = readingStateBadges.slice(0, 3);
+  const readingStateOverflowCount = Math.max(0, readingStateBadges.length - readingStatePreview.length);
   const renderReadingStateBadge = (event: AkeCombatStateEvent) => {
     const stack = formatReadingStateStack(event);
     const detail = `${event.label} · ${event.change} ${event.before ?? '?'}→${event.after ?? '?'}层`;
@@ -2223,10 +2225,13 @@ export function SkillButtonComponent({
         } : onContextMenu}
       >
         {isBrowseMode ? (
-          <div className="skill-button-reading-card">
+          <div
+            className="skill-button-reading-card"
+            data-reading-state-count={readingStateBadges.length}
+          >
             <div className="skill-button-reading-main">
               <div
-                className={`skill-button-reading-orb${hasVisibleSkillIcon ? ' has-skill-icon-mask' : ''}`}
+                className={`skill-button-orb skill-button-reading-orb${hasVisibleSkillIcon ? ' has-skill-icon-mask' : ''}`}
                 title={`${characterName} - ${readingSkillLabel}`}
                 style={{
                   '--skill-icon-mask': hasVisibleSkillIcon ? `url(${JSON.stringify(normalizedSkillIconUrl)})` : 'none',
@@ -2250,7 +2255,26 @@ export function SkillButtonComponent({
             </div>
             {readingStateBadges.length > 0 ? (
               <div className="skill-button-reading-states" aria-label="技能产生的最终状态">
-                {readingStateBadges.map(renderReadingStateBadge)}
+                {readingStatePreview.map(renderReadingStateBadge)}
+                {readingStateOverflowCount > 0 ? (
+                  <button
+                    type="button"
+                    className="skill-button-reading-state-overflow"
+                    aria-label={`还有${readingStateOverflowCount}项状态；点击查看详情`}
+                    title={`还有${readingStateOverflowCount}项状态；点击查看详情`}
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                    }}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      onInspect?.();
+                    }}
+                  >
+                    +{readingStateOverflowCount}
+                  </button>
+                ) : null}
               </div>
             ) : null}
           </div>

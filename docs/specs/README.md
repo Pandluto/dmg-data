@@ -4,6 +4,8 @@
 
 ## 当前 Spec
 
+- [排轴阅读与批量模式](./timeline-reading-batch/spec.md)：书本组合摘要、单技能卡片与合法队尾的原子批量删除；设计完成，分两项实施。
+
 - [文档与证据系统](./documentation-and-evidence-system/spec.md)：唯一事实层级、来源升级事务、文档生命周期和验收门。
 - [排轴局部接续放大镜](./timeline-release-lens/spec.md)：原画布局部放大、语义吸附、逐帧余量与可持久化接续关系；首版已接入工作台，规格记录已验证行为与剩余原生交互验收。
 

@@ -19,6 +19,7 @@ import type { AkeCommandSettlement, AkeTimelinePoint, AkeTeamReport } from './ak
 import {
   GRID_COLUMN_WIDTH,
   GRID_NODE_COUNT,
+  GRID_TIMELINE_WIDTH,
 } from '../../core/calculators/gridSnapLayout';
 import {
   buildSharedVariableRateTimeline,
@@ -2613,6 +2614,8 @@ function makeSharedVariableRateTimelineSpec(input: {
   return {
     tickRate: input.tickRate,
     columnWidth: GRID_COLUMN_WIDTH,
+    continuationWidthRatio: 0.2,
+    visualPageWidth: GRID_TIMELINE_WIDTH,
     ...(initialWaitModule
       ? { initialWait: waitSpecForModule(initialWaitModule) }
       : {}),

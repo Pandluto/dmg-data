@@ -172,6 +172,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
   );
 
   const variableTimeline = akeRealtimeTimeline?.sharedVariableRateTimeline ?? null;
+  const visualPageWidth = variableTimeline?.visualPageWidth ?? GRID_TIMELINE_WIDTH;
   const interactions = useMemo(() => akeRuntimeReport ? buildAkeCombatInteractions(akeRuntimeReport) : [], [akeRuntimeReport]);
   const stateEvents = useMemo(() => akeRuntimeReport ? buildAkeMainTimelineStateEvents(akeRuntimeReport) : [], [akeRuntimeReport]);
   const resolvedInitialControllerCharacterId = resolveInitialControllerLaneId(
@@ -185,19 +186,19 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
 
   const visualPointForX = useCallback((globalX: number, edge: 'before' | 'after' = 'after') => {
     const safeX = Math.max(0, Number(globalX) || 0);
-    const isBoundary = safeX > 0 && safeX % GRID_TIMELINE_WIDTH === 0;
+    const isBoundary = safeX > 0 && safeX % visualPageWidth === 0;
     const pageIndex = isBoundary && edge === 'before'
-      ? Math.max(0, safeX / GRID_TIMELINE_WIDTH - 1)
-      : Math.floor(safeX / GRID_TIMELINE_WIDTH);
+      ? Math.max(0, safeX / visualPageWidth - 1)
+      : Math.floor(safeX / visualPageWidth);
     const localX = isBoundary && edge === 'before'
-      ? GRID_TIMELINE_WIDTH
-      : safeX - pageIndex * GRID_TIMELINE_WIDTH;
+      ? visualPageWidth
+      : safeX - pageIndex * visualPageWidth;
     return {
       pageIndex,
       x: GRID_FIRST_COLUMN_WIDTH + localX,
       timelineX: localX,
     };
-  }, []);
+  }, [visualPageWidth]);
 
   const visualPointForFrame = useCallback((
     frame: number,
@@ -648,8 +649,8 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
   const renderAkeProjection = (staffIndex: number) => {
     if (!akeRealtimeTimeline || !visibleAtb || !variableTimeline) return null;
     const tickRate = variableTimeline.tickRate;
-    const pageStartX = staffIndex * GRID_TIMELINE_WIDTH;
-    const pageEndX = pageStartX + GRID_TIMELINE_WIDTH;
+    const pageStartX = staffIndex * visualPageWidth;
+    const pageEndX = pageStartX + visualPageWidth;
     const pageColumns = variableTimeline.columns.filter(column => (
       column.xStart >= pageStartX && column.xStart < pageEndX
     ));
@@ -830,6 +831,9 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
     const waitsOnPage = pageColumns.filter(
       (column): column is Extract<SharedTimelineColumn, { kind: 'wait' }> => column.kind === 'wait',
     );
+    const visualWidthInBaseColumns = Number(
+      (variableTimeline.width / variableTimeline.columnWidth).toFixed(1),
+    );
 
     return (
       <div className="ake-canvas-projection" aria-label={`共享变速时间投影 ${staffIndex + 1}`}>
@@ -844,19 +848,27 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           <span
             key={`rate:${column.id}`}
             className={`ake-variable-column-rate is-${column.kind}`}
-            style={{ left: GRID_FIRST_COLUMN_WIDTH + column.xStart - pageStartX }}
+            style={{
+              left: GRID_FIRST_COLUMN_WIDTH + column.xStart - pageStartX,
+              width: Math.max(1, column.xEnd - column.xStart),
+            }}
             title={`${seconds(column.startFrame)}—${seconds(column.endFrame)} · ${column.durationFrames} 帧`}
           >
-            {column.kind === 'wait'
-              ? column.mode === 'seal-only' ? '封组 · 0秒' : `等待 · ${seconds(column.durationFrames)}`
-              : seconds(column.durationFrames)}
+            {column.xEnd - column.xStart >= 40
+              ? column.kind === 'wait'
+                ? column.mode === 'seal-only' ? '封组 · 0秒' : `等待 · ${seconds(column.durationFrames)}`
+                : seconds(column.durationFrames)
+              : null}
           </span>
         ))}
         {waitsOnPage.map(wait => (
           <div
             key={wait.id}
             className={`ake-wait-column is-${wait.mode}`}
-            style={{ left: GRID_FIRST_COLUMN_WIDTH + wait.xStart - pageStartX }}
+            style={{
+              left: GRID_FIRST_COLUMN_WIDTH + wait.xStart - pageStartX,
+              width: Math.max(1, wait.xEnd - wait.xStart),
+            }}
             title={`${wait.resolutionReason} · ${seconds(wait.startFrame)}—${seconds(wait.endFrame)}`}
           >
             <span>{wait.mode === 'seal-only' ? '封组' : '等待'}</span>
@@ -872,7 +884,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           const name = selectedCharacters.find(character => character.id === interaction.effectActorId)?.name ?? '关联动作';
           const label = `${trigger?.attackMode === 'plunging-impact' ? '下落' : '触发'} → ${name}${akeSkillTypeLabel(effect?.commandType ?? '')}`;
           const description = `${label} · F${interaction.frame} · ${interaction.hitCount} 次派生命中，伤害归属${name}`;
-          const alignEnd = point.x > GRID_FIRST_COLUMN_WIDTH + GRID_TIMELINE_WIDTH - 150;
+          const alignEnd = point.x > GRID_FIRST_COLUMN_WIDTH + visualPageWidth - 150;
           return <button key={interaction.key} type="button" className={`ake-interaction-event-marker${alignEnd ? ' is-end-aligned' : ''}`}
             style={{left: point.x, top: getGridLineCenterY(lineIndex) - 10}}
             data-trigger-frame={interaction.frame} data-trigger-command-id={interaction.triggerCommandId}
@@ -881,7 +893,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
             {label}
           </button>;
         })}
-        <TimelineStateMarkers left={GRID_FIRST_COLUMN_WIDTH} right={GRID_FIRST_COLUMN_WIDTH + GRID_TIMELINE_WIDTH}
+        <TimelineStateMarkers left={GRID_FIRST_COLUMN_WIDTH} right={GRID_FIRST_COLUMN_WIDTH + visualPageWidth}
           laneForLine={line => ({ top: getGridReleaseRowTopY(line) + GRID_RELEASE_ROW_HEIGHT + 2,
             bottom: getGridEnergyRowTopY(line) - 3, anchorY: getGridEnergyRowTopY(line) })} onInspectCommand={onInspectCommand}
           events={stateEvents.flatMap(event => {
@@ -921,7 +933,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
                 width: Math.max(1, right - left),
               }}
               data-command-id={action.id}
-              title={`${seconds(action.startFrame)}—${seconds(action.endFrame)} · ${action.durationFrames} 帧 · ${action.coveredColumnIds.length} 列`}
+              title={`${seconds(action.startFrame)}—${seconds(action.endFrame)} · ${action.durationFrames} 帧 · 覆盖 ${action.coveredColumnIds.length} 时段`}
             >
               {showStart ? <i className={`is-start${joinedStart ? ' is-joined' : ''}`}><b>{seconds(action.startFrame)}</b></i> : null}
               {showEnd ? <i className={`is-end${joinedEnd ? ' is-joined' : ''}`}>{joinedEnd ? null : <b>{seconds(action.endFrame)}</b>}</i> : null}
@@ -1056,7 +1068,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
               title={`${character.name} 自身能量 ${pageValue.toFixed(1)} / ${pool.max}`}
             >
               <span>U {Math.round(pageValue)}/{Math.round(pool.max)}</span>
-              <svg viewBox={`0 0 ${GRID_TIMELINE_WIDTH} ${GRID_ENERGY_ROW_HEIGHT}`} preserveAspectRatio="none" aria-hidden="true">
+              <svg viewBox={`0 0 ${visualPageWidth} ${GRID_ENERGY_ROW_HEIGHT}`} preserveAspectRatio="none" aria-hidden="true">
                 <polygon points={uspArea} />
                 <polyline points={uspLine} />
               </svg>
@@ -1087,7 +1099,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           <span className="ake-shared-atb-label">
             共享技力 <b>{akeTimeline ? 'SETTLED' : 'LIVE'}</b>
           </span>
-          <svg viewBox={`0 0 ${GRID_TIMELINE_WIDTH} 28`} preserveAspectRatio="none" aria-hidden="true">
+          <svg viewBox={`0 0 ${visualPageWidth} 28`} preserveAspectRatio="none" aria-hidden="true">
             <polygon className="ake-atb-returned-area" points={totalPolygon} />
             <polygon className="ake-atb-ordinary-area" points={ordinaryPolygon} />
             <polyline className="ake-atb-total-line" points={linePoints} />
@@ -1107,7 +1119,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
         {staffIndex === 0 ? (
           <div className={`ake-live-scope-plate is-${variableTimeline.admissionStatus}`}>
             <b>共享变速 · 强边界</b>
-            <span>{variableTimeline.columns.length} 列 · {seconds(variableTimeline.durationFrames)} · {variableTimeline.isExecutable ? '可执行' : variableTimeline.admissionStatus === 'unverified' ? '存在待核规则' : '存在无效批次'}</span>
+            <span>{variableTimeline.columns.length} 时段 · 占宽 {visualWidthInBaseColumns} 格 · {seconds(variableTimeline.durationFrames)} · {variableTimeline.isExecutable ? '可执行' : variableTimeline.admissionStatus === 'unverified' ? '存在待核规则' : '存在无效批次'}</span>
           </div>
         ) : null}
       </div>

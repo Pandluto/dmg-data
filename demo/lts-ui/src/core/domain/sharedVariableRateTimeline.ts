@@ -94,6 +94,10 @@ export type SharedVariableRateTimelineSpec = {
   tickRate: number;
   initialFrame?: number;
   columnWidth?: number;
+  /** Width multiplier for positive segments where only existing actions continue. */
+  continuationWidthRatio?: number;
+  /** Optional fixed visual page width used to keep full operation columns intact. */
+  visualPageWidth?: number;
   /** Optional full control column before the first release group. */
   initialWait?: SealOnlyWaitColumnSpec | FixedWaitColumnSpec;
   groups: TimelineReleaseGroupSpec[];
@@ -263,6 +267,8 @@ export type SharedVariableRateTimelineModel = {
   columnBoundaryPolicy: 'strong-event-boundaries';
   tickRate: number;
   columnWidth: number;
+  continuationWidthRatio: number;
+  visualPageWidth?: number;
   startFrame: number;
   endFrame: number;
   durationFrames: number;
@@ -352,6 +358,22 @@ function validateSpec(spec: SharedVariableRateTimelineSpec): void {
     throw new SharedVariableRateTimelineError(
       'INVALID_COLUMN_WIDTH',
       'columnWidth must be a finite number > 0.',
+    );
+  }
+  const continuationWidthRatio = spec.continuationWidthRatio ?? 1;
+  if (!Number.isFinite(continuationWidthRatio)
+    || continuationWidthRatio <= 0
+    || continuationWidthRatio > 1) {
+    throw new SharedVariableRateTimelineError(
+      'INVALID_CONTINUATION_WIDTH_RATIO',
+      'continuationWidthRatio must be a finite number > 0 and <= 1.',
+    );
+  }
+  if (spec.visualPageWidth !== undefined
+    && (!Number.isFinite(spec.visualPageWidth) || spec.visualPageWidth < columnWidth)) {
+    throw new SharedVariableRateTimelineError(
+      'INVALID_VISUAL_PAGE_WIDTH',
+      'visualPageWidth must be a finite number >= columnWidth.',
     );
   }
   if (!Array.isArray(spec.groups) || spec.groups.length === 0) {
@@ -656,8 +678,10 @@ function makeActivityColumns(
   preliminary: PreliminaryGroup,
   xStart: number,
   columnWidth: number,
+  continuationWidthRatio: number,
 ): ActivityTimelineColumn[] {
   const columns: ActivityTimelineColumn[] = [];
+  let currentX = xStart;
   const zeroControlFrames = new Set([
     ...preliminary.actions.filter(action => action.durationFrames === 0).map(action => action.startFrame),
     ...preliminary.laneWaits
@@ -665,58 +689,77 @@ function makeActivityColumns(
       .map(wait => wait.startFrame),
     ...preliminary.operatorSwitches.map(operatorSwitch => operatorSwitch.startFrame),
   ]);
+  const operationControlFrames = new Set(zeroControlFrames);
+  const appendColumn = (
+    column: Omit<ActivityTimelineColumn, 'xStart' | 'xEnd'>,
+    width: number,
+  ) => {
+    const columnXStart = currentX;
+    const columnXEnd = columnXStart + width;
+    columns.push({
+      ...column,
+      xStart: columnXStart,
+      xEnd: columnXEnd,
+    });
+    currentX = columnXEnd;
+  };
   const pushZeroControlColumn = (frame: number) => {
     if (!zeroControlFrames.delete(frame)) return;
-    const columnXStart = xStart + columns.length * columnWidth;
     const active = preliminary.actions.filter(action => (
       action.startFrame <= frame && action.endFrame >= frame
     ));
-    columns.push({
+    appendColumn({
       id: `group:${preliminary.id}:control-zero:${frame}`,
       kind: 'activity',
       groupId: preliminary.id,
       startFrame: frame,
       endFrame: frame,
       durationFrames: 0,
-      xStart: columnXStart,
-      xEnd: columnXStart + columnWidth,
       activeActionIds: active
         .sort((left, right) => left.stableSequence - right.stableSequence)
         .map(action => action.id),
       startingActionIds: [],
       endingActionIds: [],
-    });
+    }, columnWidth);
   };
   for (let index = 0; index < preliminary.boundaries.length - 1; index += 1) {
     const startFrame = preliminary.boundaries[index];
     const endFrame = preliminary.boundaries[index + 1];
     pushZeroControlColumn(startFrame);
     if (endFrame <= startFrame) continue;
-    const columnXStart = xStart + columns.length * columnWidth;
     const active = preliminary.actions.filter((action) => (
       action.startFrame < endFrame && action.endFrame > startFrame
     ));
-    columns.push({
+    const startingActionIds = preliminary.actions
+      .filter((action) => action.startFrame === startFrame)
+      .sort((left, right) => left.stableSequence - right.stableSequence)
+      .map((action) => action.id);
+    const hasLaneWait = preliminary.laneWaits.some((wait) => (
+      wait.startFrame === startFrame
+      || (wait.startFrame < endFrame && wait.endFrame > startFrame)
+    ));
+    const hasOperatorControl = [...operationControlFrames].some((frame) => (
+      frame >= startFrame && frame < endFrame
+    ));
+    const width = startingActionIds.length > 0 || hasLaneWait || hasOperatorControl
+      ? columnWidth
+      : columnWidth * continuationWidthRatio;
+    appendColumn({
       id: `group:${preliminary.id}:column:${columns.length}`,
       kind: 'activity',
       groupId: preliminary.id,
       startFrame,
       endFrame,
       durationFrames: endFrame - startFrame,
-      xStart: columnXStart,
-      xEnd: columnXStart + columnWidth,
       activeActionIds: active
         .sort((left, right) => left.stableSequence - right.stableSequence)
         .map((action) => action.id),
-      startingActionIds: preliminary.actions
-        .filter((action) => action.startFrame === startFrame)
-        .sort((left, right) => left.stableSequence - right.stableSequence)
-        .map((action) => action.id),
+      startingActionIds,
       endingActionIds: preliminary.actions
         .filter((action) => action.endFrame === endFrame)
         .sort((left, right) => left.stableSequence - right.stableSequence)
         .map((action) => action.id),
-    });
+    }, width);
   }
   preliminary.boundaries.forEach(pushZeroControlColumn);
   return columns;
@@ -813,6 +856,103 @@ function materializeOperatorSwitches(
       coveredColumnIds: [column.id],
     };
   });
+}
+
+/**
+ * Keep a complete operation column from straddling a visual page boundary.
+ *
+ * The page break is a display concern only. When a full column would start in
+ * the final partial page slot, its preceding column absorbs the gap and every
+ * later boundary moves by the same amount. Frame data and column identity are
+ * therefore untouched, while the frame projector continues to use the same
+ * per-column interpolation after the adjustment.
+ */
+function applyVisualPageBreaks(
+  model: SharedVariableRateTimelineModel,
+): SharedVariableRateTimelineModel {
+  const pageWidth = model.visualPageWidth;
+  if (pageWidth === undefined || model.columns.length === 0) return model;
+
+  const epsilon = 1e-9;
+  let shift = 0;
+  const shiftedColumns = model.columns.map((column) => {
+    const originalStart = column.xStart;
+    const width = column.xEnd - column.xStart;
+    let columnShift = shift;
+    if (width + epsilon >= model.columnWidth) {
+      const shiftedStart = originalStart + shift;
+      const pageIndex = Math.floor((shiftedStart + epsilon) / pageWidth);
+      const pageStart = pageIndex * pageWidth;
+      const offset = shiftedStart - pageStart;
+      const atPageStart = offset <= epsilon || pageWidth - offset <= epsilon;
+      const remaining = pageWidth - offset;
+      if (!atPageStart && remaining + epsilon < model.columnWidth) {
+        const gap = Math.max(0, remaining);
+        shift += gap;
+        columnShift = shift;
+      }
+    }
+    const shifted = {
+      ...column,
+      xStart: originalStart + columnShift,
+      xEnd: column.xEnd + columnShift,
+    };
+    return shifted;
+  });
+
+  // A shift is discovered while visiting the column that starts the next page.
+  // Extend the previous column's end by that same amount, preserving the
+  // contiguous x boundary and giving the gap to the segment before the break.
+  for (let index = 1; index < shiftedColumns.length; index += 1) {
+    const previous = shiftedColumns[index - 1];
+    const current = shiftedColumns[index];
+    if (current.xStart > previous.xEnd + epsilon) {
+      previous.xEnd = current.xStart;
+    }
+  }
+
+  const boundaryMap = new Map<number, number>();
+  model.columns.forEach((column, index) => {
+    boundaryMap.set(column.xStart, shiftedColumns[index].xStart);
+    boundaryMap.set(column.xEnd, shiftedColumns[index].xEnd);
+  });
+  const mapBoundary = (value: number): number => boundaryMap.get(value) ?? value;
+  const groups = model.groups.map(group => ({
+    ...group,
+    xStart: mapBoundary(group.xStart),
+    xEnd: mapBoundary(group.xEnd),
+  }));
+  const waits = model.waits.map(wait => ({
+    ...wait,
+    xStart: mapBoundary(wait.xStart),
+    xEnd: mapBoundary(wait.xEnd),
+  }));
+  const actions = model.actions.map(action => ({
+    ...action,
+    startX: mapBoundary(action.startX),
+    endX: mapBoundary(action.endX),
+  }));
+  const laneWaits = model.laneWaits.map(wait => ({
+    ...wait,
+    startX: mapBoundary(wait.startX),
+    endX: mapBoundary(wait.endX),
+  }));
+  const operatorSwitches = model.operatorSwitches.map(operatorSwitch => ({
+    ...operatorSwitch,
+    startX: mapBoundary(operatorSwitch.startX),
+    endX: mapBoundary(operatorSwitch.endX),
+  }));
+
+  return {
+    ...model,
+    groups,
+    waits,
+    columns: shiftedColumns,
+    actions,
+    laneWaits,
+    operatorSwitches,
+    width: shiftedColumns[shiftedColumns.length - 1].xEnd,
+  };
 }
 
 function buildCohorts(
@@ -962,7 +1102,12 @@ export function buildSharedVariableRateTimeline(
 
     const preliminary = scheduleGroup(groupSpec, groupIndex, currentFrame, stableSequence);
     stableSequence += preliminary.actions.length;
-    const activityColumns = makeActivityColumns(preliminary, currentX, columnWidth);
+    const activityColumns = makeActivityColumns(
+      preliminary,
+      currentX,
+      columnWidth,
+      spec.continuationWidthRatio ?? 1,
+    );
     const materializedActions = materializeActions(preliminary, activityColumns);
     const materializedLaneWaits = materializeLaneWaits(preliminary, activityColumns);
     const materializedOperatorSwitches = materializeOperatorSwitches(preliminary, activityColumns);
@@ -973,7 +1118,7 @@ export function buildSharedVariableRateTimeline(
       endFrame: preliminary.endFrame,
       durationFrames: preliminary.durationFrames,
       xStart: currentX,
-      xEnd: currentX + activityColumns.length * columnWidth,
+      xEnd: activityColumns[activityColumns.length - 1]?.xEnd ?? currentX,
       laneIds: preliminary.laneIds,
       actionIds: preliminary.actionIds,
       columnIds: activityColumns.map((column) => column.id),
@@ -990,11 +1135,13 @@ export function buildSharedVariableRateTimeline(
 
   const cohorts = buildCohorts(actions, options.validateReleaseCohort);
   const admissionStatus = summarizeAdmissionStatus(cohorts);
-  return {
+  const model: SharedVariableRateTimelineModel = {
     schemaVersion: 1,
     columnBoundaryPolicy: 'strong-event-boundaries',
     tickRate: spec.tickRate,
     columnWidth,
+    continuationWidthRatio: spec.continuationWidthRatio ?? 1,
+    ...(spec.visualPageWidth !== undefined ? { visualPageWidth: spec.visualPageWidth } : {}),
     startFrame,
     endFrame: currentFrame,
     durationFrames: currentFrame - startFrame,
@@ -1009,6 +1156,7 @@ export function buildSharedVariableRateTimeline(
     admissionStatus,
     isExecutable: admissionStatus === 'valid',
   };
+  return applyVisualPageBreaks(model);
 }
 
 /**

@@ -105,6 +105,105 @@ function assertErrorCode(run: () => unknown, expectedCode: string): void {
   assert.equal(projectSharedTimelineFrame(model, 60), 80 + (30 / 90) * 80);
 }
 
+// A release group with two later boundaries should use full-width columns for
+// action starts and compact columns for the continuing tail between them.
+// This is the concrete compression regression: 0–50, 50–82, 82–123, 123–153
+// becomes 80 + 16 + 80 + 16 visual pixels while every real frame is unchanged.
+{
+  const model = buildSharedVariableRateTimeline({
+    tickRate: 30,
+    columnWidth: 80,
+    continuationWidthRatio: 0.2,
+    groups: [{
+      id: 'compressed-tail-regression',
+      lanes: [
+        { laneId: 'attack', actions: [{ id: 'attack', durationFrames: 153, startOffsetFrames: 0 }] },
+        {
+          laneId: 'skills',
+          actions: [
+            { id: 'skill-b', durationFrames: 50, startOffsetFrames: 0 },
+            { id: 'skill-e', durationFrames: 41, startOffsetFrames: 82 },
+          ],
+        },
+      ],
+    }],
+  });
+
+  assert.deepEqual(model.columns.map(column => [column.startFrame, column.endFrame]), [
+    [0, 50], [50, 82], [82, 123], [123, 153],
+  ]);
+  assert.deepEqual(model.columns.map(column => column.xEnd - column.xStart), [80, 16, 80, 16]);
+  assert.equal(model.width, 192);
+  assert.deepEqual(
+    [0, 50, 82, 123, 153].map(frame => projectSharedTimelineFrame(model, frame)),
+    [0, 80, 96, 176, 192],
+  );
+  assert.deepEqual(
+    [action(model, 'attack').startFrame, action(model, 'attack').endFrame,
+      action(model, 'skill-b').startFrame, action(model, 'skill-b').endFrame,
+      action(model, 'skill-e').startFrame, action(model, 'skill-e').endFrame],
+    [0, 153, 0, 50, 82, 123],
+  );
+  assert(action(model, 'skill-e').startX - action(model, 'skill-b').startX >= 80);
+}
+
+// Full operation starts keep their width even when a compact continuation is
+// inserted before them. The display page pass moves a full start to the next
+// page when the remaining slot is too small, and updates every x owner at the
+// same boundary.
+{
+  for (const visualPageWidth of [160, 240]) {
+    const model = buildSharedVariableRateTimeline({
+      tickRate: 30,
+      columnWidth: 80,
+      continuationWidthRatio: 0.2,
+      visualPageWidth,
+      groups: [{
+        id: `page-break-${visualPageWidth}`,
+        lanes: [
+          { laneId: 'attack', actions: [{ id: `page-attack-${visualPageWidth}`, durationFrames: 153 }] },
+          {
+            laneId: 'skills',
+            actions: [
+              { id: `page-b-${visualPageWidth}`, durationFrames: 50 },
+              { id: `page-e-${visualPageWidth}`, durationFrames: 41, startOffsetFrames: 82 },
+            ],
+          },
+        ],
+      }],
+    });
+    const pageColumns = model.columns.filter(column => column.kind === 'activity');
+    pageColumns.filter(column => column.xEnd - column.xStart >= model.columnWidth).forEach(column => {
+      const pageOffset = column.xStart % visualPageWidth;
+      assert(
+        pageOffset + model.columnWidth <= visualPageWidth,
+        `full column starts inside visual page ${visualPageWidth}`,
+      );
+    });
+    assert.deepEqual(
+      model.actions.map(entry => [entry.id.includes('-attack') ? 'attack' : entry.id.includes('-b-') ? 'b' : 'e', entry.startFrame, entry.endFrame]),
+      [['attack', 0, 153], ['b', 0, 50], ['e', 82, 123]],
+    );
+    const eAction = model.actions.find(entry => entry.id === `page-e-${visualPageWidth}`)!;
+    const eColumn = model.columns.find(column => column.id === eAction.primaryColumnId)!;
+    assert.equal(eAction.startX, eColumn.xStart, 'action start follows its mapped primary column');
+    assert.equal(eAction.startFrame, 82, 'page adjustment does not change release frame');
+    assert.equal(
+      projectSharedTimelineFrame(model, 82),
+      eAction.startX,
+      'frame projection follows the same mapped boundary as the action',
+    );
+    assert.equal(projectSharedTimelineFrame(model, 123), eAction.endX, 'mapped end boundary remains aligned');
+    if (visualPageWidth === 160) {
+      assert.equal(eAction.startX, 160, 'full operation starts at the next page boundary');
+      assert.equal(model.groups[0].xEnd, 256, 'the absorbed page gap remains part of total visual width');
+    } else {
+      assert.equal(eAction.startX, 96, 'a page with enough room remains unchanged');
+      assert.equal(model.groups[0].xEnd, 192, 'no unnecessary page gap is inserted');
+    }
+  }
+}
+
 // An ordinary wait is a lane-local dependency, not a full-column group seal.
 // It delays only B's successor while A keeps running inside the same group.
 {
@@ -138,6 +237,27 @@ function assertErrorCode(run: () => unknown, expectedCode: string): void {
   assert.equal(model.groups[0].endFrame, 120);
 }
 
+// A lane wait keeps its covered segment at the full operation width; a later
+// interval where only A continues can still use the compact continuation rate.
+{
+  const model = buildSharedVariableRateTimeline({
+    tickRate: 30,
+    columnWidth: 80,
+    continuationWidthRatio: 0.2,
+    groups: [{
+      id: 'ordinary-wait-widths',
+      laneWaits: [{ id: 'B-wait-width', laneId: 'B', startOffsetFrames: 0, durationFrames: 30 }],
+      lanes: [
+        { laneId: 'A', actions: [{ id: 'A-long-width', durationFrames: 120 }] },
+        { laneId: 'B', actions: [{ id: 'B-after-width', durationFrames: 30, startOffsetFrames: 60 }] },
+      ],
+    }],
+  });
+  assert.deepEqual(model.columns.map(column => column.xEnd - column.xStart), [80, 16, 80, 16]);
+  assert.equal(model.laneWaits[0].endX - model.laneWaits[0].startX, 80);
+  assert.equal(action(model, 'B-after-width').startX, 96);
+}
+
 // A zero-time ordinary wait consumes one visible cell for its lane without
 // advancing real time or inserting a separator. Its successor begins after
 // that visual cell while simultaneous actions retain their real frame.
@@ -145,6 +265,7 @@ function assertErrorCode(run: () => unknown, expectedCode: string): void {
   const model = buildSharedVariableRateTimeline({
     tickRate: 30,
     columnWidth: 80,
+    continuationWidthRatio: 0.2,
     groups: [{
       id: 'ordinary-placeholder-group',
       laneWaits: [{
@@ -186,6 +307,7 @@ function assertErrorCode(run: () => unknown, expectedCode: string): void {
   const model = buildSharedVariableRateTimeline({
     tickRate: 30,
     columnWidth: 80,
+    continuationWidthRatio: 0.2,
     groups: [{
       id: 'operator-handoff-group',
       operatorSwitches: [{
@@ -454,6 +576,25 @@ function assertErrorCode(run: () => unknown, expectedCode: string): void {
       },
     ],
   }), 'MISSING_WAIT_COLUMN');
+
+  assertErrorCode(() => buildSharedVariableRateTimeline({
+    tickRate: 30,
+    continuationWidthRatio: 0,
+    groups: [{
+      id: 'invalid-continuation-ratio',
+      lanes: [{ laneId: 'A', actions: [{ id: 'invalid-ratio-action', durationFrames: 30 }] }],
+    }],
+  }), 'INVALID_CONTINUATION_WIDTH_RATIO');
+
+  assertErrorCode(() => buildSharedVariableRateTimeline({
+    tickRate: 30,
+    columnWidth: 80,
+    visualPageWidth: 79,
+    groups: [{
+      id: 'invalid-visual-page-width',
+      lanes: [{ laneId: 'A', actions: [{ id: 'invalid-page-action', durationFrames: 30 }] }],
+    }],
+  }), 'INVALID_VISUAL_PAGE_WIDTH');
 }
 
 // Runtime adapters can use the frame search helper for exact state-machine

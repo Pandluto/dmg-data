@@ -222,6 +222,16 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
     19,
     'the shared variable-rate planner uses the persisted release dependency',
   );
+  assertEqual(
+    result.sharedVariableRateSpec?.continuationWidthRatio,
+    0.2,
+    'AKE uses compact visual widths only for continuation segments',
+  );
+  assertEqual(
+    result.sharedVariableRateSpec?.visualPageWidth,
+    1120,
+    'AKE keeps the grid page width for visual pagination',
+  );
 }
 
 {
@@ -2493,6 +2503,15 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
   assertClose(actualInfusion.atbBefore! - actualInfusion.atbAfter!, 40, 'infusion still spends its actual cost');
   assertEqual(result.sharedVariableRateTimeline?.actions.find(action => action.id === b.id)?.durationFrames, 0,
     'the relationship timeline preserves the zero-duration cast');
+  const infusionAction = result.sharedVariableRateTimeline?.actions.find(action => action.id === b.id);
+  const infusionControlColumn = result.sharedVariableRateTimeline?.columns.find(column => (
+    column.durationFrames === 0 && column.startFrame === infusionAction?.startFrame
+  ));
+  assertEqual(
+    infusionControlColumn ? infusionControlColumn.xEnd - infusionControlColumn.xStart : undefined,
+    80,
+    'the instantaneous control column remains a full visual cell under compact widths',
+  );
   assertEqual(build([a, b], other.id).commands.find(command => command.commandId === b.id)?.profile.castReplacementActive,
     undefined, 'an off-field actor cannot use the main-character replacement branch');
 }

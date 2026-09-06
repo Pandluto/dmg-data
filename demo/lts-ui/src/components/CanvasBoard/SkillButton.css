@@ -81,6 +81,7 @@
   position: relative;
   left: auto;
   top: auto;
+  transform: none;
   width: 22px;
   height: 22px;
 }

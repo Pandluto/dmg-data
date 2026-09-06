@@ -4,7 +4,7 @@
 
 **Status:** Accepted for implementation
 
-**Implementation:** Designed; two independent implementation tasks pending
+**Implementation:** Implemented and integrated; Chrome reading/toggle checks passed, native batch gesture acceptance pending
 
 **Updated:** 2026-09-06
 
@@ -93,3 +93,12 @@
 ## Further Notes
 
 本设计依据用户 2026-09-06 的两条并行要求。阅读模式是组合摘要，详细生效顺序仍在编辑视图与状态详情中；不将摘要伪装成某个全局时刻的状态快照。实现任务完成后由主代理合并、用 Chrome/RIA 复核，并回填验收状态。
+
+## Integration Evidence（2026-09-06）
+
+- 两个 GPT 5.6 Luna max 独立任务已提交并由主代理整合：阅读 9357e2b/c2347b1，批量 d76ad11/317a59d。各经历一次定向返修；用量未知。
+- 阅读返修：单状态与技能同排，最多三状态和折叠入口；保留技能主题。合并后 Chrome 发现编辑模式 transform 使图标跑出卡片，已限定阅读图标 transform:none。
+- 批量返修：菜单 pointerdown 不再先行关闭自身，位置限制于视口；存档身份改变清空选择；异常回滚同步 Buff 缓存。
+- 合并后 typecheck 与阅读状态、批量队尾、菜单、选择重置、工具栏定向检查通过。取当前 Chrome 的三动作开发者快照，在隔离内存存储中调用真实 removeSkillButtons：有后继依赖的中间动作被拒绝且零写入；全部合法尾部集合一次移除，按钮表和队列表各写一次。
+- Chrome 已检查书本显示与批量/阅读互斥，最后保留阅读模式。前后 RIA commands 和伤害完全相同（75636.04798874758），排轴字段仅 updatedAt 因热更新变化；未删除或保存用户浏览器中的轴。
+- 原生批量框选、右键删除及撤销整条 UI 链路未完成现场验收：当前脚本没有原生鼠标事件投递权限。本次不把定向策略/服务检查算作原生操作已通过；后续实际鼠标使用需核对框选手感与撤销入口。

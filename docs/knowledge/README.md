@@ -1,8 +1,8 @@
 # 项目知识库
 
 建立日期：2026-09-05。初始分析基线：`f9ed924e1eb2fe13e3599bea0873948fc219378b`；基线提交日期：2026-09-03 22:57:44 +08:00。
-本次知识内容提交：`745ebcd3296d3bc6d85ece432c7f3e4e6ae5aaef`；提交日期：2026-09-05 18:43:04 +08:00。逐条版本见下表。
-角色修复的未提交状态另行标注，文档提交不代表代码修复已进入该提交。
+初始知识内容提交：`745ebcd3296d3bc6d85ece432c7f3e4e6ae5aaef`；提交日期：2026-09-05 18:43:04 +08:00。逐条版本见下表。
+分析当时的工作树状态与后来实际修复提交分别记录；文档更新不扩大机制证明范围。
 
 ## 条目版本
 
@@ -12,11 +12,11 @@
 | --- | --- | --- |
 | [项目术语](../../CONTEXT.md) | `745ebcd3296d3bc6d85ece432c7f3e4e6ae5aaef` | 2026-09-05 18:43:04 +08:00 |
 | [热启动的实验使用](terms/hot-start.md) | `745ebcd3296d3bc6d85ece432c7f3e4e6ae5aaef` | 2026-09-05 18:43:04 +08:00 |
-| [汤汤](operators/tangtang.md) | 待本轮施冷限次与显式落地交互修订提交后登记 | 待登记 |
-| [别礼](operators/lastrite.md) | `745ebcd3296d3bc6d85ece432c7f3e4e6ae5aaef` | 2026-09-05 18:43:04 +08:00 |
-| [原始动作与解包数据分析](data/raw-action-analysis.md) | 待本轮施冷限次更正提交后登记 | 待登记 |
-| [状态来源、触发与时序](data/status-source-and-trigger.md) | `be6f3588323bb1c3cf2bc1b02162c826ab747357` | 2026-09-06 21:56:20 +08:00 |
-| [常规实验配装](experiments/default-loadout.md) | 待本轮内容提交后登记 | 待登记 |
+| [汤汤](operators/tangtang.md) | `f37e758b4f8c5da7484f677e53db4dfd12b9a008` | 2026-09-06 22:14:55 +08:00 |
+| [别礼](operators/lastrite.md) | `f37e758b4f8c5da7484f677e53db4dfd12b9a008` | 2026-09-06 22:14:55 +08:00 |
+| [原始动作与解包数据分析](data/raw-action-analysis.md) | `f37e758b4f8c5da7484f677e53db4dfd12b9a008` | 2026-09-06 22:14:55 +08:00 |
+| [状态来源、触发与时序](data/status-source-and-trigger.md) | `f37e758b4f8c5da7484f677e53db4dfd12b9a008` | 2026-09-06 22:14:55 +08:00 |
+| [常规实验配装](experiments/default-loadout.md) | `f37e758b4f8c5da7484f677e53db4dfd12b9a008` | 2026-09-06 22:14:55 +08:00 |
 
 ## 按问题路由
 
@@ -27,6 +27,8 @@
 | 汤汤水龙卷、巨浪、下落落地、跨角色触发归属、终结技提前结束、涡流、增伤或连携 | [汤汤分析](operators/tangtang.md) |
 | 别礼普攻中插战技、灌注、追击、回能、三层寒冷 | [别礼分析](operators/lastrite.md) |
 | 附着被错归普攻、持续效果来源、触发动作、生效时序、状态被拉回起手 | [来源与触发的区别](data/status-source-and-trigger.md)、[状态时序 Spec](../specs/timeline-state-flow/spec.md) |
+| 卡缪强化战技被截断、派生技能准入、两层共享连击 | [派生程序调查](../maintenance/derived-cast-admission-20260905.md)、[数据分析经验](data/raw-action-analysis.md) |
+| 找回近期存档、区分工作副本与实验输入、最近收尾 | [工作台收尾与存档定位](../maintenance/workbench-closeout-20260906.md)、[重放夹具索引](../../fixtures/ria/README.md) |
 | SkillData / BuffData / SkillPatch、Blackboard、解包字段与实际效果不一致 | [原始动作分析经验](data/raw-action-analysis.md) |
 | 本轮跑过什么、还缺什么实验、有哪些未确认优化 | [探索记录](../maintenance/engine-exploration.md) |
 | 水位算法、短轴压缩有效但长轴仍宽、瞬时操作重复占格 | [长轴占位设计与证据](../maintenance/long-timeline-width-20260906.md)、[现行排轴 Spec](../specs/timeline-release-lens/spec.md) |

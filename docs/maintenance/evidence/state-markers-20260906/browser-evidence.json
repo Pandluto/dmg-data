@@ -1,0 +1,474 @@
+{
+  "baseline": "4e69f72",
+  "date": "2026-09-06",
+  "timelineId": "timeline-1787805545723-1e0c391e-29a1-4e66-8e3c-5e8a6bfae4cd",
+  "beforeMarkers": [
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "灼热附着 · 施加 0→1层 · 0.40秒 / F12 · 卡缪",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 142.23959350585938,
+        "y": 235.00001525878906,
+        "width": 42.690975189208984,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "破防 · 施加 0→1层 · 1.17秒 / F35 · 洛茜",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 205.32119750976562,
+        "y": 145,
+        "width": 42.690975189208984,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "灼热附着 · 消费 1→0层 · 4.93秒 / F148 · 洛茜",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 360.6770935058594,
+        "y": 145,
+        "width": 42.690975189208984,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "破防 · 叠层并刷新 1→2层 · 4.93秒 / F148 · 洛茜",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 360.9114685058594,
+        "y": 161.9965362548828,
+        "width": 42.222225189208984,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "破防 · 叠层并刷新 2→3层 · 4.93秒 / F148 · 洛茜",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 360.22137451171875,
+        "y": 178.99305725097656,
+        "width": 43.60243225097656,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "灼热附着 · 施加 0→1层 · 8.57秒 / F257 · 卡缪",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 418.4288330078125,
+        "y": 235.00001525878906,
+        "width": 42.690975189208984,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "共享连击 · 发放 0→1层 · 11.33秒 / F340 · 卡缪",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 492.4305725097656,
+        "y": 235.00001525878906,
+        "width": 38.69791793823242,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "共享连击 · 发放 1→2层 · 13.43秒 / F403 · 卡缪",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 648.3507080078125,
+        "y": 235.00001525878906,
+        "width": 38.22916793823242,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "共享连击 · 消费 2→0层 · 13.63秒 / F409 · 洛茜",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 666.7534790039062,
+        "y": 145,
+        "width": 39.82638931274414,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "灼热附着 · 叠层并刷新 1→2层 · 18.03秒 / F541 · 洛茜",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 803.9757080078125,
+        "y": 145,
+        "width": 42.222225189208984,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "破防 · 到期 3→0层 · 24.93秒 / F748",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 824.631103515625,
+        "y": 145,
+        "width": 44.07118225097656,
+        "height": 15.99826431274414
+      }
+    }
+  ],
+  "afterMarkers": [
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "灼热附着 · 施加 0→1层 · 0.40秒 / F12 · 卡缪",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 141.5885467529297,
+        "y": 235.00001525878906,
+        "width": 43.99305725097656,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "灼热附着 · 施加 0→1层 · 8.57秒 / F257 · 卡缪",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 417.7778015136719,
+        "y": 235.00001525878906,
+        "width": 43.99305725097656,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "共享连击 · 发放 0→1层 · 11.33秒 / F340 · 卡缪",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 489.7743225097656,
+        "y": 235.00001525878906,
+        "width": 43.99305725097656,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "共享连击 · 发放 1→2层 · 13.43秒 / F403 · 卡缪",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 645.4600830078125,
+        "y": 235.00001525878906,
+        "width": 43.99305725097656,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "破防 · 施加 0→1层 · 1.17秒 / F35 · 洛茜",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 204.66146850585938,
+        "y": 145,
+        "width": 43.99305725097656,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "灼热附着 · 消费 1→0层 · 4.93秒 / F148 · 洛茜",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 313.029541015625,
+        "y": 145,
+        "width": 43.99305725097656,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "破防 · 叠层并刷新 1→2层 · 4.93秒 / F148 · 洛茜",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 360.0173645019531,
+        "y": 145,
+        "width": 43.99305725097656,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "破防 · 叠层并刷新 2→3层 · 4.93秒 / F148 · 洛茜",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 407.0052185058594,
+        "y": 145,
+        "width": 43.99305725097656,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "共享连击 · 消费 2→0层 · 13.63秒 / F409 · 洛茜",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 664.6614990234375,
+        "y": 145,
+        "width": 43.99305725097656,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "灼热附着 · 叠层并刷新 1→2层 · 18.03秒 / F541 · 洛茜",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 790.373291015625,
+        "y": 145,
+        "width": 43.99305725097656,
+        "height": 15.99826431274414
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "",
+      "role": null,
+      "label": "破防 · 到期 3→0层 · 24.93秒 / F748",
+      "commandId": null,
+      "name": null,
+      "inputType": "button",
+      "dragSourceId": null,
+      "disabled": false,
+      "dragDisabled": false,
+      "selected": null,
+      "expanded": null,
+      "bounds": {
+        "x": 837.3611450195312,
+        "y": 145,
+        "width": 43.99305725097656,
+        "height": 15.99826431274414
+      }
+    }
+  ],
+  "beforeOverlaps": [
+    {
+      "a": "破防 · 叠层并刷新 2→3层 · 4.93秒 / F148 · 洛茜",
+      "b": "编辑卡缪猩红坠雨接续：◇ 洛茜 结束后",
+      "width": 34.644100189208984,
+      "height": 13.993045806884766
+    },
+    {
+      "a": "灼热附着 · 叠层并刷新 1→2层 · 18.03秒 / F541 · 洛茜",
+      "b": "破防 · 到期 3→0层 · 24.93秒 / F748",
+      "width": 21.566829681396484,
+      "height": 15.99826431274414
+    }
+  ],
+  "afterOverlaps": [],
+  "sameExecutionDigest": true,
+  "sameLoadout": true,
+  "sameStateEvents": true,
+  "beforeDamage": 118173.72537302248,
+  "afterDamage": 118173.72537302248,
+  "nativeClick": {
+    "marker": "破防 1→2 · F148",
+    "expectedCommandId": "j1xnfsn7v",
+    "selectedCommandId": "j1xnfsn7v"
+  }
+}

@@ -38,6 +38,12 @@ assert.equal(fallback.length,1);
 assert.ok(fallback[0].collapsed && fallback[0].left + fallback[0].width < full.left);
 assert.equal(fallback[0].events.length,fixture.length);
 assert.equal(layoutStateMarkers([],space).length,0);
+const delayedSource = {left:100,top:62,width:80,height:60};
+const delayed = layoutStateMarkers([{...event('delayed',400,800),source:delayedSource}],
+  {...space,obstacles:[]})[0];
+assert.equal(delayed.left,160,'delayed status stays beside its own skill button, not the event-time group');
+assert.equal(delayed.top,62,'badge shares the skill icon layer');
+assert.equal(delayed.events[0].x,800,'the leader retains the actual effect-time anchor');
 const status = (key:string, before:number, after:number, sequence:number, frame=148, buffId='breach') => ({
   key, before, after, sequence, frame, buffId, commandId:'combo-2', scope:'enemy',
 });

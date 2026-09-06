@@ -31,6 +31,7 @@ export function TimelineStateMarkers({ events, left, right, laneForLine, onInspe
   const layerRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const [obstacles, setObstacles] = useState<MarkerRect[] | null>(null);
+  const [sources, setSources] = useState<Record<string, MarkerRect>>({});
   const [detail, setDetail] = useState<{ keys: string[]; x: number; y: number } | null>(null);
   const detailEvents = detail ? events.filter(item => detail.keys.includes(item.event.key)) : [];
   const closeDetails = () => { setDetail(null); openerRef.current?.focus({ preventScroll: true }); };
@@ -50,8 +51,24 @@ export function TimelineStateMarkers({ events, left, right, laneForLine, onInspe
       const scaleX = origin.width / layer.offsetWidth, scaleY = origin.height / layer.offsetHeight;
       if (!scaleX || !scaleY) return;
       const rects: MarkerRect[] = [];
+      const sourceRects: Record<string, MarkerRect> = {};
+      const localRect = (rect: DOMRect): MarkerRect => ({
+        left: (rect.left - origin.left) / scaleX, top: (rect.top - origin.top) / scaleY,
+        width: rect.width / scaleX, height: rect.height / scaleY,
+      });
+      canvas.querySelectorAll<HTMLElement>('[data-skill-button-id]').forEach(button => {
+        const orb = button.querySelector('.skill-button-orb');
+        if (!orb) return;
+        const rect = button.getBoundingClientRect(), ink = orb.getBoundingClientRect();
+        if (!rect.width || ink.top < origin.top || ink.bottom > origin.bottom) return;
+        sourceRects[button.dataset.skillButtonId!] = { ...localRect(rect), top: localRect(ink).top };
+      });
       canvas.querySelectorAll<HTMLElement>(OBSTACLES).forEach(element => {
-        const rect = element.getBoundingClientRect();
+        // The kind label has a wide layout box; only its text is visible ink.
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        const rect = element.matches('.skill-button-temporal-kind')
+          ? range.getBoundingClientRect() : element.getBoundingClientRect();
         if (!rect.width || !rect.height || rect.bottom < origin.top || rect.top > origin.bottom) return;
         const style = getComputedStyle(element);
         if (style.visibility === 'hidden' || style.display === 'none' || style.opacity === '0') return;
@@ -60,6 +77,7 @@ export function TimelineStateMarkers({ events, left, right, laneForLine, onInspe
           width: round(rect.width / scaleX), height: round(rect.height / scaleY) });
       });
       setObstacles(previous => JSON.stringify(previous) === JSON.stringify(rects) ? previous : rects);
+      setSources(previous => JSON.stringify(previous) === JSON.stringify(sourceRects) ? previous : sourceRects);
     };
     const schedule = () => { if (!pending) pending = requestAnimationFrame(measure); };
     measure();
@@ -96,6 +114,7 @@ export function TimelineStateMarkers({ events, left, right, laneForLine, onInspe
       const badges = stateBadgeRuns(items.map(item => item.event)).map(run => {
         const last = run[run.length - 1], item = byKey.get(last.key)!;
         return { ...item, key: run[0].key, frame: last.frame, sequence: last.sequence, width: STATE_BADGE_SIZE,
+          source: last.commandId ? sources[last.commandId] : undefined,
           records: run.map(event => byKey.get(event.key)!) };
       });
       return layoutStateMarkers(badges, { left, top: lane.top, width: right - left,

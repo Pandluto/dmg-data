@@ -1,5 +1,5 @@
 export type MarkerRect = { left: number; top: number; width: number; height: number };
-export type StateMarkerAnchor = { key: string; x: number; width: number; frame: number; sequence: number };
+export type StateMarkerAnchor = { key: string; x: number; width: number; frame: number; sequence: number; source?: MarkerRect };
 export type StateMarkerGroup<T extends StateMarkerAnchor> = MarkerRect & {
   events: T[]; collapsed: boolean;
 };
@@ -52,14 +52,19 @@ export function layoutStateMarkers<T extends StateMarkerAnchor>(
       : items.reduce((sum, item) => sum + item.width, 0) + STATE_BADGE_GAP * (items.length - 1);
     if (width > bounds.width || height <= 0) return null;
     const anchor = items.reduce((sum, item) => sum + item.x, 0) / items.length;
-    const clampX = (x: number) => Math.max(bounds.left, Math.min(bounds.left + bounds.width - width, x));
+    const source = items[0].source;
+    const minX = Math.max(bounds.left, source?.left ?? bounds.left);
+    const maxX = Math.min(bounds.left + bounds.width, source ? source.left + source.width : Infinity) - width;
+    if (maxX < minX) return null;
+    const clampX = (x: number) => Math.max(minX, Math.min(maxX, x));
     const clampY = (y: number) => Math.max(bounds.top, Math.min(bounds.top + bounds.height - height, y));
     const occupied = [...obstacles, ...groups];
-    const preferredLeft = clampX(anchor + RIGHT_OF_ANCHOR_OFFSET);
+    const preferredLeft = source ? maxX : clampX(anchor + RIGHT_OF_ANCHOR_OFFSET);
+    const preferredTop = clampY(source?.top ?? space.preferredTop);
     // Put a tray just above/right of the source time first. The centered
     // candidate remains useful when the preferred side is occupied or clipped.
-    const xs = new Set([preferredLeft, clampX(anchor - width / 2), bounds.left, bounds.left + bounds.width - width]);
-    const ys = new Set([clampY(space.preferredTop), bounds.top, bounds.top + bounds.height - height]);
+    const xs = new Set([preferredLeft, clampX(anchor - width / 2), minX, maxX]);
+    const ys = new Set([preferredTop, bounds.top, bounds.top + bounds.height - height]);
     for (const rect of occupied) {
       xs.add(clampX(rect.left - width - OBSTACLE_GAP)); xs.add(clampX(rect.left + rect.width + OBSTACLE_GAP));
       ys.add(clampY(rect.top - height - OBSTACLE_GAP)); ys.add(clampY(rect.top + rect.height + OBSTACLE_GAP));
@@ -68,13 +73,13 @@ export function layoutStateMarkers<T extends StateMarkerAnchor>(
     for (const top of ys) for (const left of xs) {
       const candidate = { left, top, width, height, events: items, collapsed };
       const distanceToPreferred = Math.abs(left - preferredLeft);
-      const distanceToAnchor = Math.abs(left + width / 2 - anchor);
+      const distanceToAnchor = source ? 0 : Math.abs(left + width / 2 - anchor);
       // Keep a modest bias against sending a callout left of its source when
       // both sides are otherwise comparable. Distance still dominates, so a
       // nearby left patch wins over an implausibly distant right edge.
-      const leftPenalty = left < anchor ? 4 : 0;
+      const leftPenalty = !source && left < anchor ? 4 : 0;
       const cost = distanceToPreferred + distanceToAnchor * .25
-        + leftPenalty + Math.abs(top - space.preferredTop) * 1.4;
+        + leftPenalty + Math.abs(top - preferredTop) * 1.4;
       if (cost >= bestCost || occupied.some(rect => markerRectsOverlap(candidate, rect, OBSTACLE_GAP - .01))) continue;
       best = candidate; bestCost = cost;
     }
@@ -84,7 +89,8 @@ export function layoutStateMarkers<T extends StateMarkerAnchor>(
   const clusters: T[][] = [];
   for (const event of [...events].sort((a, b) => a.x - b.x || a.frame - b.frame || a.sequence - b.sequence)) {
     const previous = clusters[clusters.length - 1];
-    if (previous && previous[0].x === event.x && previous[0].frame === event.frame) previous.push(event);
+    if (previous && previous[0].x === event.x && previous[0].frame === event.frame
+      && previous[0].source === event.source) previous.push(event);
     else clusters.push([event]);
   }
   for (const items of clusters) {

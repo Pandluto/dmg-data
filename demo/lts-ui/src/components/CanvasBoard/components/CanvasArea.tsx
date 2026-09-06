@@ -908,7 +908,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           </button>;
         })}
         <TimelineStateMarkers left={GRID_FIRST_COLUMN_WIDTH} right={GRID_FIRST_COLUMN_WIDTH + visualPageWidth}
-          laneForLine={line => ({ top: getGridReleaseRowTopY(line) + 2,
+          laneForLine={line => ({ top: getGridReleaseRowTopY(line) + GRID_RELEASE_ROW_HEIGHT + 2,
             bottom: getGridEnergyRowTopY(line) - 3, anchorY: getGridEnergyRowTopY(line) })} onInspectCommand={onInspectCommand}
           events={stateEvents.flatMap(event => {
             const point = visualPointForFrame(event.frame, 'after');

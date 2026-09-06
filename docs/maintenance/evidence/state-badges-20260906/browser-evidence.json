@@ -1,0 +1,302 @@
+{
+  "markerCount": 10,
+  "representedEvents": 11,
+  "collisions": [],
+  "allEventsRetained": true,
+  "executionDigestUnchanged": true,
+  "loadoutUnchanged": true,
+  "timelineUnchanged": false,
+  "runtimeEventsUnchanged": true,
+  "totalDamageBefore": 118173.72537302248,
+  "totalDamageAfter": 118173.72537302248,
+  "visibleArrowCount": 0,
+  "markers": [
+    {
+      "keys": [
+        "status:30"
+      ],
+      "frame": "12",
+      "stacks": "1",
+      "tone": "fire",
+      "text": "1",
+      "anchor": {
+        "x": "76.92307692307693",
+        "y": "198"
+      },
+      "bounds": {
+        "x": 208.6632080078125,
+        "y": 230.99827575683594,
+        "width": 23.993057250976562,
+        "height": 23.993057250976562
+      },
+      "countBounds": {
+        "x": 223.09896850585938,
+        "y": 245.4340362548828,
+        "width": 10.99826431274414,
+        "height": 10.99826431274414
+      },
+      "color": "rgb(223, 80, 56)",
+      "collapsed": false
+    },
+    {
+      "keys": [
+        "status:136"
+      ],
+      "frame": "257",
+      "stacks": "1",
+      "tone": "fire",
+      "text": "1",
+      "anchor": {
+        "x": "353.1125827814569",
+        "y": "198"
+      },
+      "bounds": {
+        "x": 412.67364501953125,
+        "y": 225.0434112548828,
+        "width": 23.993057250976562,
+        "height": 23.993057250976562
+      },
+      "countBounds": {
+        "x": 427.1094055175781,
+        "y": 239.4791717529297,
+        "width": 10.99826431274414,
+        "height": 10.99826431274414
+      },
+      "color": "rgb(223, 80, 56)",
+      "collapsed": false
+    },
+    {
+      "keys": [
+        "combo:team-combo-event:1"
+      ],
+      "frame": "340",
+      "stacks": "1",
+      "tone": "neutral",
+      "text": "连1",
+      "anchor": {
+        "x": "425.1162790697674",
+        "y": "198"
+      },
+      "bounds": {
+        "x": 492.67364501953125,
+        "y": 225.0434112548828,
+        "width": 23.993057250976562,
+        "height": 23.993057250976562
+      },
+      "countBounds": {
+        "x": 507.1094055175781,
+        "y": 239.4791717529297,
+        "width": 10.99826431274414,
+        "height": 10.99826431274414
+      },
+      "color": "rgb(71, 116, 109)",
+      "collapsed": false
+    },
+    {
+      "keys": [
+        "combo:team-combo-event:2"
+      ],
+      "frame": "403",
+      "stacks": "2",
+      "tone": "neutral",
+      "text": "连2",
+      "anchor": {
+        "x": "580.8",
+        "y": "198"
+      },
+      "bounds": {
+        "x": 655.4600830078125,
+        "y": 225.0434112548828,
+        "width": 23.993057250976562,
+        "height": 23.993057250976562
+      },
+      "countBounds": {
+        "x": 669.8958740234375,
+        "y": 239.4791717529297,
+        "width": 10.99826431274414,
+        "height": 10.99826431274414
+      },
+      "color": "rgb(71, 116, 109)",
+      "collapsed": false
+    },
+    {
+      "keys": [
+        "status:36"
+      ],
+      "frame": "35",
+      "stacks": "1",
+      "tone": "physical",
+      "text": "1",
+      "anchor": {
+        "x": "140",
+        "y": "108"
+      },
+      "bounds": {
+        "x": 197.66494750976562,
+        "y": 137.9947967529297,
+        "width": 23.993057250976562,
+        "height": 23.993057250976562
+      },
+      "countBounds": {
+        "x": 212.1007080078125,
+        "y": 152.43055725097656,
+        "width": 10.99826431274414,
+        "height": 10.99826431274414
+      },
+      "color": "rgb(152, 111, 74)",
+      "collapsed": false
+    },
+    {
+      "keys": [
+        "status:97"
+      ],
+      "frame": "148",
+      "stacks": "0",
+      "tone": "fire",
+      "text": "×",
+      "anchor": {
+        "x": "295.36423841059604",
+        "y": "108"
+      },
+      "bounds": {
+        "x": 410.65106201171875,
+        "y": 140.99827575683594,
+        "width": 23.993057250976562,
+        "height": 23.993057250976562
+      },
+      "countBounds": {
+        "x": 425.0868225097656,
+        "y": 155.4340362548828,
+        "width": 10.99826431274414,
+        "height": 10.99826431274414
+      },
+      "color": "rgb(125, 133, 132)",
+      "collapsed": false
+    },
+    {
+      "keys": [
+        "status:102",
+        "status:104"
+      ],
+      "frame": "148",
+      "stacks": "3",
+      "tone": "physical",
+      "text": "3",
+      "anchor": {
+        "x": "295.36423841059604",
+        "y": "108"
+      },
+      "bounds": {
+        "x": 438.6371765136719,
+        "y": 140.99827575683594,
+        "width": 23.993057250976562,
+        "height": 23.993057250976562
+      },
+      "countBounds": {
+        "x": 453.07293701171875,
+        "y": 155.4340362548828,
+        "width": 10.99826431274414,
+        "height": 10.99826431274414
+      },
+      "color": "rgb(0, 94, 203)",
+      "collapsed": false
+    },
+    {
+      "keys": [
+        "combo:team-combo-event:3"
+      ],
+      "frame": "409",
+      "stacks": "0",
+      "tone": "neutral",
+      "text": "连×",
+      "anchor": {
+        "x": "600",
+        "y": "108"
+      },
+      "bounds": {
+        "x": 660.6597290039062,
+        "y": 140.99827575683594,
+        "width": 23.993057250976562,
+        "height": 23.993057250976562
+      },
+      "countBounds": {
+        "x": 675.0955200195312,
+        "y": 155.4340362548828,
+        "width": 10.99826431274414,
+        "height": 10.99826431274414
+      },
+      "color": "rgb(125, 133, 132)",
+      "collapsed": false
+    },
+    {
+      "keys": [
+        "status:272"
+      ],
+      "frame": "541",
+      "stacks": "2",
+      "tone": "fire",
+      "text": "2",
+      "anchor": {
+        "x": "738.4269662921348",
+        "y": "108"
+      },
+      "bounds": {
+        "x": 778.6719360351562,
+        "y": 137.9947967529297,
+        "width": 23.993057250976562,
+        "height": 23.993057250976562
+      },
+      "countBounds": {
+        "x": 793.107666015625,
+        "y": 152.43055725097656,
+        "width": 10.99826431274414,
+        "height": 10.99826431274414
+      },
+      "color": "rgb(223, 80, 56)",
+      "collapsed": false
+    },
+    {
+      "keys": [
+        "status:302"
+      ],
+      "frame": "748",
+      "stacks": "0",
+      "tone": "physical",
+      "text": "×",
+      "anchor": {
+        "x": "760",
+        "y": "108"
+      },
+      "bounds": {
+        "x": 855.5989990234375,
+        "y": 140.99827575683594,
+        "width": 23.993057250976562,
+        "height": 23.993057250976562
+      },
+      "countBounds": {
+        "x": 870.0347900390625,
+        "y": 155.4340362548828,
+        "width": 10.99826431274414,
+        "height": 10.99826431274414
+      },
+      "color": "rgb(125, 133, 132)",
+      "collapsed": false
+    }
+  ],
+  "timelineDifference": {
+    "updatedAtOnly": true,
+    "explanation": "热更新恢复时更新时间变化；排轴按钮内容与执行摘要不变"
+  },
+  "baseCommit": "a3d9535088da8aada3995aacb6cba3f38e82ce16",
+  "baseCommitDate": "2026-09-06T11:22:44+08:00",
+  "verifiedAt": "2026-09-06",
+  "nativeInteraction": {
+    "target": "破防 F148 结果层数 3",
+    "detailRecords": [
+      "1→2",
+      "2→3"
+    ],
+    "escapeClosed": true,
+    "focusReturned": true
+  }
+}

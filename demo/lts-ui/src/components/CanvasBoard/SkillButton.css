@@ -893,9 +893,14 @@
 
 .canvas-skill-button.is-batch-selected .skill-button-base,
 .canvas-skill-button.is-batch-selected .skill-button-orb,
-.canvas-skill-button.is-batch-selected .skill-button-reading-card {
-  border-color: #1a5f70;
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgba(26, 95, 112, 0.88);
+.canvas-skill-button.is-batch-selected .skill-button-reading-card,
+:root .canvas-skill-button.is-browse-mode.is-batch-selected .skill-button-reading-card {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgba(220, 38, 38, 0.96);
+}
+
+:root .canvas-skill-button.is-browse-mode.is-batch-selected .skill-button-reading-card {
+  background: #fff7f7;
 }
 
 .canvas-skill-button.dragging .skill-button-base,

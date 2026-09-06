@@ -3899,8 +3899,7 @@ export function CanvasBoard({
       batchSelection.clearSelection();
       setBatchContextMenuState(null);
       setContextMenuState(null);
-      setWorkNodeSaveNotice(`已删除所选 ${result.removedButtonIds.length} 项。`);
-      window.setTimeout(() => setWorkNodeSaveNotice(''), 2200);
+      setWorkNodeSaveNotice('');
     } catch (error) {
       setBatchContextMenuState(null);
       const reason = error instanceof Error ? error.message : String(error);
@@ -5065,11 +5064,17 @@ export function CanvasBoard({
 
   return (
     <div className={canvasBoardClassName}>
-      {workNodeSaveNotice && <div className="canvas-work-node-save-notice" role="status">{workNodeSaveNotice}</div>}
-      {batchUndoSnapshot ? (
-        <div className="canvas-batch-undo-notice" role="status">
-          <span>{`已删除所选 ${batchUndoSnapshot.count} 项`}</span>
-          <button type="button" onClick={handleUndoBatchRemove}>撤销本次批量删除</button>
+      {workNodeSaveNotice || batchUndoSnapshot ? (
+        <div className="canvas-notification-stack">
+          {workNodeSaveNotice ? (
+            <div className="canvas-work-node-save-notice" role="status">{workNodeSaveNotice}</div>
+          ) : null}
+          {batchUndoSnapshot ? (
+            <div className="canvas-batch-undo-notice" role="status">
+              <span>{`已删除所选 ${batchUndoSnapshot.count} 项`}</span>
+              <button type="button" onClick={handleUndoBatchRemove}>撤销本次批量删除</button>
+            </div>
+          ) : null}
         </div>
       ) : null}
       {isBatchMode && batchContextMenuState ? (

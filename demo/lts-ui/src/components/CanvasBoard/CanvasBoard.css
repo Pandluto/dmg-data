@@ -1131,26 +1131,47 @@
 .canvas-batch-selection-rect {
   position: absolute;
   box-sizing: border-box;
-  border: 1px solid rgba(26, 95, 112, 0.72);
-  background: rgba(111, 204, 218, 0.17);
+  border: 1px solid rgba(220, 38, 38, 0.86);
+  background: rgba(254, 226, 226, 0.36);
   pointer-events: none;
 }
 
-.canvas-batch-undo-notice {
-  position: absolute;
+.canvas-notification-stack {
+  position: fixed;
   top: 8px;
   left: 50%;
-  z-index: 5100;
+  z-index: 4800;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: min(560px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.canvas-notification-stack > [role="status"] {
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.canvas-batch-undo-notice {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
   min-height: 30px;
   padding: 4px 8px 4px 10px;
   border: 1px solid rgba(26, 95, 112, 0.72);
   background: rgba(239, 251, 252, 0.96);
   color: #174f5c;
   font-size: 11px;
-  transform: translateX(-50%);
+  line-height: 1.35;
+  pointer-events: auto;
   box-shadow: 0 3px 10px rgba(23, 75, 80, 0.14);
 }
 
@@ -2350,7 +2371,7 @@
 }
 
 .timeline-wait-segment.is-batch-selected .timeline-wait-track {
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #1a5f70;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #dc2626;
 }
 
 .timeline-wait-segment.dragging {
@@ -2523,7 +2544,7 @@
 }
 
 .timeline-operator-switch-segment.is-batch-selected .timeline-switch-track {
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #1a5f70;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #dc2626;
 }
 
 .canvas-release-snap-point {
@@ -3913,11 +3934,7 @@
   cursor: not-allowed;
 }
 .canvas-work-node-save-notice {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  z-index: 10050;
-  transform: translateX(-50%);
+  position: relative;
   padding: 9px 14px;
   border: 1px solid #8b5cf6;
   border-radius: 4px;
@@ -3925,6 +3942,8 @@
   color: #111827;
   box-shadow: 0 4px 16px rgb(17 24 39 / 18%);
   font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
   pointer-events: none;
 }
 

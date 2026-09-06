@@ -1558,3 +1558,270 @@ assert.equal(derivedCastLedger?.hits.length, 1,
 assert.match(derivedCastLedger?.hits[0].meta ?? '', /战技输入 → 连携技结算/);
 assert.ok(derivedCastLedger?.statuses.some((status) => status.title === '派生连携状态'),
   'derived-cast status transitions must remain visible in the root button detail');
+
+// A derived status can carry the current hit's cast while its explicit parent
+// chain identifies the ability that supplied the effect. The parent chain is
+// deliberately small here so this projection test does not depend on a full
+// engine report.
+const ownershipCommand = (
+  commandId: string,
+  castId: string,
+  characterId: string,
+  commandType: string,
+  frame: number,
+) => ({
+  ...report.timeline.commands[0],
+  commandId,
+  castId,
+  characterId,
+  memberId: characterId,
+  commandType,
+  requestedFrame: frame,
+  actualFrame: frame,
+  requestedSeconds: frame / 30,
+  actualSeconds: frame / 30,
+  endFrame: frame,
+});
+
+const ownershipStatus = (
+  overrides: Partial<AkeRuntimeStatusEvent>,
+): AkeRuntimeStatusEvent => ({
+  ...statusBase,
+  eventId: 'status-event:ownership-default',
+  sequence: 1,
+  traceIndex: 1,
+  frame: 0,
+  stage: 'StatusEffectApplied',
+  instanceId: 'status:ownership-default',
+  buffId: 'buff_common_energy_shard_attached_cryst',
+  before: 0,
+  after: 1,
+  castId: null,
+  rootCastId: null,
+  parentCastId: null,
+  parentEventId: null,
+  parentHitId: null,
+  triggerRootCastId: null,
+  ...overrides,
+});
+
+const ownershipReport = structuredClone(report);
+const ownershipSourceCommand = ownershipCommand(
+  'command-source', 'cast:source', 'actor-source', 'NormalSkill', 50,
+);
+const ownershipTriggerCommand = ownershipCommand(
+  'command-trigger', 'cast:trigger', 'actor-trigger', 'Attack', 128,
+);
+const ownershipConsumerCommand = ownershipCommand(
+  'command-consumer', 'cast:consumer', 'actor-consumer', 'ComboSkill', 206,
+);
+ownershipReport.timeline.commands = [
+  ownershipSourceCommand,
+  ownershipTriggerCommand,
+  ownershipConsumerCommand,
+];
+ownershipReport.hits = [{
+  ...runtimeHit(0, null, 1, false),
+  hitId: 'runtime-hit:ownership-trigger',
+  frame: 128,
+  castId: 'cast:trigger',
+  rootCastId: 'cast:trigger',
+  characterId: 'actor-trigger',
+  memberId: 'actor-trigger',
+  sourceId: 'actor-trigger',
+}];
+ownershipReport.statusEvents = [
+  ownershipStatus({
+    eventId: 'status-event:ownership-source-root',
+    sequence: 1,
+    traceIndex: 1,
+    frame: 40,
+    instanceId: 'status:ownership-source-root',
+    buffId: 'buff_actor_source_root',
+    sourceId: 'actor-source',
+    ownerId: 'actor-source',
+    targetId: 'actor-source',
+    castId: 'cast:source',
+    rootCastId: 'cast:source',
+  }),
+  ownershipStatus({
+    eventId: 'status-event:ownership-source',
+    sequence: 2,
+    traceIndex: 2,
+    frame: 50,
+    instanceId: 'status:ownership-source',
+    buffId: 'buff_actor_source',
+    sourceId: 'actor-source',
+    ownerId: 'actor-source',
+    targetId: 'actor-source',
+    castId: 'cast:source',
+    rootCastId: 'cast:source',
+    parentEventId: 'status-event:ownership-source-root',
+  }),
+  ownershipStatus({
+    eventId: 'status-event:ownership-apply',
+    sequence: 3,
+    traceIndex: 3,
+    frame: 137,
+    instanceId: 'status:ownership-cold',
+    sourceId: 'actor-trigger',
+    ownerId: 'actor-trigger',
+    targetId: 'enemy-shared',
+    castId: 'cast:trigger',
+    rootCastId: 'cast:trigger',
+    parentEventId: 'status-event:ownership-source',
+    parentHitId: 'runtime-hit:ownership-trigger',
+  }),
+  ownershipStatus({
+    eventId: 'status-event:ownership-refresh',
+    sequence: 4,
+    traceIndex: 4,
+    frame: 137,
+    stage: 'StatusEffectRefreshed',
+    instanceId: 'status:ownership-cold',
+    sourceId: 'actor-trigger',
+    ownerId: 'enemy-shared',
+    targetId: 'enemy-shared',
+    castId: 'cast:trigger',
+    rootCastId: 'cast:trigger',
+    parentEventId: 'status-event:ownership-apply',
+    parentHitId: 'runtime-hit:ownership-trigger',
+    before: 1,
+    after: 2,
+    stackCount: 2,
+  }),
+  ownershipStatus({
+    eventId: 'status-event:ownership-direct',
+    sequence: 5,
+    traceIndex: 5,
+    frame: 80,
+    instanceId: 'status:ownership-direct',
+    buffId: 'buff_physical_no_guard',
+    sourceId: 'actor-trigger',
+    ownerId: 'enemy-shared',
+    targetId: 'enemy-shared',
+    castId: 'cast:trigger',
+    rootCastId: 'cast:trigger',
+  }),
+  ownershipStatus({
+    eventId: 'status-event:ownership-missing',
+    sequence: 6,
+    traceIndex: 6,
+    frame: 90,
+    instanceId: 'status:ownership-missing',
+    buffId: 'buff_physical_no_guard',
+    sourceId: 'actor-trigger',
+    ownerId: 'enemy-shared',
+    targetId: 'enemy-shared',
+    castId: 'cast:trigger',
+    rootCastId: 'cast:trigger',
+    parentEventId: 'status-event:ownership-missing-parent',
+  }),
+  ownershipStatus({
+    eventId: 'status-event:ownership-consume',
+    sequence: 7,
+    traceIndex: 7,
+    frame: 206,
+    stage: 'StatusEffectFinished',
+    instanceId: 'status:ownership-cold',
+    sourceId: 'actor-source',
+    ownerId: 'enemy-shared',
+    targetId: 'enemy-shared',
+    castId: 'cast:source-child',
+    rootCastId: 'cast:source',
+    parentEventId: 'status-event:ownership-source',
+    triggerCastId: 'cast:consumer',
+    triggerRootCastId: 'cast:consumer',
+    triggerSourceId: 'actor-consumer',
+    consumerId: 'actor-consumer',
+    consumption: true,
+    before: 2,
+    after: 0,
+    stackCount: 2,
+    reason: 'FinishBuffByTag',
+  }),
+  ownershipStatus({
+    eventId: 'status-event:ownership-expire',
+    sequence: 8,
+    traceIndex: 8,
+    frame: 300,
+    stage: 'StatusEffectExpired',
+    instanceId: 'status:ownership-expire',
+    sourceId: 'actor-source',
+    ownerId: 'enemy-shared',
+    targetId: 'enemy-shared',
+    castId: 'cast:source',
+    rootCastId: 'cast:source',
+    parentEventId: 'status-event:ownership-source',
+    parentHitId: 'runtime-hit:ownership-trigger',
+    // Expiry can retain the original attribution envelope; it is still a
+    // timer boundary rather than a trigger action.
+    triggerCastId: 'cast:trigger',
+    triggerRootCastId: 'cast:trigger',
+    triggerSourceId: 'actor-trigger',
+    before: 1,
+    after: 0,
+    stackCount: 1,
+    expireFrame: 300,
+    reason: 'Expired',
+  }),
+];
+const ownershipEvents = buildAkeCombatStateEvents(ownershipReport, labels);
+const ownershipRefresh = ownershipEvents.find((event) => event.key === 'status:4');
+assert.equal(ownershipRefresh?.commandId, 'command-source',
+  'a derived refresh belongs to the explicit effect source command');
+assert.equal(ownershipRefresh?.sourceCommandId, 'command-source');
+assert.equal(ownershipRefresh?.triggerCommandId, 'command-trigger',
+  'the parent hit remains the actual trigger action');
+assert.equal(ownershipRefresh?.sourceId, 'actor-trigger',
+  'the raw runtime source id remains unchanged');
+assert.equal(ownershipRefresh?.sourceActorId, 'actor-source',
+  'the resolved source actor is separate from the raw runtime source id');
+assert.equal(ownershipRefresh?.actorId, 'actor-source',
+  'the source actor comes from the source command, not the triggering hit');
+assert.equal(ownershipRefresh?.effectSourceEventId, 'status-event:ownership-source');
+const ownershipDirect = ownershipEvents.find((event) => event.key === 'status:5');
+assert.equal(ownershipDirect?.commandId, 'command-trigger',
+  'a direct application remains owned by its own cast');
+assert.equal(ownershipDirect?.triggerCommandId, null);
+const ownershipMissing = ownershipEvents.find((event) => event.key === 'status:6');
+assert.equal(ownershipMissing?.commandId, 'command-trigger',
+  'a missing parent chain falls back to the event cast');
+assert.equal(ownershipMissing?.sourceCommandId, 'command-trigger');
+const ownershipConsume = ownershipEvents.find((event) => event.key === 'status:7');
+assert.equal(ownershipConsume?.commandId, 'command-consumer',
+  'consumption belongs to its explicit consumer command');
+assert.equal(ownershipConsume?.sourceCommandId, 'command-source',
+  'consumption retains the effect source command');
+assert.equal(ownershipConsume?.actorId, 'actor-consumer');
+const ownershipExpire = ownershipEvents.find((event) => event.key === 'status:8');
+assert.equal(ownershipExpire?.commandId, null,
+  'timer expiry has no action command');
+assert.equal(ownershipExpire?.sourceCommandId, 'command-source');
+assert.equal(ownershipExpire?.sourceActorId, 'actor-source');
+assert.equal(ownershipExpire?.actorId, null);
+assert.equal(ownershipExpire?.expireFrame, 300);
+
+ownershipReport.statusEvents.push(ownershipStatus({
+  eventId: 'status-event:ownership-post-consume',
+  sequence: 9,
+  traceIndex: 9,
+  frame: 207,
+  instanceId: 'status:ownership-post-consume',
+  sourceId: 'actor-source',
+  ownerId: 'enemy-shared',
+  targetId: 'enemy-shared',
+  castId: 'cast:source',
+  rootCastId: 'cast:source',
+  parentEventId: 'status-event:ownership-consume',
+  // This is deliberately stale. The consume transition is the boundary, so
+  // the old hit cannot become the trigger for the new effect.
+  parentHitId: 'runtime-hit:ownership-trigger',
+}));
+const ownershipPostConsume = buildAkeCombatStateEvents(ownershipReport, labels)
+  .find((event) => event.key === 'status:9');
+assert.equal(ownershipPostConsume?.sourceCommandId, 'command-source');
+assert.equal(ownershipPostConsume?.triggerCommandId, 'command-consumer',
+  'a post-consume effect uses the consumer trigger at the causal boundary');
+assert.equal(ownershipPostConsume?.commandId, 'command-source');
+assert.equal(ownershipPostConsume?.actorId, 'actor-source');

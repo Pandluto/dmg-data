@@ -183,10 +183,16 @@ export type AkeCombatStateEvent = {
   before: number | null;
   after: number | null;
   sourceId: string | null;
+  /** Actor resolved from the effect-source command; sourceId stays raw. */
+  sourceActorId?: string | null;
   actorId: string | null;
   commandId: string | null;
   sourceCommandId: string | null;
   triggerCommandId?: string | null;
+  /** Explicit status-event ancestor that establishes the effect source. */
+  effectSourceEventId?: string | null;
+  /** Original runtime expiry boundary, when the engine supplied one. */
+  expireFrame?: number | null;
   consumedSources?: Array<{ sourceId: string | null; count: number }>;
   sourceCommandIds?: string[];
   iconUrl?: string;
@@ -199,21 +205,41 @@ export function buildAkeCombatStateEvents(
   report: AkeTeamReport,
   labels: AkeRuntimeStatusLabelMap = new Map(),
 ): AkeCombatStateEvent[] {
+  const commandsByCastId = new Map<string, AkeCommandSettlement>();
+  report.timeline.commands.forEach((command) => {
+    if (command.castId && !commandsByCastId.has(command.castId)) {
+      commandsByCastId.set(command.castId, command);
+    }
+  });
   const commandForCast = (castId: string | null | undefined) => castId
-    ? report.timeline.commands.find(command => command.castId === castId)?.commandId ?? null
+    ? commandsByCastId.get(castId)?.commandId ?? null
     : null;
+  const statusEventsById = new Map<string, AkeRuntimeStatusEvent>();
+  report.statusEvents.forEach((event) => {
+    if (event.eventId && !statusEventsById.has(event.eventId)) {
+      statusEventsById.set(event.eventId, event);
+    }
+  });
+  const hitsById = new Map<string, AkeRuntimeHit>();
+  report.hits.forEach((hit) => {
+    if (hit.hitId && !hitsById.has(hit.hitId)) hitsById.set(hit.hitId, hit);
+  });
   const events: AkeCombatStateEvent[] = report.statusEvents.filter(isConcreteRuntimeStatusEvent).flatMap(event => {
     const metadata = runtimeStatusMetadata(event.buffId, labels, event);
     if (event.buffId === TEAM_COMBO_BUFF_ID || event.targetId !== report.enemyId
       || metadata.hidden || !isCriticalRuntimeStatus(event.buffId, metadata)
       || !['StatusEffectApplied', 'StatusEffectRefreshed', 'StatusEffectStackRemoved',
         'StatusEffectFinished', 'StatusEffectExpired', 'StatusEffectRemoved'].includes(event.stage)) return [];
-    const sourceCommandId = commandForCast(event.rootCastId ?? event.castId);
-    const triggerCommandId = commandForCast(event.triggerRootCastId ?? event.triggerCastId);
+    const provenance = resolveRuntimeStatusProvenance({
+      event,
+      statusEventsById,
+      hitsById,
+      commandForCastId: (castId) => castId ? commandsByCastId.get(castId) ?? null : null,
+    });
     const terminal = isFinishStage(event.stage) || event.stage === 'StatusEffectStackRemoved';
     // A timer expiry has an origin, but must not be attributed as an action by its original caster.
     const consumed = terminal || event.consumption;
-    const commandId = consumed ? triggerCommandId : sourceCommandId;
+    const commandId = consumed ? provenance.triggerCommandId : provenance.sourceCommandId;
     return [{
       key: `status:${event.traceIndex}`, buffId: event.buffId, label: metadata.label,
       iconUrl: metadata.iconUrl, shortLabel: metadata.shortLabel,
@@ -221,9 +247,16 @@ export function buildAkeCombatStateEvents(
       scope: 'enemy' as const, frame: event.frame, sequence: event.sequence ?? event.traceIndex,
       change: event.consumption ? '消费' : event.stage === 'StatusEffectStackRemoved' ? '减少层数' : stageLabel(event), before: event.before,
       after: isFinishStage(event.stage) ? 0 : event.after ?? event.stackCount,
-      sourceId: event.sourceId, actorId: consumed
-        ? event.triggerRootCastId || event.triggerCastId ? event.consumerId ?? event.triggerSourceId : null : event.sourceId,
-      commandId, sourceCommandId, triggerCommandId,
+      sourceId: event.sourceId,
+      sourceActorId: provenance.sourceActorId,
+      actorId: consumed
+        ? provenance.triggerEvidence ? provenance.triggerActorId : null
+        : provenance.sourceActorId,
+      commandId,
+      sourceCommandId: provenance.sourceCommandId,
+      triggerCommandId: provenance.triggerCommandId,
+      effectSourceEventId: provenance.effectSourceEventId,
+      expireFrame: event.expireFrame,
     }];
   });
   for (const event of report.teamComboLedger?.events ?? []) {
@@ -336,6 +369,184 @@ type ActiveRuntimeStatus = {
   event: AkeRuntimeStatusEvent;
   stackCount: number;
 };
+
+type RuntimeCommandRecordLookup = (
+  castId: string | null | undefined,
+) => AkeCommandSettlement | null;
+
+type RuntimeStatusProvenance = {
+  effectSourceEventId: string | null;
+  sourceCommandId: string | null;
+  sourceActorId: string | null;
+  triggerCommandId: string | null;
+  triggerActorId: string | null;
+  triggerEvidence: boolean;
+};
+
+function commandFromCasts(
+  casts: ReadonlyArray<string | null | undefined>,
+  lookup: RuntimeCommandRecordLookup,
+): { castId: string | null; command: AkeCommandSettlement | null } {
+  for (const castId of casts) {
+    if (!castId) continue;
+    const command = lookup(castId);
+    if (command) return { castId, command };
+  }
+  return { castId: null, command: null };
+}
+
+function statusEventPrecedes(
+  parent: AkeRuntimeStatusEvent,
+  child: AkeRuntimeStatusEvent,
+): boolean {
+  if (parent.frame !== child.frame) return parent.frame < child.frame;
+  const parentHasSequence = typeof parent.sequence === 'number'
+    && Number.isFinite(parent.sequence);
+  const childHasSequence = typeof child.sequence === 'number'
+    && Number.isFinite(child.sequence);
+  if (parentHasSequence && childHasSequence && parent.sequence !== child.sequence) {
+    return parent.sequence! < child.sequence!;
+  }
+  return parent.traceIndex < child.traceIndex;
+}
+
+/**
+ * A terminal transition is a causal boundary. Effects emitted while handling
+ * a consumption/finish event inherit that event's parentEventId, but they are
+ * owned by the new action and must not walk through the consumed Buff's old
+ * source command.
+ */
+function isStatusCausalBoundary(event: AkeRuntimeStatusEvent): boolean {
+  return event.consumption === true
+    || isFinishStage(event.stage)
+    || event.stage === 'StatusEffectStackRemoved';
+}
+
+function isTimerExpiryEvent(event: AkeRuntimeStatusEvent): boolean {
+  if (!isStatusCausalBoundary(event)) return false;
+  if (event.consumption === true) return false;
+  if (event.stage === 'StatusEffectExpired' || event.reason === 'Expired') return true;
+  return event.expireFrame !== null
+    && event.expireFrame !== undefined
+    && event.frame >= event.expireFrame;
+}
+
+function resolveRuntimeStatusProvenance(input: {
+  event: AkeRuntimeStatusEvent;
+  statusEventsById: ReadonlyMap<string, AkeRuntimeStatusEvent>;
+  hitsById: ReadonlyMap<string, AkeRuntimeHit>;
+  commandForCastId: RuntimeCommandRecordLookup;
+}): RuntimeStatusProvenance {
+  const { event, statusEventsById, hitsById, commandForCastId } = input;
+  const ownCommand = commandFromCasts(
+    [event.rootCastId, event.castId],
+    commandForCastId,
+  );
+  let sourceEvent = event;
+  let sourceCommand = ownCommand.command;
+  let current = event;
+  const visited = new Set<string>();
+  let crossedCausalBoundary = false;
+  let causalBoundaryEvent: AkeRuntimeStatusEvent | null = null;
+  if (event.eventId) visited.add(event.eventId);
+
+  // Follow only explicit, earlier status-event parents. In particular, do
+  // not infer ownership from the previous event for the same pooled instance.
+  while (current.parentEventId) {
+    const parentId = current.parentEventId;
+    if (visited.has(parentId)) break;
+    const parent = statusEventsById.get(parentId);
+    if (!parent || !statusEventPrecedes(parent, current)) break;
+    visited.add(parentId);
+    if (isStatusCausalBoundary(parent)) {
+      crossedCausalBoundary = true;
+      causalBoundaryEvent = parent;
+      break;
+    }
+
+    const parentCommand = commandFromCasts(
+      [parent.rootCastId, parent.castId],
+      commandForCastId,
+    );
+    if (parentCommand.command
+      && parentCommand.command.commandId !== sourceCommand?.commandId) {
+      sourceEvent = parent;
+      sourceCommand = parentCommand.command;
+      break;
+    }
+    current = parent;
+  }
+
+  const explicitTriggerPresent = !isTimerExpiryEvent(event)
+    && Boolean(event.triggerRootCastId || event.triggerCastId);
+  const explicitTrigger = commandFromCasts(
+    [event.triggerRootCastId, event.triggerCastId],
+    commandForCastId,
+  );
+  const parentHit = event.parentHitId ? hitsById.get(event.parentHitId) ?? null : null;
+  const parentHitCommand = parentHit
+    ? commandFromCasts([
+      parentHit.rootCastId,
+      parentHit.castId,
+      parentHit.triggerRootCastId,
+      parentHit.triggerCastId,
+    ], commandForCastId)
+    : { castId: null, command: null };
+  const terminal = isStatusCausalBoundary(event);
+  // A terminal event may retain the hit that originally applied the status.
+  // That stale parentHitId is not a current consumer/removal action; only the
+  // event's explicit trigger fields may establish a terminal trigger.
+  const usableParentHit = terminal || crossedCausalBoundary ? null : parentHit;
+  const rawCastIsTrigger = !terminal && Boolean(
+    ownCommand.command
+    && ownCommand.command.commandId !== sourceCommand?.commandId,
+  );
+  const boundaryTriggerPresent = Boolean(
+    causalBoundaryEvent
+    && !isTimerExpiryEvent(causalBoundaryEvent)
+    && (causalBoundaryEvent.triggerRootCastId || causalBoundaryEvent.triggerCastId),
+  );
+  const boundaryTrigger = causalBoundaryEvent
+    ? commandFromCasts([
+      causalBoundaryEvent.triggerRootCastId,
+      causalBoundaryEvent.triggerCastId,
+    ], commandForCastId)
+    : { castId: null, command: null };
+  // Preserve precedence even when an explicit cast is not present in the
+  // command ledger: unresolved explicit evidence must not be replaced by a
+  // less-specific hit or raw-cast guess.
+  const trigger = explicitTriggerPresent
+    ? explicitTrigger
+    : usableParentHit
+      ? parentHitCommand
+      : boundaryTriggerPresent
+        ? boundaryTrigger
+        : rawCastIsTrigger ? ownCommand : { castId: null, command: null };
+  const triggerEvidence = explicitTriggerPresent
+    || Boolean(usableParentHit)
+    || boundaryTriggerPresent
+    || rawCastIsTrigger;
+  const triggerAttributionEvent = explicitTriggerPresent
+    ? event
+    : boundaryTriggerPresent ? causalBoundaryEvent : null;
+  const triggerActorId = trigger.command?.characterId
+    ?? triggerAttributionEvent?.consumerId
+    ?? triggerAttributionEvent?.triggerSourceId
+    ?? usableParentHit?.characterId
+    ?? usableParentHit?.sourceId
+    ?? event.consumerId
+    ?? event.triggerSourceId
+    ?? null;
+
+  return {
+    effectSourceEventId: sourceEvent.eventId ?? null,
+    sourceCommandId: sourceCommand?.commandId ?? null,
+    sourceActorId: sourceCommand?.characterId ?? event.sourceId,
+    triggerCommandId: trigger.command?.commandId ?? null,
+    triggerActorId,
+    triggerEvidence,
+  };
+}
 
 let cachedLabelSource: object | null = null;
 let cachedLabels: ReadonlyMap<string, string> | null = null;

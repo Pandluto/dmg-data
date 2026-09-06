@@ -1,0 +1,202 @@
+{
+  "adapter": "ake-squad-demo",
+  "input": {
+    "enemyId": "eny_0007_mimicw",
+    "initialAtb": 300,
+    "initialControllerCharacterId": "chr_0026_lastrite",
+    "operatorSwitches": [],
+    "members": [
+      {
+        "memberId": "chr_0026_lastrite",
+        "characterId": "chr_0026_lastrite",
+        "level": 90,
+        "skillLevel": 12,
+        "potentialLevel": 0,
+        "weaponId": "wpn_claym_0013",
+        "weaponLevel": 90,
+        "weaponPotential": 1,
+        "weaponSkillLevels": {
+          "skill1": 9,
+          "skill2": 9,
+          "skill3": 4
+        },
+        "equipment": [
+          {
+            "equipmentId": "item_equip_t4_suit_atb01_edc_03",
+            "enhance": 3
+          },
+          {
+            "equipmentId": "item_equip_t4_suit_atb01_edc_03",
+            "enhance": 3
+          },
+          {
+            "equipmentId": "item_equip_t4_suit_atb01_body_01",
+            "enhance": 3
+          },
+          {
+            "equipmentId": "item_equip_t4_suit_phy01_hand_02",
+            "enhance": 3
+          }
+        ]
+      },
+      {
+        "memberId": "chr_0027_tangtang",
+        "characterId": "chr_0027_tangtang",
+        "level": 90,
+        "skillLevel": 12,
+        "potentialLevel": 0,
+        "weaponId": "wpn_pistol_0011",
+        "weaponLevel": 90,
+        "weaponPotential": 1,
+        "weaponSkillLevels": {
+          "skill1": 9,
+          "skill2": 9,
+          "skill3": 4
+        },
+        "equipment": [
+          {
+            "equipmentId": "item_equip_t4_suit_attri01_edc_07",
+            "enhance": 3
+          },
+          {
+            "equipmentId": "item_equip_t4_suit_attri01_edc_07",
+            "enhance": 3
+          },
+          {
+            "equipmentId": "item_equip_t4_suit_attri01_body_05",
+            "enhance": 3
+          },
+          {
+            "equipmentId": "item_equip_t4_suit_attri01_hand_02",
+            "enhance": 3
+          }
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "commandId": "ria-button-command-20260905T111455797z-eb9f1b66",
+        "memberId": "chr_0026_lastrite",
+        "characterId": "chr_0026_lastrite",
+        "commandType": "Attack",
+        "frame": 0,
+        "timelineOrder": 0,
+        "queueMode": "timeline-sequence",
+        "attackMode": "full-combo"
+      },
+      {
+        "commandId": "ria-button-command-20260905T111527447z-5bad6beb",
+        "memberId": "chr_0026_lastrite",
+        "characterId": "chr_0026_lastrite",
+        "commandType": "NormalSkill",
+        "frame": 50,
+        "timelineOrder": 80,
+        "queueMode": "timeline-sequence",
+        "releaseDependency": {
+          "kind": "action-start",
+          "sourceCommandId": "ria-button-command-20260905T111455797z-eb9f1b66",
+          "delayFrames": 50
+        }
+      },
+      {
+        "commandId": "ria-button-command-20260905T111530902z-a24b3d03",
+        "memberId": "chr_0026_lastrite",
+        "characterId": "chr_0026_lastrite",
+        "commandType": "ComboSkill",
+        "frame": 143,
+        "timelineOrder": 304,
+        "queueMode": "timeline-sequence",
+        "releaseDependency": {
+          "kind": "action-start",
+          "sourceCommandId": "ria-button-command-20260905T111455797z-eb9f1b66",
+          "delayFrames": 143
+        }
+      },
+      {
+        "commandId": "ria-button-command-20260905T114141335z-85b3b49f",
+        "memberId": "chr_0026_lastrite",
+        "characterId": "chr_0026_lastrite",
+        "commandType": "UltimateSkill",
+        "frame": 212,
+        "timelineOrder": 384,
+        "queueMode": "timeline-sequence",
+        "releaseDependency": {
+          "kind": "action-end",
+          "sourceCommandId": "ria-button-command-20260905T111530902z-a24b3d03",
+          "delayFrames": 0
+        }
+      },
+      {
+        "commandId": "ria-button-command-20260905T111526403z-35573159",
+        "memberId": "chr_0027_tangtang",
+        "characterId": "chr_0027_tangtang",
+        "commandType": "NormalSkill",
+        "frame": 0,
+        "timelineOrder": 0,
+        "queueMode": "timeline-sequence",
+        "releaseDependency": {
+          "kind": "action-start",
+          "sourceCommandId": "ria-button-command-20260905T111455797z-eb9f1b66",
+          "delayFrames": 0
+        }
+      },
+      {
+        "commandId": "ria-button-command-20260905T111528468z-459edde3",
+        "memberId": "chr_0027_tangtang",
+        "characterId": "chr_0027_tangtang",
+        "commandType": "ComboSkill",
+        "frame": 60,
+        "timelineOrder": 176,
+        "queueMode": "timeline-sequence",
+        "releaseDependency": {
+          "kind": "action-start",
+          "sourceCommandId": "ria-button-command-20260905T111455797z-eb9f1b66",
+          "delayFrames": 60
+        }
+      },
+      {
+        "commandId": "ria-button-command-20260905T111529530z-8568e332",
+        "memberId": "chr_0027_tangtang",
+        "characterId": "chr_0027_tangtang",
+        "commandType": "NormalSkill",
+        "frame": 103,
+        "timelineOrder": 272,
+        "queueMode": "timeline-sequence",
+        "releaseDependency": {
+          "kind": "action-start",
+          "sourceCommandId": "ria-button-command-20260905T111455797z-eb9f1b66",
+          "delayFrames": 103
+        }
+      },
+      {
+        "commandId": "ria-button-command-20260905T114139833z-ab8c7335",
+        "memberId": "chr_0027_tangtang",
+        "characterId": "chr_0027_tangtang",
+        "commandType": "NormalSkill",
+        "frame": 171,
+        "timelineOrder": 368,
+        "queueMode": "timeline-sequence",
+        "releaseDependency": {
+          "kind": "action-start",
+          "sourceCommandId": "ria-button-command-20260905T111455797z-eb9f1b66",
+          "delayFrames": 171
+        }
+      },
+      {
+        "commandId": "ria-button-command-20260905T114142405z-ce3128de",
+        "memberId": "chr_0027_tangtang",
+        "characterId": "chr_0027_tangtang",
+        "commandType": "UltimateSkill",
+        "frame": 219,
+        "timelineOrder": 448,
+        "queueMode": "timeline-sequence",
+        "releaseDependency": {
+          "kind": "action-start",
+          "sourceCommandId": "ria-button-command-20260905T114141335z-85b3b49f",
+          "delayFrames": 7
+        }
+      }
+    ],
+    "endFrame": 682
+  }
+}

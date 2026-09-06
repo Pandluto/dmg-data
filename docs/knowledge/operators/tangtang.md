@@ -3,8 +3,9 @@
 分析基线：`f9ed924e1eb2fe13e3599bea0873948fc219378b`；基线提交日期：2026-09-03 22:57:44 +08:00。
 知识整理日期：2026-09-05；机制证据来自同日审计及未提交工作树修复，不能在仅检出该基线时假定修复已存在。
 下落输入补充核验：基于 `1c11c17d1211d3431981f916b674ebe4420a13da`（2026-09-05 18:43:53 +08:00）及其未提交工作树，2026-09-05 在现有 Chrome/RIA 验证。
+提交状态补记（2026-09-06）：上述工作树机制修复已纳入 `c38463f9910282771f4251c8e5ce4f924ac133e8`（2026-09-06 14:52:26 +08:00）；原分析基线用于追溯发现过程，不是修复版本。
 数据基线：AKE `1.5.3@9764758-3`，JSON revision `2026-09-01T22:53:25.945329+00:00`，详见 [来源锁](../../../sources.lock.json)。
-本次知识内容提交与日期：见 [版本索引](../README.md#条目版本)；当前修订待提交。
+本次知识内容提交与日期：见 [版本索引](../README.md#条目版本)。
 
 ## 什么时候查这份记录
 
@@ -45,7 +46,7 @@ Chrome 完整配装案例 `run-2770cd23-ede6-4639-9a42-3dcd23bfaa0c` / `browser-
 - 寒冷已显示但连携没有落点：见 [运行时窗口到画布的投影遗漏](../../maintenance/tangtang-combo-projection-20260906.md)。2026-09-06 基于 `4344816` 与未提交工作树核验；引擎 F23 已开窗，前端漏接 comboWindows，不能据此推断汤汤需要更多寒冷层数。
 
 - 原始程序：[终结技](../../../reference/public-data/akedata/Json/SkillData/chr_0027_tangtang_ultimate_skill.json)、[水龙卷](../../../reference/public-data/akedata/Json/SkillData/chr_0027_tangtang_normal_skill_water_projhit.json)、[下落结尾](../../../reference/public-data/akedata/Json/SkillData/chr_0027_tangtang_plunging_attack_end.json)。
-- 本地机制复现位置：`test/ake-tangtang-lifecycle.test.mjs`、`test/ake-conditional-timeline-seek.test.mjs`、`test/ake-cold-combo-gates.test.mjs`。这些新增回归和相关引擎修复尚未包含于本次知识文档提交。
+- 本地机制复现位置：`test/ake-tangtang-lifecycle.test.mjs`、`test/ake-conditional-timeline-seek.test.mjs`、`test/ake-cold-combo-gates.test.mjs`。这些回归及相关机制修复已纳入上述 `c38463f`。
 - 显式落地与否定对照：`test/ake-plunging-impact-input.test.mjs`；跨角色状态展示：`demo/lts-ui/src/core/services/akeRuntimeLedger.test.ts`。
 - 具体参数、修复前后差异、Chrome Run 及追加后继实验见 [完整审计](../../maintenance/tangtang-lastrite-engine-audit-20260905.md)。本次知识整理引用已有结果，没有重新运行所有实验。
 

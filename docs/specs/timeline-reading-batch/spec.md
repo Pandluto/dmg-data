@@ -2,7 +2,7 @@
 
 ## Status
 
-**Status:** Accepted for implementation
+**Status:** Implemented and integrated
 
 **Implementation:** Implemented and integrated; full application batch selection/deletion/undo verified in isolated Chrome; exact original user failure remains unconfirmed
 
@@ -99,6 +99,8 @@
 本设计依据用户 2026-09-06 的两条并行要求。阅读模式是组合摘要，详细生效顺序仍在编辑视图与状态详情中；不将摘要伪装成某个全局时刻的状态快照。实现任务完成后由主代理合并、用 Chrome/RIA 复核，并回填验收状态。
 
 ## Integration Evidence（2026-09-06）
+
+以下按发生顺序保留验收和返修过程，不是并列的现行方案。早期「状态嵌入技能卡、单状态同排、多状态折叠」已被独立状态层替代；最终位置、固定行及斜线合同见 [状态时序 Spec](../timeline-state-flow/spec.md)。
 
 - 两个 GPT 5.6 Luna max 独立任务已提交并由主代理整合：阅读 9357e2b/c2347b1，批量 d76ad11/317a59d。各经历一次定向返修；用量未知。
 - 阅读返修：单状态与技能同排，最多三状态和折叠入口；保留技能主题。合并后 Chrome 发现编辑模式 transform 使图标跑出卡片，已限定阅读图标 transform:none。

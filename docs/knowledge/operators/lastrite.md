@@ -2,6 +2,7 @@
 
 分析基线：`f9ed924e1eb2fe13e3599bea0873948fc219378b`；基线提交日期：2026-09-03 22:57:44 +08:00。
 知识整理日期：2026-09-05；机制证据来自同日审计及未提交工作树修复，不能在仅检出该基线时假定修复已存在。
+提交状态补记（2026-09-06）：上述工作树机制修复已纳入 `c38463f9910282771f4251c8e5ce4f924ac133e8`（2026-09-06 14:52:26 +08:00）；原分析基线用于追溯发现过程，不是修复版本。
 数据基线：AKE `1.5.3@9764758-3`，JSON revision `2026-09-01T22:53:25.945329+00:00`，详见 [来源锁](../../../sources.lock.json)。
 本次知识内容提交与日期：见 [版本索引](../README.md#条目版本)。
 
@@ -20,12 +21,16 @@
 | 汤汤连续三次战技后接别礼连携 | 修复施法隔离后在 F23/173/323 施冷，C@350 合法并消费三层 | 比较状态前后阈值，第三层与第四层不能混同 |
 | 别礼灌注普攻与汤汤两次战技交叉施冷 | 别礼幻影的附着目标必须是 Context `tar` 中的敌人；两人来源可以共同组成三层寒冷，连携正常消费 | Buff 挂在自身不代表其派生附着作用于自身；伤害和附着各自核对目标 |
 
-后续完整配装实验定位了一处旧分析遗漏：幻影伤害打敌，但 `SpellInfliction` 编译曾硬编码 `Target`，丢失原始 `Context/tar` 选择器，把寒冷施给别礼自己。界面看似“跨来源层数未合并”，实际是目标错误；修复目标传播，不修改连携门槛。原始选择器见上述幻影 Buff，实际双人输入见 [本轮爆发案例](../../../fixtures/ria/lastrite-tangtang-hot-start-burst.json)。该修复仍需结合工作树与运行记录使用。
+后续完整配装实验定位了一处旧分析遗漏：幻影伤害打敌，但 `SpellInfliction` 编译曾硬编码 `Target`，丢失原始 `Context/tar` 选择器，把寒冷施给别礼自己。界面看似“跨来源层数未合并”，实际是目标错误；修复目标传播，不修改连携门槛。原始选择器见上述幻影 Buff，实际双人输入见 [本轮爆发案例](../../../fixtures/ria/lastrite-tangtang-hot-start-burst.json)。该修复已纳入 `c38463f`；具体证明范围仍以输入与运行记录为准。
+
+## 延迟附着的来源与触发
+
+2026-09-06 九动作轴确认：F50 战技提供自身 Buff，F128 普攻重击触发，F137 才给敌人第三层寒冷。效果来源是战技，触发动作是普攻，不能把附着归给最近的图标或普攻起手。显示归属修复在 `16a1cc2`，没有改变该轴伤害结算；完整因果链、移除战技的反事实对照与重放输入见 [状态来源知识](../data/status-source-and-trigger.md)。
 
 ## 找回证据
 
 - 原始程序：[战技](../../../reference/public-data/akedata/Json/SkillData/chr_0026_lastrite_normal_skill.json)、[普攻起始](../../../reference/public-data/akedata/Json/SkillData/chr_0026_lastrite_attack1.json)、[灌注自身 Buff](../../../reference/public-data/akedata/Json/BuffData/buff_chr_0026_lastrite_normal_skill_self.json)、[追击](../../../reference/public-data/akedata/Json/BuffData/buff_chr_0026_lastrite_normal_skill_phantom.json)。
-- 本地机制复现位置：`test/ake-controller-state.test.mjs`、`test/ake-cold-combo-gates.test.mjs`。这些新增回归和相关引擎修复尚未包含于本次知识文档提交。
+- 本地机制复现位置：`test/ake-controller-state.test.mjs`、`test/ake-cold-combo-gates.test.mjs`。这些回归及相关机制修复已纳入上述 `c38463f`。
 - [完整审计](../../maintenance/tangtang-lastrite-engine-audit-20260905.md) 保存具体参数及 Chrome“普攻命中后战技→结束后汤汤终结技”的可保存输入。聚合按钮的 F44 命中属于源 attack2 本地 F24，是前端命中锚点曾经用错时钟的具体反例。
 
 ## 使用边界

@@ -4,6 +4,10 @@
 
 本次内容提交：由 `git log -1 --format='%H %cI' -- docs/maintenance/timeline-ui-upgrade-20260905.md` 查询。初版研究提交 `f419797`；交互细化基于后续提交 `41af727` 与同一未提交业务工作树。来源、存档节点及 RIA Run 见 [证据索引](evidence/timeline-ui-20260905/manifest.json)，读数见 [洛茜/卡缪事实](evidence/timeline-ui-20260905/wulfa-camille.json) 和 [显示方案输入](evidence/timeline-ui-20260905/visual-cases.json)。
 
+## 后续状态（2026-09-06）
+
+以下正文保留 2026-09-05 的研究现场。后续已经实现 [局部接续放大镜](../specs/timeline-release-lens/spec.md)、[按操作压缩长轴](long-timeline-width-20260906.md)、[阅读与批量交互](../specs/timeline-reading-batch/spec.md) 和 [状态归属与时序](../specs/timeline-state-flow/spec.md)，所以开头的「未实施」仅指初版研究当时。独立效果带、所有尾伤/移动机制和所有原生交互边界并未因此全部验收；当前收尾和存档区别见 [2026-09-06 汇总](workbench-closeout-20260906.md)。
+
 ## 建议与完成的操作
 
 保留水位模型的“全队共享时间投影”，把它扩成**操作骨架、按施放实例归属的效果带、语义接续入口**。同一战斗时间有多种显示密度；显示方式不再参与执行顺序。先解决已有关系和归属错误，再引入压缩，最后简化连续操作的编辑。

@@ -14,6 +14,7 @@
 
 - Case：`browser-case-20260906T120039199z-7b73b10a`。
 - Run：`run-b4628211-d721-4919-8a9e-46296caad6eb`；九动作总伤 `647779.4031308988`。
+- 原 Run 的 [九动作重放输入](../../../fixtures/ria/lastrite-tangtang-status-provenance.json) 已随仓库归档；[用途与版本说明](../../../fixtures/ria/README.md) 区分它与早期爆发候选、浏览器存档。
 - `status-event:245`：F137，寒冷 2→3，`parentEventId=status-event:243`。
 - `status-event:243`：同一派生事务，`parentEventId=status-event:53`，`parentHitId=runtime-hit:48`。
 - `status-event:53`：F50，`buff_chr_0026_lastrite_normal_skill_self`，来源是战技施放 `command-cast:chr_0026_lastrite:4`。

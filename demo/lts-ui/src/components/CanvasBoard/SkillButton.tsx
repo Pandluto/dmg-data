@@ -92,14 +92,11 @@ import { useSkillButtonAnomaly } from './useSkillButtonAnomaly';
 import { buildAnomalyDamageSegments } from './skillButtonAnomalyDamage';
 import { TimelineSkillDetailWorkbench } from './TimelineSkillDetailWorkbench';
 import type { TimelineDetailStatus } from './TimelineSkillDetailWorkbench';
-import { formatReadingStateStack, summarizeReadingStateEvents } from './readingModeState';
-import { stateMarkerTone } from './stateMarkerTone';
 import type {
   AkeCommandSettlement,
   AkeTeamReport,
   AkeTimelinePoint,
 } from '../../integrations/ake/akeProvider';
-import type { AkeCombatStateEvent } from '../../core/services/akeRuntimeLedger';
 import type { AkeRealtimeCommand } from '../../integrations/ake/akeRealtimeTimeline';
 import { getInstalledAkeCatalog } from '../../integrations/ake/akeCatalogAdapter';
 import './SkillButton.css';
@@ -311,7 +308,6 @@ interface SkillButtonProps {
   resistanceRevision?: number;
   akeSettlement?: AkeCommandSettlement | null;
   akeRuntimeReport?: AkeTeamReport | null;
-  readingStateEvents?: readonly AkeCombatStateEvent[];
   akePreviewCommand?: AkeRealtimeCommand | null;
   akePreviewCommands?: readonly AkeRealtimeCommand[];
   akeUsesSharedProjection?: boolean;
@@ -363,7 +359,6 @@ export function SkillButtonComponent({
   resistanceRevision = 0,
   akeSettlement = null,
   akeRuntimeReport = null,
-  readingStateEvents = [],
   akePreviewCommand = null,
   akePreviewCommands,
   akeUsesSharedProjection = false,
@@ -1202,12 +1197,6 @@ export function SkillButtonComponent({
     isAkeRuntimeMode,
   ]);
   const akeRuntimeLedger = akeRuntimeCommandViewState.ledger;
-  const readingStateBadges = useMemo(
-    () => isBrowseMode
-      ? summarizeReadingStateEvents(readingStateEvents, button.id)
-      : [],
-    [button.id, isBrowseMode, readingStateEvents],
-  );
   const buttonStackCounts = useMemo(
     () => getSkillButtonById(button.id)?.buffStackCounts ?? {},
     [button.id, buffList]
@@ -2149,45 +2138,6 @@ export function SkillButtonComponent({
           : timelineModuleKind === 'operator-switch'
             ? '切'
             : isDotButton ? '~' : skillType;
-  const readingStatePreview = readingStateBadges.slice(0, 3);
-  const readingStateOverflowCount = Math.max(0, readingStateBadges.length - readingStatePreview.length);
-  const renderReadingStateBadge = (event: AkeCombatStateEvent) => {
-    const stack = formatReadingStateStack(event);
-    const detail = `${event.label} · ${event.change} ${event.before ?? '?'}→${event.after ?? '?'}层`;
-    return (
-      <button
-        key={event.key}
-        type="button"
-        className={`skill-button-reading-state${event.after === 0 ? ' is-cleared' : ''}`}
-        data-state-tone={stateMarkerTone(event)}
-        data-state-event-key={event.key}
-        aria-label={`${event.label} ${stack}；点击查看状态详情`}
-        title={`${detail}；点击查看状态详情`}
-        onMouseDown={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-        }}
-        onClick={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          onInspect?.();
-        }}
-      >
-        {event.iconUrl ? (
-          <span
-            className="skill-button-reading-state-icon"
-            aria-hidden="true"
-            style={{ '--state-icon': `url(${JSON.stringify(normalizeAssetUrl(event.iconUrl))})` } as CSSProperties}
-          />
-        ) : (
-          <span className="skill-button-reading-state-fallback" aria-hidden="true">
-            {(event.shortLabel ?? event.label).slice(0, 1)}
-          </span>
-        )}
-        <b aria-hidden="true">{stack}</b>
-      </button>
-    );
-  };
 
   return (
     <>
@@ -2230,7 +2180,6 @@ export function SkillButtonComponent({
         {isBrowseMode ? (
           <div
             className="skill-button-reading-card"
-            data-reading-state-count={readingStateBadges.length}
           >
             <div className="skill-button-reading-main">
               <div
@@ -2256,30 +2205,6 @@ export function SkillButtonComponent({
               </div>
               <span className="skill-button-reading-type">{readingSkillLabel}</span>
             </div>
-            {readingStateBadges.length > 0 ? (
-              <div className="skill-button-reading-states" aria-label="技能产生的最终状态">
-                {readingStatePreview.map(renderReadingStateBadge)}
-                {readingStateOverflowCount > 0 ? (
-                  <button
-                    type="button"
-                    className="skill-button-reading-state-overflow"
-                    aria-label={`还有${readingStateOverflowCount}项状态；点击查看详情`}
-                    title={`还有${readingStateOverflowCount}项状态；点击查看详情`}
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                    }}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      onInspect?.();
-                    }}
-                  >
-                    +{readingStateOverflowCount}
-                  </button>
-                ) : null}
-              </div>
-            ) : null}
           </div>
         ) : (
         <div className="skill-button-anchor">

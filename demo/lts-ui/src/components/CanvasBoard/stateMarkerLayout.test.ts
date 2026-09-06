@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { layoutStateMarkers, markerRectsOverlap, stateBadgeRuns, type StateMarkerAnchor, type StateMarkerSpace } from './stateMarkerLayout';
-const event = (key: string, frame: number, x: number, sequence = 0): StateMarkerAnchor => ({ key, frame, x, sequence, width: 24 });
+import { layoutStateMarkers, markerRectsOverlap, stateBadgeRuns, STATE_BADGE_SIZE, type StateMarkerAnchor, type StateMarkerSpace } from './stateMarkerLayout';
+const event = (key: string, frame: number, x: number, sequence = 0): StateMarkerAnchor => ({ key, frame, x, sequence, width: STATE_BADGE_SIZE });
 const fixture = [event('fire-consumed',148,382,1),event('breach-3',148,382,3),
   event('fire-applied',541,825),event('breach-expired',748,846)];
 const space: StateMarkerSpace = { left:40, top:50, width:1120, height:55, preferredTop:81,
@@ -20,7 +20,7 @@ const placed = assertFits(fixture);
 assert.ok(placed.some(group=>group.top!==space.preferredTop), 'find vertical whitespace around the crowded event');
 assert.deepEqual(placed,layoutStateMarkers(fixture,space),'placement is deterministic');
 assertFits([event('left-a',0,40),event('left-b',1,42),event('right-a',10,1159),event('right-b',11,1160)]);
-const dense = assertFits(Array.from({length:100},(_,i)=>event(`dense-${i}`,i,40+i*11)));
+const dense = assertFits(Array.from({length:100},(_,i)=>event(`dense-${i}`,148,400,i)));
 assert.ok(dense.some(group=>group.collapsed));
 const full = {...space,obstacles:[{left:40,top:50,width:1120,height:55}]};
 const fallback = layoutStateMarkers(fixture,full);

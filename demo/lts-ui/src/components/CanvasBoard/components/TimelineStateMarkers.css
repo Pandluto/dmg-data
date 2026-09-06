@@ -1,0 +1,45 @@
+.ake-state-markers-layer { position: absolute; inset: 0; pointer-events: none; }
+.ake-state-marker-group { position: absolute; z-index: 20; display: flex; gap: 4px; pointer-events: none; }
+.ake-state-marker-leaders { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
+.ake-state-marker-leaders path { fill: none; stroke: #000; stroke-width: .5; opacity: .6; }
+.ake-state-marker-leaders circle { fill: #000; opacity: .6; }
+.ake-state-event-marker, .ake-state-event-summary {
+  --state-color: #47746d;
+  position: relative; flex: 0 0 auto; box-sizing: border-box; width: 12px; height: 12px;
+  padding: 1px; margin: 0; border: .5px solid #000;
+  border-radius: 50%; color: var(--state-color);
+  background: transparent;
+  box-shadow: none; cursor: pointer; pointer-events: auto;
+  display: grid; place-items: center;
+}
+.ake-state-event-marker[data-state-tone="fire"] { --state-color: #df5038; }
+.ake-state-event-marker[data-state-tone="ice"] { --state-color: #368cae; }
+.ake-state-event-marker[data-state-tone="electric"] { --state-color: #9c810f; }
+.ake-state-event-marker[data-state-tone="nature"] { --state-color: #499454; }
+.ake-state-event-marker[data-state-tone="physical"] { --state-color: #986f4a; }
+.ake-state-event-marker .ake-state-icon { width: 9px; height: 9px; object-fit: contain; }
+.ake-state-event-marker .ake-state-icon-mask {
+  display: block; width: 9px; height: 9px; background: currentColor;
+  mask: var(--state-icon) center / contain no-repeat;
+}
+.ake-state-event-marker .ake-state-icon-fallback { font-size: 7px; font-weight: 700; line-height: 1; }
+.ake-state-event-marker > b {
+  position: absolute; right: -3px; bottom: -3px; min-width: 7px; height: 7px;
+  padding: 0; box-sizing: border-box;
+  background: transparent; color: inherit; font: 800 7px/7px ui-sans-serif, system-ui, sans-serif;
+  text-align: center; box-shadow: none;
+}
+.ake-state-event-marker.is-cleared { --state-color: #7d8584; border-style: dashed; background: transparent; }
+.ake-state-event-marker.is-cleared .ake-state-icon-mask { opacity: .5; }
+.ake-state-event-marker.is-cleared > b { font-size: 8px; }
+.ake-state-event-marker:hover, .ake-state-event-marker:focus-visible,
+.ake-state-event-summary:hover, .ake-state-event-summary:focus-visible { outline: 1px solid currentColor; outline-offset: 2px; }
+.ake-state-event-summary { font: 800 6px/1 ui-sans-serif, system-ui, sans-serif; }
+.ake-state-detail-dismiss { position: fixed; inset: 0; z-index: 2200; }
+.ake-state-detail { position: fixed; width: 380px; max-width: calc(100vw - 16px); max-height: 260px; display: flex; flex-direction: column; background: #fff; color: #253c36; border: 1px solid #829990; border-radius: 5px; box-shadow: 0 3px 12px #263b361f; }
+.ake-state-detail header { display: flex; align-items: center; justify-content: space-between; padding: 7px 9px; font-size: 12px; border-bottom: 1px solid #dfe7e3; }
+.ake-state-detail header button { border: 0; background: none; cursor: pointer; font-size: 18px; color: inherit; }
+.ake-state-detail > div { overflow: auto; padding: 4px; }
+.ake-state-detail > div > button { display: flex; gap: 6px; align-items: center; width: 100%; text-align: left; padding: 7px; border: 0; background: transparent; color: inherit; cursor: pointer; font-size: 11px; }
+.ake-state-detail > div > button:hover { background: #f0f6f2; }
+.ake-state-detail img { width: 16px; height: 16px; flex: 0 0 auto; background: #536962; border-radius: 50%; }

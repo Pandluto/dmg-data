@@ -1,3 +1,4 @@
+import { combatTriggerAttribution } from './combat-trigger-attribution.mjs';
 import CombatContext, { cloneValue } from './combat-context.mjs';
 
 const UNSUPPORTED = Symbol('unsupported-effect-value');
@@ -317,6 +318,7 @@ export class EffectRuntime {
         const record = {
             eventId: `effect-event:${sequence}`,
             sequence,
+            ...combatTriggerAttribution(eventContext),
             frame: eventContext?.frame ?? null,
             stage,
             type,

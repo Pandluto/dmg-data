@@ -382,7 +382,9 @@ export class CombatContext {
             source: context.sourceId,
             owner: context.ownerId,
             target: context.targetId,
-            self: context.sourceId
+            self: context.sourceId,
+            maincharacter: this.mainCharacterId ?? context.mainCharacterId
+                ?? this.listEntities(entity => entity.metadata?.isMainCharacter === true)[0]?.id
         };
         const id = Object.prototype.hasOwnProperty.call(roleMap, role) ? roleMap[role] : value;
         if (id === null || id === undefined) throw new Error(`Event context has no entity for ${value}.`);

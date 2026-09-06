@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { getAppHostExtension, installAppHostExtension } from './platform/host/appHost'
+import { initRiaLiveDebug } from './integrations/ake/riaLiveDebug'
 
 declare global {
   interface Window {
@@ -22,6 +23,7 @@ declare global {
 const root = ReactDOM.createRoot(document.getElementById('root')!)
 
 if (import.meta.env.VITE_AKE_DEMO === '1') {
+  initRiaLiveDebug();
   installAppHostExtension({
     id: 'ake-demo',
     workspace: {
@@ -39,15 +41,7 @@ if (import.meta.env.VITE_AKE_DEMO === '1') {
 
 async function mountEntry() {
   await getAppHostExtension().beforeMount?.()
-  const isLocalResourcePackager = (
-    ['127.0.0.1', 'localhost'].includes(window.location.hostname)
-    && window.location.hash.split('?')[0] === '#/settings/resource-packager'
-  )
-  const Entry = isLocalResourcePackager
-    ? (await import('./components/WebApp/ResourcePackagerPage')).ResourcePackagerPage
-    : window.__DMG_MOBILE_ENTRY__
-      ? (await import('./mobile/MobileBootstrap')).MobileBootstrap
-      : (await import('./components/WebApp/WebBootstrap')).WebBootstrap
+  const Entry = (await import('./components/WebApp/WebBootstrap')).WebBootstrap
 
   root.render(
     <React.StrictMode>

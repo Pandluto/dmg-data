@@ -24,7 +24,7 @@ import {
   gridToCanvasContentCoords,
   GRID_COLUMN_WIDTH,
   GRID_FIRST_COLUMN_WIDTH,
-  GRID_ROW_HEIGHT,
+  GRID_SKILL_BAY_HEIGHT,
   clampGridNodeIndex,
   GRID_NODE_COUNT,
   GRID_TIMELINE_WIDTH,
@@ -47,11 +47,16 @@ import {
 import {
   attachLegacyLanePredecessors,
   buildReleaseSnapPoints,
-  getReleaseDeletionBlockers,
   wouldCreateReleaseCycle,
   type ReleaseSnapPoint,
   type TimedReleaseInputWindow,
 } from '../../../core/domain/releaseAnchorGraph';
+import {
+  containsLensPoint, lensPortFrame, lensPortLabel, offsetReleaseLensPort,
+  placeReleaseLens, selectReleaseLensPointer, findSavedLensTarget,
+  type ReleaseLensView, type LensRect,
+} from './releaseLensModel';
+import { publishRiaDebugSection, recordRiaDebugEvent } from '../../../integrations/ake/riaLiveDebug';
 
 interface DraggingState {
   id: string;
@@ -71,6 +76,7 @@ interface DraggingState {
   offsetX: number;
   offsetY: number;
   originalButton?: SkillButton;
+  editingAnchor?: boolean;
 }
 
 export interface CanvasDropTarget {
@@ -83,6 +89,9 @@ export interface CanvasDropTarget {
   label: string;
   anchorId: string;
   anchor: SkillReleaseAnchor;
+  sourceHitOrdinal?: number;
+  windowStartFrame?: number;
+  windowEndFrameExclusive?: number;
 }
 
 interface UseCanvasDragProps {
@@ -148,6 +157,13 @@ export interface UseCanvasDragReturn {
     e: React.MouseEvent
   ) => void;
   handleButtonMouseDown: (e: React.MouseEvent, buttonId: string) => void;
+  releaseLens: ReleaseLensView | null;
+  editReleaseAnchor: (buttonId: string) => void;
+  selectLensPort: (id: string) => void;
+  changeLensOffset: (offset: number) => void;
+  cycleLensPort: (direction: number) => void;
+  confirmLens: () => void;
+  cancelLens: () => void;
 }
 
 function visualLocationForGlobalX(globalX: number): {
@@ -200,7 +216,7 @@ export function comboTimedInputCandidates(
   settled: AkeProjectedTimeline | null,
 ): TimedReleaseInputWindow[] {
   const realtimeCandidates = (realtime?.comboWindows ?? []).flatMap((window) => {
-    if (!window.precisionWindow) return [];
+    if (!window.precisionWindow || !window.sourceCommandId) return [];
     const broadEndFrameExclusive = Math.max(
       window.createdFrame + 1,
       window.expireFrame + 1,
@@ -214,6 +230,8 @@ export function comboTimedInputCandidates(
         endFrameExclusive: broadEndFrameExclusive,
         preferredFrame: window.createdFrame,
         label: '非精准连携',
+        windowKind: 'broad' as const,
+        sourceSkillId: realtime?.commands.find(command => command.commandId === window.sourceCommandId)?.profile.skillId,
       },
       {
         id: `${window.id}:precision`,
@@ -222,6 +240,8 @@ export function comboTimedInputCandidates(
         startFrame: window.precisionWindow.startFrame,
         endFrameExclusive: window.precisionWindow.endFrameExclusive,
         label: '精准连携',
+        windowKind: 'precision' as const,
+        sourceSkillId: realtime?.commands.find(command => command.commandId === window.sourceCommandId)?.profile.skillId,
       },
     ];
   });
@@ -267,6 +287,8 @@ export function comboTimedInputCandidates(
         endFrameExclusive: broadEndFrameExclusive,
         preferredFrame: window.createdFrame,
         label: '非精准连携',
+        windowKind: 'broad' as const,
+        sourceSkillId: window.sourceSkillId ?? undefined,
       },
       {
         id: `${window.id}:precision`,
@@ -275,6 +297,8 @@ export function comboTimedInputCandidates(
         startFrame: window.startFrame,
         endFrameExclusive: window.endFrameExclusive,
         label: '精准连携',
+        windowKind: 'precision' as const,
+        sourceSkillId: window.sourceSkillId ?? undefined,
       },
     ];
   });
@@ -350,6 +374,12 @@ export function useCanvasDrag({
   const [draggingState, setDraggingState] = useState<DraggingState | null>(null);
   const [dropTarget, setDropTarget] = useState<CanvasDropTarget | null>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [releaseLens, setReleaseLens] = useState<ReleaseLensView | null>(null);
+  const lensRef = useRef<ReleaseLensView | null>(null);
+  const lensActionsRef = useRef({ select: (_id: string) => {}, offset: (_offset: number) => {},
+    cycle: (_direction: number) => {}, confirm: () => {}, cancel: () => {} });
+  const frozenDragRef = useRef<{ id: string; targets: CanvasDropTarget[]; revision: string; timeline: AkeRealtimeTimeline | null;
+    sources: { button: SkillButton; rect: LensRect }[] } | null>(null);
 
   const skillButtonsRef = useRef(skillButtons);
   useEffect(() => {
@@ -761,6 +791,9 @@ export function useCanvasDrag({
           label: point.label,
           anchorId: point.id,
           anchor: point.anchor,
+          sourceHitOrdinal: point.sourceHitOrdinal,
+          windowStartFrame: point.windowStartFrame,
+          windowEndFrameExclusive: point.windowEndFrameExclusive,
         });
       }
     }
@@ -799,7 +832,7 @@ export function useCanvasDrag({
       e: React.MouseEvent
     ) => {
       e.preventDefault();
-      if (disabled) return;
+      if (disabled || e.button !== 0) return;
       const offset = config.skillButtonSize / 2;
 
       setDraggingState({
@@ -827,60 +860,29 @@ export function useCanvasDrag({
 
   const handleButtonMouseDown = useCallback(
     (e: React.MouseEvent, buttonId: string) => {
-      if (disabled) {
-        e.preventDefault();
-        return;
-      }
-      if (e.button !== 0) return;
+      e.preventDefault();
       e.stopPropagation();
-
-      const button = skillButtons.find((b) => b.id === buttonId);
-      if (!button) return;
-
-      dispatch({ type: 'SELECT_SKILL_BUTTON', buttonId });
-      if (button.basicAttackTailBundle) {
-        // Confirmed cut bundles are immutable. The successor may be removed
-        // from its context menu, which also restores the predecessor.
-        e.preventDefault();
-        return;
-      }
-      const graphNodes = attachLegacyLanePredecessors(skillButtons);
-      const dependents = getReleaseDeletionBlockers(graphNodes, button.id);
-      if (dependents.length > 0) {
-        e.preventDefault();
-        onInteractionRejected?.(
-          `“${button.skillDisplayName ?? button.skillType}”后面还有 ${dependents.length} 个依赖动作；只能从分支末端移动。`,
-        );
-        return;
-      }
-      dispatch({ type: 'SET_DRAGGING', buttonId, isDragging: true });
-
-      const canvasRect = canvasRef.current?.getBoundingClientRect();
-      if (canvasRect) {
-        setDraggingState({
-          id: button.id,
-          characterId: button.characterId,
-          characterName: button.characterName,
-          skillType: button.skillType,
-          runtimeSkillId: button.runtimeSkillId,
-          skillDisplayName: button.skillDisplayName,
-          skillIconUrl: button.skillIconUrl,
-          customHits: button.customHits,
-          timelineModuleKind: button.timelineModuleKind,
-          forcedWaitConfig: button.forcedWaitConfig,
-          laneWaitConfig: button.laneWaitConfig,
-          operatorSwitchConfig: button.operatorSwitchConfig,
-          dragScope: button.timelineModuleKind ? 'global' : 'character',
-          lineIndex: button.lineIndex,
-          offsetX: config.skillButtonSize / 2,
-          offsetY: config.skillButtonSize / 2,
-          originalButton: button,
-        });
-        setMousePosition({ x: e.clientX, y: e.clientY });
+      if (disabled || e.button !== 0) return;
+      // A placed action is a queue entry, not a free-positioned canvas object.
+      // Sandbox insertion and explicit release-anchor editing have their own paths.
+      if (skillButtons.some(button => button.id === buttonId)) {
+        dispatch({ type: 'SELECT_SKILL_BUTTON', buttonId });
       }
     },
-    [disabled, skillButtons, config, dispatch, canvasRef, onInteractionRejected]
+    [disabled, skillButtons, dispatch],
   );
+
+  const editReleaseAnchor = useCallback((buttonId: string) => {
+    const button = skillButtonsRef.current.find(candidate => candidate.id === buttonId);
+    if (!button?.releaseAnchor?.sourceButtonId || button.basicAttackTailBundle || disabled) return;
+    setDraggingState({ id: button.id, characterId: button.characterId, characterName: button.characterName,
+      skillType: button.skillType, runtimeSkillId: button.runtimeSkillId, skillDisplayName: button.skillDisplayName,
+      skillIconUrl: button.skillIconUrl, customHits: button.customHits, timelineModuleKind: button.timelineModuleKind,
+      forcedWaitConfig: button.forcedWaitConfig, laneWaitConfig: button.laneWaitConfig,
+      operatorSwitchConfig: button.operatorSwitchConfig, dragScope: button.timelineModuleKind ? 'global' : 'character',
+      lineIndex: button.lineIndex, offsetX: config.skillButtonSize / 2, offsetY: config.skillButtonSize / 2,
+      originalButton: button, editingAnchor: true });
+  }, [config.skillButtonSize, disabled]);
 
   useEffect(() => {
     if (!disabled) return;
@@ -896,10 +898,150 @@ export function useCanvasDrag({
       return null;
     });
     setDropTarget(null);
+    lensRef.current = null;
+    setReleaseLens(null);
+    frozenDragRef.current = null;
   }, [disabled, dispatch]);
 
   useEffect(() => {
     if (!draggingState || disabled) return;
+
+    const inputRevision = (buttons: SkillButton[]) => JSON.stringify(buttons.map(button => [
+      button.id, button.staffIndex, button.lineIndex, button.nodeIndex, button.runtimeSkillId,
+      button.releaseAnchor, button.basicAttackStageCount, button.timelineModuleKind,
+    ]));
+    if (frozenDragRef.current?.id !== draggingState.id) {
+      const sources = skillButtonsRef.current.filter(button => button.id !== draggingState.id).flatMap(button => {
+        const element = canvasRef.current?.querySelector<HTMLElement>(`[data-skill-button-id="${CSS.escape(button.id)}"]`);
+        const rect = (element?.querySelector('.skill-button-orb') ?? element)?.getBoundingClientRect();
+        return rect ? [{ button, rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height } }] : [];
+      });
+      frozenDragRef.current = { id: draggingState.id, targets: snapTargets, sources, timeline: akeRealtimeTimeline,
+        revision: inputRevision(skillButtonsRef.current) };
+    }
+    const frozen = frozenDragRef.current;
+    let hoverSourceId: string | null = null;
+    let hoverTimer: ReturnType<typeof setTimeout> | null = null;
+    let lastPointer = { x: mousePosition.x, y: mousePosition.y };
+    let lastLensPointer = { x: Number.NaN, y: Number.NaN };
+    const clearHover = () => { if (hoverTimer) clearTimeout(hoverTimer); hoverTimer = null; hoverSourceId = null; };
+    const publishLens = (view: ReleaseLensView | null) => {
+      lensRef.current = view;
+      setReleaseLens(view);
+      publishRiaDebugSection('releaseLens', view ? {
+        sourceButtonId: view.session.sourceButtonId, sourceName: view.session.sourceName,
+        rect: view.session.rect, sourceRect: view.session.sourceRect, tickRate: view.session.tickRate,
+        candidateRevision: frozen.revision, draft: true,
+        selectedAnchorId: view.selectedId, offsetFrames: view.offsetFrames, frame: view.target?.frame ?? null,
+        anchor: view.target?.anchor ?? null, reason: view.reason, note: view.note, editing: view.editing,
+        candidates: view.session.ports.map(port => ({ id: port.target.anchorId, label: port.label,
+          frame: port.eventFrame, minFrame: port.minFrame, maxFrameExclusive: port.maxFrameExclusive,
+          anchor: port.target.anchor })),
+      } : { active: false });
+    };
+    const updateLensSelection = (id: string, offset: number) => {
+      const current = lensRef.current;
+      const port = current?.session.ports.find(candidate => candidate.target.anchorId === id);
+      if (!current || !port) return;
+      let { target, reason } = offsetReleaseLensPort(port, offset);
+      if (target && draggingState.skillType === 'E' && !draggingState.timelineModuleKind
+        && !isComboReleaseFrameAvailable({ timeline: frozen.timeline, characterId: draggingState.characterId,
+          movingCommandId: draggingState.originalButton?.id ?? null, frame: target.frame })) {
+        reason = '此时连携窗口不可用'; target = null;
+      }
+      const model = frozen.timeline?.sharedVariableRateTimeline;
+      if (target && model) {
+        const globalX = projectSharedTimelineFrame(model, target.frame, 'after');
+        if (globalX !== null) target = { ...target, ...visualLocationForGlobalX(globalX) };
+        const collision = model.actions.find(action => action.id !== draggingState.id
+          && action.laneId === selectedCharacters[target!.lineIndex]?.id && action.startFrame === target!.frame);
+        const duplicateSwitch = draggingState.timelineModuleKind === 'operator-switch'
+          && model.operatorSwitches.some(item => item.id !== draggingState.id && item.startFrame === target!.frame);
+        if (collision || duplicateSwitch) {
+          reason = collision ? '该角色在这一帧已有动作起手；请调整延迟' : '这一帧已有切人操作';
+          target = null;
+        }
+      }
+      if (target && model) {
+        const globalX = projectSharedTimelineFrame(model, target.frame, 'after');
+        const restricted = (draggingState.skillType === 'A' && !draggingState.timelineModuleKind)
+          || ['dodge', 'perfect-dodge', 'operator-switch'].includes(draggingState.timelineModuleKind ?? '');
+        if (restricted && controlledOperatorAt(resolveInitialControllerLaneId(initialControllerCharacterId,
+          selectedCharacters.map(character => character.id)), model.operatorSwitches, target.frame, globalX ?? 0)
+          !== selectedCharacters[target.lineIndex]?.id) {
+          reason = '该时刻的主控不匹配'; target = null;
+        } else if (['dodge', 'perfect-dodge', 'operator-switch'].includes(draggingState.timelineModuleKind ?? '')
+          && isFrameInsideUltimate(model.actions, target.frame)) {
+          reason = '此时仍受终结技动作占用'; target = null;
+        }
+      }
+      const source = frozen.sources.find(source => source.button.id === current.session.sourceButtonId)?.button;
+      const command = frozen.timeline?.commands.find(command => command.commandId === source?.id);
+      const note = command?.releaseVerdict === 'unverified'
+        ? '来源连携门槛待核验；接点可规划不等于整段已验证'
+        : source?.characterId !== draggingState.characterId
+          ? '跨角色衔接；沿用当前主控，松手后核验资源与触发条件'
+          : source?.skillType === 'A'
+            ? '普攻仍按保留段数截段；已发出效果按其机制继续结算'
+            : '同角色衔接；截段与效果存续在提交后按机制核验';
+      publishLens({ ...current, selectedId: id, offsetFrames: offset, target, reason, note });
+      setDropTarget(target);
+    };
+    const openLens = (source: typeof frozen.sources[number]) => {
+      clearHover();
+      const targets = frozen.targets.filter(target => target.anchor.sourceButtonId === source.button.id
+        && target.lineIndex === (draggingState.dragScope === 'global' ? source.button.lineIndex
+          : selectedCharacters.findIndex(character => character.id === draggingState.characterId)));
+      const unique = [...new Map(targets.map(target => [target.anchorId, target])).values()]
+        .sort((a, b) => lensPortFrame(a) - lensPortFrame(b) || snapKindRank(a.anchor.kind) - snapKindRank(b.anchor.kind));
+      if (!unique.length) return;
+      const saved = draggingState.originalButton?.releaseAnchor;
+      const savedTarget = saved ? findSavedLensTarget(unique, saved) : undefined;
+      // Editing an existing relation must never choose a different hit/window silently.
+      if (draggingState.editingAnchor && !savedTarget) return;
+      const chosen = savedTarget ?? unique.find(target => target.anchor.kind === 'damage-hit') ?? unique[0];
+      const ports = unique.map(target => ({ target, eventFrame: lensPortFrame(target),
+        label: lensPortLabel(target, target.sourceHitOrdinal ?? 1), minFrame: target.windowStartFrame,
+        maxFrameExclusive: target.windowEndFrameExclusive }));
+      const current: ReleaseLensView = { session: { sourceButtonId: source.button.id,
+        successorName: `${draggingState.characterName} · ${draggingState.skillDisplayName ?? draggingState.skillType}`,
+        sourceName: `${source.button.characterName} · ${source.button.skillDisplayName ?? source.button.skillType} · F${frozen.timeline?.sharedVariableRateTimeline?.actions.find(action => action.id === source.button.id)?.startFrame ?? "?"}`,
+        sourceIconUrl: source.button.skillIconUrl, sourceRect: source.rect,
+        rect: placeReleaseLens(source.rect, { width: window.innerWidth, height: window.innerHeight }),
+        ports, tickRate: frozen.timeline?.tickRate ?? 30,
+        hits: (frozen.timeline?.hits ?? []).filter(hit => hit.commandId === source.button.id)
+          .map(hit => ({ frame: hit.frame, lingering: hit.kind === 'lingering' || hit.releaseEligible === false })),
+      }, selectedId: chosen.anchorId, offsetFrames: chosen.frame - lensPortFrame(chosen), target: chosen,
+      reason: null, note: '', editing: !!draggingState.editingAnchor };
+      publishLens(current);
+      const offset = saved && chosen.anchor.kind === saved.kind && saved.sourceButtonId === source.button.id
+        ? saved.debounceFrames + (saved.kind === 'timed-input'
+          ? (saved.sourceTimedInputOffsetFrames ?? 0) - (chosen.anchor.sourceTimedInputOffsetFrames ?? 0)
+            + chosen.frame - lensPortFrame(chosen) : 0)
+        : current.offsetFrames;
+      updateLensSelection(chosen.anchorId, Math.max(0, offset));
+      lastLensPointer = { ...lastPointer };
+      recordRiaDebugEvent('interaction', 'ReleaseLensOpened', { sourceButtonId: source.button.id,
+        candidateCount: ports.length, editing: !!draggingState.editingAnchor });
+    };
+    const cancel = () => {
+      clearHover();
+      if (draggingState.originalButton) dispatch({ type: 'SET_DRAGGING', buttonId: draggingState.id, isDragging: false });
+      publishLens(null); setDropTarget(null); setDraggingState(null); frozenDragRef.current = null;
+      recordRiaDebugEvent('interaction', 'ReleaseLensCancelled', { buttonId: draggingState.id });
+    };
+    const cycle = (direction: number) => {
+      const view = lensRef.current;
+      if (!view) return;
+      const ports = view.session.ports;
+      const index = ports.findIndex(port => port.target.anchorId === view.selectedId);
+      const next = ports[(index + direction % ports.length + ports.length) % ports.length];
+      updateLensSelection(next.target.anchorId, next.target.frame - next.eventFrame);
+    };
+    lensActionsRef.current = { select: id => { const port = lensRef.current?.session.ports.find(p => p.target.anchorId === id);
+      if (port) updateLensSelection(id, port.target.frame - port.eventFrame); },
+      offset: offset => { if (lensRef.current) updateLensSelection(lensRef.current.selectedId, offset); },
+      cycle, cancel, confirm: () => {} };
 
     const resolveTarget = (clientX: number, clientY: number): {
       target: CanvasDropTarget;
@@ -927,9 +1069,9 @@ export function useCanvasDrag({
       if (!nearestLine) return null;
       const pairTop = getGridGroupTop(nearestLine.staffIndex)
         + getGridOperatorPairTopY(nearestLine.lineIndex);
-      if (gridY < pairTop || gridY > pairTop + GRID_ROW_HEIGHT * 2) return null;
+      if (gridY < pairTop || gridY > pairTop + GRID_SKILL_BAY_HEIGHT) return null;
 
-      const candidates = snapTargets.filter(target => (
+      const candidates = frozen.targets.filter(target => (
         target.staffIndex === nearestLine.staffIndex
         && target.lineIndex === nearestLine.lineIndex
       ));
@@ -956,14 +1098,67 @@ export function useCanvasDrag({
     };
 
     const handleMouseMove = (event: MouseEvent) => {
+      // Recover when mouseup happened outside the window: the next move no
+      // longer carries the left button. Explicit click-to-edit stays open.
+      if (!draggingState.editingAnchor && !(event.buttons & 1)) { cancel(); return; }
+      lastPointer = { x: event.clientX, y: event.clientY };
       setMousePosition({ x: event.clientX, y: event.clientY });
+      const view = lensRef.current;
+      if (draggingState.editingAnchor && !(event.buttons & 1)) return;
+      if (view && containsLensPoint(view.session.rect, event.clientX, event.clientY, 16)) {
+        clearHover();
+        if (!Number.isFinite(lastLensPointer.x)
+          || Math.hypot(lastLensPointer.x - event.clientX, lastLensPointer.y - event.clientY) >= 3) {
+          const selection = selectReleaseLensPointer(view, event.clientX, event.clientY);
+          if (selection && (selection.id !== view.selectedId || selection.offset !== view.offsetFrames)) {
+            updateLensSelection(selection.id, selection.offset);
+          }
+          lastLensPointer = { ...lastPointer };
+        }
+        return;
+      }
+      if (draggingState.editingAnchor) return;
+      if (view) {
+        const source = view.session.sourceRect, lens = view.session.rect;
+        const bridge = { left: Math.min(source.left, lens.left), top: Math.min(source.top, lens.top),
+          width: Math.max(source.left + source.width, lens.left + lens.width) - Math.min(source.left, lens.left),
+          height: Math.max(source.top + source.height, lens.top + lens.height) - Math.min(source.top, lens.top) };
+        if (containsLensPoint(bridge, event.clientX, event.clientY, 20)) return;
+        publishLens(null);
+      }
+      const source = frozen.sources.filter(source => containsLensPoint(source.rect, event.clientX, event.clientY, 38)
+        && frozen.targets.some(target => target.anchor.sourceButtonId === source.button.id))
+        .sort((a, b) => Math.hypot(event.clientX - a.rect.left - a.rect.width / 2, event.clientY - a.rect.top - a.rect.height / 2)
+          - Math.hypot(event.clientX - b.rect.left - b.rect.width / 2, event.clientY - b.rect.top - b.rect.height / 2))[0];
+      if (source && hoverSourceId !== source.button.id) {
+        clearHover(); hoverSourceId = source.button.id;
+        hoverTimer = setTimeout(() => openLens(source), 160);
+      } else if (!source) clearHover();
       updateDropTarget(event.clientX, event.clientY);
     };
 
-    const handleMouseUp = (event: MouseEvent) => {
+    const handleMouseUp = (event: Pick<MouseEvent, 'clientX' | 'clientY'>, force = false) => {
+      if (draggingState.editingAnchor && !force) return;
       try {
         const canvasElement = canvasRef.current;
-        const resolved = resolveTarget(event.clientX, event.clientY);
+        const view = lensRef.current;
+        if (frozen.revision !== inputRevision(skillButtonsRef.current)) {
+          onInteractionRejected?.('排轴在编辑期间发生变化；已取消本次接续，请重新选择。');
+          return;
+        }
+        // A visible lens owns this drag. A rejected draft cannot fall through
+        // to a different background snap point when released near its source.
+        if (view && !view.target) {
+          onInteractionRejected?.(view.reason ?? '当前接点不可用'); return;
+        }
+        const gridStack = canvasElement?.querySelector('.canvas-grid-stack');
+        const inLensRegion = view && (force
+          || containsLensPoint(view.session.rect, event.clientX, event.clientY, 20)
+          || containsLensPoint(view.session.sourceRect, event.clientX, event.clientY, 38));
+        const resolved = view
+          ? view.target && gridStack && inLensRegion
+            ? { target: view.target, gridStack, lineY: getGridLineCenterY(view.target.lineIndex) } : null
+          : resolveTarget(event.clientX, event.clientY);
         if (!canvasElement || !resolved) {
           if (draggingState.originalButton) {
             dispatch({ type: 'SET_DRAGGING', buttonId: draggingState.originalButton.id, isDragging: false });
@@ -973,7 +1168,7 @@ export function useCanvasDrag({
           return;
         }
 
-        const { target, gridStack } = resolved;
+        const { target, gridStack: targetGridStack } = resolved;
         const { lineIndex, nodeIndex, sourceGroupIndex } = target;
         // Persist in the logical source-group coordinate system.  The visible
         // page may be a compressed projection of that group and can differ
@@ -984,7 +1179,7 @@ export function useCanvasDrag({
             + getGridLineCenterY(lineIndex)
             + SKILL_BUTTON_BASELINE_OFFSET_Y,
           canvasElement,
-          gridStack,
+          targetGridStack,
         );
         const persistenceNodeIndex = sourceGroupIndex * GRID_NODE_COUNT + nodeIndex;
 
@@ -1023,6 +1218,7 @@ export function useCanvasDrag({
               nodeNumber: calculateNodeNumber(nodeIndex),
               releaseAnchor: target.anchor,
             });
+            recordRiaDebugEvent('interaction', 'ReleaseLensCommitted', { buttonId, frame: target.frame, anchor: target.anchor });
           } else {
             console.error('[useCanvasDrag] service returned null, skipping dispatch');
           }
@@ -1105,20 +1301,63 @@ export function useCanvasDrag({
           console.error('[useCanvasDrag] addTimelineButton failed:', timelineError);
           dispatch({ type: 'REMOVE_SKILL_BUTTON', buttonId: newButton.id });
         }
-        if (committed) onNewButtonCommitted?.(newButton);
+        if (committed) {
+          onNewButtonCommitted?.(newButton);
+          recordRiaDebugEvent('interaction', 'ReleaseLensCommitted', { buttonId: newButton.id, frame: target.frame, anchor: target.anchor });
+        }
       } catch (error) {
         console.error('[useCanvasDrag] handleMouseUp error:', error);
       } finally {
+        clearHover();
+        publishLens(null);
+        frozenDragRef.current = null;
+        if (draggingState.originalButton) dispatch({ type: 'SET_DRAGGING', buttonId: draggingState.id, isDragging: false });
         setDropTarget(null);
         setDraggingState(null);
       }
     };
 
+    lensActionsRef.current.confirm = () => handleMouseUp({ clientX: lastPointer.x, clientY: lastPointer.y }, true);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancel(); return; }
+      const view = lensRef.current;
+      if (!view || (event.target instanceof HTMLInputElement)) return;
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault(); updateLensSelection(view.selectedId,
+          Math.max(0, view.offsetFrames + (event.key === 'ArrowLeft' ? -1 : 1)));
+      } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+        event.preventDefault(); cycle(event.key === 'ArrowUp' ? -1 : 1);
+      } else if (event.key === 'Enter' && draggingState.editingAnchor) {
+        event.preventDefault(); lensActionsRef.current.confirm();
+      }
+    };
+    const handleWheel = (event: WheelEvent) => {
+      const view = lensRef.current;
+      if (!view || !containsLensPoint(view.session.rect, event.clientX, event.clientY)) return;
+      event.preventDefault();
+      if (Math.abs(event.deltaY) > 2) cycle(event.deltaY > 0 ? 1 : -1);
+    };
+    if (draggingState.editingAnchor && !lensRef.current) {
+      const source = frozen.sources.find(source => source.button.id === draggingState.originalButton?.releaseAnchor?.sourceButtonId);
+      if (source) openLens(source);
+      if (!lensRef.current) { onInteractionRejected?.('原接续点当前不可用；请重新拖动选择来源。'); cancel(); }
+    }
+
     window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    const onMouseUp = (event: MouseEvent) => handleMouseUp(event);
+    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('keydown', handleKeyDown, true);
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('blur', cancel);
+    window.addEventListener('resize', cancel);
     return () => {
+      clearHover();
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('keydown', handleKeyDown, true);
+      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('blur', cancel);
+      window.removeEventListener('resize', cancel);
     };
   }, [
     addTimelineButton,
@@ -1135,6 +1374,8 @@ export function useCanvasDrag({
     snapTargets,
     staffCount,
     updateSkillButtonPosition,
+    akeRealtimeTimeline,
+    initialControllerCharacterId,
   ]);
 
   return {
@@ -1144,5 +1385,12 @@ export function useCanvasDrag({
     mousePosition,
     handleSandboxDragStart,
     handleButtonMouseDown,
+    releaseLens,
+    editReleaseAnchor,
+    selectLensPort: id => lensActionsRef.current.select(id),
+    changeLensOffset: offset => lensActionsRef.current.offset(offset),
+    cycleLensPort: direction => lensActionsRef.current.cycle(direction),
+    confirmLens: () => lensActionsRef.current.confirm(),
+    cancelLens: () => lensActionsRef.current.cancel(),
   };
 }

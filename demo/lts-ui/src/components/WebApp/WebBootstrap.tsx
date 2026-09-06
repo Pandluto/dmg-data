@@ -1,3 +1,4 @@
+import { refreshTimelineSessionDocument } from '../../agentKernel/timelineRepository/timelineSession';
 import { useCallback, useEffect, useState } from 'react';
 import App from '../../App';
 import { AppProvider } from '../../context/AppContext';
@@ -70,6 +71,7 @@ export function WebBootstrap() {
       await hostWorkspace?.afterDatabaseReady?.();
       await bootstrapPersistentStorage();
       await bootstrapUserWorkspaceBridge();
+      await refreshTimelineSessionDocument();
       await hostWorkspace?.afterStorageReady?.();
       await initializeWebImageLibrary();
 

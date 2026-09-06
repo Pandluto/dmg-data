@@ -1,0 +1,115 @@
+{
+  "adapter": "ake-squad-demo",
+  "input": {
+    "enemyId": "eny_0007_mimicw",
+    "initialAtb": 300,
+    "members": [
+      {
+        "memberId": "chr_0028_wulfa",
+        "characterId": "chr_0028_wulfa",
+        "level": 90,
+        "skillLevel": 12,
+        "potentialLevel": 0,
+        "weaponId": "wpn_sword_0022",
+        "weaponLevel": 90,
+        "weaponPotential": 1,
+        "weaponSkillLevels": {
+          "skill1": 9,
+          "skill2": 9,
+          "skill3": 4
+        },
+        "equipment": []
+      },
+      {
+        "memberId": "chr_0033_camille",
+        "characterId": "chr_0033_camille",
+        "level": 90,
+        "skillLevel": 12,
+        "potentialLevel": 0,
+        "weaponId": "wpn_lance_0015",
+        "weaponLevel": 90,
+        "weaponPotential": 1,
+        "weaponSkillLevels": {
+          "skill1": 9,
+          "skill2": 9,
+          "skill3": 4
+        },
+        "equipment": []
+      }
+    ],
+    "commands": [
+      {
+        "commandId": "a9g4ixbs3",
+        "memberId": "chr_0028_wulfa",
+        "characterId": "chr_0028_wulfa",
+        "commandType": "NormalSkill",
+        "frame": 0,
+        "queueMode": "timeline-sequence"
+      },
+      {
+        "commandId": "1j9udz734",
+        "memberId": "chr_0028_wulfa",
+        "characterId": "chr_0028_wulfa",
+        "commandType": "ComboSkill",
+        "frame": 94,
+        "queueMode": "timeline-sequence"
+      },
+      {
+        "commandId": "j1xnfsn7v",
+        "memberId": "chr_0028_wulfa",
+        "characterId": "chr_0028_wulfa",
+        "commandType": "ComboSkill",
+        "frame": 151,
+        "queueMode": "timeline-sequence"
+      },
+      {
+        "commandId": "v605nh6s1",
+        "memberId": "chr_0028_wulfa",
+        "characterId": "chr_0028_wulfa",
+        "commandType": "UltimateSkill",
+        "frame": 369,
+        "queueMode": "timeline-sequence",
+        "releaseDependency": {
+          "kind": "damage-hit",
+          "sourceCommandId": "7k8i2b6rg",
+          "sourceSkillId": "chr_0033_camille_combo_skill",
+          "sourceTimelineFrame": 47,
+          "delayFrames": 6
+        }
+      },
+      {
+        "commandId": "layvjlbbk",
+        "memberId": "chr_0033_camille",
+        "characterId": "chr_0033_camille",
+        "commandType": "NormalSkill",
+        "frame": 0,
+        "queueMode": "timeline-sequence"
+      },
+      {
+        "commandId": "97hwmxt5u",
+        "memberId": "chr_0033_camille",
+        "characterId": "chr_0033_camille",
+        "commandType": "UltimateSkill",
+        "frame": 159,
+        "queueMode": "timeline-sequence"
+      },
+      {
+        "commandId": "fg66v6xxz",
+        "memberId": "chr_0033_camille",
+        "characterId": "chr_0033_camille",
+        "commandType": "NormalSkill",
+        "frame": 292,
+        "queueMode": "timeline-sequence"
+      },
+      {
+        "commandId": "7k8i2b6rg",
+        "memberId": "chr_0033_camille",
+        "characterId": "chr_0033_camille",
+        "commandType": "ComboSkill",
+        "frame": 316,
+        "queueMode": "timeline-sequence"
+      }
+    ],
+    "endFrame": 824
+  }
+}

@@ -227,7 +227,7 @@
 
 :root .canvas-skill-button.has-ake-preview .skill-button-anchor {
   left: 0;
-  top: 45px;
+  top: calc(45px + var(--skill-release-row-height, 0px));
 }
 
 :root .canvas-skill-button.has-ake-preview .skill-button-composite-outline,
@@ -309,109 +309,6 @@
   line-height: 1;
   white-space: nowrap;
   pointer-events: none;
-}
-
-.skill-button-target-state {
-  position: absolute;
-  left: 30px;
-  top: -33px;
-  z-index: 8;
-  width: 62px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  overflow: visible;
-  pointer-events: none;
-}
-
-.skill-button-target-state > i,
-.skill-button-target-state > b {
-  position: relative;
-  flex: 0 0 18px;
-  width: 18px;
-  height: 18px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  overflow: visible;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(26, 34, 38, 0.82);
-  box-shadow: 0 1px 4px rgba(12, 18, 20, 0.3);
-  color: #fff;
-  font-style: normal;
-}
-
-.skill-button-target-state > i > img {
-  width: 16px;
-  height: 16px;
-  display: block;
-  object-fit: contain;
-}
-
-.skill-button-target-state > i > span {
-  color: #fff;
-  font-size: 9px;
-  font-weight: 850;
-  line-height: 1;
-}
-
-.skill-button-target-state > .is-consumed {
-  opacity: 0.82;
-  filter: sepia(0.35) saturate(1.2);
-  box-shadow: 0 0 0 1px rgba(255, 155, 92, 0.9), 0 1px 4px rgba(12, 18, 20, 0.3);
-}
-
-.skill-button-target-state > .is-ongoing {
-  opacity: 1;
-  filter: none;
-  box-shadow: 0 0 0 1px rgba(91, 211, 223, 0.92), 0 1px 4px rgba(12, 18, 20, 0.3);
-}
-
-.skill-button-target-state > .is-changed {
-  opacity: 1;
-  filter: none;
-  box-shadow: 0 0 0 1px rgba(137, 224, 132, 0.92), 0 1px 4px rgba(12, 18, 20, 0.3);
-}
-
-.skill-button-target-state > .is-expired {
-  opacity: 0.46;
-  filter: grayscale(1);
-  box-shadow: 0 0 0 1px rgba(167, 174, 178, 0.78);
-}
-
-.skill-button-target-state > .is-removed {
-  opacity: 0.62;
-  filter: saturate(0.35);
-  box-shadow: 0 0 0 1px rgba(190, 151, 205, 0.78);
-}
-
-.skill-button-target-state > i > em {
-  position: absolute;
-  right: -3px;
-  bottom: -3px;
-  min-width: 10px;
-  height: 10px;
-  display: grid;
-  place-items: center;
-  padding: 0 2px;
-  border-radius: 5px;
-  background: #172126;
-  color: #fff;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 7px;
-  font-style: normal;
-  font-weight: 850;
-  line-height: 1;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
-}
-
-.skill-button-target-state > b {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 7px;
-  font-weight: 800;
-  line-height: 1;
 }
 
 .canvas-skill-button.is-ake-enhanced-form .skill-button-temporal-kind {
@@ -2222,3 +2119,23 @@
 .context-menu-submenu .context-menu-item:active {
   filter: brightness(0.95);
 }
+
+/* The dedicated caption row sits above the two skill cells. */
+:root .canvas-skill-button.has-ake-preview .skill-button-orb {
+  transform: translate(16px, -30px);
+}
+.canvas-skill-button.has-ake-preview .skill-button-temporal-kind {
+  top: -45px;
+}
+.canvas-skill-button.has-ake-preview .skill-button-tail-bundle-badge {
+  left: 4px;
+  top: calc(-44px - var(--skill-release-row-height, 0px));
+  min-width: 0;
+  max-width: 72px;
+  padding: 2px 4px;
+  line-height: 10px;
+  border-radius: 3px;
+  box-shadow: none;
+}
+
+.context-menu-item:disabled { cursor: default; opacity: .45; background: transparent; }

@@ -175,6 +175,7 @@ function roleProfiles(bundle) {
         entries.push({ commandType: effectiveCommandType, skillId });
     };
     for (const skillId of roles.normalAttackIds ?? []) add('Attack', skillId);
+    add('Attack', roles.plungingAttackEndId);
     for (const skillId of roles.groups?.normalSkill ?? []) add('NormalSkill', skillId);
     for (const skillId of roles.groups?.comboSkill ?? []) add('ComboSkill', skillId);
     for (const skillId of roles.groups?.ultimateSkill ?? []) {
@@ -424,7 +425,9 @@ function simulateProfile(
                 commandId: 'timing-probe',
                 memberId: characterId,
                 frame: 0,
-                commandType
+                commandType,
+                ...(skillId === bundle.members[0].roles.plungingAttackEndId
+                    ? { attackMode: 'plunging-impact' } : {})
             }],
             endFrame: simulationEndFrame
         });
@@ -443,7 +446,9 @@ function simulateProfile(
                 commandId: 'timing-probe',
                 memberId: characterId,
                 frame: 0,
-                commandType
+                commandType,
+                ...(skillId === bundle.members[0].roles.plungingAttackEndId
+                    ? { attackMode: 'plunging-impact' } : {})
             }],
             endFrame: simulationEndFrame
         });
@@ -570,6 +575,12 @@ for (const character of catalog.characters.filter(entry => entry.id !== 'chr_900
             commandType,
             skillId,
             variantIndex,
+            skillSpecification: program?.skillSpecification ?? null,
+            ...(skillId === bundle.members[0].roles.plungingAttackEndId
+                ? { attackMode: 'plunging-impact' } : {}),
+            castReplacement: program?.castReplacement
+                ? { asSkillCast: true, conditions: structuredClone(program.castReplacement.conditions) }
+                : null,
             durationFrames: Number(program?.durationFrames ?? 0),
             bodyEndOffset: probe.bodyEndOffset,
             tailEndOffset: probe.tailEndOffset,

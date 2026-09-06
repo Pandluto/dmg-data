@@ -92,6 +92,8 @@ export type TimedReleaseInputWindow = {
   preferredFrame?: number;
   /** Runtime window id used by the resolver; may differ from the display id. */
   sourceTimedInputId?: string;
+  windowKind?: 'broad' | 'precision';
+  sourceSkillId?: string;
   label?: string;
 };
 
@@ -104,6 +106,9 @@ export type ReleaseSnapPoint = {
   groupIndex: number;
   label: string;
   anchor: SkillReleaseAnchor;
+  sourceHitOrdinal?: number;
+  windowStartFrame?: number;
+  windowEndFrameExclusive?: number;
 };
 
 function safeFrame(value: number): number {
@@ -371,10 +376,13 @@ export function buildReleaseSnapPoints(input: {
       });
     });
 
-  input.hits.forEach((hit, hitIndex) => {
+  const hitOrdinals = new Map<string, number>();
+  input.hits.forEach((hit) => {
     if (hit.releaseEligible === false) return;
     const action = actionById.get(hit.commandId);
     if (!action) return;
+    const hitOrdinal = (hitOrdinals.get(hit.commandId) ?? 0) + 1;
+    hitOrdinals.set(hit.commandId, hitOrdinal);
     const frame = safeFrame(hit.frame + input.debounceFrames);
     const globalX = input.projectFrame(frame);
     if (globalX === null) return;
@@ -385,7 +393,8 @@ export function buildReleaseSnapPoints(input: {
       globalX,
       groupId: action.groupId,
       groupIndex: action.groupIndex,
-      label: `${action.label ?? action.id} 第 ${hitIndex + 1} 个伤害点后 +0.2秒`,
+      label: `${action.label ?? action.id} 第 ${hitOrdinal} 击后 +${safeFrame(input.debounceFrames)}帧`,
+      sourceHitOrdinal: hitOrdinal,
       anchor: {
         schemaVersion: 1,
         kind: 'damage-hit',
@@ -422,12 +431,18 @@ export function buildReleaseSnapPoints(input: {
       groupId: action.groupId,
       groupIndex: action.groupIndex,
       label: `${action.label ?? action.id} · ${window.label ?? '精准输入'}`,
+      windowStartFrame: startFrame,
+      windowEndFrameExclusive: endFrameExclusive,
       anchor: {
         schemaVersion: 1,
         kind: 'timed-input',
         sourceButtonId: action.id,
         sourceTimedInputId: window.sourceTimedInputId ?? window.id,
         sourceTimedInputOffsetFrames: sourceOffsetFrames,
+        sourceTimedInputKind: window.windowKind,
+        sourceTimedInputSkillId: window.sourceSkillId,
+        sourceTimedInputStartOffsetFrames: startFrame - action.startFrame,
+        sourceTimedInputEndOffsetFramesExclusive: endFrameExclusive - action.startFrame,
         debounceFrames: 0,
       },
     });

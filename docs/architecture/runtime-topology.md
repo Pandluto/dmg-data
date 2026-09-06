@@ -53,7 +53,7 @@ npm run demo
       └─ POST /api/ria/runs/:runId/ui-actions（本进程 UI Run）
 ```
 
-没有 RIA context 时，Vite 插件直接调用 `demo/demo-service.mjs`。配置了 Case/Session/Run 后，provider 的同一份请求由 RIA worker 执行，Vite 在 completed/failed UI action 落盘后 seal；其他 `/api/ria` 请求同源代理到 `127.0.0.1:43822`。请求体上限为 1 MB；服务只绑定 loopback。
+Vite 与构建后的 Demo 共用 `demo/ake-api.mjs`。本机 AKE 页面自动建立浏览器调试 Session，每次计算分配独立 Run；provider 的同一份请求由 RIA worker 执行，在 completed/failed UI action 落盘后 seal。未绑定 RIA 时直接调用 `demo/demo-service.mjs`。所有 `/api/ria` 查询在同一端口提供，独立的 `ria:server` 仍可用于离线归档。普通请求上限为 1 MB；实时观察批次上限为 4 MiB，且客户端按事件/快照分区限流。服务只绑定 loopback，调试路由另校验连接来源与同源请求。
 
 ## Demo 生产式本地服务
 

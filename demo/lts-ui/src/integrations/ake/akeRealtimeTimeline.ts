@@ -13,8 +13,9 @@ import type {
   AkeTimingComboTrigger,
   AkeTimingHitProfile,
   AkeTimingSkillProfile,
+  AkeTimingCastCondition,
 } from './akeCatalogAdapter';
-import type { AkeCommandSettlement, AkeTimelinePoint } from './akeProvider';
+import type { AkeCommandSettlement, AkeTimelinePoint, AkeTeamReport } from './akeProvider';
 import {
   GRID_COLUMN_WIDTH,
   GRID_NODE_COUNT,
@@ -104,7 +105,7 @@ export type AkeRealtimeComboWindow = {
   ruleId: string;
   characterId: string;
   skillId: string;
-  sourceCommandId: string;
+  sourceCommandId: string | null;
   createdFrame: number;
   expireFrame: number;
   consumedFrame: number | null;
@@ -151,7 +152,7 @@ export type AkeRealtimeCommand = AkeCommandSettlement & {
 
 export type AkeRealtimeTimeline = {
   schemaVersion: 2;
-  source: 'precompiled-local-preview';
+  source: 'precompiled-local-preview' | 'settled-runtime-projection';
   tickRate: number;
   nodeFrameScale: number;
   durationFrames: number;
@@ -168,8 +169,10 @@ export type AkeRealtimeTimeline = {
   verifiedComboSkills: Array<{ characterId: string; skillId: string }>;
   /** Authoritative relationship schedule and shared variable-rate projection. */
   sharedVariableRateTimeline: SharedVariableRateTimelineModel | null;
+  sharedVariableRateSpec?: SharedVariableRateTimelineSpec;
   planningIterations: number;
   diagnostics: string[];
+  planningIssues?: Array<{ code: string; message: string; commandIds: string[]; frame: number | null }>;
 };
 
 type TimelineInput = {
@@ -565,6 +568,7 @@ function composeFullAttackProfile(
         .filter((value): value is number => value !== null && value !== undefined);
       hits.push({
         offsetFrames: stageStart + Math.max(...ordinaryHits.map(hit => hit.offsetFrames)),
+        sourceTimelineFrame: settlement.sourceTimelineFrame ?? settlement.offsetFrames,
         launchOffsetFrames: launches.length > 0
           ? stageStart + Math.min(...launches)
           : null,
@@ -585,6 +589,7 @@ function composeFullAttackProfile(
       hits.push({
         ...hit,
         offsetFrames: stageStart + hit.offsetFrames,
+        sourceTimelineFrame: hit.sourceTimelineFrame ?? hit.offsetFrames,
         launchOffsetFrames: hit.launchOffsetFrames === null
           || hit.launchOffsetFrames === undefined
           ? hit.launchOffsetFrames
@@ -648,6 +653,10 @@ function composeFullAttackProfile(
     resourceEvents: resourceEvents.sort((left, right) => left.offsetFrames - right.offsetFrames),
     recoveryPauses,
     comboStageSkillIds: chain.map(stage => stage.skillId),
+    comboStageControls: chain.map((stage, index) => ({
+      startOffsetFrames: stageStarts[index], exclusiveFrames: stage.exclusiveFrames,
+      skillSpecification: stage.skillSpecification ?? null,
+    })),
   };
 }
 
@@ -657,10 +666,14 @@ function resolveProfile(
   actor: ActorState,
 ): AkeTimingSkillProfile {
   const profiles = characterProfiles(timing, input.characterId);
-  const candidates = profiles.filter(profile => profile.commandType === input.commandType);
+  const candidates = profiles.filter(profile => profile.commandType === input.commandType
+    && profile.attackMode !== 'plunging-impact');
   const explicit = input.skillId
     ? profiles.find(profile => profile.skillId === input.skillId)
     : null;
+  if (input.commandType === 'Attack' && explicit?.attackMode === 'plunging-impact') {
+    return withResolution(explicit, 'base-intent');
+  }
   const resumedBasic = input.commandType === 'Attack' && actor.basicComboCursor
     ? candidates.find(profile => profile.skillId === actor.basicComboCursor?.nextSkillId)
     : null;
@@ -732,7 +745,7 @@ function resolveIntentProfile(
     );
     return comboStage ? { ...resolved, comboStage } : resolved;
   }
-  return input.commandType === 'Attack'
+  return input.commandType === 'Attack' && resolved.attackMode !== 'plunging-impact'
     ? composeFullAttackProfile(
       characterProfiles(timing, input.characterId),
       resolved,
@@ -820,6 +833,7 @@ function makeCommand(
     reason: null,
     admissionReason: null,
     skillId: profile.skillId,
+    attackMode: profile.attackMode,
     damage: 0,
     poiseDamage: 0,
     hitCount: profile.hits.reduce((sum, hit) => sum + hit.hitCount, 0),
@@ -848,6 +862,7 @@ function refreshCommandProfile(
 ): void {
   command.profile = profile;
   command.skillId = profile.skillId;
+  command.attackMode = profile.attackMode;
   command.hitCount = profile.hits.reduce((sum, hit) => sum + hit.hitCount, 0);
   command.resourceLabel = profile.costValue > 0
     ? `${profile.costType === 'Atb' ? '共享技力' : profile.costType === 'UltimateSp' ? '自身能量' : profile.costType ?? '资源'} -${profile.costValue}`
@@ -996,6 +1011,7 @@ function simulateAkeRealtimeTimeline(
   input: AkeRealtimeTimelineBuildInput,
   requestedFrames?: ReadonlyMap<string, number>,
   plannedBlockingEndFrames?: ReadonlyMap<string, number>,
+  controlPlan?: SharedVariableRateTimelineModel,
 ): AkeRealtimeTimeline {
   const timing = input.catalog?.timing;
   const tickRate = timing?.tickRate ?? DEFAULT_TICK_RATE;
@@ -1772,6 +1788,51 @@ function simulateAkeRealtimeTimeline(
     diagnostics.push(`${event.commandId}: unresolved UltimateSp target ${event.target}.`);
   };
 
+  const replacementApplies = (profile: AkeTimingSkillProfile, actor: ActorState,
+    command: AkeRealtimeCommand, frame: number): boolean => {
+    if (!profile.castReplacement?.asSkillCast) return false;
+    const initial = resolveInitialControllerLaneId(input.timelineData.initialControllerCharacterId,
+      input.selectedCharacters.map(character => character.id));
+    const position = controlPlan?.actions.find(action => action.id === command.commandId)?.startX
+      ?? Number.POSITIVE_INFINITY;
+    const controlled = controlledOperatorAt(initial, controlPlan?.operatorSwitches ?? [], frame, position);
+    const evaluate = (condition: AkeTimingCastCondition): boolean | null => {
+      if (condition.type === 'All' || condition.type === 'Any') {
+        const values = (condition.conditions ?? []).map(evaluate);
+        if (condition.type === 'All' && values.includes(false)) return false;
+        if (condition.type === 'Any' && values.includes(true)) return true;
+        return values.includes(null) ? null : condition.type === 'All';
+      }
+      if (condition.type === 'Not') {
+        const value = condition.condition ? evaluate(condition.condition) : null;
+        return value === null ? null : !value;
+      }
+      if (condition.type === 'EntityIsMainCharacter') {
+        return ['Owner', 'Source'].includes(condition.entity ?? 'Owner')
+          ? controlled === command.characterId : null;
+      }
+      if (condition.type !== 'CurrentSkillTypeMatches'
+        || !['Owner', 'Source'].includes(condition.target ?? 'Owner')) return null;
+      const active = actor.active;
+      if (!active || active.actualFrame === null) return false;
+      const kind = active.commandType === 'NormalAttack' ? 'Attack' : active.commandType;
+      if (!(condition.skillTypes ?? []).map(value => value === 'NormalAttack' ? 'Attack' : value).includes(kind)) return false;
+      const elapsed = frame - active.actualFrame;
+      const stage = [...(active.profile.comboStageControls ?? [])].reverse()
+        .find(candidate => candidate.startOffsetFrames <= elapsed);
+      const localFrame = elapsed - (stage?.startOffsetFrames ?? 0);
+      if (condition.beforeExclusive && localFrame >= (stage?.exclusiveFrames ?? active.profile.exclusiveFrames)) return false;
+      if (kind !== 'Attack' || condition.attackTypeMask === 'All') return true;
+      const specification = stage?.skillSpecification ?? active.profile.skillSpecification;
+      const bit = specification === 'CharacterPowerAttack' ? 2
+        : specification === 'CharacterDashAttack' ? 16
+        : specification === 'CharacterPlungingAttack' ? /(?:^|_)start$/.test(active.skillId ?? '') ? 4 : 8
+        : specification === 'CharacterNormalAttack' ? 1 : 0;
+      return (bit & Number(condition.attackTypeMask)) !== 0;
+    };
+    return profile.castReplacement.conditions.every(condition => evaluate(condition) === true);
+  };
+
   const startCommand = (
     scheduled: ScheduledInput,
     actor: ActorState,
@@ -1856,6 +1917,24 @@ function simulateAkeRealtimeTimeline(
     command.releaseReason = comboUnverified
       ? 'COMBO_TRIGGER_UNVERIFIED'
       : command.queued ? `QUEUED_${admissionReason}` : 'CAST_ACCEPTED';
+    if (replacementApplies(profile, actor, command, frame)) {
+      command.endFrame = frame;
+      command.naturalEndFrame = frame;
+      command.tailEndFrame = frame;
+      command.completion = 'completed';
+      command.hits = [];
+      command.hitCount = 0;
+      command.profile = { ...profile, castReplacementActive: true,
+        durationFrames: 0, bodyEndOffset: 0, tailEndOffset: 0, exclusiveFrames: 0,
+        hits: [], resourceEvents: [], recoveryPauses: [], formEvents: [], comboPendingEvents: [] };
+      if (profile.cooldownFrames > 0) {
+        command.cooldownEndFrame = frame + profile.cooldownFrames;
+        actor.cooldowns.set(cooldownGroupId, command.cooldownEndFrame);
+      }
+      if (comboPending) consumeComboPending(comboPending, frame, command.commandId);
+      point(frame, profile.costValue > 0 ? 'Spend' : 'Cast', command.commandId);
+      return;
+    }
     command.naturalEndFrame = frame + Math.max(1, profile.bodyEndOffset);
     command.endFrame = command.naturalEndFrame;
     command.tailEndFrame = frame + Math.max(profile.bodyEndOffset, profile.tailEndOffset);
@@ -2021,13 +2100,16 @@ function simulateAkeRealtimeTimeline(
     commands.push(command);
     commandById.set(command.commandId, command);
     if (profile.diagnostic) diagnostics.push(`${commandInput.commandId}: ${profile.diagnostic}`);
-    const admission = nextAdmission(actor.active, profile, frame);
-    if (!admission) {
+    const admission = replacementApplies(profile, actor, command, frame)
+      ? { frame, reason: 'CAST_REPLACEMENT', queued: false }
+      : nextAdmission(actor.active, profile, frame);
+    if (!admission || (profile.attackMode === 'plunging-impact' && admission.frame > frame)) {
       command.state = 'preview-expired';
       command.status = 'preview-expired';
-      command.reason = 'QUEUE_WINDOW_EXPIRED';
+      command.reason = profile.attackMode === 'plunging-impact'
+        ? 'PLUNGING_IMPACT_BLOCKED' : 'QUEUE_WINDOW_EXPIRED';
       command.releaseVerdict = 'invalid';
-      command.releaseReason = 'QUEUE_WINDOW_EXPIRED';
+      command.releaseReason = command.reason;
       command.completion = 'expired';
       return;
     }
@@ -2062,7 +2144,9 @@ function simulateAkeRealtimeTimeline(
     // again here so modes/overrides created while it waited can transform it.
     scheduled.profile = resolveIntentProfile(timing, scheduled.input, actor);
     refreshCommandProfile(scheduled.command, scheduled.profile);
-    const admission = nextAdmission(actor.active, scheduled.profile, frame);
+    const admission = replacementApplies(scheduled.profile, actor, scheduled.command, frame)
+      ? { frame, reason: 'CAST_REPLACEMENT', queued: false }
+      : nextAdmission(actor.active, scheduled.profile, frame);
     if (!admission) {
       scheduled.command.actualFrame = null;
       scheduled.command.actualSeconds = null;
@@ -2231,6 +2315,7 @@ function simulateAkeRealtimeTimeline(
 }
 
 type TimelineActionFacts = {
+  instantaneous?: boolean;
   durationFrames: number;
   sharedAtbCost: number;
 };
@@ -2255,7 +2340,8 @@ function factsFromProfile(
   durationFrames: number,
 ): TimelineActionFacts {
   return {
-    durationFrames: Math.max(1, Math.round(durationFrames)),
+    durationFrames: profile.castReplacementActive ? 0 : Math.max(1, Math.round(durationFrames)),
+    instantaneous: profile.castReplacementActive === true,
     sharedAtbCost: profile.costType === 'Atb'
       ? Math.max(0, finite(profile.costValue))
       : 0,
@@ -2338,7 +2424,12 @@ function timelineActionFacts(
     ordered.forEach((timelineInput, index) => {
       const profile = profiles.get(timelineInput.commandId)
         ?? fallbackProfile(timelineInput.commandType);
-      const successorInput = ordered[index + 1] ?? null;
+      if (profile.castReplacementActive) {
+        facts.set(timelineInput.commandId, factsFromProfile(profile, 0));
+        return;
+      }
+      const successorInput = ordered.slice(index + 1).find(candidate =>
+        !profiles.get(candidate.commandId)?.castReplacementActive) ?? null;
       const successorProfile = successorInput
         ? profiles.get(successorInput.commandId)
           ?? fallbackProfile(successorInput.commandType)
@@ -2623,6 +2714,7 @@ function makeSharedVariableRateTimelineSpec(input: {
               return {
                 id: timelineInput.commandId,
                 durationFrames: facts.durationFrames,
+                instantaneous: facts.instantaneous,
                 startOffsetFrames: releaseOffsets.get(timelineInput.commandId) ?? 0,
                 sharedAtbCost: facts.sharedAtbCost,
                 payload: {
@@ -2735,7 +2827,7 @@ function validateDodgeControlModules(
   modules: readonly SkillButtonData[],
   model: SharedVariableRateTimelineModel,
   initialControllerLaneId: string | undefined,
-): Array<{ code: string; message: string }> {
+): Array<{ code: string; message: string; buttonId: string; frame: number | null }> {
   const actionsById = new Map(model.actions.map(action => [action.id, action]));
   const switchesById = new Map(model.operatorSwitches.map(operatorSwitch => [operatorSwitch.id, operatorSwitch]));
   return modules
@@ -2743,10 +2835,10 @@ function validateDodgeControlModules(
       module.timelineModuleKind === 'dodge'
       || module.timelineModuleKind === 'perfect-dodge'
     ))
-    .flatMap((module) => {
+    .flatMap((module): Array<{ code: string; message: string; buttonId: string; frame: number | null }> => {
       const anchor = module.releaseAnchor;
       if (!anchor) {
-        return [{ code: 'DODGE_ANCHOR_MISSING', message: `${module.id}: 闪避缺少释放锚点。` }];
+        return [{ code: 'DODGE_ANCHOR_MISSING', message: `${module.id}: 闪避缺少释放锚点。`, buttonId: module.id, frame: null }];
       }
       const sourceAction = anchor.sourceButtonId ? actionsById.get(anchor.sourceButtonId) : undefined;
       const sourceSwitch = anchor.sourceButtonId ? switchesById.get(anchor.sourceButtonId) : undefined;
@@ -2778,7 +2870,7 @@ function validateDodgeControlModules(
         x = sourceSwitch.endX;
       }
       if (frame === null || x === null) {
-        return [{ code: 'DODGE_ANCHOR_UNRESOLVED', message: `${module.id}: 无法解析闪避释放位置。` }];
+        return [{ code: 'DODGE_ANCHOR_UNRESOLVED', message: `${module.id}: 无法解析闪避释放位置。`, buttonId: module.id, frame: null }];
       }
       const issues: Array<{ code: string; message: string }> = [];
       const controlled = controlledOperatorAt(
@@ -2800,7 +2892,7 @@ function validateDodgeControlModules(
           message: `${module.id}: 终结技完整动画期间不能用闪避打断。`,
         });
       }
-      return issues;
+      return issues.map(issue => ({ ...issue, buttonId: module.id, frame }));
     });
 }
 
@@ -2867,6 +2959,7 @@ export function buildAkeRealtimeTimeline(
       input,
       requestedFramesFromPlan(plan),
       blockingEndFramesFromPlan(plan),
+      plan,
     );
     profiles = timelineActionProfilesFromSimulation(simulation, profiles);
     facts = timelineActionFacts(timelineInputs, profiles, tickRate, timelineModules);
@@ -2893,6 +2986,7 @@ export function buildAkeRealtimeTimeline(
       input,
       requestedFramesFromPlan(plan),
       blockingEndFramesFromPlan(plan),
+      plan,
     );
   }
 
@@ -2965,7 +3059,144 @@ export function buildAkeRealtimeTimeline(
     ...simulation,
     durationFrames: Math.max(simulation.durationFrames, exposedPlan.endFrame),
     sharedVariableRateTimeline: exposedPlan,
+    sharedVariableRateSpec: spec,
     planningIterations,
     diagnostics,
+    planningIssues: [...operatorControlIssues.map(issue => {
+      const id = issue.actionId ?? issue.switchId;
+      const action = validatedPlan.actions.find(action => action.id === id)
+        ?? validatedPlan.operatorSwitches.find(action => action.id === id);
+      return { code: issue.code, message: issue.message, commandIds: id ? [id] : [], frame: action?.startFrame ?? null };
+    }), ...dodgeControlIssues.map(issue => ({
+      code: issue.code, message: issue.message.replace(`${issue.buttonId}: `, ''),
+      commandIds: [issue.buttonId], frame: issue.frame,
+    })), ...releaseAnchorIssues.map(issue => ({
+      code: issue.code, message: issue.message, commandIds: [issue.buttonId],
+      frame: validatedPlan.actions.find(action => action.id === issue.buttonId)?.startFrame ?? null,
+    })), ...unresolvedTimelineModules.map(module => ({
+      code: 'TIMELINE_MODULE_RUNTIME_REQUIRED',
+      message: `${module.timelineModuleKind === 'perfect-dodge' ? '极限闪避' : '闪避'}尚未接入权威结算，当前只能预演。`,
+      commandIds: [module.id], frame: null,
+    }))],
   };
+}
+
+/** Project matching runtime facts for display without feeding them back into input planning. */
+export function projectSettledAkeTimeline(
+  preview: AkeRealtimeTimeline,
+  report: Pick<AkeTeamReport, 'durationFrames'> & { timeline: {
+    commands: Array<AkeCommandSettlement & { completion?: string | null }>;
+    sharedAtb?: AkeTeamReport['timeline']['sharedAtb'];
+    comboWindows?: AkeTeamReport['timeline']['comboWindows'];
+  } },
+): AkeRealtimeTimeline {
+  const spec = preview.sharedVariableRateSpec;
+  if (!spec || !preview.sharedVariableRateTimeline) return preview;
+  const settlements = new Map(report.timeline.commands.map(command => [command.commandId, command]));
+  // These predictions concern admission that an executed cast can establish.
+  // Unknown mechanics and structural constraints still need their own evidence.
+  const settledAdmissionReasons = new Set([
+    'INSUFFICIENT_ATB', 'INSUFFICIENT_ULTIMATE_SP', 'INSUFFICIENT_RESOURCE',
+    'COMBO_TRIGGER_MISSING', 'COMBO_NOT_READY', 'COMBO_COOLDOWN_ACTIVE',
+    'COOLDOWN_ACTIVE', 'QUEUE_WINDOW_EXPIRED', 'TIMELINE_END',
+    'PLUNGING_IMPACT_BLOCKED',
+  ]);
+  const canSettleAdmission = (reason: string) => settledAdmissionReasons.has(reason)
+    || reason.startsWith('QUEUED_');
+  const sharedAtb = report.timeline.sharedAtb ?? preview.sharedAtb;
+  // Child/status events can open windows absent from the lightweight preview.
+  // The matching report is authoritative even when its list is empty. Final
+  // expired windows retain their interval for insertion earlier in the axis.
+  const comboWindows: AkeRealtimeComboWindow[] = report.timeline.comboWindows === undefined
+    ? preview.comboWindows
+    : report.timeline.comboWindows.flatMap(window => {
+      if (!window.characterId || !window.skillId) return [];
+      return [{ ...window, characterId: window.characterId, skillId: window.skillId,
+        ruleId: window.ruleId ?? '', reason: window.reason ?? '',
+        state: window.state === 'active' ? 'ready' as const : window.state }];
+    });
+  const spends = new Map<string, { before: number; after: number }>();
+  let previousAtb = sharedAtb.initial;
+  for (const point of sharedAtb.points) {
+    if (point.kind === 'Spend' && point.commandId) {
+      spends.set(point.commandId, { before: previousAtb, after: point.value });
+    }
+    previousAtb = point.value;
+  }
+  const commands = preview.commands.map(command => {
+    const settled = settlements.get(command.commandId);
+    if (!settled) return command;
+    const accepted = settled.success && settled.actualFrame !== null;
+    const override = !settled.success || command.releaseVerdict === 'valid'
+      || command.releaseVerdict === 'queued' || canSettleAdmission(command.releaseReason);
+    const shift = accepted ? settled.actualFrame! - (command.actualFrame ?? command.requestedFrame) : 0;
+    const completion = settled.completion?.toLowerCase();
+    const spend = spends.get(command.commandId);
+    return { ...command, ...settled,
+      status: settled.status ?? settled.state,
+      admissionReason: settled.admissionReason ?? null,
+      naturalEndFrame: accepted ? settled.endFrame : command.naturalEndFrame,
+      completion: (!settled.success ? 'failed'
+        : completion === 'completed' || completion === 'interrupted' ? completion
+        : settled.endFrame !== null ? 'completed' : 'open') as AkeRealtimeCommand['completion'],
+      releaseVerdict: override ? accepted ? 'valid' as const : 'invalid' as const : command.releaseVerdict,
+      releaseReason: override ? accepted ? 'RUNTIME_CONFIRMED'
+        : settled.reason ?? settled.admissionReason ?? 'RUNTIME_REJECTED' : command.releaseReason,
+      atbBefore: spend?.before ?? command.atbBefore,
+      atbAfter: spend?.after ?? command.atbAfter,
+      hits: !settled.success ? [] : command.hits.map(hit => ({ ...hit, frame: hit.frame + shift,
+        launchFrame: hit.launchFrame === null ? null : hit.launchFrame + shift })),
+    };
+  });
+  const commandsById = new Map(commands.map(command => [command.commandId, command]));
+  let boundary = (spec.initialFrame ?? 0)
+    + (spec.initialWait?.mode === 'fixed-duration' ? spec.initialWait.durationFrames : 0);
+  const groups = spec.groups.map((group, index) => {
+    if (index > 0) boundary += preview.sharedVariableRateTimeline?.waits
+      .find(wait => wait.nextGroupId === group.id)?.durationFrames ?? 0;
+    const start = boundary;
+    const lanes = group.lanes.map(lane => ({ ...lane, actions: lane.actions.map(action => {
+      const settled = settlements.get(action.id);
+      const actual = settled?.actualFrame;
+      if (actual === null || actual === undefined || !settled?.success) return action;
+      const instantaneous = settled.endFrame === actual;
+      return { ...action, startOffsetFrames: Math.max(0, actual - start), instantaneous,
+        durationFrames: instantaneous ? 0 : Math.max(1, (settled.endFrame ?? actual + action.durationFrames) - actual) };
+    }) }));
+    boundary = start + Math.max(0,
+      ...lanes.flatMap(lane => lane.actions.map(action => (action.startOffsetFrames ?? 0) + action.durationFrames)),
+      ...(group.laneWaits ?? []).map(wait => wait.startOffsetFrames + wait.durationFrames));
+    return { ...group, lanes };
+  });
+  const model = buildSharedVariableRateTimeline({ ...spec, groups }, {
+    validateReleaseCohort: cohort => {
+      const decisions = preview.sharedVariableRateTimeline!.cohorts.filter(original => (
+        original.actionIds.some(id => cohort.actionIds.includes(id))
+      ));
+      const preserved = decisions.find(item => item.status !== 'valid' && !canSettleAdmission(item.reason));
+      const resolved = cohort.actionIds.map(id => commandsById.get(id));
+      const rejected = resolved.find(command => command && !command.success);
+      const invalid = resolved.find(command => command?.releaseVerdict === 'invalid');
+      const unknown = resolved.find(command => command?.releaseVerdict === 'unverified');
+      const reason = rejected?.releaseReason ?? preserved?.reason ?? invalid?.releaseReason
+        ?? unknown?.releaseReason ?? 'RUNTIME_CONFIRMED';
+      const status = rejected || invalid || preserved?.status === 'invalid' ? 'invalid'
+        : unknown || preserved?.status === 'unverified' || resolved.some(command => !command)
+          ? 'unverified' : 'valid';
+      return { allowed: status === 'valid', status, reason,
+        availableSharedAtb: Math.max(0, ...resolved.map(command => command?.atbBefore ?? 0)) };
+    },
+  });
+  const structuralIssues = (preview.planningIssues ?? []).filter(issue => (
+    issue.code !== 'TIMELINE_MODULE_RUNTIME_REQUIRED'
+  ));
+  const unresolvedModules = preview.planningIssues?.some(issue => issue.code === 'TIMELINE_MODULE_RUNTIME_REQUIRED');
+  const admissionStatus = structuralIssues.length > 0 ? 'invalid'
+    : unresolvedModules && model.admissionStatus === 'valid' ? 'unverified' : model.admissionStatus;
+  return { ...preview, source: 'settled-runtime-projection', commands,
+    comboWindows,
+    hits: commands.flatMap(command => command.hits),
+    sharedAtb,
+    sharedVariableRateTimeline: { ...model, admissionStatus, isExecutable: admissionStatus === 'valid' },
+    durationFrames: Math.max(report.durationFrames, model.endFrame) };
 }

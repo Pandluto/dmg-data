@@ -11,7 +11,10 @@ import {
   buildAkeRuntimeCommandLedger,
   buildAkeRuntimeCommandViewState,
   buildAkeRuntimeStatusLabelMap,
-  selectAkeMainTimelineStatuses,
+  buildAkeMainTimelineStateEvents,
+  buildAkeCombatStateEvents,
+  buildAkeCombatStatesAt,
+  buildAkeCombatInteractions,
 } from './akeRuntimeLedger';
 
 const statusBase = {
@@ -340,6 +343,27 @@ const report = {
     poise: {},
   },
 } as AkeTeamReport;
+
+// A foreign landing can trigger damage belonging to a pre-existing ultimate.
+// Aggregate HP descendants once, without confusing the triggering hit or poise with them.
+{
+  const trigger = { ...report.timeline.commands[0], commandId: 'landing', castId: 'cast:landing', characterId: 'actor-b' };
+  const effect = report.timeline.commands[0];
+  const linked = { ...runtimeHit(0, null, 2), rootCastId: effect.castId,
+    triggerRootCastId: trigger.castId, triggerFrame: 12, damageAttributeType: 'Hp', frame: 17, finalDamage: 100 };
+  const interactions = buildAkeCombatInteractions({ ...report,
+    timeline: { ...report.timeline, commands: [effect, trigger] },
+    hits: [linked, { ...linked, frame: 30, finalDamage: 50 },
+      { ...linked, damageAttributeType: 'Poise' },
+      { ...linked, triggerRootCastId: null, triggerCastId: null },
+      { ...linked, rootCastId: trigger.castId }],
+  });
+  assert.equal(interactions.length, 1);
+  assert.deepEqual({ ...interactions[0], key: undefined }, {
+    key: undefined, frame: 12, triggerCommandId: 'landing', effectCommandId: 'button-current',
+    triggerActorId: 'actor-b', effectActorId: 'actor-a', firstHitFrame: 17, lastHitFrame: 30, hitCount: 2, damage: 150,
+  });
+}
 
 const labels = buildAkeRuntimeStatusLabelMap({
   characters: [{
@@ -748,11 +772,12 @@ assert.deepEqual(
   [['连3', 'ongoing']],
   'an unconsumed combo pool remains an explicitly ongoing main-display state',
 );
-assert.deepEqual(
-  selectAkeMainTimelineStatuses(activeComboLedger).map((status) => status.buffId),
-  ['buff_common_affixes_combo_trigger'],
-  'the shared combo pool remains visible even when inherited by the current command',
-);
+activeComboReport.teamComboLedger = teamComboLedger([
+  teamComboEvent({ frame: 0, beforeStacks: 0, afterStacks: 3, deltaStacks: 3 }),
+]);
+assert.ok(buildAkeMainTimelineStateEvents(activeComboReport).some(event => (
+  event.buffId === 'buff_common_affixes_combo_trigger'
+)), 'shared combo changes remain on the main timeline at their event times');
 
 const unrelatedGrantReport = structuredClone(report);
 unrelatedGrantReport.statusEvents = [{
@@ -875,6 +900,63 @@ assert.equal(otherCastConsumesCurrentGrantLedger?.compactStatuses.some((status) 
   status.buffId === 'buff_physical_no_guard'
   && status.tone === 'consumed'
 )), false, 'another cast consumption must not be projected as this grant cast consuming');
+
+// The visible inspector uses these same cross-cast scenarios, including unknown consumer commands.
+const consumedTrace = buildAkeCombatStateEvents(crossCastConsumeReport, labels).find(event => event.frame === 15);
+assert.equal(consumedTrace?.commandId, 'button-current');
+assert.equal(consumedTrace?.change, '消费');
+assert.equal(buildAkeCombatStatesAt(crossCastConsumeReport, 14, labels).some(state => state.label === '破防'), true);
+assert.equal(buildAkeCombatStatesAt(crossCastConsumeReport, 15, labels).some(state => state.label === '破防'), false);
+const otherConsumeTrace = buildAkeCombatStateEvents(otherCastConsumesCurrentGrantReport, labels).find(event => event.frame === 15);
+assert.equal(otherConsumeTrace?.commandId, null, 'never link another actor consumption to the origin action');
+assert.equal(otherConsumeTrace?.actorId, 'actor-b');
+assert.equal(otherConsumeTrace?.sourceCommandId, 'button-current');
+
+const foreignTriggeredApplication = structuredClone(otherCastConsumesCurrentGrantReport);
+foreignTriggeredApplication.statusEvents = [{
+  ...foreignTriggeredApplication.statusEvents[0], triggerRootCastId: 'cast:landing',
+  triggerCastId: 'cast:landing', triggerSourceId: 'actor-b', sourceId: 'actor-a',
+}];
+foreignTriggeredApplication.timeline.commands.push({ ...report.timeline.commands[0],
+  commandId: 'landing', castId: 'cast:landing', characterId: 'actor-b' });
+const foreignApplication = buildAkeCombatStateEvents(foreignTriggeredApplication, labels)[0];
+assert.equal(foreignApplication.actorId, 'actor-a', 'a foreign trigger must not take ownership of the applied status');
+assert.equal(foreignApplication.commandId, 'button-current');
+assert.equal(foreignApplication.triggerCommandId, 'landing');
+
+const overlapColdReport = structuredClone(otherCastConsumesCurrentGrantReport);
+overlapColdReport.statusEvents = overlapColdReport.statusEvents.map((event, index) => ({
+  ...event, buffId: 'buff_common_energy_shard_attached_cryst',
+  frame: index === 0 ? 194 : 206,
+  sequence: index + 1, before: index === 0 ? 3 : 4, after: index === 0 ? 4 : 0,
+}));
+assert.deepEqual(buildAkeMainTimelineStateEvents(overlapColdReport).map(event => (
+  [event.frame, event.before, event.after]
+)), [[194, 3, 4], [206, 4, 0]],
+'overlapping casts must display application then consumption at effect frames, not button release positions');
+for (const frame of [206, 221, 233, 368]) {
+  assert.equal(buildAkeCombatStatesAt(overlapColdReport, frame).some(state => state.label === '寒冷附着'), false,
+    `cold stays absent after consumption through F${frame}, including the provider tail`);
+}
+overlapColdReport.statusEvents.push({
+  ...overlapColdReport.statusEvents[0], traceIndex: 75, sequence: 3,
+  frame: 206, before: 0, after: 1,
+});
+assert.deepEqual(buildAkeMainTimelineStateEvents(overlapColdReport).map(event => (
+  [event.frame, event.before, event.after]
+)), [[194, 3, 4], [206, 4, 0], [206, 0, 1]],
+'a real reapplication must remain visible after consumption, including within the same frame');
+assert.equal(buildAkeCombatStatesAt(overlapColdReport, 206).find(state => state.label === '寒冷附着')?.stacks, 1);
+
+const inspectorSameFrameReport = structuredClone(report);
+inspectorSameFrameReport.teamComboLedger = teamComboLedger([
+  teamComboEvent({ eventId: 'inspector-consume', frame: 20, sequence: 91, type: 'consume', beforeStacks: 1, afterStacks: 0 }),
+  teamComboEvent({ eventId: 'inspector-grant', frame: 20, sequence: 92, beforeStacks: 0, afterStacks: 1 }),
+]);
+assert.equal(buildAkeCombatStatesAt(inspectorSameFrameReport, 20, labels, 91).find(state => state.key === 'team-combo')?.stacks, 0);
+assert.equal(buildAkeCombatStatesAt(inspectorSameFrameReport, 20, labels, 92).find(state => state.key === 'team-combo')?.stacks, 1);
+assert.equal(buildAkeCombatStateEvents(inspectorSameFrameReport, labels).find(event => event.key === 'combo:inspector-consume')?.sourceId, null,
+  'a consuming actor is not evidence of the original provider');
 
 const consumeThenOtherGrantReport = structuredClone(comboReport);
 consumeThenOtherGrantReport.statusEvents.push({
@@ -999,15 +1081,10 @@ assert.equal(
   true,
   'the detail ledger keeps inherited enemy attachment state for hit inspection',
 );
-assert.equal(
-  selectAkeMainTimelineStatuses(inheritedAttachmentLedger).some((status) => (
-    status.buffId === 'buff_common_energy_shard_attached_fire'
-    && status.tone === 'ongoing'
-    && status.title.startsWith('持续生效')
-  )),
-  true,
-  'the main skill badge keeps ongoing Fire visible without claiming it as this command effect',
-);
+assert.deepEqual(buildAkeMainTimelineStateEvents(inheritedAttachmentReport).map(event => (
+  [event.buffId, event.frame, event.commandId]
+)), [['buff_common_energy_shard_attached_fire', 0, null]],
+'inherited Fire stays at its original application time, never replicated at a later button');
 
 assert.ok(ledger.statuses.some((status) => (
   status.title === '天赋·通用叠层 ×2'
@@ -1418,6 +1495,30 @@ const partialState = buildAkeRuntimeCommandViewState({
 });
 assert.equal(partialState.kind, 'partial');
 assert.match(partialState.message, /未完全解析/);
+
+// Real Run run-8f220194-abf3-41a6-9852-6183dc263936 carried this diagnostic
+// shape: a dynamic Buff lookup failed, so buffId=0 and no instance was created.
+const unresolvedStatusReport = structuredClone(report);
+const unresolvedStatus = JSON.parse(JSON.stringify({
+  ...statusBase, traceIndex: 198, eventId: 'status-event:199', sequence: 199,
+  frame: 13, stage: 'StatusEffectUnresolved', instanceId: null, buffId: 0,
+  castId: 'derived-cast:failed-buff', rootCastId: 'cast:current',
+  before: 0, after: 0, actual: 0, discarded: 1,
+  reason: 'MissingStatusDefinition', displayName: '未命名状态', displayable: false,
+}));
+unresolvedStatusReport.statusEvents.push(unresolvedStatus);
+assert.deepEqual(buildAkeRuntimeCommandLedger({ report: unresolvedStatusReport, commandId: 'button-current', labels }),
+  buildAkeRuntimeCommandLedger({ report, commandId: 'button-current', labels }),
+  'failed status creation is a diagnostic, not a concrete status badge or state transition');
+assert.deepEqual(buildAkeCombatStateEvents(unresolvedStatusReport, labels), buildAkeCombatStateEvents(report, labels));
+assert.deepEqual(buildAkeCombatStatesAt(unresolvedStatusReport, 18, labels), buildAkeCombatStatesAt(report, 18, labels));
+const unresolvedStatusView = buildAkeRuntimeCommandViewState({ runtimeMode: true,
+  report: unresolvedStatusReport, commandId: 'button-current', labels });
+assert.equal(unresolvedStatusView.kind, 'partial');
+assert.match(unresolvedStatusView.message, /未完全解析/);
+assert.equal(unresolvedStatusReport.statusEvents.at(-1), unresolvedStatus,
+  'the original diagnostic must remain available to inspection');
+assert.equal(unresolvedStatus.buffId, 0, 'invalid ids must not be disguised as valid string ids');
 
 const derivedCastReport = structuredClone(report);
 const derivedHit = runtimeHit(0, null, 1.25, false);

@@ -1,3 +1,4 @@
+import { buildAkeWorkbenchDamageSnapshot } from '../../integrations/ake/akeReportModel';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { useAppContext } from '../../context/AppContext';
@@ -20,6 +21,7 @@ import { useCanvasDrag } from './hooks/useCanvasDrag';
 import { useTimelineData } from '../../hooks/useTimelineData';
 import { CanvasArea } from './components/CanvasArea';
 import { DraggingOverlay } from './components/DraggingOverlay';
+import { ReleaseLens } from './components/ReleaseLens';
 import { Toolbar } from './components/Toolbar';
 import {
   Character,
@@ -76,7 +78,9 @@ import {
   getWeaponSkill3PotentialBonus,
   refreshOperatorConfigSnapshotsForCharacters,
 } from '../../core/services/operatorConfigSnapshotRefreshService';
-import { APP_ROUTE_PATHS, navigateToAppPath } from '../../utils/appRoute';
+import { APP_ROUTE_PATHS, getTimelineSkillDetailPath, navigateToAppPath } from '../../utils/appRoute';
+import { TimelineCombatPanel } from './TimelineCombatPanel';
+import { publishRiaDebugSection, registerRiaDebugCommandHandler } from '../../integrations/ake/riaLiveDebug';
 import { STORAGE_KEYS } from '../../constants/storage-keys';
 import {
   getOperatorConfigPageCache,
@@ -138,7 +142,9 @@ import type {
 import { useTimelineSession } from '../../agentKernel/timelineRepository/useTimelineSession';
 import { shouldHydrateTimelineCheckoutOnCanvasMount } from '../../agentKernel/timelineRepository/timelineSession';
 import { runTimelineArchiveConversionForReload } from './timelineArchiveConversionFlow';
-import { hasTimelineCheckpointPayloadChanged } from '../../core/services/timelineCheckpointService';
+import { saveAkeWorkspace, openAkeWorkspace } from '../../integrations/ake/akeWorkspace';
+import { buildAkeExecutionDigest } from '../../integrations/ake/akeExecutionIdentity';
+import { flushPersistentStorage } from '../../platform/storage/persistentStorage';
 import { decodeMobileShareIdFromImage } from '../../mobile/mobileShare';
 import {
   AKE_REPORT_UPDATED_EVENT,
@@ -147,8 +153,8 @@ import {
   runAkeTeamCalculation,
   type AkeTeamReport,
 } from '../../integrations/ake/akeProvider';
-import { getInstalledAkeCatalog } from '../../integrations/ake/akeCatalogAdapter';
-import { buildAkeRealtimeTimeline } from '../../integrations/ake/akeRealtimeTimeline';
+import { getInstalledAkeCatalog, installAkeCatalogData } from '../../integrations/ake/akeCatalogAdapter';
+import { buildAkeRealtimeTimeline, projectSettledAkeTimeline } from '../../integrations/ake/akeRealtimeTimeline';
 import {
   akeProfileToActionTailContract,
   akeProfileToTailSuccessor,
@@ -158,10 +164,7 @@ import {
   debounceFramesForTickRate,
   lockTailTransitionBundle,
 } from '../../core/domain/combatActionTailPlanner';
-import {
-  attachLegacyLanePredecessors,
-  getReleaseDeletionBlockers,
-} from '../../core/domain/releaseAnchorGraph';
+import { getTimelineDeleteBlockReason } from '../../core/domain/timelineQueuePolicy';
 
 function getLegacySnapshotTimelineId(snapshotId: string): string {
   return `timeline-document-${snapshotId}`;
@@ -463,6 +466,7 @@ function buildVisibleTimelineMirrors(
     version: previousPayload.timelineData.version || '1.0.0',
     createdAt: previousPayload.timelineData.createdAt || now,
     updatedAt: now,
+    reportNotes: previousPayload.timelineData.reportNotes,
     initialControllerCharacterId: resolveInitialControllerLaneId(
       initialControllerCharacterId ?? previousPayload.timelineData.initialControllerCharacterId,
       characters.map(character => character.id),
@@ -606,6 +610,11 @@ export function CanvasBoard({
   const [workNodeOmissionState, setWorkNodeOmissionState] = useState<WorkNodeOmissionSelectionState>(EMPTY_WORK_NODE_OMISSION_STATE);
   const [isRefreshingAvailableCandidates, setIsRefreshingAvailableCandidates] = useState(false);
   const [isAkeCalculating, setIsAkeCalculating] = useState(false);
+  const [combatDockView, setCombatDockView] = useState<'tools' | 'combat'>('tools');
+  const [inspectedCommandId, setInspectedCommandId] = useState<string | null>(null);
+  const [akeLiveCalculation, setAkeLiveCalculation] = useState({ signature: '', status: 'idle', error: '' });
+  const [akeRetryRevision, setAkeRetryRevision] = useState(0);
+  const isAkeMode = import.meta.env.VITE_AKE_DEMO === '1';
   const [akeTeamReport, setAkeTeamReport] = useState<AkeTeamReport | null>(() => (
     import.meta.env.VITE_AKE_DEMO === '1' ? readLatestAkeTeamReport() : null
   ));
@@ -707,15 +716,22 @@ export function CanvasBoard({
     setIsWorkNodeOmissionMode(false);
     setWorkNodeOmissionState(EMPTY_WORK_NODE_OMISSION_STATE);
     setIsWorkNodePanelOpen(false);
+    setPendingWorkNodeCheckoutId('');
+  };
+
+  const restoreSelectedWorkNode = () => {
     if (!pendingWorkNodeCheckoutId) return;
+    const nodeId = pendingWorkNodeCheckoutId;
+    closeWorkNodePanel();
+    setWorkNodeSaveNotice('正在保存当前改动并恢复所选版本…');
     enqueueMainWorkbenchCommand({
       op: 'checkoutAiTimelineWorkNode',
-      nodeId: pendingWorkNodeCheckoutId,
+      nodeId,
       reload: false,
       approval: {
         mode: 'manual',
         approvedBy: 'user',
-        rationale: 'Selected from Work Node tree before closing.',
+        rationale: '用户点击恢复所选版本。',
       },
     }, 'work-node-tree');
     setPendingWorkNodeCheckoutId('');
@@ -775,7 +791,7 @@ export function CanvasBoard({
     return () => window.removeEventListener(AKE_REPORT_UPDATED_EVENT, refreshReport);
   }, []);
 
-  const akeRealtimeTimeline = React.useMemo(() => (
+  const akePreviewTimeline = React.useMemo(() => (
     import.meta.env.VITE_AKE_DEMO === '1'
       ? buildAkeRealtimeTimeline({
         timelineData,
@@ -785,6 +801,35 @@ export function CanvasBoard({
       })
       : null
   ), [selectedCharacters, staffCount, timelineData]);
+
+  const akeRequestedEndFrame = akePreviewTimeline
+    ? resolveAkeCalculationEndFrame(akePreviewTimeline)
+    : null;
+
+  const akeSimulationSignature = React.useMemo(() => {
+    return buildAkeExecutionDigest({ timelineData, selectedCharacters, preview: akePreviewTimeline });
+  }, [akePreviewTimeline, akeRequestedEndFrame, resistanceRevision, selectedCharacters, timelineData]);
+
+  const activeAkeTeamReport = React.useMemo(() => {
+    if (!akeTeamReport || !akePreviewTimeline) return null;
+    return akeTeamReport.workspaceId === activeTimelineId
+      && akeTeamReport.executionDigest === akeSimulationSignature
+      && akeTeamReport.timelineMode === 'shared-variable-rate'
+      && akeTeamReport.requestedEndFrame === akeRequestedEndFrame
+      ? akeTeamReport
+      : null;
+  }, [activeTimelineId, akePreviewTimeline, akeRequestedEndFrame, akeSimulationSignature, akeTeamReport]);
+
+  const akeRealtimeTimeline = React.useMemo(() => (
+    akePreviewTimeline && activeAkeTeamReport
+      ? projectSettledAkeTimeline(akePreviewTimeline, activeAkeTeamReport)
+      : akePreviewTimeline
+  ), [akePreviewTimeline, activeAkeTeamReport]);
+
+  const akePlanAdmissionStatus = akeRealtimeTimeline
+    ?.sharedVariableRateTimeline?.admissionStatus ?? null;
+  const isAkePlanBlocked = akePlanAdmissionStatus !== null
+    && akePlanAdmissionStatus !== 'valid';
 
   const basicAttackCutDraft = React.useMemo(() => {
     if (!pendingBasicAttackCut || !akeRealtimeTimeline) return null;
@@ -830,80 +875,35 @@ export function CanvasBoard({
     staffCount,
     Math.ceil((akeRealtimeTimeline?.sharedVariableRateTimeline?.width ?? 0) / GRID_TIMELINE_WIDTH),
   ), [akeRealtimeTimeline, staffCount]);
-  const akePlanAdmissionStatus = akeRealtimeTimeline
-    ?.sharedVariableRateTimeline?.admissionStatus ?? null;
-  const isAkePlanBlocked = akePlanAdmissionStatus !== null
-    && akePlanAdmissionStatus !== 'valid';
-  const akeRequestedEndFrame = akeRealtimeTimeline
-    ? resolveAkeCalculationEndFrame(akeRealtimeTimeline)
-    : null;
-
-  const akeSimulationSignature = React.useMemo(() => {
-    const configSnapshots = getOperatorConfigPageCache();
-    const catalog = getInstalledAkeCatalog();
-    return JSON.stringify({
-      contract: {
-        report: 3,
-        runtime: 'ake-squad-combat-runtime-v3',
-        semanticMapping: 'engine-semantic-mappings-v1',
-        timeline: 'shared-variable-rate-v1',
-      },
-      catalog: {
-        schemaVersion: catalog?.schemaVersion ?? null,
-        version: catalog?.source.version ?? null,
-        sharedRevision: catalog?.source.sharedRevision ?? null,
-      },
-      enemy: { id: 'eny_0007_mimicw', profile: 'ordinary-fixed-dummy-v1' },
-      characters: selectedCharacters.map((character) => ({
-        id: character.id,
-        name: character.name,
-        config: configSnapshots[character.id] ?? null,
-      })),
-      commands: (akeRealtimeTimeline?.commands ?? []).map((command) => ({
-        id: command.commandId,
-        characterId: command.characterId,
-        commandType: command.commandType,
-        frame: command.requestedFrame,
-        skillId: command.profile.skillId,
-      })),
-      endFrame: akeRequestedEndFrame,
-      configRevision: resistanceRevision,
-    });
-  }, [akeRealtimeTimeline, akeRequestedEndFrame, resistanceRevision, selectedCharacters]);
-
-  const activeAkeTeamReport = React.useMemo(() => {
-    if (!akeTeamReport || !akeRealtimeTimeline) return null;
-    return akeTeamReport.executionDigest === akeSimulationSignature
-      && akeTeamReport.timelineMode === 'shared-variable-rate'
-      && akeTeamReport.requestedEndFrame === akeRequestedEndFrame
-      ? akeTeamReport
-      : null;
-  }, [akeRealtimeTimeline, akeRequestedEndFrame, akeSimulationSignature, akeTeamReport]);
 
   useEffect(() => {
     if (import.meta.env.VITE_AKE_DEMO !== '1'
-      || !akeRealtimeTimeline
+      || !akePreviewTimeline
       || selectedCharacters.length === 0) {
       return undefined;
     }
     const controller = new AbortController();
+    setAkeLiveCalculation({ signature: akeSimulationSignature, status: 'updating', error: '' });
     const timer = window.setTimeout(() => {
       runAkeTeamCalculation({
         timelineData,
         selectedCharacters,
         executionDigest: akeSimulationSignature,
         signal: controller.signal,
+      }).then(() => {
+        if (!controller.signal.aborted) setAkeLiveCalculation({ signature: akeSimulationSignature, status: 'settled', error: '' });
       }).catch((error) => {
         if (controller.signal.aborted
           || (error instanceof DOMException && error.name === 'AbortError')) return;
         console.error('AKE 实时状态账本刷新失败:', error);
+        setAkeLiveCalculation({ signature: akeSimulationSignature, status: 'error', error: error instanceof Error ? error.message : String(error) });
       });
     }, 320);
     return () => {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [akeSimulationSignature, akeRealtimeTimeline, selectedCharacters, timelineData]);
+  }, [akeSimulationSignature, akePreviewTimeline, selectedCharacters, timelineData, akeRetryRevision]);
 
   const restoredSignatureRef = useRef<string | null>(null);
   const previousViewRef = useRef(currentView);
@@ -1876,6 +1876,12 @@ export function CanvasBoard({
     const position = buildWorkbenchButtonPosition(staffIndex, lineIndex, nodeIndex);
     const skill = resolveWorkbenchCommandSkill(character, command);
     const buttonId = command.buttonId?.trim() || generateId();
+    const releaseAnchor = command.releaseAnchor ? structuredClone(command.releaseAnchor) : undefined;
+    if (releaseAnchor && releaseAnchor.kind !== 'group-start'
+      && (!skillButtons.some(button => button.id === releaseAnchor.sourceButtonId)
+        || releaseAnchor.sourceButtonId === buttonId)) {
+      throw new Error('释放锚点必须指向当前轴上已存在的另一个动作。');
+    }
     const skillIconUrl = skill.iconUrl ?? character.skillIconMap?.[skill.buttonType] ?? resolveSkillIconUrl(character.name, skill.buttonType);
 
     const runtimeButton: SkillButton = {
@@ -1891,6 +1897,7 @@ export function CanvasBoard({
       isDragging: false,
       isSelected: Boolean(command.select),
       isFromSandbox: true,
+      releaseAnchor,
       runtimeSkillId: skill.id,
       skillDisplayName: skill.displayName,
       skillIconUrl,
@@ -1904,8 +1911,9 @@ export function CanvasBoard({
         characterId: character.id,
         characterName: character.name,
         skillType: skill.buttonType,
-        staffIndex,
-        nodeIndex,
+        staffIndex: lineIndex,
+        nodeIndex: staffIndex * GRID_NODE_COUNT + nodeIndex,
+        releaseAnchor,
         position,
         runtimeSkillId: skill.id,
         skillDisplayName: skill.displayName,
@@ -2168,6 +2176,7 @@ export function CanvasBoard({
     if (!currentPayload) {
       throw new Error('当前 Canvas runtime payload 不可用，checkout 未应用');
     }
+    const preservedCheckpoint = await saveAkeWorkspace(currentPayload);
     const currentDiff = currentPayload ? diffTimelinePayloads(currentPayload, node.workingPayload).summary : null;
     const commits = (await client.list()).commits
       .filter((commit) => commit.nodeId === node.id)
@@ -2202,7 +2211,7 @@ export function CanvasBoard({
       throw new Error('workbench-renderer-not-visible: 前台 Canvas 不可见，checkout 未应用');
     }
     const repository = createTimelineRepositoryClient();
-    const previousCheckoutRef = activeCheckoutRef ? { ...activeCheckoutRef } : null;
+    const previousCheckoutRef = preservedCheckpoint.checkoutRef ? { ...preservedCheckpoint.checkoutRef } : null;
     const previousDocument = { id: activeTimelineId, label: activeTimelineLabel };
     const expectedVisibleIds = Object.keys(node.workingPayload.skillButtonTable || {}).sort();
     let checkoutRefUpdated = false;
@@ -2265,6 +2274,7 @@ export function CanvasBoard({
       setProjectionVisibilityRevision((revision) => revision + 1);
     }
 
+    await flushPersistentStorage();
     if (command.reload === true) {
       window.setTimeout(() => window.location.reload(), 80);
     }
@@ -2494,6 +2504,7 @@ export function CanvasBoard({
       rollbackMarkError = error instanceof Error ? error.message : String(error);
     }
 
+    await flushPersistentStorage();
     if (command.reload === true) {
       window.setTimeout(() => window.location.reload(), 80);
     }
@@ -2569,14 +2580,12 @@ export function CanvasBoard({
           if (!button) {
             throw new Error('未找到可回退的技能按钮');
           }
-          const releaseDependents = getReleaseDeletionBlockers(
-            attachLegacyLanePredecessors(skillButtons),
-            button.id,
-          );
-          if (releaseDependents.length > 0) {
-            throw new Error(`只能从分支末端删除；${releaseDependents.length} 个后继仍依赖 ${formatWorkbenchButtonLabel(button)}`);
-          }
-          removeTimelineButton(button.lineIndex, button.id);
+          const deleteBlockReason = getTimelineDeleteBlockReason(timelineData, button.id);
+          if (deleteBlockReason) throw new Error(deleteBlockReason);
+          const persistedLine = timelineData.staffLines.find(line => line.buttons.some(item => item.id === button.id));
+          removeTimelineButton(persistedLine?.staffIndex ?? button.lineIndex, button.id);
+          if (button.basicAttackTailBundle) dispatch({ type: 'SET_BASIC_ATTACK_TAIL_BUNDLE',
+            buttonId: button.basicAttackTailBundle.predecessorButtonId, bundle: null, stageCount: null });
           dispatch({ type: 'REMOVE_SKILL_BUTTON', buttonId: button.id });
           settleCommand({
             status: 'done',
@@ -2865,6 +2874,8 @@ export function CanvasBoard({
         if (command.op === 'checkoutAiTimelineWorkNode') {
           const result = await checkoutAiTimelineWorkNodeFromCommand(command);
           settleCommand({ status: 'done', result });
+          setWorkNodeSaveNotice('已恢复所选版本，原改动已保留在版本历史中');
+          window.setTimeout(() => setWorkNodeSaveNotice(''), 3000);
           return;
         }
 
@@ -3050,7 +3061,9 @@ export function CanvasBoard({
           : timelineSkillButtonIds.length > 0
             ? timelineSkillButtonIds
             : persistedSkillButtonIds;
-        const snapshot = buildDamageReportSnapshot({ buttonIds: currentSkillButtonIds });
+        const snapshot = isAkeMode
+          ? buildAkeWorkbenchDamageSnapshot(await runAkeTeamCalculation({ timelineData, selectedCharacters }))
+          : buildDamageReportSnapshot({ buttonIds: currentSkillButtonIds });
         const result = command.op === 'calculateDamage' && command.buttonId
           ? {
               ...snapshot,
@@ -3059,6 +3072,7 @@ export function CanvasBoard({
           : snapshot;
         settleCommand({ status: 'done', result });
       } catch (error) {
+        if (command.op === 'checkoutAiTimelineWorkNode') setWorkNodeSaveNotice(`版本恢复失败：${error instanceof Error ? error.message : String(error)}`);
         const errorCode = typeof error === 'object' && error && 'code' in error && typeof error.code === 'string'
           ? error.code
           : '';
@@ -3295,6 +3309,7 @@ export function CanvasBoard({
     mousePosition,
     handleSandboxDragStart,
     handleButtonMouseDown,
+    releaseLens, editReleaseAnchor, selectLensPort, changeLensOffset, cycleLensPort, confirmLens, cancelLens,
   } = useCanvasDrag({
     disabled: false,
     config: canvasConfig,
@@ -3313,6 +3328,16 @@ export function CanvasBoard({
     onNewButtonCommitted: handleNewTimelineButtonCommitted,
     onInteractionRejected: handleTimelineInteractionRejected,
   });
+
+  // Background settlement may finish while a pointer is held. Keep the source
+  // and its neighbouring buttons in the same projection until that gesture ends.
+  const dragCanvasProjectionRef = useRef({
+    timeline: akeRealtimeTimeline, report: activeAkeTeamReport, staffCount: projectionStaffCount,
+  });
+  if (!draggingState) dragCanvasProjectionRef.current = {
+    timeline: akeRealtimeTimeline, report: activeAkeTeamReport, staffCount: projectionStaffCount,
+  };
+  const dragCanvasProjection = dragCanvasProjectionRef.current;
 
   useEffect(() => {
     if (currentView !== 'canvas' || selectedCharacters.length === 0) {
@@ -3357,7 +3382,8 @@ export function CanvasBoard({
     const currentSkillButtonIds = skillButtons.length > 0
       ? skillButtons.map((button) => button.id)
       : timelineButtons.map((button) => button.id);
-    const computedDamageReport = buildDamageReportSnapshot({ buttonIds: currentSkillButtonIds });
+    const computedDamageReport = isAkeMode ? buildAkeWorkbenchDamageSnapshot(activeAkeTeamReport)
+      : buildDamageReportSnapshot({ buttonIds: currentSkillButtonIds });
     const operatorConfigCache = getOperatorConfigPageCache();
     const persistedButtonTable = getSkillButtonTable();
     const mirroredButtons: MainWorkbenchSnapshot['skillButtons'] = skillButtons.length > 0
@@ -3491,7 +3517,7 @@ export function CanvasBoard({
     const previousSignature = previousSnapshot
       ? buildMainWorkbenchSnapshotSignature(previousSnapshot.selectedCharacters, previousSnapshot.skillButtons, previousSnapshot.operatorConfigs, previousSnapshot.skillCatalog)
       : '';
-    const canReusePreviousDamageReport = computedDamageReport.buttonCount === 0 &&
+    const canReusePreviousDamageReport = !isAkeMode && computedDamageReport.buttonCount === 0 &&
       mirroredButtons.length > 0 &&
       previousSnapshot?.damageReport &&
       previousSnapshot.damageReport.buttonCount === mirroredButtons.length &&
@@ -3525,7 +3551,7 @@ export function CanvasBoard({
     };
     writeMainWorkbenchSnapshot(snapshot);
     void pushMainWorkbenchSnapshot(snapshot);
-  }, [activeCheckoutRef, activeTimelineId, checkoutBootstrapRevision, currentView, projectionVisibilityRevision, selectedCharacters, skillButtons, timelineData, resistanceRevision]);
+  }, [activeAkeTeamReport, isAkeMode, activeCheckoutRef, activeTimelineId, checkoutBootstrapRevision, currentView, projectionVisibilityRevision, selectedCharacters, skillButtons, timelineData, resistanceRevision]);
 
   useEffect(() => {
     if (isCheckoutBootstrapPendingRef.current || currentView !== 'canvas') return undefined;
@@ -3692,15 +3718,10 @@ export function CanvasBoard({
     if (button?.isLocked) {
       return;
     }
-    const releaseDependents = getReleaseDeletionBlockers(
-      attachLegacyLanePredecessors(skillButtons),
-      buttonId,
-    );
-    if (releaseDependents.length > 0) {
+    const deleteBlockReason = getTimelineDeleteBlockReason(timelineData, buttonId);
+    if (deleteBlockReason) {
       setContextMenuState(null);
-      setWorkNodeSaveNotice(
-        `该动作不是分支末端；请先删除后面的 ${releaseDependents.length} 个依赖动作。`,
-      );
+      setWorkNodeSaveNotice(deleteBlockReason);
       window.setTimeout(() => setWorkNodeSaveNotice(''), 2800);
       return;
     }
@@ -4243,59 +4264,9 @@ export function CanvasBoard({
     }
 
     try {
-      const repository = createTimelineRepositoryClient();
-      await ensureTimelineDocumentExists(repository, activeTimelineId, activeTimelineLabel);
-      const [documentBundle, checkoutRef] = await Promise.all([
-        repository.exportDocumentBundle(activeTimelineId),
-        repository.getCheckoutRef(activeTimelineId),
-      ]);
-      const nodes = documentBundle.workNodes;
-      const checkoutPayload = checkoutRef?.targetType === 'work-node'
-        ? nodes.find((node) => node.id === checkoutRef.targetId)?.workingPayload
-        : checkoutRef?.targetType === 'snapshot'
-          ? documentBundle.snapshots.find((snapshot) => snapshot.id === checkoutRef.targetId)?.payload
-          : undefined;
-      if (nodes.length > 0 && checkoutPayload && !hasTimelineCheckpointPayloadChanged(checkoutPayload, payload)) {
-        setWorkNodeSaveNotice('当前工作区没有新改动，未新增工作节点');
-        window.setTimeout(() => setWorkNodeSaveNotice(''), 2200);
-        return true;
-      }
-      const checkoutParent = checkoutRef?.targetType === 'work-node'
-        ? nodes.find((node) => node.id === checkoutRef.targetId)
-        : undefined;
-      const baselineParent = [...nodes]
-        .filter((node) => !node.parentNodeId)
-        .sort((left, right) => left.createdAt - right.createdAt)[0];
-      const latestParent = [...nodes].sort((left, right) => right.updatedAt - left.updatedAt)[0];
-      const parent = checkoutParent || baselineParent || latestParent;
-      const createdAt = Date.now();
-      const created = await createAiTimelineWorkNodeClient().create({
-        timelineId: activeTimelineId,
-        ...(parent ? { parentNodeId: parent.id } : { parentNodeId: null }),
-        branchId: `manual-save-${createdAt}`,
-        label: parent
-          ? `[save] ${new Date(createdAt).toLocaleString('zh-CN', { hour12: false })}`
-          : `[save] ${activeTimelineLabel} ${new Date(createdAt).toLocaleString('zh-CN', { hour12: false })}`,
-        basePayload: parent?.workingPayload || payload,
-        workingPayload: payload,
-        approvalPolicy: 'auto-low-risk',
-        riskFlags: [],
-      });
-      const checkout = await checkoutAiTimelineWorkNodeFromCommand({
-        op: 'checkoutAiTimelineWorkNode',
-        nodeId: created.node.id,
-        reload: false,
-        approval: {
-          mode: 'manual',
-          approvedBy: 'user',
-          rationale: 'Saved from the main workbench disk button.',
-        },
-      });
-      if (!checkout.checkoutApplied) {
-        throw new Error(checkout.checkoutMarkError || '工作节点已创建，但 checkout 持久化失败');
-      }
+      const result = await saveAkeWorkspace(payload);
       setWorkNodeRefreshKey((current) => current + 1);
-      setWorkNodeSaveNotice(parent ? '已保存为当前工作树的子节点' : '已保存为当前工作树的首个节点');
+      setWorkNodeSaveNotice(result.status === 'unchanged' ? '当前存档已是最新版本' : '已保存队伍配置与排轴，版本历史已更新');
       window.setTimeout(() => setWorkNodeSaveNotice(''), 2200);
       return true;
     } catch (error) {
@@ -4309,8 +4280,8 @@ export function CanvasBoard({
     const label = await requestTimelineName({
       initialValue: `${node.name} · 独立存档`,
       copy: {
-        title: '以此节点新建 SQLite',
-        description: '新工作区只以所选节点的完整状态作为根；原 SQLite 节点树不会改变。',
+        title: '以此版本新建存档',
+        description: '新工作区只以所选节点的完整状态作为根；保留原存档的版本历史。',
         placeholder: '例如：第二套独立排轴',
         confirmLabel: '新建并切换',
       },
@@ -4348,14 +4319,6 @@ export function CanvasBoard({
       await refreshTimelineArchiveLibrary().catch(() => undefined);
       alert(`独立 SQLite 已创建，但自动切换失败：${formatTimelineOperationError(error)}。请从 SQLite 列表手动应用。`);
     }
-  };
-
-  const handleOpenSaveSnapshotModal = async () => {
-    // 本地存档必须基于当前工作树的最新 checkpoint。点击入口时立即保存，
-    // 即使用户随后取消导出，也不会让当前排轴停留在未落盘状态。
-    if (!await handleSaveWorkNodeCheckpoint()) return;
-    setSnapshotDraftName('');
-    setIsSaveSnapshotModalOpen(true);
   };
 
   const handleCloseSaveSnapshotModal = () => {
@@ -4413,6 +4376,7 @@ export function CanvasBoard({
   };
 
   const handleConvertTimelineArchive = async (archive: TimelineArchiveSummary, payloadOnly = false) => {
+    if (!await handleSaveWorkNodeCheckpoint()) return;
     const repository = createTimelineRepositoryClient();
     const outcome = await runTimelineArchiveConversionForReload({
       convert: () => repository.convertTimelineArchive({
@@ -4431,7 +4395,7 @@ export function CanvasBoard({
       // 转换接口已经把 checkout 的完整工作副本写入 user.sqlite。
       // 与“应用 SQLite 工作区”保持同一路径，让 AppContext 在新页面里
       // 根据新选中干员重建可信技能目录，避免旧运行时目录误拒绝有效技能。
-      reload: () => window.location.reload(),
+      reload: () => { void flushPersistentStorage().then(() => window.location.reload()); },
     });
     if (outcome.status === 'reloading') {
       return;
@@ -4454,11 +4418,8 @@ export function CanvasBoard({
 
   const handleApplySqliteWorkspace = async (workspace: TimelineSqliteWorkspace) => {
     try {
-      const repository = createTimelineRepositoryClient();
-      const applied = await repository.applySqliteWorkspace(workspace.document.id, Date.now());
-      activateTimeline({ document: applied.document as TimelineDocument, checkoutRef: applied.checkoutRef, workingPayload: applied.payload });
-      // 应用接口已将完整工作副本写入 user.sqlite；直接刷新可让 AppContext、
-      // Canvas 与技能按钮从同一份持久化数据重新初始化。
+      if (!await handleSaveWorkNodeCheckpoint()) return;
+      await openAkeWorkspace(workspace.document.id);
       window.location.reload();
     } catch (error) {
       alert(`应用 SQLite 工作区失败：${formatTimelineOperationError(error)}`);
@@ -4715,10 +4676,8 @@ export function CanvasBoard({
   const handleOpenDamageReport = async () => {
     if (import.meta.env.VITE_AKE_DEMO === '1') {
       if (isAkeCalculating) return;
-      if (isAkePlanBlocked) {
-        setWorkNodeSaveNotice(akePlanAdmissionStatus === 'unverified'
-          ? '当前排轴仍有未验证的状态机规则，不能作为可执行结算提交。'
-          : '当前排轴存在无法释放的同帧批次，请先调整技能或加入等待。');
+      if (activeAkeTeamReport) {
+        navigateToAppPath(APP_ROUTE_PATHS.damageReportPpt);
         return;
       }
       setIsAkeCalculating(true);
@@ -4735,6 +4694,7 @@ export function CanvasBoard({
           : `AKE 已完成：${report.summary.successfulCommands} 个输入执行，${report.summary.failedCommands} 个失败。`);
       } catch (error) {
         setWorkNodeSaveNotice(`AKE 结算失败：${error instanceof Error ? error.message : String(error)}`);
+        return;
       } finally {
         setIsAkeCalculating(false);
       }
@@ -4749,6 +4709,7 @@ export function CanvasBoard({
     const spinStartTime = Date.now();
     setIsRefreshingAvailableCandidates(true);
     try {
+      if (import.meta.env.VITE_AKE_DEMO === '1') await installAkeCatalogData({ force: true });
       const refreshedCharacters = await refreshSelectedCharacters();
       const charactersForRefresh = refreshedCharacters.length > 0 ? refreshedCharacters : selectedCharacters;
       await refreshOperatorConfigSnapshotsForCharacters(charactersForRefresh);
@@ -4771,6 +4732,7 @@ export function CanvasBoard({
 
   const canvasBoardClassName = [
     'canvas-board',
+    import.meta.env.VITE_AKE_DEMO === '1' ? 'has-combat-inspection' : '',
     isWorkbenchTopZoneOpen ? 'has-top-zone' : '',
   ]
     .filter(Boolean)
@@ -4808,6 +4770,47 @@ export function CanvasBoard({
     />
   );
 
+  const inspectCommand = (id: string) => {
+    setCombatDockView('combat');
+    canvasRef.current?.querySelector<HTMLElement>(`[data-skill-button-id="${CSS.escape(id)}"]`)
+      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    const button = skillButtons.find(button => button.id === id);
+    if (button?.timelineModuleKind) {
+      handleConfigureTimelineModule(button);
+      return;
+    }
+    setInspectedCommandId(id);
+  };
+
+  useEffect(() => {
+    publishRiaDebugSection('timeline', { timelineData, selectedCharacters: selectedCharacters.map(character => ({ id: character.id, name: character.name })),
+      activeTimelineId, checkout: activeCheckoutRef, executionDigest: akeSimulationSignature, initialControllerCharacterId });
+    const model = akeRealtimeTimeline?.sharedVariableRateTimeline;
+    publishRiaDebugSection('planner', { tickRate: akeRealtimeTimeline?.tickRate, durationFrames: akeRealtimeTimeline?.durationFrames,
+      commands: akeRealtimeTimeline?.commands.map(({ profile, hits, ...command }) => ({ ...command,
+        resolvedSkillId: profile.skillId, hits: hits.map(({ hitBuffs: _hitBuffs, ...hit }) => hit) })),
+      comboWindows: akeRealtimeTimeline?.comboWindows, sharedAtb: akeRealtimeTimeline?.sharedAtb,
+      ultimateSpPools: akeRealtimeTimeline?.ultimateSpPools, diagnostics: akeRealtimeTimeline?.diagnostics,
+      planningIssues: akeRealtimeTimeline?.planningIssues, planningIterations: akeRealtimeTimeline?.planningIterations,
+      sharedVariableRateTimeline: model ? { ...model, actions: model.actions.map(({ payload: _payload, ...action }) => action) } : null,
+      liveCalculation: akeLiveCalculation,
+      activeReportDigest: activeAkeTeamReport?.executionDigest ?? null, admissionStatus: akePlanAdmissionStatus });
+  }, [timelineData, selectedCharacters, activeTimelineId, activeCheckoutRef, akeSimulationSignature,
+    initialControllerCharacterId, akeRealtimeTimeline, akeLiveCalculation, activeAkeTeamReport, akePlanAdmissionStatus]);
+
+  useEffect(() => registerRiaDebugCommandHandler(async command => {
+    if (command.op === 'set-panel') { setCombatDockView(command.panel!); return { panel: command.panel }; }
+    if (command.op === 'recalculate') { setAkeRetryRevision(revision => revision + 1); return { scheduled: true }; }
+    const button = skillButtons.find(button => button.id === command.commandId);
+    if (!button) throw new Error(`当前排轴找不到动作 ${command.commandId}`);
+    if (command.op === 'inspect-command') inspectCommand(button.id);
+    else if (command.op === 'open-details') {
+      if (button.timelineModuleKind) handleConfigureTimelineModule(button);
+      else navigateToAppPath(getTimelineSkillDetailPath(button.id));
+    }
+    return { commandId: button.id };
+  }), [skillButtons, akeSimulationSignature, handleConfigureTimelineModule, activeTimelineId, activeTimelineLabel, activeTimelineIsTemporary, activeCheckoutRef]);
+
   return (
     <div className={canvasBoardClassName}>
       {workNodeSaveNotice && <div className="canvas-work-node-save-notice" role="status">{workNodeSaveNotice}</div>}
@@ -4822,12 +4825,15 @@ export function CanvasBoard({
             key={`checkout-${checkoutRenderRevision}`}
             ref={canvasRef}
             activeSkillButtonId={activeSkillButtonId}
+            inspectedCommandId={combatDockView === 'combat' ? inspectedCommandId : null}
+            onInspectCommand={isAkeMode ? inspectCommand : undefined}
             config={canvasConfig}
-            staffCount={projectionStaffCount}
+            staffCount={dragCanvasProjection.staffCount}
             selectedCharacters={selectedCharacters}
             initialControllerCharacterId={initialControllerCharacterId}
             skillButtons={skillButtons}
             onButtonMouseDown={handleButtonMouseDown}
+            onEditReleaseAnchor={editReleaseAnchor}
             onButtonContextMenu={handleButtonContextMenu}
             onCanvasClick={handleCanvasClick}
             onCanvasPlaceCopy={handleCanvasPlaceCopy}
@@ -4843,18 +4849,32 @@ export function CanvasBoard({
             isDraggingActive={Boolean(draggingState)}
             isBrowseMode={isBrowseMode}
             isInspectMode={isInspectMode}
-            isDragDisabled={false}
+            isDragDisabled={true}
             resistanceRevision={resistanceRevision}
-            akeTimeline={activeAkeTeamReport?.timeline ?? null}
-            akeRuntimeReport={activeAkeTeamReport}
-            akeRealtimeTimeline={akeRealtimeTimeline}
+            akeTimeline={dragCanvasProjection.report?.timeline ?? null}
+            akeRuntimeReport={dragCanvasProjection.report}
+            akeRealtimeTimeline={dragCanvasProjection.timeline}
             dropTarget={dropTarget}
             snapTargets={snapTargets}
           />
         </div>
 
-        <aside className="canvas-right-zone is-skill-sandbox">
-          {rightWorkbenchContent}
+        <aside className={`canvas-right-zone is-skill-sandbox${isAkeMode ? ' canvas-combat-dock' : ''}`}>
+          {isAkeMode ? <>
+            <div className="combat-dock-tabs" role="tablist" aria-label="排轴侧栏">
+              <button type="button" role="tab" id="combat-tools-tab" aria-controls="combat-tools-panel" aria-selected={combatDockView === 'tools'} onClick={() => setCombatDockView('tools')}>排轴工具</button>
+              <button type="button" role="tab" id="combat-inspector-tab" aria-controls="combat-inspector-panel" aria-selected={combatDockView === 'combat'} onClick={() => setCombatDockView('combat')}>战斗状态{isAkePlanBlocked ? ' · 需调整' : ''}</button>
+            </div>
+            <div className="combat-dock-content" id="combat-tools-panel" role="tabpanel" aria-labelledby="combat-tools-tab" hidden={combatDockView !== 'tools'}>{rightWorkbenchContent}</div>
+            <div className="combat-dock-content" id="combat-inspector-panel" role="tabpanel" aria-labelledby="combat-inspector-tab" hidden={combatDockView !== 'combat'}>
+              <TimelineCombatPanel report={activeAkeTeamReport} preview={akeRealtimeTimeline} characters={selectedCharacters}
+                selectedCommandId={inspectedCommandId} onSelectCommand={inspectCommand}
+                onOpenDetails={id => navigateToAppPath(getTimelineSkillDetailPath(id))}
+                isUpdating={akeLiveCalculation.signature !== akeSimulationSignature || akeLiveCalculation.status === 'updating'}
+                error={akeLiveCalculation.signature === akeSimulationSignature ? akeLiveCalculation.error : ''}
+                onRetry={() => setAkeRetryRevision(revision => revision + 1)} />
+            </div>
+          </> : rightWorkbenchContent}
         </aside>
 
         <div className="canvas-bottom-zone">
@@ -4867,16 +4887,12 @@ export function CanvasBoard({
               onBack={handleBack}
               onAddGroup={handleAddStaffGroup}
               onRemoveGroup={handleRemoveStaffGroup}
-              onSave={handleOpenSaveSnapshotModal}
+              onSave={() => navigateToAppPath(APP_ROUTE_PATHS.welcome)}
               onRestore={handleOpenSnapshotModal}
               onShare={handleOpenShareModal}
               onCalculate={handleOpenDamageReport}
-              calculateLabel={isAkeCalculating
-                ? 'AKE 结算中…'
-                : akePlanAdmissionStatus === 'unverified'
-                  ? '排轴待核'
-                  : akePlanAdmissionStatus === 'invalid' ? '排轴不可执行' : undefined}
-              calculateDisabled={isAkeCalculating || isAkePlanBlocked}
+              calculateLabel={isAkeCalculating ? 'AKE 结算中…' : isAkePlanBlocked ? '查看部分报表' : '伤害报表'}
+              calculateDisabled={isAkeCalculating}
             />
           </div>
           <div className="canvas-bottom-zone-center" />
@@ -4889,10 +4905,10 @@ export function CanvasBoard({
           <div className="work-node-modal" onClick={(event) => event.stopPropagation()}>
             <div className="work-node-modal-head">
               <div className="work-node-modal-actions">
-                <h3>Work Node 节点树 · {activeTimelineLabel}</h3>
+                <h3>存档版本历史 · {activeTimelineLabel}</h3>
                 <p>{isWorkNodeOmissionMode
                   ? workNodeOmissionState.message
-                  : '查看 AI 与人工 checkpoint 的节点、差异、风险和 checkout / restore 证据。'}</p>
+                  : '选择版本查看内容，点击“恢复所选版本”应用。关闭窗口会保留当前排轴。'}</p>
               </div>
               <div className="work-node-modal-head-actions">
                 <button
@@ -4930,6 +4946,8 @@ export function CanvasBoard({
                 <button type="button" className="modal-close-btn" onClick={() => setWorkNodeCameraResetKey((current) => current + 1)}>
                   归正
                 </button>
+                {!isWorkNodeOmissionMode && <button type="button" className="modal-close-btn"
+                  disabled={!pendingWorkNodeCheckoutId} onClick={restoreSelectedWorkNode}>恢复所选版本</button>}
                 <button type="button" className="modal-close-btn" onClick={closeWorkNodePanel}>
                   关闭
                 </button>
@@ -4950,8 +4968,10 @@ export function CanvasBoard({
         </div>
       )}
 
+      <ReleaseLens view={releaseLens} onSelect={selectLensPort} onOffsetChange={changeLensOffset}
+        onCycle={cycleLensPort} onConfirm={confirmLens} onCancel={cancelLens} />
       <DraggingOverlay
-        draggingState={draggingState ? { id: draggingState.id, skillType: draggingState.skillType } : null}
+        draggingState={draggingState && !draggingState.editingAnchor && !releaseLens ? { id: draggingState.id, skillType: draggingState.skillType, skillDisplayName: draggingState.skillDisplayName } : null}
         mousePosition={mousePosition}
         startFrame={draggingAkeCommand?.actualFrame ?? draggingAkeCommand?.requestedFrame ?? null}
         endFrame={draggingAkeCommand?.endFrame

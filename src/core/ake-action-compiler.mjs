@@ -223,6 +223,12 @@ function normalizeDamageUnits(node) {
             damageDecorateMask: Number(unit.damageDecorateMask ?? 0),
             damageTagIds: tagIds(unit.damageTags),
             damageTypeMask: unit.damageTypeMask ?? null,
+            damageProcessors: (unit.damageProcessors ?? []).map(processor => ({
+                type: actionType(processor.$type) || processor.type,
+                side: processor.side,
+                zoneName: processor.zoneName,
+                addition: clone(processor.addition)
+            })),
             scale: unit.scale ?? (unit.simpleCalculation === false
                 ? (unit.atkCalculation?.atkScale ?? unit.atkScale)
                 : unit.atkScale),
@@ -629,7 +635,10 @@ export class AkeActionCompiler {
         return {
             ...parsed,
             effectiveSkillType: SKILL_SPECIFICATION_TYPES[parsed.skillSpecification] ?? null,
-            castStartActions: switchToBuff.actions,
+            // asSkillCast replaces the foreground animation with a Buff cast.
+            // Non-cast wrappers keep their delegated CastSkill start actions.
+            castReplacement: switchToBuff.castReplacement ?? null,
+            castStartActions: switchToBuff.castReplacement ? [] : switchToBuff.actions,
             castStartMetadata: switchToBuff.metadata,
             timeline,
             compiler: {
@@ -746,6 +755,9 @@ export class AkeActionCompiler {
             reason: 'SwitchToBuffConfig'
         };
         const conditions = conditionResult.conditions;
+        if (config.asSkillCast !== false && result.unresolved.length === 0) {
+            result.castReplacement = { conditions, actions: [applyBuff], asSkillCast: true };
+        }
         result.actions.push(conditions.length === 0 ? applyBuff : {
             type: 'IfElseAction',
             conditions,
@@ -887,6 +899,7 @@ export class AkeActionCompiler {
                 unresolved: null
             };
         }
+        if (source === 'MainCharacter') return { ref: 'MainCharacter', unresolved: null };
         if (TARGET_ALIASES.has(source)) {
             return { ref: TARGET_ALIASES.get(source), unresolved: null };
         }
@@ -1532,6 +1545,11 @@ export class AkeActionCompiler {
             case 'ChannelingCastingAction': {
                 const metadata = this.#timelineMetadata(type, node, state);
                 result.metadata.push(metadata);
+                const target = this.#targetRef(node.targetSettings, state, 'channel target');
+                if (target.unresolved) result.unresolved.push(target.unresolved);
+                const targetRef = isRecord(target.ref) && target.ref.type === 'TargetGroup'
+                    ? { ...target.ref, all: true, fallback: null }
+                    : target.ref;
                 const children = this.#compileSequence(actionData(
                     node.actionOnTick ?? node.actionsOnTick ?? node.tickActions
                 ), {
@@ -1548,12 +1566,18 @@ export class AkeActionCompiler {
                     -1
                 ));
                 if (maxCountPerTarget === 1) {
-                    // The public Chen and Wulfgard traces establish that a
-                    // one-per-target channel fires immediately when its
-                    // timeline group starts. The scenario runtime has one
-                    // explicit target, so flattening this case is exact and
-                    // does not invent an interval or spatial fan-out policy.
-                    result.actions.push(...children.actions);
+                    // Even an immediate channel binds Target to its selected
+                    // entities. Its parent may be a self-targeted Buff.
+                    result.actions.push({
+                        type: 'ScheduleIntervalActions',
+                        intervalTicks: 1,
+                        durationTicks: 0,
+                        maxExecutions: 1,
+                        includeStart: true,
+                        targetRef,
+                        actions: children.actions,
+                        reason: type
+                    });
                     result.cleanupActions.push(...children.cleanupActions);
                     result.metadata.push({
                         type: 'ResolvedChannelingMode',
@@ -1581,6 +1605,7 @@ export class AkeActionCompiler {
                             timelineStartFrame: startFrame,
                             timelineEndFrame: endFrame,
                             includeStart: true,
+                            targetRef,
                             maxExecutions: maxCountPerTarget > 0 ? maxCountPerTarget : null,
                             targetIntervalSeconds: Number(resolveValue(
                                 node.targetTriggerInterval,
@@ -1650,14 +1675,31 @@ export class AkeActionCompiler {
                 });
                 break;
             }
-            case 'JumpToAction':
-                result.actions.push({
+            case 'JumpToAction': {
+                const conditions = actionData(node.conditionAction);
+                const seek = {
                     type: 'SeekSkillTimeline',
                     destFrame: Number(node.destFrame ?? 0),
                     sourcePath: state.path,
                     reason: type
+                };
+                if (conditions.length === 0) {
+                    result.actions.push(seek);
+                    break;
+                }
+                const compiled = this.#compileConditionList(conditions, {
+                    ...state, path: `${state.path}.condition`
+                });
+                result.unresolved.push(...compiled.unresolved);
+                result.diagnostics.push(...compiled.diagnostics);
+                result.actions.push({
+                    ...seek,
+                    type: 'WatchSkillTimelineCondition',
+                    conditions: compiled.conditions,
+                    timelineEndFrame: state.timelineEndFrame ?? null
                 });
                 break;
+            }
             case 'MarkCanInterrupt':
                 result.actions.push({
                     type: 'MarkSkillInterruptible',
@@ -1951,6 +1993,30 @@ export class AkeActionCompiler {
                 }
                 break;
             }
+            case 'SaveBuffLifeTime': {
+                const settings = node.buffSettings ?? {};
+                if (settings.checkType !== 'Environment' || state.scope !== 'buff') {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_BUFF_LIFETIME_SELECTOR_REQUIRED', type, state.path,
+                        'Buff lifetime reads currently require the executing Buff instance.',
+                        { checkType: settings.checkType ?? null }
+                    ));
+                } else if (typeof node.key !== 'string' || node.key.length === 0) {
+                    result.unresolved.push(this.#unresolved(
+                        'AKE_BLACKBOARD_KEY_MISSING', type, state.path,
+                        'SaveBuffLifeTime has an empty destination key.'
+                    ));
+                } else {
+                    result.actions.push({
+                        type: 'StoreBuffLifetime',
+                        currentBuffInstance: true,
+                        key: node.key,
+                        reason: type
+                    });
+                }
+                break;
+            }
+            case 'SaveBuffStackNumByTag':
             case 'SaveBuffStackNumAdvanced': {
                 const target = this.#targetRef(
                     node.checkTarget,
@@ -1963,12 +2029,17 @@ export class AkeActionCompiler {
                         'AKE_BLACKBOARD_KEY_MISSING',
                         type,
                         state.path,
-                        'SaveBuffStackNumAdvanced has an empty destination key.'
+                        `${type} has an empty destination key.`
                     ));
                     break;
                 }
                 const settings = node.buffSettings ?? {};
-                if (settings.checkType === 'Environment') {
+                // The older ByTag spelling stores the same query directly
+                // on the action instead of inside Advanced.buffSettings.
+                const checkType = settings.checkType
+                    ?? (type === 'SaveBuffStackNumByTag' ? 'Tag' : 'Id');
+                const query = node.tagQuery ?? settings.tagQuery ?? {};
+                if (checkType === 'Environment') {
                     result.unresolved.push(this.#unresolved(
                         'AKE_ENVIRONMENT_BUFF_PROVIDER_REQUIRED',
                         type,
@@ -1980,13 +2051,13 @@ export class AkeActionCompiler {
                 if (target.ref) result.actions.push({
                     type: 'StoreBuffCount',
                     target: target.ref,
-                    buffIds: settings.checkType === 'Id'
+                    buffIds: checkType === 'Id'
                         ? (settings.buffIdList ?? []).filter(Boolean)
                         : [],
-                    tagIds: settings.checkType === 'Tag'
-                        ? tagIds(settings.tagQuery?.tags)
+                    tagIds: checkType === 'Tag'
+                        ? tagIds(query.tags)
                         : [],
-                    tagQueryType: settings.tagQuery?.queryType ?? 'HasAny',
+                    tagQueryType: query.queryType ?? 'HasAny',
                     countType: node.buffStackNumType ?? 'BuffCount',
                     key: node.key
                 });
@@ -3071,10 +3142,13 @@ export class AkeActionCompiler {
                 }));
                 const auraId = `ake-aura:${state.path}`;
                 const targetFilter = node.targetFilter ?? {};
+                const source = this.#targetRef(node.buffSource ?? 'Source', state, 'aura Buff source');
+                if (source.unresolved) result.unresolved.push(source.unresolved);
                 result.actions.push({
                     type: 'CreateAura',
                     auraId,
                     scopeAuraId: true,
+                    sourceRef: source.ref,
                     targetSelector: {
                         mode: node.auraType === 'GlobalAura'
                             ? 'Global'
@@ -3082,6 +3156,8 @@ export class AkeActionCompiler {
                                 ? 'ContextTarget'
                                 : 'ExternalSpatialProvider',
                         faction: targetFilter.factionTarget,
+                        fixedFaction: targetFilter.autoSetTargetFaction === false
+                            ? targetFilter.targetFactionType : null,
                         objectType: node.targetObjectType,
                         excludeOwner: Boolean(node.excludeOwner),
                         tagIds: tagIds(targetFilter.tagQuery?.tags),
@@ -3104,6 +3180,7 @@ export class AkeActionCompiler {
                     type: 'RemoveAura',
                     auraId,
                     scopeAuraId: true,
+                    sourceRef: source.ref,
                     reason: `${type}:cleanup`
                 });
                 result.metadata.push(
@@ -3398,6 +3475,8 @@ export class AkeActionCompiler {
                     scope: 'Entity',
                     resourceOwner: target.ref,
                     resourceGainTags,
+                    // AKE lists recovery tags exempt from the prohibition.
+                    allowedResourceGainTags: resourceGainTags,
                     sourceKey,
                     reason: type
                 });
@@ -3689,20 +3768,33 @@ export class AkeActionCompiler {
                     candidate.selector?.inflictionType === node.inflictionType
                 );
                 if (mapping?.effect?.operation === 'ApplyBuff') {
+                    const target = this.#targetRef(node.target ?? 'Target', state,
+                        'spell infliction target');
+                    const source = this.#targetRef(node.source ?? 'Source', state,
+                        'spell infliction source');
+                    if (target.unresolved) result.unresolved.push(target.unresolved);
+                    if (source.unresolved) result.unresolved.push(source.unresolved);
+                    if (!target.ref || !source.ref) break;
                     const attachmentBuffIds = elementalAttachmentBuffIds(
                         this.semanticMappings
                     );
-                    result.actions.push({
+                    const infliction = {
                         type: 'ApplyEnemyInfliction',
                         element: node.inflictionType,
                         buffId: mapping.effect.buffId,
                         attachmentBuffIds,
-                        target: 'Target',
+                        target: isRecord(target.ref) && target.ref.type === 'TargetGroup'
+                            ? 'Target' : target.ref,
+                        sourceRef: source.ref,
                         notifyBeforeOutputSpellInfliction: true,
                         inheritEventBlackboard: false,
                         reason: type,
                         sourcePath: state.path
-                    });
+                    };
+                    result.actions.push(isRecord(target.ref) && target.ref.type === 'TargetGroup'
+                        ? { type: 'ForEachTarget', targetGroupKey: target.ref.key,
+                            actions: [infliction], reason: `${type}:ContextTargets` }
+                        : infliction);
                 } else {
                     result.unresolved.push(this.#unresolved(
                         'AKE_INFLICTION_MAPPING_MISSING',
@@ -4246,28 +4338,24 @@ export class AkeActionCompiler {
                 } : null;
                 break;
             }
-            case 'CheckSkillType':
-                result.condition = {
-                    type: 'SkillTypeIs',
-                    skillType: node.skillTypeList ?? []
-                };
+            case 'CheckSkillType': {
+                if (node.checkTargetCurSkill) {
+                    const owner = this.#targetRef(node.skillOwner, state, 'current skill owner');
+                    if (owner.unresolved) result.unresolved.push(owner.unresolved);
+                    result.condition = owner.ref ? { type: 'CurrentSkillTypeMatches',
+                        target: owner.ref, skillTypes: node.skillTypeList ?? [],
+                        beforeExclusive: node.mustBeforeExclusiveTime === true,
+                        attackTypeMask: node.attackTypeMask ?? 'All' } : null;
+                } else result.condition = { type: 'SkillTypeIs', skillType: node.skillTypeList ?? [] };
                 break;
+            }
             case 'CheckOriginSkillType': {
                 const attackTypeMask = node.attackTypeMask ?? 'All';
-                if (attackTypeMask !== 'All') {
-                    result.unresolved.push(this.#unresolved(
-                        'AKE_ORIGIN_ATTACK_TYPE_PROVIDER_REQUIRED',
-                        type,
-                        state.path,
-                        `Origin skill attack mask ${String(attackTypeMask)} requires an attack-type provider.`,
-                        { attackTypeMask }
-                    ));
-                } else {
-                    result.condition = {
-                        type: 'SkillTypeIs',
-                        skillType: node.skillTypeList ?? []
-                    };
-                }
+                result.condition = {
+                    type: 'OriginSkillTypeMatches',
+                    skillTypes: node.skillTypeList ?? [],
+                    attackTypeMask
+                };
                 break;
             }
             case 'CheckSkillId': {
@@ -4361,6 +4449,7 @@ export class AkeActionCompiler {
                     target: target.ref,
                     buffId: node.buffId?.buffId ?? node.buffId,
                     operator: node.compareType,
+                    ...(node.limitSkillCastId === true ? { limitSkillCastId: true } : {}),
                     value: descriptor(node.value)
                 } : null;
                 break;
@@ -4404,6 +4493,7 @@ export class AkeActionCompiler {
                     tagQueryType: tagQuery.queryType ?? 'HasAny',
                     countType: node.buffStackNumType ?? 'BuffCount',
                     operator: node.compareType,
+                    ...(node.limitSkillCastId === true ? { limitSkillCastId: true } : {}),
                     value: descriptor(node.value)
                 } : null;
                 break;

@@ -173,6 +173,7 @@ export function adaptRuntimeTemplateToLegacyCharacter(
   const sandboxSkills: SandboxSkill[] = template.skills.map((skill) => ({
     id: skill.id,
     displayName: skill.displayName,
+    description: skill.description,
     buttonType: skill.buttonType,
     iconUrl: skill.iconUrl ? normalizeAssetUrl(skill.iconUrl) : undefined,
     hitCount: skill.hitCount,

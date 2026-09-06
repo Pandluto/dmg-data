@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, useRef, type CSSProperties } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { buildDamageReportSnapshot, DamageReportButtonRow, DamageReportCharacterRow } from '../core/services/damageReportService';
-import { loadTimelineData } from '../core/repositories';
+import type { DamageReportSnapshot, DamageReportButtonRow, DamageReportCharacterRow } from '../core/services/damageReportService';
+import { loadTimelineData, saveTimelineData } from '../core/repositories';
 import { getOperatorConfigPageCache } from '../core/repositories/operatorConfigRepository';
 import {
   GRID_NODE_COUNT,
@@ -20,28 +20,24 @@ import { getSelectedCharacterIds } from '../utils/storage';
 import type { Character, SkillButtonData, TimelineData } from '../types';
 import type { ConfigSnapshot } from '../core/calculators/operatorPanelCalculator';
 import { RdpsOverviewChart, RdpsCharacterSplitChart } from './DamageReportRdpsCharts';
-import { loadMobileCatalog } from '../mobile/mobileCatalog';
-import { timelinePayloadToMobileDraft } from '../mobile/tacticalShareInterop';
-import { buildMobileRuntimeState } from '../mobile/mobileRuntime';
-import type { MobileCatalog, MobileDraft } from '../mobile/model';
-import {
-  createDesktopShare,
-  isMobileShareEnabled,
-} from '../mobile/mobileShare';
+import type { MobileDamageReport } from '../mobile/model';
 import { MobileReportPage } from '../mobile/pages/MobileReportPage';
 import {
   getCurrentTimelineSnapshotPayload,
-  type TimelineSnapshotPayload,
 } from '../utils/timelineSnapshotStorage';
-import { getTimelineSessionSnapshot } from '../agentKernel/timelineRepository/timelineSession';
-import { buildDesktopWorktreeShareBundle } from './desktopTacticalShare';
+import { useTimelineSession } from '../agentKernel/timelineRepository/useTimelineSession';
+import { AKE_REPORT_UPDATED_EVENT, readLatestAkeTeamReport, runAkeTeamCalculation } from '../integrations/ake/akeProvider';
+import { buildAkeExecutionDigest } from '../integrations/ake/akeExecutionIdentity';
+import { buildAkeReportPresentation, AKE_RDPS_UNAVAILABLE } from '../integrations/ake/akeReportPresentation';
+import { prepareAkeReportRdps } from '../integrations/ake/akeRdpsClient';
+import { buildAkeReportModel } from '../integrations/ake/akeReportModel';
+import { getInstalledAkeCatalog } from '../integrations/ake/akeCatalogAdapter';
+import { persistentWorkspaceStorage } from '../platform/storage/persistentStorage';
 import {
   handleReportImageError,
   ReportLevelRows,
   ReportPotentialStar,
 } from './DamageReportPptPrimitives';
-import { AkeReportDrawer } from '../integrations/ake/AkeReportDrawer';
-import { readLatestAkeTeamReport } from '../integrations/ake/akeProvider';
 import './CanvasBoard/SkillButton.css';
 import './DamageReportPptPage.css';
 
@@ -351,10 +347,6 @@ function resolveTimelineSkillIcon(button: SkillButtonData, character?: ReportOpe
     skillDisplayName: button.skillDisplayName,
     skillIconUrl: button.skillIconUrl,
     customHits: button.customHits,
-    timelineModuleKind: button.timelineModuleKind,
-    forcedWaitConfig: button.forcedWaitConfig,
-    laneWaitConfig: button.laneWaitConfig,
-    operatorSwitchConfig: button.operatorSwitchConfig,
     element: character?.element,
   });
   return normalizeAssetUrl(runtimeSkill?.iconUrl ?? button.skillIconUrl ?? resolveSkillIconUrl(button.characterName, button.skillType));
@@ -513,9 +505,9 @@ function PetalRoseChart({ rows }: { rows: ReturnType<typeof buildCharacterDamage
   );
 }
 
-function LineChart({ buttons }: { buttons: DamageReportButtonRow[] }) {
+function LineChart({ buttons, report }: { buttons: DamageReportButtonRow[]; report: MobileDamageReport }) {
   let runningTotal = 0;
-  const points = buttons.map((button, index) => {
+  const fallbackPoints = buttons.map((button, index) => {
     runningTotal += button.expected;
     return {
       x: index,
@@ -523,9 +515,12 @@ function LineChart({ buttons }: { buttons: DamageReportButtonRow[] }) {
       label: `${button.orderLabel} ${button.characterName}`,
     };
   });
+  const points = report.cumulativeDamage?.map(point => ({ x: point.position, y: point.value, label: point.label })) ?? fallbackPoints;
+  runningTotal = points[points.length - 1]?.y ?? 0;
+  const maxX = Math.max(...points.map(point => point.x), 1);
   const maxY = Math.max(...points.map((point) => point.y), 1);
   const path = points.map((point, index) => {
-    const x = points.length <= 1 ? 8 : 8 + (point.x / (points.length - 1)) * 84;
+    const x = points.length <= 1 ? 8 : 8 + (point.x / maxX) * 84;
     const y = 86 - (point.y / maxY) * 68;
     return `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
   }).join(' ');
@@ -538,13 +533,13 @@ function LineChart({ buttons }: { buttons: DamageReportButtonRow[] }) {
     <svg className="report-ppt-line" viewBox="0 0 100 100" aria-label="伤害过程折线图">
       <path d="M 8 12 V 86 H 94" fill="none" stroke="rgba(0,0,0,0.34)" strokeWidth="0.8" />
       <path d={path} fill="none" stroke="#111111" strokeWidth="1.4" />
-      {points.map((point) => {
-        const x = points.length <= 1 ? 8 : 8 + (point.x / (points.length - 1)) * 84;
+      {(report.cumulativeDamage ? [points[0], points[points.length - 1]] : points).map((point) => {
+        const x = points.length <= 1 ? 8 : 8 + (point.x / maxX) * 84;
         const y = 86 - (point.y / maxY) * 68;
         return <circle key={point.label} cx={x} cy={y} r="1.7" fill="#ffffff" stroke="#111111" strokeWidth="0.8" />;
       })}
       <text x="8" y="9" className="report-ppt-line-label">累计总伤 {formatInteger(runningTotal)}</text>
-      <text x="94" y="94" className="report-ppt-line-label" textAnchor="end">{points.length} 次按钮</text>
+      <text x="94" y="94" className="report-ppt-line-label" textAnchor="end">{report.cumulativeAxisLabel ?? `${points.length} 次按钮`}</text>
     </svg>
   );
 }
@@ -788,9 +783,11 @@ function TimelineGroupSlide({
 function ChartSlide({
   pageIndex,
   snapshot,
+  report,
 }: {
   pageIndex: number;
-  snapshot: ReturnType<typeof buildDamageReportSnapshot>;
+  snapshot: DamageReportSnapshot;
+  report: MobileDamageReport;
 }) {
   const rows = buildCharacterDamageRows(snapshot.buttons);
 
@@ -808,15 +805,15 @@ function ChartSlide({
           </article>
           <article className="report-ppt-chart-card">
             <h2>图 2 / 伤害过程时序</h2>
-            <LineChart buttons={snapshot.buttons} />
+            <LineChart buttons={snapshot.buttons} report={report} />
           </article>
           <article className="report-ppt-chart-card">
             <h2>图 3 / 总 RD 概览</h2>
-            <RdpsOverviewChart summary={snapshot.rdps} />
+            <RdpsOverviewChart summary={snapshot.rdps} unavailableReason={AKE_RDPS_UNAVAILABLE}/>
           </article>
           <article className="report-ppt-chart-card">
             <h2>图 4 / 干员来源域 RD 占比</h2>
-            <RdpsCharacterSplitChart summary={snapshot.rdps} />
+            <RdpsCharacterSplitChart summary={snapshot.rdps} unavailableReason={AKE_RDPS_UNAVAILABLE}/>
           </article>
         </div>
       </div>
@@ -826,188 +823,103 @@ function ChartSlide({
 
 export function DamageReportPptPage() {
   const { state } = useAppContext();
-  const isAkeDemo = import.meta.env.VITE_AKE_DEMO === '1';
-  const akeReport = useMemo(() => isAkeDemo ? readLatestAkeTeamReport() : null, [isAkeDemo]);
-  const [isAkeReportOpen, setIsAkeReportOpen] = useState(() => Boolean(akeReport));
-  const [reportMode, setReportMode] = useState<'desktop' | 'mobile'>('desktop');
-  const [mobileCatalog, setMobileCatalog] = useState<MobileCatalog | null>(null);
-  const [mobileDraft, setMobileDraft] = useState<MobileDraft | null>(null);
-  const [mobilePresentedPayload, setMobilePresentedPayload] = useState<TimelineSnapshotPayload | null>(null);
-  const [mobileReportError, setMobileReportError] = useState('');
-  const snapshot = useMemo(() => buildDamageReportSnapshot({ includeRdps: true }), []);
-  const timelineData = useMemo(() => loadTimelineData(), []);
-  const weaponLibrary = useMemo(() => loadReportWeaponLibrary(), []);
-  const equipmentImages = useMemo(() => loadReportEquipmentImages(), []);
-  const reportOperators = useMemo(
-    () => buildReportOperators(state.selectedCharacters, state.loadedCharacters, snapshot.characters),
-    [state.loadedCharacters, state.selectedCharacters, snapshot.characters]
-  );
-  const timelineGroups = useMemo(() => getTimelineGroups(timelineData), [timelineData]);
-  const timelinePages = timelineGroups.length > 0 ? chunk(timelineGroups, SLIDE_GROUPS_PER_PAGE) : [[]];
-  const chartPageIndex = 2 + timelinePages.length;
-  const totalPages = chartPageIndex;
+  const session = useTimelineSession();
+  const [candidate, setCandidate] = useState(readLatestAkeTeamReport);
+  const [reportMode, setReportMode] = useState<'desktop' | 'composite'>('composite');
+  const [busy, setBusy] = useState(false);
+  const [rdpsBusy, setRdpsBusy] = useState(false);
+  const upgradedReport = useRef('');
+  const automaticCalculation = useRef('');
+  const [error, setError] = useState('');
+  const [payload, setPayload] = useState(getCurrentTimelineSnapshotPayload);
+  const timelineData = loadTimelineData();
+  const digest = timelineData ? buildAkeExecutionDigest({ timelineData, selectedCharacters: state.selectedCharacters }) : '';
+  const report = candidate?.workspaceId === session.activeTimelineId && candidate.executionDigest === digest ? candidate : null;
+  const catalog = getInstalledAkeCatalog();
+  const presentation = useMemo(() => report && payload && catalog
+    ? buildAkeReportPresentation(report, payload, state.selectedCharacters, catalog) : null,
+  [report, payload, catalog, state.selectedCharacters]);
+  const weaponLibrary = useMemo(loadReportWeaponLibrary, []);
+  const equipmentImages = useMemo(loadReportEquipmentImages, []);
+  const reportOperators = useMemo(() => buildReportOperators(state.selectedCharacters, state.loadedCharacters, presentation?.snapshot.characters ?? []),
+    [state.selectedCharacters, state.loadedCharacters, presentation]);
+  const timelineGroups = useMemo(() => getTimelineGroups(payload?.timelineData ?? null), [payload]);
+  const timelinePages = timelineGroups.length ? chunk(timelineGroups, SLIDE_GROUPS_PER_PAGE) : [[]];
+  const notice = report && buildAkeReportModel(report).partial
+    ? '部分结算：当前排轴包含未验证规则或未解析效果，以下数值仅基于已结算命中。' : '';
 
   useEffect(() => {
-    if (reportMode !== 'mobile' || mobileCatalog || mobileReportError) return;
-    let cancelled = false;
-    const initialize = async () => {
-      try {
-        const payload = getCurrentTimelineSnapshotPayload();
-        if (!payload) throw new Error('当前 SQLite 工作区没有可用于移动报表的 checkout。');
-        const catalog = await loadMobileCatalog();
-        const draft = timelinePayloadToMobileDraft(payload, catalog);
-        if (cancelled) return;
-        setMobileCatalog(catalog);
-        setMobileDraft(draft);
-        setMobilePresentedPayload(payload);
-      } catch (error) {
-        if (!cancelled) {
-          setMobileReportError(error instanceof Error ? error.message : '移动报表初始化失败。');
-        }
-      }
-    };
-    void initialize();
-    return () => {
-      cancelled = true;
-    };
-  }, [mobileCatalog, mobileReportError, reportMode]);
-
-  const mobileRuntime = useMemo(() => {
-    if (!mobileCatalog || !mobileDraft) return null;
+    const update = () => { setCandidate(readLatestAkeTeamReport()); setPayload(getCurrentTimelineSnapshotPayload()); };
+    window.addEventListener(AKE_REPORT_UPDATED_EVENT, update);
+    return () => window.removeEventListener(AKE_REPORT_UPDATED_EVENT, update);
+  }, []);
+  const calculate = async () => {
+    if (!timelineData || !state.selectedCharacters.length || busy) return;
+    setBusy(true); setError('');
     try {
-      return { value: buildMobileRuntimeState(mobileDraft, mobileCatalog), error: '' };
-    } catch (error) {
-      return { value: null, error: error instanceof Error ? error.message : String(error) };
+      setCandidate(await runAkeTeamCalculation({ timelineData, selectedCharacters: state.selectedCharacters }));
+      setPayload(getCurrentTimelineSnapshotPayload());
+    } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
+    finally { setBusy(false); }
+  };
+  useEffect(() => {
+    if (report || busy || !timelineData || !state.selectedCharacters.length) return;
+    const key = `${session.activeTimelineId}|${digest}`;
+    if (automaticCalculation.current === key) return;
+    automaticCalculation.current = key;
+    void calculate();
+  }, [report, digest, session.activeTimelineId, state.selectedCharacters, busy]);
+  useEffect(() => {
+    if (!report || report.rdps) { setRdpsBusy(false); return; }
+    let active = true;
+    if (report.hits.some(hit => hit.damageAttributeType === 'Hp' && !(hit.modifierSnapshot?.rdpsInputs))) {
+      if (upgradedReport.current === report.generatedAt) return;
+      upgradedReport.current = report.generatedAt;
+      void calculate();
+      return;
     }
-  }, [mobileCatalog, mobileDraft]);
-  const mobileOperators = useMemo(() => {
-    if (!mobileCatalog || !mobileDraft) return [];
-    const byId = new Map(mobileCatalog.characters.map((character) => [character.id, character]));
-    return mobileDraft.selectedOperatorIds.flatMap((operatorId) => {
-      const operator = byId.get(operatorId);
-      return operator ? [operator] : [];
-    });
-  }, [mobileCatalog, mobileDraft]);
-
-  const createDesktopReportShare = async () => {
-    if (!mobileCatalog || !mobileDraft || !mobilePresentedPayload) {
-      throw new Error('移动报表资料尚未完成载入。');
-    }
-    const timelineSession = getTimelineSessionSnapshot();
-    const bundle = await buildDesktopWorktreeShareBundle({
-      timelineId: timelineSession.activeTimelineId,
-      label: timelineSession.activeTimelineLabel,
-      // The QR must carry the exact node projection rendered on this page.
-      // Reading runtime storage again here could make the desktop tree and the
-      // mobile projection describe two different moments.
-      presentedPayload: mobilePresentedPayload,
-    });
-    return createDesktopShare(
-      bundle,
-      mobileDraft,
-      mobileCatalog.dataVersion,
-      mobileCatalog.imageVersion,
-    );
+    setRdpsBusy(true);
+    void prepareAkeReportRdps(report).then(result => { if (active) setCandidate(result); })
+      .catch(cause => { if (active) setError(cause instanceof Error ? cause.message : String(cause)); })
+      .finally(() => { if (active) setRdpsBusy(false); });
+    return () => { active = false; };
+  }, [report]);
+  const updateNotes = (notes: Record<string, string>) => {
+    const current = loadTimelineData();
+    if (!current) return;
+    saveTimelineData({ ...current, reportNotes: notes, updatedAt: Date.now() });
+    setPayload(getCurrentTimelineSnapshotPayload());
+    void persistentWorkspaceStorage.flush().catch(cause => setError(`批注保存失败：${String(cause)}`));
   };
 
-  return (
-    <main className="report-ppt-page">
-      <div className="report-ppt-toolbar">
-        <button type="button" onClick={() => navigateToAppPath(APP_ROUTE_PATHS.home)}>返回</button>
-        <button
-          type="button"
-          className="report-ppt-mode-toggle"
-          onClick={() => setReportMode((current) => current === 'desktop' ? 'mobile' : 'desktop')}
-        >
-          {reportMode === 'desktop' ? '切换到手机版' : '切换到桌面版'}
-        </button>
-        {isAkeDemo ? (
-          <button
-            type="button"
-            className="report-ppt-mode-toggle"
-            disabled={!akeReport}
-            onClick={() => setIsAkeReportOpen((current) => !current)}
-          >
-            {akeReport ? (isAkeReportOpen ? '收起 AKE 时序' : '查看 AKE 时序') : 'AKE 尚未结算'}
-          </button>
-        ) : null}
-        <div>
-          <strong>{reportMode === 'desktop' ? '伤害报表 PPT' : '手机版战术报告'}</strong>
-          <span>{reportMode === 'desktop'
-            ? `${REPORT_PPT_PATH} / ${totalPages} 页 / 总伤害 ${formatInteger(snapshot.totalExpected)}`
-            : '与手机版共用同一套报表、PNG 与二维码渲染'}</span>
-        </div>
+  return <main className="report-ppt-page">
+    <div className="report-ppt-toolbar">
+      <button type="button" onClick={() => navigateToAppPath(APP_ROUTE_PATHS.timelineWorkspace)}>返回排轴</button>
+      <button type="button" className="report-ppt-mode-toggle" onClick={() => setReportMode(mode => mode === 'desktop' ? 'composite' : 'desktop')}>
+        {reportMode === 'desktop' ? '三联一图流 / 导出 PNG' : '查看分页报表'}
+      </button>
+      <button type="button" disabled={busy || !state.selectedCharacters.length} onClick={() => void calculate()}>{busy ? '正在结算…' : '重新计算'}</button>
+      <div><strong>{session.activeTimelineLabel}</strong><span>{presentation ? `总期望 ${formatInteger(presentation.report.totalExpected)} · ${presentation.report.slotCount} 次输入` : '等待当前存档的结算结果'}</span></div>
+    </div>
+    {error ? <p className="report-ppt-adapter-notice" role="alert">{error}</p> : null}
+    {rdpsBusy && !report?.rdps ? <p className="report-ppt-adapter-notice" role="status">正在计算 RD 来源归因…</p> : null}
+    {!presentation || !report ? <div className="report-ppt-mobile-scroll"><section className="report-ppt-mobile-state">
+      <strong>当前存档尚无匹配的报表</strong><p>根据当前队伍、配装和排轴计算后，生成战术报告。</p>
+      <button type="button" disabled={busy || !state.selectedCharacters.length} onClick={() => void calculate()}>计算当前排轴</button>
+    </section></div> : !report.rdps ? <section className="report-ppt-mobile-state"><strong>{busy ? '正在更新结算输入…' : rdpsBusy ? '正在准备完整报表…' : '报表归因尚未完成'}</strong><p>四张图表就绪后可查看并导出完整一图流。</p></section> : reportMode === 'desktop' ? <>
+      {notice ? <p className="report-ppt-adapter-notice" role="note">{notice}</p> : null}
+      <div className="report-ppt-scroll">
+        <TeamSlide characters={reportOperators} reportCharacters={presentation.snapshot.characters} weaponLibrary={weaponLibrary} equipmentImages={equipmentImages}/>
+        {timelinePages.map((groups, index) => <TimelineGroupSlide key={index} pageIndex={index + 2} groupIndices={groups} timelineData={payload?.timelineData ?? null} characters={reportOperators}/>)}
+        <ChartSlide pageIndex={timelinePages.length + 2} snapshot={presentation.snapshot} report={presentation.report}/>
       </div>
-      {akeReport && isAkeReportOpen ? (
-        <AkeReportDrawer report={akeReport} onClose={() => setIsAkeReportOpen(false)} />
-      ) : null}
-      {reportMode === 'desktop' ? (
-        <div className="report-ppt-scroll">
-          <TeamSlide
-            characters={reportOperators}
-            reportCharacters={snapshot.characters}
-            weaponLibrary={weaponLibrary}
-            equipmentImages={equipmentImages}
-          />
-          {timelinePages.map((groupIndices, index) => (
-            <TimelineGroupSlide
-              key={`timeline-page-${index}`}
-              pageIndex={index + 2}
-              groupIndices={groupIndices}
-              timelineData={timelineData}
-              characters={reportOperators}
-            />
-          ))}
-          <ChartSlide pageIndex={chartPageIndex} snapshot={snapshot} />
-        </div>
-      ) : (
-        <div className="report-ppt-mobile-scroll">
-          {mobileReportError || mobileRuntime?.error ? (
-            <section className="report-ppt-mobile-state is-error" role="alert">
-              <strong>手机版报表没有载入</strong>
-              <p>{mobileReportError || mobileRuntime?.error}</p>
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileReportError('');
-                  setMobileCatalog(null);
-                  setMobileDraft(null);
-                  setMobilePresentedPayload(null);
-                }}
-              >重新读取</button>
-            </section>
-          ) : !mobileCatalog || !mobileDraft || !mobileRuntime?.value ? (
-            <section className="report-ppt-mobile-state" aria-live="polite">
-              <span aria-hidden="true" />
-              <strong>正在复用手机版报表代码</strong>
-            </section>
-          ) : (
-            <MobileReportPage
-              report={mobileRuntime.value.report}
-              operators={mobileOperators}
-              operatorConfigs={mobileDraft.operatorConfigs}
-              operatorSnapshots={mobileRuntime.value.operatorSnapshots}
-              weapons={mobileCatalog.weapons}
-              equipment={mobileCatalog.equipment}
-              slots={mobileDraft.slots}
-              slotCalculations={mobileRuntime.value.slotCalculations}
-              draft={mobileDraft}
-              dataVersion={mobileCatalog.dataVersion}
-              imageVersion={mobileCatalog.imageVersion}
-              shareEnabled={isMobileShareEnabled()}
-              onCreateShare={createDesktopReportShare}
-              timelineNotes={mobileDraft.reportNotes}
-              onTimelineNotesChange={(reportNotes) => setMobileDraft((current) => (
-                current ? { ...current, reportNotes, updatedAt: Date.now() } : current
-              ))}
-            />
-          )}
-        </div>
-      )}
-    </main>
-  );
+    </> : <div className="report-ppt-mobile-scroll">
+      <MobileReportPage key={session.activeTimelineId} {...presentation} slotCalculations={{}}
+        dataVersion={catalog?.source.version || ''} imageVersion={catalog?.source.sharedRevision || ''} shareEnabled={false}
+        reportTitle={session.activeTimelineLabel} reportNotice={notice}
+        timelineNotes={payload?.timelineData.reportNotes ?? {}} onTimelineNotesChange={updateNotes}/>
+    </div>}
+  </main>;
 }
 
-export function isDamageReportPptPath(path: string): boolean {
-  return path === REPORT_PPT_PATH;
-}
+export function isDamageReportPptPath(path: string): boolean { return path === REPORT_PPT_PATH; }

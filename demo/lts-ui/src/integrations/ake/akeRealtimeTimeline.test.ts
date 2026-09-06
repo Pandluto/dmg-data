@@ -4,7 +4,8 @@ import type {
   AkeTimingComboTrigger,
   AkeTimingSkillProfile,
 } from './akeCatalogAdapter';
-import { buildAkeRealtimeTimeline } from './akeRealtimeTimeline';
+import { buildAkeRealtimeTimeline, projectSettledAkeTimeline } from './akeRealtimeTimeline';
+import { isComboReleaseFrameAvailable } from '../../components/CanvasBoard/hooks/useCanvasDrag';
 
 function assertEqual<T>(actual: T, expected: T, message: string): void {
   if (actual !== expected) {
@@ -248,6 +249,14 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
     true,
     'release graph diagnostics explain the rejected relationship',
   );
+  const settled = projectSettledAkeTimeline(result, { durationFrames: 60, timeline: {
+    commands: result.commands.map(command => ({ ...command, success: true,
+      actualFrame: 0, actualSeconds: 0, endFrame: 60 })),
+  } });
+  assertEqual(settled.sharedVariableRateTimeline?.admissionStatus, 'invalid',
+    'runtime acceptance does not repair a dangling input anchor');
+  assertEqual(settled.sharedVariableRateTimeline?.cohorts[0].reason,
+    result.sharedVariableRateTimeline?.cohorts[0].reason, 'structural rejection keeps its explanation');
 }
 
 {
@@ -751,6 +760,10 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
   const command = result.commands[0];
   assertEqual(command.profile.comboStageSkillIds?.length, 4, 'A intent expands to all attack stages');
   assertEqual(command.hits.length, 4, 'the combo exposes one settlement marker per attack stage');
+  assertEqual(command.profile.hits.map(hit => hit.offsetFrames).join(','), '3,14,27,42',
+    'folded combo markers use offsets from the beginning of the button');
+  assertEqual(command.profile.hits.map(hit => hit.sourceTimelineFrame).join(','), '3,4,5,6',
+    'release dependencies retain the local source skill frame after folding the combo');
   assertEqual(command.naturalEndFrame, 56, 'combo body ends at the final heavy reset window');
   assertEqual(
     result.sharedAtb.points.some(point => point.commandId === 'full-attack' && point.frame === 42),
@@ -2326,4 +2339,160 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
     'normal-ultimate-form',
     'an empty display node does not wait for the form to expire',
   );
+}
+
+
+// Settled coordinates must not invalidate previously verified release decisions
+// or mutate the input model (which would trigger a feedback recalculation).
+{
+  const actor = character('settled-actor');
+  const preview = buildAkeRealtimeTimeline({
+    timelineData: timeline([{ characterId: actor.id, buttons: [button('source', actor.id, 0)] }]),
+    selectedCharacters: [actor], catalog: catalog({ [actor.id]: [profile()] }), staffCount: 1,
+  });
+  const original = JSON.stringify(preview);
+  const projected = projectSettledAkeTimeline(preview, { durationFrames: 300, timeline: {
+    commands: preview.commands.map(command => ({ ...command, success: true,
+      actualFrame: 64, actualSeconds: 64 / 30, endFrame: 130 })),
+  } });
+  assertEqual(projected.sharedVariableRateTimeline?.actions[0].startFrame, 64, 'canvas follows actual admission');
+  assertEqual(projected.sharedVariableRateTimeline?.actions[0].endFrame, 130, 'canvas follows actual completion');
+  assertEqual(projected.sharedVariableRateTimeline?.cohorts[0].status,
+    preview.sharedVariableRateTimeline?.cohorts[0].status, 'coordinate changes retain admission status');
+  assertEqual(projected.sharedVariableRateTimeline?.cohorts[0].reason,
+    preview.sharedVariableRateTimeline?.cohorts[0].reason, 'coordinate changes retain admission reason');
+  assertEqual(JSON.stringify(preview), original, 'settlement does not rewrite the next calculation input');
+}
+
+// A child hit can open a combo that the input preview cannot predict. Drag
+// admission must consume the matching report, including historical windows.
+{
+  const actor = character('chr_0027_tangtang');
+  const skillId = 'chr_0027_tangtang_combo_skill';
+  const preview = buildAkeRealtimeTimeline({
+    timelineData: timeline([{ characterId: actor.id, buttons: [button('cold-source', actor.id, 0)] }]),
+    selectedCharacters: [actor], catalog: catalog({ [actor.id]: [profile()] }), staffCount: 1,
+  });
+  preview.verifiedComboSkills = [{ characterId: actor.id, skillId }];
+  const report = { durationFrames: 431, timeline: { commands: preview.commands,
+    comboWindows: [{ id: 'combo-window:1', pendingId: 1, ruleId: 'tangtang.enemy-receives-cold',
+      characterId: actor.id, skillId, sourceCommandId: null, createdFrame: 23, expireFrame: 202,
+      consumedFrame: null, consumedCommandId: null, state: 'expired' as const, reason: 'TIMEOUT' }],
+  } };
+  const projected = projectSettledAkeTimeline(preview, report);
+  const available = (frame: number, state = projected) => isComboReleaseFrameAvailable({
+    timeline: state, characterId: actor.id, skillId, movingCommandId: null, frame,
+  });
+  assertEqual(available(50), true, 'runtime cold trigger permits dragging combo after the B skill');
+  assertEqual(available(23), true, 'combo is available on its trigger frame');
+  assertEqual(available(22), false, 'combo cannot precede its trigger');
+  assertEqual(available(202), false, 'runtime expiry is exclusive');
+  assertEqual(projected.comboWindows[0].sourceCommandId, null, 'unknown child provenance stays unknown');
+  assertEqual(preview.comboWindows.length, 0, 'projection does not change the input preview');
+  for (const state of ['consumed', 'suppressed'] as const) {
+    const blocked = projectSettledAkeTimeline(preview, { ...report, timeline: { ...report.timeline,
+      comboWindows: report.timeline.comboWindows.map(window => ({ ...window, state,
+        consumedCommandId: state === 'consumed' ? 'other-combo' : null })),
+    } });
+    assertEqual(available(50, blocked), false, `${state} runtime windows cannot enable a new combo`);
+  }
+  const cleared = projectSettledAkeTimeline(projected, { ...report,
+    timeline: { commands: preview.commands, comboWindows: [] } });
+  assertEqual(available(50, cleared), false, 'an explicit empty report clears predicted windows');
+  const legacy = projectSettledAkeTimeline(projected, { ...report,
+    timeline: { commands: preview.commands } });
+  assertEqual(available(50, legacy), true, 'older reports without the field preserve the preview');
+}
+
+// Only known admission predictions are superseded by matching execution facts.
+{
+  const actor = character('settled-resource-actor');
+  const limitedCatalog = catalog({ [actor.id]: [profile()] });
+  limitedCatalog.timing!.sharedAtb.initial = 0;
+  const preview = buildAkeRealtimeTimeline({
+    timelineData: timeline([{ characterId: actor.id, buttons: [button('paid', actor.id, 0)] }]),
+    selectedCharacters: [actor], catalog: limitedCatalog, staffCount: 1,
+  });
+  assertEqual(preview.commands[0].releaseReason, 'INSUFFICIENT_ATB', 'preview cannot afford this cast');
+  const original = JSON.stringify(preview);
+  const atb = { poolId: 'shared-atb', initial: 150, max: 300, final: 50, events: [], points: [
+    { frame: 0, seconds: 0, value: 150, ordinary: 150, returned: 0, kind: 'Initial', sourceId: null },
+    { frame: 0, seconds: 0, value: 50, ordinary: 50, returned: 0, kind: 'Spend', sourceId: actor.id, commandId: 'paid' },
+  ] };
+  const settled = { ...preview.commands[0], success: true, state: 'executed', reason: null,
+    actualFrame: 0, actualSeconds: 0, endFrame: 60, completion: 'Completed' };
+  const projected = projectSettledAkeTimeline(preview, { durationFrames: 60,
+    timeline: { commands: [settled], sharedAtb: atb } });
+  assertEqual(projected.commands[0].success, true, 'actual paid cast is displayed as executed');
+  assertEqual(projected.commands[0].releaseVerdict, 'valid', 'actual acceptance replaces stale resource rejection');
+  assertEqual(projected.sharedVariableRateTimeline?.admissionStatus, 'valid', 'cohort admission uses settled success');
+  assertEqual(projected.sharedVariableRateTimeline?.isExecutable, true, 'settled legal timeline is executable');
+  assertEqual(projected.sharedAtb, atb, 'display retains every authoritative resource point');
+  assertEqual(projected.commands[0].atbBefore, 150, 'cast resource inspector uses actual pre-spend value');
+  assertEqual(projected.commands[0].atbAfter, 50, 'cast resource inspector uses actual post-spend value');
+  assertEqual(JSON.stringify(preview), original, 'runtime projection leaves the input planner unchanged');
+
+  const rejected = projectSettledAkeTimeline(projected, { durationFrames: 60, timeline: {
+    commands: [{ ...settled, success: false, actualFrame: null, actualSeconds: null,
+      endFrame: null, state: 'rejected', reason: 'INSUFFICIENT_RESOURCE' }],
+  } });
+  assertEqual(rejected.commands[0].releaseVerdict, 'invalid', 'runtime rejection overrides previously valid preview');
+  assertEqual(rejected.commands[0].releaseReason, 'INSUFFICIENT_RESOURCE', 'actual rejection reason survives');
+  assertEqual(rejected.commands[0].hits.length, 0, 'rejected cast does not retain preview damage markers');
+  assertEqual(rejected.sharedVariableRateTimeline?.admissionStatus, 'invalid', 'runtime rejection blocks the cohort');
+
+  const unknownPreview = buildAkeRealtimeTimeline({
+    timelineData: timeline([{ characterId: actor.id, buttons: [button('unknown-combo', actor.id, 0, 'E')] }]),
+    selectedCharacters: [actor], catalog: catalog({ [actor.id]: [profile({
+      commandType: 'ComboSkill', skillId: 'unknown-combo', costType: null, costValue: 0,
+    })] }), staffCount: 1,
+  });
+  assertEqual(unknownPreview.commands[0].releaseVerdict, 'unverified', 'unmapped combo gate starts unknown');
+  const unknown = projectSettledAkeTimeline(unknownPreview, { durationFrames: 60, timeline: {
+    commands: [{ ...unknownPreview.commands[0], success: true, actualFrame: 0, actualSeconds: 0, endFrame: 60 }],
+  } });
+  assertEqual(unknown.commands[0].releaseVerdict, 'unverified', 'execution alone cannot prove an unmapped combo rule');
+  assertEqual(unknown.sharedVariableRateTimeline?.admissionStatus, 'unverified', 'unknown gate remains visible');
+  assertEqual(unknown.sharedVariableRateTimeline?.isExecutable, false, 'unknown gate does not become verified');
+}
+
+// A raw asSkillCast infusion is a paid cast inside a continuing basic attack.
+// Keeping it as a normal foreground action used to cancel every later hit.
+{
+  const actor = character('infusion-actor');
+  const other = character('other-controller');
+  const attack = profile({ commandType: 'Attack', skillId: 'attack',
+    skillSpecification: 'CharacterNormalAttack', costType: null, costValue: 0,
+    exclusiveFrames: 45, allowNext: [],
+    hits: [12, 30].map(offsetFrames => ({ offsetFrames, kind: 'direct', hitCount: 1,
+      sourceSkillId: 'attack', rootSkillId: 'attack', damageTypes: ['Physical'] })),
+  });
+  const infusion = profile({ skillId: 'infusion', costValue: 40,
+    castReplacement: { asSkillCast: true, conditions: [
+      { type: 'CurrentSkillTypeMatches', target: 'Owner', skillTypes: ['Attack'],
+        beforeExclusive: true, attackTypeMask: -7 },
+      { type: 'EntityIsMainCharacter', entity: 'Owner' },
+    ] },
+  });
+  const a = { ...button('continuing-attack', actor.id, 0, 'A'),
+    releaseAnchor: { schemaVersion: 1 as const, kind: 'group-start' as const, debounceFrames: 0 } };
+  const b = { ...button('instant-infusion', actor.id, 1, 'B'),
+    releaseAnchor: { schemaVersion: 1 as const, kind: 'damage-hit' as const,
+      sourceButtonId: a.id, sourceHitOffsetFrames: 12, debounceFrames: 1 } };
+  const build = (buttons: SkillButtonData[], main = actor.id) => buildAkeRealtimeTimeline({
+    timelineData: { ...timeline([{ characterId: actor.id, buttons }]), initialControllerCharacterId: main },
+    selectedCharacters: [actor, other], catalog: catalog({ [actor.id]: [attack, infusion] }), staffCount: 1,
+  });
+  const baseline = build([a]);
+  const result = build([a, b]);
+  const actualAttack = result.commands.find(command => command.commandId === a.id)!;
+  const actualInfusion = result.commands.find(command => command.commandId === b.id)!;
+  assertEqual(actualAttack.hits.map(hit => hit.frame).join(','), baseline.commands[0].hits.map(hit => hit.frame).join(','),
+    'an instantaneous infusion preserves every later attack hit');
+  assertEqual(actualInfusion.endFrame, actualInfusion.actualFrame, 'infusion consumes zero foreground frames');
+  assertClose(actualInfusion.atbBefore! - actualInfusion.atbAfter!, 40, 'infusion still spends its actual cost');
+  assertEqual(result.sharedVariableRateTimeline?.actions.find(action => action.id === b.id)?.durationFrames, 0,
+    'the relationship timeline preserves the zero-duration cast');
+  assertEqual(build([a, b], other.id).commands.find(command => command.commandId === b.id)?.profile.castReplacementActive,
+    undefined, 'an off-field actor cannot use the main-character replacement branch');
 }

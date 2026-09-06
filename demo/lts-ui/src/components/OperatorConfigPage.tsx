@@ -43,6 +43,7 @@ import {
   type SkillDetailGroup,
 } from './operatorSkillDetailModel';
 import { loadAkeCatalog } from '../integrations/ake/akeProvider';
+import { LazyAssetImage, warmAssetImages } from './LazyAssetImage';
 
 type AttributeItem = {
   label: string;
@@ -157,7 +158,6 @@ const EQUIPMENT_SLOT_METAS = [
 
 function resolveStoredImageUrl(path?: string): string {
   if (!path) return '';
-  if (/^(?:https?:)?\/\//i.test(path)) return path;
   if (/^[A-Za-z]:[\\/]/.test(path)) {
     return path;
   }
@@ -1712,8 +1712,8 @@ export function OperatorConfigPage() {
                 <section className="config-data-section config-equip-panel config-scrollable-module operator-config-page-equip-zone">
                   <h4 className="config-data-title">装备</h4>
                   <div className="operator-config-page-equip-visual">
-                    <div className="operator-config-page-equip-visual-top" aria-hidden="true">
-                      <div className="operator-config-page-equip-stage-glass" />
+                    <div className="operator-config-page-equip-visual-top">
+                      <div className="operator-config-page-equip-stage-glass" aria-hidden="true" />
                       <div className="operator-config-page-equip-circles">
                         {EQUIPMENT_SLOT_METAS.map((slotMeta) => {
                           const equipmentPiece = currentConfig?.equipment[slotMeta.slotKey];
@@ -1725,6 +1725,8 @@ export function OperatorConfigPage() {
                               type="button"
                               className={`operator-config-page-equip-circle ${slotMeta.circleClass}`}
                               aria-label={`选择${slotMeta.part}`}
+                              onPointerEnter={() => warmAssetImages(equipmentOptionsByPart[slotMeta.part].map(item => item.imgUrl))}
+                              onFocus={() => warmAssetImages(equipmentOptionsByPart[slotMeta.part].map(item => item.imgUrl))}
                               onClick={() => {
                                 setEquipmentPickerSlot(slotMeta.slotKey);
                               }}
@@ -1733,6 +1735,7 @@ export function OperatorConfigPage() {
                                 <img
                                   className="operator-config-page-equip-circle-image"
                                   src={imageUrl}
+                                  decoding="async"
                                   alt={equipmentData?.name ?? slotMeta.part}
                                 />
                               ) : (
@@ -2004,6 +2007,8 @@ export function OperatorConfigPage() {
                       <button
                         type="button"
                         className="config-weapon-choose-content-area config-weapon-choose-content-button"
+                        onPointerEnter={() => warmAssetImages(weaponOptions.map(name => weaponLibrary[name]?.imgUrl))}
+                        onFocus={() => warmAssetImages(weaponOptions.map(name => weaponLibrary[name]?.imgUrl))}
                         onClick={() => {
                           setWeaponLibraryError(null);
                           setIsWeaponPickerOpen(true);
@@ -2021,6 +2026,8 @@ export function OperatorConfigPage() {
                           type="button"
                           className="config-weapon-choose-img-square config-weapon-choose-img-button"
                           aria-label="选择武器"
+                          onPointerEnter={() => warmAssetImages(weaponOptions.map(name => weaponLibrary[name]?.imgUrl))}
+                          onFocus={() => warmAssetImages(weaponOptions.map(name => weaponLibrary[name]?.imgUrl))}
                           onClick={() => {
                             setWeaponLibraryError(null);
                             setIsWeaponPickerOpen(true);
@@ -2030,6 +2037,7 @@ export function OperatorConfigPage() {
                             <img
                               className="config-weapon-choose-img"
                               src={currentWeaponImageUrl}
+                              decoding="async"
                               alt={currentWeaponName || '武器图'}
                             />
                           ) : (
@@ -2247,13 +2255,11 @@ export function OperatorConfigPage() {
                       <span className="config-avatar-indicator-glass" aria-hidden="true" />
                     ) : null}
                     {character.avatarUrl ? (
-                      <img
+                      <LazyAssetImage
                         className="config-avatar-image"
-                        src={normalizeAssetUrl(character.avatarUrl)}
+                        src={character.avatarUrl}
+                        sizes="56px"
                         alt={`${character.name} 头像`}
-                        onError={(event) => {
-                          (event.target as HTMLImageElement).style.display = 'none';
-                        }}
                       />
                     ) : null}
                   </button>
@@ -2318,7 +2324,7 @@ export function OperatorConfigPage() {
                       >
                         <div className="operator-config-page-picker-option-image">
                           {imageUrl ? (
-                            <img src={imageUrl} alt={item.name} className="operator-config-page-picker-option-img" />
+                            <LazyAssetImage src={imageUrl} alt={item.name} className="operator-config-page-picker-option-img" />
                           ) : (
                             <span className="operator-config-page-picker-option-fallback">{item.part}</span>
                           )}
@@ -2421,7 +2427,7 @@ export function OperatorConfigPage() {
                       }}
                     >
                       <div className="operator-config-page-picker-option-image">
-                        <img
+                        <LazyAssetImage
                           src={resolveStoredImageUrl(weaponLibrary[weaponName]?.imgUrl) || resolveWeaponImageUrl(weaponName)}
                           alt={weaponName}
                           className="operator-config-page-picker-option-img"

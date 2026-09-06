@@ -1,0 +1,4128 @@
+{
+  "images": {
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0002_endminm.png": {
+      "path": "assets/ake-icons/icon_chr_0002_endminm.defeecad3f59.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0002_endminm-128.5fe1f40630e8.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0003_endminf.png": {
+      "path": "assets/ake-icons/icon_chr_0003_endminf.64ecd41ac8ee.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0003_endminf-128.7a24dc2f8683.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0004_pelica.png": {
+      "path": "assets/ake-icons/icon_chr_0004_pelica.082eb9b1d858.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0004_pelica-128.3dc325aed395.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0005_chen.png": {
+      "path": "assets/ake-icons/icon_chr_0005_chen.bb74262cf6dd.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0005_chen-128.0ac20f8dccf4.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0006_wolfgd.png": {
+      "path": "assets/ake-icons/icon_chr_0006_wolfgd.8b513527420b.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0006_wolfgd-128.3a71b5b5ecc1.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0007_ikut.png": {
+      "path": "assets/ake-icons/icon_chr_0007_ikut.dc5fe7bfbee3.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0007_ikut-128.36c221921acd.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0009_azrila.png": {
+      "path": "assets/ake-icons/icon_chr_0009_azrila.ceb9dc5df19a.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0009_azrila-128.7674d9b730a5.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0011_seraph.png": {
+      "path": "assets/ake-icons/icon_chr_0011_seraph.bf9e13611bf2.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0011_seraph-128.631538603cbb.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0012_avywen.png": {
+      "path": "assets/ake-icons/icon_chr_0012_avywen.f0b5310e2946.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0012_avywen-128.87082677a7f5.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0013_aglina.png": {
+      "path": "assets/ake-icons/icon_chr_0013_aglina.75f50927477e.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0013_aglina-128.ae667acf1173.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0014_aurora.png": {
+      "path": "assets/ake-icons/icon_chr_0014_aurora.9fa69fe65506.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0014_aurora-128.a0004a770c1c.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0015_lifeng.png": {
+      "path": "assets/ake-icons/icon_chr_0015_lifeng.f2a087ba6c88.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0015_lifeng-128.ad9c07aa7b54.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0016_laevat.png": {
+      "path": "assets/ake-icons/icon_chr_0016_laevat.dd1bfef183d5.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0016_laevat-128.a34fec815c7e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0017_yvonne.png": {
+      "path": "assets/ake-icons/icon_chr_0017_yvonne.61a2dd63afaa.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0017_yvonne-128.aff4f8edd0d2.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0018_dapan.png": {
+      "path": "assets/ake-icons/icon_chr_0018_dapan.cfb562a5dbb1.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0018_dapan-128.0c6cddeb7d57.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0019_karin.png": {
+      "path": "assets/ake-icons/icon_chr_0019_karin.79984d264f3d.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0019_karin-128.27bafbd82950.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0020_meurs.png": {
+      "path": "assets/ake-icons/icon_chr_0020_meurs.7f80e7c03db8.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0020_meurs-128.2b32cc79680c.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0021_whiten.png": {
+      "path": "assets/ake-icons/icon_chr_0021_whiten.5c94b9c5e670.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0021_whiten-128.1d279d95143a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0022_bounda.png": {
+      "path": "assets/ake-icons/icon_chr_0022_bounda.148c55a8aa3e.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0022_bounda-128.c65b99793649.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0023_antal.png": {
+      "path": "assets/ake-icons/icon_chr_0023_antal.3f016fcef71c.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0023_antal-128.23717e289964.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0024_deepfin.png": {
+      "path": "assets/ake-icons/icon_chr_0024_deepfin.b6bdec56f189.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0024_deepfin-128.5b3e98b68ca4.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0025_ardelia.png": {
+      "path": "assets/ake-icons/icon_chr_0025_ardelia.74612290c5a2.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0025_ardelia-128.5df5124d88ac.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0026_lastrite.png": {
+      "path": "assets/ake-icons/icon_chr_0026_lastrite.74a74ef594e3.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0026_lastrite-128.02ba69ac284f.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0027_tangtang.png": {
+      "path": "assets/ake-icons/icon_chr_0027_tangtang.d37269fa0ee5.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0027_tangtang-128.3d3f919cbca7.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0028_wulfa.png": {
+      "path": "assets/ake-icons/icon_chr_0028_wulfa.969fb50b01d4.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0028_wulfa-128.a5e15bd1a42f.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0029_pograni.png": {
+      "path": "assets/ake-icons/icon_chr_0029_pograni.29a8335b69a6.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0029_pograni-128.e70b9ac104f9.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0030_zhuangfy.png": {
+      "path": "assets/ake-icons/icon_chr_0030_zhuangfy.bf4bb81009d5.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0030_zhuangfy-128.647403e0faba.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0031_mifu.png": {
+      "path": "assets/ake-icons/icon_chr_0031_mifu.0609eccb08f3.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0031_mifu-128.204220a65d3a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0032_lizhiyan.png": {
+      "path": "assets/ake-icons/icon_chr_0032_lizhiyan.2e509cb33ae5.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0032_lizhiyan-128.c276cb4b7e71.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0033_camille.png": {
+      "path": "assets/ake-icons/icon_chr_0033_camille.39ef988837e0.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0033_camille-128.c72c4861141b.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0034_typhoea.png": {
+      "path": "assets/ake-icons/icon_chr_0034_typhoea.0c1c03984faa.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0034_typhoea-128.cecb8ffef203.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_0035_liino.png": {
+      "path": "assets/ake-icons/icon_chr_0035_liino.248c595a04d6.webp",
+      "width": 200,
+      "height": 200,
+      "thumbnail": {
+        "path": "assets/ake-icons/icon_chr_0035_liino-128.4234c9057333.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t0_parts_tundra01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t0_parts_tundra01_body_01.1676daffb9da.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t0_parts_tundra01_body_01-128.b23b0965074b.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t0_parts_tundra01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t0_parts_tundra01_body_02.4e34593aec3b.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t0_parts_tundra01_body_02-128.2c2e695fb56a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t0_parts_tundra01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t0_parts_tundra01_hand_01.ef6af2b2408c.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t0_parts_tundra01_hand_01-128.61acb5861fda.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t0_parts_tundra01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t0_parts_tundra01_hand_02.b7d8c4fb3ffe.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t0_parts_tundra01_hand_02-128.994ca175f0e2.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_parts_tundra01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t1_parts_tundra01_body_01.ca7e248fa9a1.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_parts_tundra01_body_01-128.0bccb47b51fe.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_parts_tundra01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t1_parts_tundra01_body_02.17fa5f7af8e8.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_parts_tundra01_body_02-128.77cabe218728.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_parts_tundra01_body_03.png": {
+      "path": "assets/ake-icons/item_equip_t1_parts_tundra01_body_03.1649f4778900.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_parts_tundra01_body_03-128.a0b4950dee1e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_parts_tundra01_body_04.png": {
+      "path": "assets/ake-icons/item_equip_t1_parts_tundra01_body_04.2d61f72e5148.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_parts_tundra01_body_04-128.71db5e472493.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_parts_tundra01_body_05.png": {
+      "path": "assets/ake-icons/item_equip_t1_parts_tundra01_body_05.714a8730b578.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_parts_tundra01_body_05-128.1a909ba28e83.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_parts_tundra01_body_06.png": {
+      "path": "assets/ake-icons/item_equip_t1_parts_tundra01_body_06.36e03a0c4a7a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_parts_tundra01_body_06-128.5c2ad4b69c87.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_parts_tundra01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t1_parts_tundra01_edc_01.585e324320dc.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_parts_tundra01_edc_01-128.1355a5c72e19.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_parts_tundra01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t1_parts_tundra01_edc_02.bcba65a8fe72.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_parts_tundra01_edc_02-128.62887a10e4cf.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_parts_tundra01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t1_parts_tundra01_hand_01.e909da5784e8.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_parts_tundra01_hand_01-128.6424e2a25914.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_parts_tundra01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t1_parts_tundra01_hand_02.c16e6e7c1e93.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_parts_tundra01_hand_02-128.a00b3ccc6019.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_parts_tundra01_hand_03.png": {
+      "path": "assets/ake-icons/item_equip_t1_parts_tundra01_hand_03.ad0a4ca4de66.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_parts_tundra01_hand_03-128.fd9fa7dfa823.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_parts_tundra01_hand_04.png": {
+      "path": "assets/ake-icons/item_equip_t1_parts_tundra01_hand_04.198688b579c3.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_parts_tundra01_hand_04-128.ebc2577ef38b.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_suit_stragi01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t1_suit_stragi01_body_01.ec48ef5ba25e.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_suit_stragi01_body_01-128.44677a9a7045.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_suit_stragi01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t1_suit_stragi01_edc_01.5ce304cc829c.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_suit_stragi01_edc_01-128.472da2da81e4.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_suit_stragi01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t1_suit_stragi01_edc_02.5f6f318af02d.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_suit_stragi01_edc_02-128.1ff2232497e8.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_suit_stragi01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t1_suit_stragi01_hand_01.be9811a85b74.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_suit_stragi01_hand_01-128.3ac989e564f2.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_suit_wisdwill01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t1_suit_wisdwill01_body_01.2991fbf6974e.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_suit_wisdwill01_body_01-128.b79453048875.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_suit_wisdwill01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t1_suit_wisdwill01_edc_01.54faaf082a17.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_suit_wisdwill01_edc_01-128.b71cd802a960.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_suit_wisdwill01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t1_suit_wisdwill01_edc_02.b6515c0a37f4.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_suit_wisdwill01_edc_02-128.2ffa7a8d6535.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t1_suit_wisdwill01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t1_suit_wisdwill01_hand_01.fca4b43ae209.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t1_suit_wisdwill01_hand_01-128.c72e330e25e9.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_parts_tundra01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t2_parts_tundra01_edc_01.fee00ad53cfe.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_parts_tundra01_edc_01-128.382484351ad0.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_parts_tundra01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t2_parts_tundra01_edc_02.a1c5bdb34f74.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_parts_tundra01_edc_02-128.002e2d3d9c1b.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_parts_tundra01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t2_parts_tundra01_edc_03.c1b6447661a9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_parts_tundra01_edc_03-128.a1e61030760e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_parts_tundra01_edc_04.png": {
+      "path": "assets/ake-icons/item_equip_t2_parts_tundra01_edc_04.da6bb2c00e4b.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_parts_tundra01_edc_04-128.e9ff3098cb31.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_parts_tundra01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t2_parts_tundra01_hand_01.171cb2a85f54.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_parts_tundra01_hand_01-128.07b39ee47cf8.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_parts_tundra01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t2_parts_tundra01_hand_02.217f9f6b1426.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_parts_tundra01_hand_02-128.ada329682f81.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_agi01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_agi01_body_01.b83c5428f4d1.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_agi01_body_01-128.9efd2af62a3c.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_agi01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_agi01_edc_01.9f3437a32a45.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_agi01_edc_01-128.2f308f9d30f7.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_agi01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_agi01_edc_02.a4a2fc5585fd.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_agi01_edc_02-128.da2676e5c04c.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_agi01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_agi01_hand_01.ea3b8a62b105.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_agi01_hand_01-128.1dc154bdaec5.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_str01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_str01_body_01.d3a90507e0d9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_str01_body_01-128.f4e90dc6fe1e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_str01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_str01_edc_01.13f67a399c7a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_str01_edc_01-128.4fc41607bc5a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_str01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_str01_edc_02.d2ecaa4c48a6.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_str01_edc_02-128.3cc41d2bcda8.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_str01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_str01_hand_01.ddb190a4682a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_str01_hand_01-128.8bb337fcd36d.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_will01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_will01_body_01.71102f414e7a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_will01_body_01-128.68428d9b4398.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_will01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_will01_edc_01.f4f5d64af747.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_will01_edc_01-128.3905e5c9e60d.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_will01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_will01_edc_02.baf5cb7882ae.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_will01_edc_02-128.31c60e2aa7f0.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_will01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_will01_hand_01.6ae4fdd3d8dd.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_will01_hand_01-128.6633367f25eb.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_wisd01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_wisd01_body_01.296a4d999704.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_wisd01_body_01-128.c3f4f21486e2.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_wisd01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_wisd01_edc_01.08a4f7574317.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_wisd01_edc_01-128.d8a4ff354cfa.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_wisd01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_wisd01_edc_02.08a4f7574317.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_wisd01_edc_02-128.d8a4ff354cfa.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_wisd01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_wisd01_edc_03.793d3e1239e7.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_wisd01_edc_03-128.8bf4e1b4ee68.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t2_suit_wisd01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t2_suit_wisd01_hand_01.5eb1b0feb5d5.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t2_suit_wisd01_hand_01-128.b638d1455d18.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_parts_tundra01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_parts_tundra01_body_01.02cf9b6f19ae.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_parts_tundra01_body_01-128.f693e0fda4e0.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_parts_tundra01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t3_parts_tundra01_body_02.00827b5c3261.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_parts_tundra01_body_02-128.55fbd7d1b268.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_parts_tundra01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_parts_tundra01_edc_01.a9685825a98e.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_parts_tundra01_edc_01-128.26b8f650251e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_parts_tundra01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t3_parts_tundra01_edc_02.63894a87bd88.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_parts_tundra01_edc_02-128.df5806c7c665.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_parts_tundra01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t3_parts_tundra01_edc_03.a4346c1c504e.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_parts_tundra01_edc_03-128.e93c0010ca3a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_parts_tundra01_edc_04.png": {
+      "path": "assets/ake-icons/item_equip_t3_parts_tundra01_edc_04.c867e449ceac.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_parts_tundra01_edc_04-128.15e2b5c865d1.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_parts_tundra01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_parts_tundra01_hand_01.3ac8cba98fce.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_parts_tundra01_hand_01-128.1a78d905cc91.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_parts_tundra01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t3_parts_tundra01_hand_02.1b23ffed42f1.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_parts_tundra01_hand_02-128.b51cf3017318.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_agi01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_agi01_body_01.5156c40171bb.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_agi01_body_01-128.6f3a8cb51ebc.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_agi01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_agi01_edc_01.67ea3a1e26b5.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_agi01_edc_01-128.23f8c141fb54.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_agi01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_agi01_edc_02.67ea3a1e26b5.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_agi01_edc_02-128.23f8c141fb54.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_agi01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_agi01_edc_03.e018a44e605f.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_agi01_edc_03-128.2c6b40ee1523.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_agi01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_agi01_hand_01.7a3480ea5a46.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_agi01_hand_01-128.2cf713034950.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_atk01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_atk01_body_01.c83a84de9a07.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_atk01_body_01-128.18c33e13679e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_atk01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_atk01_body_02.b6a148ec147a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_atk01_body_02-128.18e019cda55a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_atk01_body_03.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_atk01_body_03.32097fb547b9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_atk01_body_03-128.74cdcdb6e2c0.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_atk01_body_04.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_atk01_body_04.32097fb547b9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_atk01_body_04-128.74cdcdb6e2c0.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_atk01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_atk01_edc_01.c10596c72cb7.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_atk01_edc_01-128.2ee2e6007d1e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_atk01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_atk01_edc_02.76de57c01f66.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_atk01_edc_02-128.c5da145d812b.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_atk01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_atk01_edc_03.76de57c01f66.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_atk01_edc_03-128.c5da145d812b.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_atk01_edc_04.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_atk01_edc_04.ac4f43b86747.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_atk01_edc_04-128.4f4b5916577a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_atk01_edc_05.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_atk01_edc_05.feed7cdbdc29.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_atk01_edc_05-128.a248da5033c3.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_atk01_edc_06.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_atk01_edc_06.feed7cdbdc29.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_atk01_edc_06-128.a248da5033c3.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_atk01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_atk01_hand_01.2171c40aa291.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_atk01_hand_01-128.51c3caaefefa.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_str01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_str01_body_01.03dd52caa3d1.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_str01_body_01-128.b7045e43e86e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_str01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_str01_edc_01.62a572db479c.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_str01_edc_01-128.e6900ec5e78a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_str01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_str01_edc_02.995b972a369c.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_str01_edc_02-128.405328371abd.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_str01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_str01_hand_01.73777d7e5468.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_str01_hand_01-128.0e3040568bd2.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_str01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_str01_hand_02.73777d7e5468.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_str01_hand_02-128.0e3040568bd2.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_usp01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_usp01_body_01.bf239d110b63.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_usp01_body_01-128.8e7a26658090.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_usp01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_usp01_body_02.bf239d110b63.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_usp01_body_02-128.8e7a26658090.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_usp01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_usp01_edc_02.f03774d45b34.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_usp01_edc_02-128.b98218b5ee0c.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_usp01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_usp01_edc_03.f30ba5a8100e.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_usp01_edc_03-128.9ab3158cab9f.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_usp01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_usp01_hand_01.b5129c54e4bb.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_usp01_hand_01-128.73fa373df2b0.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_will01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_will01_body_01.157ab50189ec.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_will01_body_01-128.8142289dbcdb.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_will01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_will01_edc_01.f9d48483aedf.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_will01_edc_01-128.eb18307fc8e4.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_will01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_will01_edc_02.52376784e3a5.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_will01_edc_02-128.c7823a997182.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_will01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_will01_hand_01.8ef586b0ae96.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_will01_hand_01-128.f2eaa2f5f6df.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_wisd01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_wisd01_body_01.61de06a98694.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_wisd01_body_01-128.f2fa29b06df6.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_wisd01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_wisd01_body_02.61de06a98694.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_wisd01_body_02-128.f2fa29b06df6.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_wisd01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_wisd01_edc_01.5ef2eeacbeec.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_wisd01_edc_01-128.503a2f4bd63e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_wisd01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_wisd01_edc_02.ea3277541968.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_wisd01_edc_02-128.23543fb22952.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t3_suit_wisd01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t3_suit_wisd01_hand_01.ab7ca830dd23.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t3_suit_wisd01_hand_01-128.c7138bc7e2d1.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling00_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling00_body_01.26326e084f28.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling00_body_01-128.a497de5e8db6.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling00_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling00_body_02.23152fc4ded5.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling00_body_02-128.e84ff97fbdf7.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling00_body_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling00_body_03.ffd7ed754dfe.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling00_body_03-128.e8e3b2ad5434.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling00_body_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling00_body_04.3b96e3aabe31.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling00_body_04-128.1fde7fdcb4a5.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling00_body_05.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling00_body_05.61ca5571ac1a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling00_body_05-128.449c9e311b9b.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling00_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling00_edc_01.e78178b1ac9b.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling00_edc_01-128.21b475700b4b.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling00_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling00_edc_02.81f6ac735fea.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling00_edc_02-128.c5684453a74b.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling00_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling00_edc_03.3edf06e6dd4a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling00_edc_03-128.2e18ebb07feb.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling00_edc_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling00_edc_04.419858163ce8.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling00_edc_04-128.feda84aad77a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling00_edc_05.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling00_edc_05.4c6ebf65be3c.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling00_edc_05-128.0233e60df5bf.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling00_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling00_hand_01.a5d931256bec.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling00_hand_01-128.9e3dab9c1b11.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling00_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling00_hand_02.acdc2f8c3d70.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling00_hand_02-128.143cfe7383e5.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling00_hand_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling00_hand_03.67399079b5e6.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling00_hand_03-128.79c56570be95.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling00_hand_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling00_hand_04.9eef4a2c28d9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling00_hand_04-128.bbb048e737ea.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling00_hand_05.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling00_hand_05.b76a9a549f9d.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling00_hand_05-128.b962297e9d36.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling01_body_01.48a98be7980d.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling01_body_01-128.3a26341b67d2.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling01_body_02.872953526161.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling01_body_02-128.9a2a45b8ee82.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling01_edc_01.32d5963eac33.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling01_edc_01-128.7486950d8f28.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling01_edc_02.32d5963eac33.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling01_edc_02-128.7486950d8f28.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling01_edc_03.8612285b72b9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling01_edc_03-128.cc553bc8c631.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling01_edc_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling01_edc_04.8612285b72b9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling01_edc_04-128.cc553bc8c631.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling01_hand_01.26847e939e3b.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling01_hand_01-128.ff07c09779d5.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling01_hand_02.de27bf05d083.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling01_hand_02-128.b82f1bab217e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling02_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling02_body_01.83e7e1deff43.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling02_body_01-128.0aa85b2a2582.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling02_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling02_body_02.4a6f457de142.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling02_body_02-128.35fb04cfbe09.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling02_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling02_edc_01.bd668ba5fdbb.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling02_edc_01-128.891487e340d5.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling02_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling02_hand_01.fdeecf44d669.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling02_hand_01-128.34d05151ff74.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_parts_wuling02_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_parts_wuling02_hand_02.57abeceb6c6e.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_parts_wuling02_hand_02-128.2b61aafd5aac.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atb01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atb01_body_01.047c083e36d2.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atb01_body_01-128.1ff733a9ca87.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atb01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atb01_body_02.047c083e36d2.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atb01_body_02-128.1ff733a9ca87.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atb01_body_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atb01_body_03.047c083e36d2.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atb01_body_03-128.1ff733a9ca87.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atb01_body_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atb01_body_04.047c083e36d2.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atb01_body_04-128.1ff733a9ca87.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atb01_body_05.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atb01_body_05.79903490bce3.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atb01_body_05-128.6baccdb54b69.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atb01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atb01_edc_01.57a147f746a6.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atb01_edc_01-128.720a317d8a6f.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atb01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atb01_edc_02.57a147f746a6.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atb01_edc_02-128.720a317d8a6f.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atb01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atb01_edc_03.ed8ab42b9639.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atb01_edc_03-128.ea1d01b7d9ad.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atb01_edc_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atb01_edc_04.e12da72c1133.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atb01_edc_04-128.a295514354c2.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atb01_edc_05.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atb01_edc_05.8343e84e6e1a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atb01_edc_05-128.8d751fc6d91e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atb01_edc_06.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atb01_edc_06.214f425bdea0.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atb01_edc_06-128.0910e10ab902.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atb01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atb01_hand_01.47f4475d3278.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atb01_hand_01-128.39a1383fd86a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atb01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atb01_hand_02.ca78e426d34f.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atb01_hand_02-128.8b46e12cb423.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atb01_hand_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atb01_hand_03.8a0fcbeedc32.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atb01_hand_03-128.60bf304ee46d.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atk02_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atk02_body_01.e30c10e44a58.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atk02_body_01-128.2574c160bd42.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atk02_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atk02_body_02.9eb498b6bff4.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atk02_body_02-128.876f88303ffd.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atk02_body_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atk02_body_03.6be0920516e5.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atk02_body_03-128.c327bd45b48d.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atk02_body_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atk02_body_04.95a22bdcca62.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atk02_body_04-128.926172500442.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atk02_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atk02_edc_01.c262cb50cd81.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atk02_edc_01-128.bc2d6751eb5a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atk02_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atk02_edc_02.ac31a5a308dc.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atk02_edc_02-128.0271dc16d5b1.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atk02_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atk02_edc_03.761401d8d331.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atk02_edc_03-128.453ab5efafe8.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atk02_edc_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atk02_edc_04.b4555309ea1c.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atk02_edc_04-128.8c1063961602.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atk02_edc_05.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atk02_edc_05.b4555309ea1c.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atk02_edc_05-128.8c1063961602.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_atk02_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_atk02_hand_01.10be0087a2ff.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_atk02_hand_01-128.e43c32665870.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_attri01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_attri01_body_01.f42647784f5c.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_attri01_body_01-128.23889a4e8896.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_attri01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_attri01_body_02.f42647784f5c.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_attri01_body_02-128.23889a4e8896.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_attri01_body_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_attri01_body_04.376b3c48d7bd.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_attri01_body_04-128.c0c2dc465478.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_attri01_body_05.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_attri01_body_05.b27ccc39c820.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_attri01_body_05-128.9fc1b6577466.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_attri01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_attri01_edc_02.3e24ce4240f9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_attri01_edc_02-128.46ce5435e9e7.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_attri01_edc_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_attri01_edc_04.8a3740d86066.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_attri01_edc_04-128.3b38dc97e639.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_attri01_edc_05.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_attri01_edc_05.8a3740d86066.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_attri01_edc_05-128.3b38dc97e639.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_attri01_edc_06.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_attri01_edc_06.35f280b4fdce.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_attri01_edc_06-128.4498db33a767.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_attri01_edc_07.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_attri01_edc_07.6070c3980623.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_attri01_edc_07-128.b246b54bd8d2.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_attri01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_attri01_hand_01.92714429392b.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_attri01_hand_01-128.77a0eef6ffd3.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_attri01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_attri01_hand_02.92714429392b.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_attri01_hand_02-128.77a0eef6ffd3.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_attri01_hand_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_attri01_hand_03.16470e45863e.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_attri01_hand_03-128.53a6ac646665.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_burst01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_burst01_body_01.444db1c8f2e1.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_burst01_body_01-128.4f391c7850ed.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_burst01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_burst01_body_02.bbd1a15168ec.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_burst01_body_02-128.731cab49dc07.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_burst01_body_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_burst01_body_03.8f90ddc38257.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_burst01_body_03-128.5aad0b5a8865.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_burst01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_burst01_edc_01.fc4af42c4420.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_burst01_edc_01-128.6fadd9cd138b.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_burst01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_burst01_edc_02.16ca5823e68a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_burst01_edc_02-128.daab8a3e8901.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_burst01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_burst01_edc_03.01641bc5d030.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_burst01_edc_03-128.c26abc9b4499.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_burst01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_burst01_hand_01.c10a6c6e0889.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_burst01_hand_01-128.42f9be7c9ab6.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_burst01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_burst01_hand_02.c4bf8cd7c1c7.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_burst01_hand_02-128.665988f37ab4.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_combo_cd01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_body_01.d8d9090f625f.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_body_01-128.2186f836a8ca.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_combo_cd01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_body_02.606710c63233.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_body_02-128.e60a7a46605b.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_combo_cd01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_edc_01.b221c38343a6.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_edc_01-128.1f28aa226293.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_combo_cd01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_edc_02.599a5e1e174d.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_edc_02-128.d8599a4d9083.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_combo_cd01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_edc_03.744b7cbbe32b.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_edc_03-128.4c26f6266697.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_combo_cd01_edc_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_edc_04.0da3cd315a01.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_edc_04-128.36fa48af214f.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_combo_cd01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_hand_01.119b6b3435f4.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_hand_01-128.c87d3604c3e3.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_combo_cd01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_hand_02.b98416f3c161.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_combo_cd01_hand_02-128.9a7158088c4c.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_criti01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_criti01_body_01.342b4c46f218.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_criti01_body_01-128.6b7780d5976b.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_criti01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_criti01_body_02.3677c25ab4c9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_criti01_body_02-128.3d74fb8fd8ba.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_criti01_body_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_criti01_body_03.3677c25ab4c9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_criti01_body_03-128.3d74fb8fd8ba.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_criti01_body_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_criti01_body_04.3677c25ab4c9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_criti01_body_04-128.3d74fb8fd8ba.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_criti01_body_06.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_criti01_body_06.8a5d3052d820.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_criti01_body_06-128.8cfdee5013ca.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_criti01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_criti01_edc_01.6dc734ddfef4.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_criti01_edc_01-128.0aa0d3a0605e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_criti01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_criti01_edc_02.a33d5dcd900a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_criti01_edc_02-128.3a1e6296a691.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_criti01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_criti01_edc_03.a4c94f8ce5de.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_criti01_edc_03-128.d9645ae9eb87.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_criti01_edc_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_criti01_edc_04.a58f627a3721.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_criti01_edc_04-128.354b682dddbb.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_criti01_edc_05.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_criti01_edc_05.a58f627a3721.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_criti01_edc_05-128.354b682dddbb.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_criti01_edc_06.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_criti01_edc_06.346b776ac699.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_criti01_edc_06-128.b59a9273c8a5.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_criti01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_criti01_hand_01.1677a5100703.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_criti01_hand_01-128.1f57595fdd11.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_criti01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_criti01_hand_02.4a741344b64d.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_criti01_hand_02-128.945006464ed8.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_criti01_hand_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_criti01_hand_03.4a741344b64d.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_criti01_hand_03-128.945006464ed8.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_criti01_hand_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_criti01_hand_04.be7739ac9329.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_criti01_hand_04-128.7d4323a2a164.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_crush_fracture_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_crush_fracture_body_01.05b839c88b6d.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_crush_fracture_body_01-128.73dcbd586a01.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_crush_fracture_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_crush_fracture_body_02.c335646a3253.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_crush_fracture_body_02-128.df214c703dae.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_crush_fracture_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_crush_fracture_edc_01.3a235ec38cc9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_crush_fracture_edc_01-128.f75b1e289bc8.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_crush_fracture_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_crush_fracture_edc_02.94412ca59a61.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_crush_fracture_edc_02-128.2478afab65ed.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_crush_fracture_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_crush_fracture_hand_01.f43c014aa365.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_crush_fracture_hand_01-128.15fc8fddf362.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_crush_fracture_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_crush_fracture_hand_02.21aae44cc8d8.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_crush_fracture_hand_02-128.e6ab10566b26.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_expend_spell01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_expend_spell01_body_02.719a9a3180e5.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_expend_spell01_body_02-128.d54f04d40830.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_expend_spell01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_expend_spell01_edc_02.0d475688a000.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_expend_spell01_edc_02-128.ccb282caa54e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_expend_spell01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_expend_spell01_hand_02.d85085cf1588.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_expend_spell01_hand_02-128.eaa90c40dbeb.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_fire_natr01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_body_01.fdb67b5c4fcb.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_body_01-128.f933ebf361e8.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_fire_natr01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_body_02.37cc7b6c095d.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_body_02-128.19fa2bdac3f1.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_fire_natr01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_edc_01.363ed4dd36b0.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_edc_01-128.9e6592a6dd17.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_fire_natr01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_edc_02.e2eaec681e17.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_edc_02-128.1699234a78b0.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_fire_natr01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_edc_03.6800dff19f91.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_edc_03-128.6e2e4361b3d0.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_fire_natr01_edc_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_edc_04.ee6ca4125833.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_edc_04-128.77b3c0c4933a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_fire_natr01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_hand_01.d322a4b0261b.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_hand_01-128.9cd026c6f4c8.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_fire_natr01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_hand_02.4e116be84579.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_hand_02-128.79e252a1bbf4.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_fire_natr01_hand_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_hand_03.4e116be84579.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_hand_03-128.79e252a1bbf4.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_fire_natr01_hand_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_hand_04.948c6bf16047.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_fire_natr01_hand_04-128.bc087b235ff0.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_heal01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_heal01_body_01.af7c7c2b160f.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_heal01_body_01-128.7d5ed9bd7a9d.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_heal01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_heal01_body_02.3aaae871e5b5.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_heal01_body_02-128.e8785dac04f0.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_heal01_body_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_heal01_body_03.91a77ccca8ec.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_heal01_body_03-128.fff59a089a34.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_heal01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_heal01_edc_01.170cf4d6579a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_heal01_edc_01-128.7956690c09dc.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_heal01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_heal01_edc_02.025bab25d1ee.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_heal01_edc_02-128.472fb6152916.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_heal01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_heal01_edc_03.920ddbd2f690.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_heal01_edc_03-128.a502f8c0aa4f.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_heal01_edc_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_heal01_edc_04.bb7aa0082ad5.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_heal01_edc_04-128.0a514e069fb8.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_heal01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_heal01_hand_01.1dd1453cd4e4.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_heal01_hand_01-128.8ca9521f518b.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_heal01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_heal01_hand_02.88a4c5540e91.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_heal01_hand_02-128.4b26fde41cb3.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_heal01_hand_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_heal01_hand_03.cbd3336bc6a1.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_heal01_hand_03-128.47f2d7b821ad.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_phy01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_phy01_body_01.2ab157b6505c.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_phy01_body_01-128.3206f6342028.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_phy01_body_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_phy01_body_02.1cf9ee9234fe.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_phy01_body_02-128.472bfc3af9b3.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_phy01_body_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_phy01_body_03.fbfc39454cd9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_phy01_body_03-128.3c2be5a2c14c.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_phy01_body_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_phy01_body_04.59e33e624ac4.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_phy01_body_04-128.f41f6fdc2a63.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_phy01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_phy01_edc_01.fb835030eb72.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_phy01_edc_01-128.3471d01a63ce.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_phy01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_phy01_edc_02.e29c3dd2280f.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_phy01_edc_02-128.128c7ba7e3e9.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_phy01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_phy01_edc_03.c3b909eb4804.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_phy01_edc_03-128.edb68beb6d77.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_phy01_edc_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_phy01_edc_04.619ac73bb91c.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_phy01_edc_04-128.2e69edd3c122.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_phy01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_phy01_hand_01.dbcef5cb93d7.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_phy01_hand_01-128.08c0146ca012.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_phy01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_phy01_hand_02.a0353a0c3efe.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_phy01_hand_02-128.20a7618edf53.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_phy01_hand_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_phy01_hand_03.a16973a280ab.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_phy01_hand_03-128.a166bfc7ce92.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_poise01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_poise01_body_01.adbf01b10283.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_poise01_body_01-128.79db7e182648.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_poise01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_poise01_edc_01.4aad014f2721.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_poise01_edc_01-128.1c61a5512a19.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_poise01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_poise01_edc_02.848a5d03a37b.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_poise01_edc_02-128.c309ebcde785.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_poise01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_poise01_edc_03.c3d6f2a2106e.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_poise01_edc_03-128.3b2e07bb95a2.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_poise01_edc_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_poise01_edc_04.c01b4e92fc57.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_poise01_edc_04-128.9499be04a284.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_poise01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_poise01_hand_01.3450331f1520.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_poise01_hand_01-128.e4d7feb642f5.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_poise01_hand_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_poise01_hand_02.d74b9f53ac48.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_poise01_hand_02-128.03226eb344f0.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_pulse_cryst01_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_pulse_cryst01_body_01.d07e77b65529.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_pulse_cryst01_body_01-128.376be71fbf8f.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_pulse_cryst01_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_pulse_cryst01_edc_01.eabd88041393.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_pulse_cryst01_edc_01-128.94070b9ff411.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_pulse_cryst01_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_pulse_cryst01_edc_02.f9639ab43d53.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_pulse_cryst01_edc_02-128.f11bef01a8d7.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_pulse_cryst01_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_pulse_cryst01_edc_03.cf340cde962e.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_pulse_cryst01_edc_03-128.e21b183d5d8a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_pulse_cryst01_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_pulse_cryst01_hand_01.25d5877d2141.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_pulse_cryst01_hand_01-128.eecb1e855feb.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_spellburst_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_spellburst_body_01.87927bece7dd.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_spellburst_body_01-128.26077956c29a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_spellburst_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_spellburst_edc_01.eb5f80ac0151.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_spellburst_edc_01-128.d62330728c48.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_spellburst_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_spellburst_hand_01.890a34e9c276.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_spellburst_hand_01-128.43032cdae126.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_usp02_body_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_usp02_body_01.15ca17893d28.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_usp02_body_01-128.8267ef90e4f9.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_usp02_body_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_usp02_body_03.c0b4bd93e060.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_usp02_body_03-128.1db6000b0041.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_usp02_body_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_usp02_body_04.3fad07259fef.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_usp02_body_04-128.f2eee961b7a0.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_usp02_edc_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_usp02_edc_01.3e9cde0c5074.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_usp02_edc_01-128.586842baf6ee.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_usp02_edc_02.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_usp02_edc_02.3e9cde0c5074.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_usp02_edc_02-128.586842baf6ee.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_usp02_edc_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_usp02_edc_03.766a4f3d9e41.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_usp02_edc_03-128.82feea45e9a4.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_usp02_edc_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_usp02_edc_04.78b48129a3b9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_usp02_edc_04-128.73142eeda9b9.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_usp02_edc_05.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_usp02_edc_05.065126059bd3.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_usp02_edc_05-128.fffd0cfc5c44.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_usp02_edc_06.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_usp02_edc_06.734bf5931c8e.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_usp02_edc_06-128.07c5c70612b9.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_usp02_hand_01.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_usp02_hand_01.5a10371c02ea.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_usp02_hand_01-128.3c34109d2324.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_usp02_hand_03.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_usp02_hand_03.8a267b2d7d9c.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_usp02_hand_03-128.d0debd46f6f3.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/item_equip_t4_suit_usp02_hand_04.png": {
+      "path": "assets/ake-icons/item_equip_t4_suit_usp02_hand_04.2f704d2a7f35.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/item_equip_t4_suit_usp02_hand_04-128.5b14b3d2d72f.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_claym_0003.png": {
+      "path": "assets/ake-icons/wpn_claym_0003.4a171de6e157.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_claym_0003-128.1d9c418ef23e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_claym_0004.png": {
+      "path": "assets/ake-icons/wpn_claym_0004.9593bb1cc0c4.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_claym_0004-128.298a05f1b761.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_claym_0006.png": {
+      "path": "assets/ake-icons/wpn_claym_0006.26c0a7f438f2.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_claym_0006-128.b9b79ed841f3.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_claym_0007.png": {
+      "path": "assets/ake-icons/wpn_claym_0007.a1646b11b7d9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_claym_0007-128.cd5a2252b5c4.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_claym_0008.png": {
+      "path": "assets/ake-icons/wpn_claym_0008.f1c4ef398e8b.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_claym_0008-128.eee065b45a54.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_claym_0009.png": {
+      "path": "assets/ake-icons/wpn_claym_0009.84428ec24e05.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_claym_0009-128.c98e47937cff.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_claym_0010.png": {
+      "path": "assets/ake-icons/wpn_claym_0010.b990ecdcffc9.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_claym_0010-128.20c3deecf97b.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_claym_0011.png": {
+      "path": "assets/ake-icons/wpn_claym_0011.16e097883e11.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_claym_0011-128.b2522512c1b3.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_claym_0012.png": {
+      "path": "assets/ake-icons/wpn_claym_0012.9505482f187d.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_claym_0012-128.b60d7a7a30bf.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_claym_0013.png": {
+      "path": "assets/ake-icons/wpn_claym_0013.26843731a0d0.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_claym_0013-128.210901c72058.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_claym_0014.png": {
+      "path": "assets/ake-icons/wpn_claym_0014.b6e78a3ce83e.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_claym_0014-128.7de81ece3219.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_claym_0015.png": {
+      "path": "assets/ake-icons/wpn_claym_0015.daeb600a8f0a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_claym_0015-128.3c497cc22f3f.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_claym_0016.png": {
+      "path": "assets/ake-icons/wpn_claym_0016.511d076191ed.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_claym_0016-128.b79931e771c9.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_claym_0017.png": {
+      "path": "assets/ake-icons/wpn_claym_0017.c33d002d8086.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_claym_0017-128.5c3c14dce58f.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0001.png": {
+      "path": "assets/ake-icons/wpn_funnel_0001.a0b4d9823caa.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0001-128.65ce953fa4bf.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0002.png": {
+      "path": "assets/ake-icons/wpn_funnel_0002.92137e750153.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0002-128.753bdca95d2f.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0003.png": {
+      "path": "assets/ake-icons/wpn_funnel_0003.8e8cd0a08909.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0003-128.9b2911588861.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0004.png": {
+      "path": "assets/ake-icons/wpn_funnel_0004.caf603b07eaf.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0004-128.763ed4c631eb.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0005.png": {
+      "path": "assets/ake-icons/wpn_funnel_0005.00cc4f30a84f.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0005-128.0cc462ca6765.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0006.png": {
+      "path": "assets/ake-icons/wpn_funnel_0006.57c78af07828.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0006-128.0943783b7eee.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0007.png": {
+      "path": "assets/ake-icons/wpn_funnel_0007.003af17010b8.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0007-128.364709d50940.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0008.png": {
+      "path": "assets/ake-icons/wpn_funnel_0008.9adfe2ed534d.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0008-128.1ea8c5d86065.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0009.png": {
+      "path": "assets/ake-icons/wpn_funnel_0009.9c211287cf46.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0009-128.55ba4eb13804.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0010.png": {
+      "path": "assets/ake-icons/wpn_funnel_0010.f2b37448ec93.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0010-128.96a0a683f4f6.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0011.png": {
+      "path": "assets/ake-icons/wpn_funnel_0011.60aa94acf77e.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0011-128.19ad72b609e7.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0012.png": {
+      "path": "assets/ake-icons/wpn_funnel_0012.abddd4a9135d.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0012-128.009184dd430b.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0013.png": {
+      "path": "assets/ake-icons/wpn_funnel_0013.cb4055e68229.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0013-128.64dd0221a739.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0014.png": {
+      "path": "assets/ake-icons/wpn_funnel_0014.4d0051c8a28f.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0014-128.b516c79e48dd.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0015.png": {
+      "path": "assets/ake-icons/wpn_funnel_0015.7718eed0f36d.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0015-128.ca8232a51d9f.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0016.png": {
+      "path": "assets/ake-icons/wpn_funnel_0016.756ed55bda02.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0016-128.dfebcd0ab153.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0017.png": {
+      "path": "assets/ake-icons/wpn_funnel_0017.a39c19754858.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0017-128.7d892bdb2ff0.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0018.png": {
+      "path": "assets/ake-icons/wpn_funnel_0018.d1bf676862b4.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0018-128.6489bf51f619.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0019.png": {
+      "path": "assets/ake-icons/wpn_funnel_0019.b529115f0064.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0019-128.87182c100554.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_funnel_0020.png": {
+      "path": "assets/ake-icons/wpn_funnel_0020.9b0d52a1396a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_funnel_0020-128.5c7d1ed2b054.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_lance_0003.png": {
+      "path": "assets/ake-icons/wpn_lance_0003.900ad95eb59d.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_lance_0003-128.e772eda550dc.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_lance_0004.png": {
+      "path": "assets/ake-icons/wpn_lance_0004.9ffe3da62ae3.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_lance_0004-128.0f8bc1f832cf.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_lance_0006.png": {
+      "path": "assets/ake-icons/wpn_lance_0006.9dbbb3a96e20.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_lance_0006-128.0823bd047346.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_lance_0007.png": {
+      "path": "assets/ake-icons/wpn_lance_0007.3646603f9858.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_lance_0007-128.18e2bda7f11a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_lance_0008.png": {
+      "path": "assets/ake-icons/wpn_lance_0008.91aae432bb3a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_lance_0008-128.904537a560e4.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_lance_0009.png": {
+      "path": "assets/ake-icons/wpn_lance_0009.62b457557850.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_lance_0009-128.23be8be28ad8.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_lance_0010.png": {
+      "path": "assets/ake-icons/wpn_lance_0010.fe81156564ae.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_lance_0010-128.82297e5ae352.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_lance_0011.png": {
+      "path": "assets/ake-icons/wpn_lance_0011.89dcd4a331a2.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_lance_0011-128.d23494278f77.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_lance_0012.png": {
+      "path": "assets/ake-icons/wpn_lance_0012.aa9fd3287d74.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_lance_0012-128.a412df022240.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_lance_0013.png": {
+      "path": "assets/ake-icons/wpn_lance_0013.765acd624f89.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_lance_0013-128.b24cf37873bf.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_lance_0014.png": {
+      "path": "assets/ake-icons/wpn_lance_0014.cbe29454e635.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_lance_0014-128.b240ebbc6531.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_lance_0015.png": {
+      "path": "assets/ake-icons/wpn_lance_0015.784eadb8975c.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_lance_0015-128.b6d4dbccd5d1.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_lance_0016.png": {
+      "path": "assets/ake-icons/wpn_lance_0016.4b47e430f07c.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_lance_0016-128.258255e00643.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_pistol_0001.png": {
+      "path": "assets/ake-icons/wpn_pistol_0001.9dfd91969483.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_pistol_0001-128.d7ad782221df.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_pistol_0002.png": {
+      "path": "assets/ake-icons/wpn_pistol_0002.d0ba25c190a2.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_pistol_0002-128.e2265429a5ea.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_pistol_0003.png": {
+      "path": "assets/ake-icons/wpn_pistol_0003.9a75795fd6c8.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_pistol_0003-128.d2f673f29ae5.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_pistol_0004.png": {
+      "path": "assets/ake-icons/wpn_pistol_0004.4a98dd008bdc.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_pistol_0004-128.1a1b8b05f97e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_pistol_0005.png": {
+      "path": "assets/ake-icons/wpn_pistol_0005.db33bcc028aa.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_pistol_0005-128.d7c1b1e7d0ad.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_pistol_0006.png": {
+      "path": "assets/ake-icons/wpn_pistol_0006.561d3913d667.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_pistol_0006-128.1b3b16b87630.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_pistol_0007.png": {
+      "path": "assets/ake-icons/wpn_pistol_0007.974dbae67c13.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_pistol_0007-128.bf16795d554e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_pistol_0008.png": {
+      "path": "assets/ake-icons/wpn_pistol_0008.70af6629a14a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_pistol_0008-128.1989b95832ed.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_pistol_0009.png": {
+      "path": "assets/ake-icons/wpn_pistol_0009.092013b63468.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_pistol_0009-128.e1df275d837e.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_pistol_0010.png": {
+      "path": "assets/ake-icons/wpn_pistol_0010.647eb9c8ac8b.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_pistol_0010-128.247d1f71348c.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_pistol_0011.png": {
+      "path": "assets/ake-icons/wpn_pistol_0011.c6778ce3c140.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_pistol_0011-128.ee284521ccc0.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_pistol_0012.png": {
+      "path": "assets/ake-icons/wpn_pistol_0012.ba115353e800.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_pistol_0012-128.58929556c62a.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0003.png": {
+      "path": "assets/ake-icons/wpn_sword_0003.debe1e5abf0e.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0003-128.f2f5b28258a1.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0005.png": {
+      "path": "assets/ake-icons/wpn_sword_0005.00d3e41458c0.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0005-128.ca14e6494d54.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0006.png": {
+      "path": "assets/ake-icons/wpn_sword_0006.636b6d9063ef.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0006-128.87d41c79d5ee.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0007.png": {
+      "path": "assets/ake-icons/wpn_sword_0007.8b8338a59bb7.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0007-128.7cb0d3526b40.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0008.png": {
+      "path": "assets/ake-icons/wpn_sword_0008.20c46b11f8b4.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0008-128.95de9bb069ca.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0009.png": {
+      "path": "assets/ake-icons/wpn_sword_0009.3a07fb0b4494.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0009-128.f8113bcef9ad.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0010.png": {
+      "path": "assets/ake-icons/wpn_sword_0010.f49fc55df869.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0010-128.bdcd9067d946.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0011.png": {
+      "path": "assets/ake-icons/wpn_sword_0011.829e72078c18.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0011-128.d1b430f3e605.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0012.png": {
+      "path": "assets/ake-icons/wpn_sword_0012.26702bd9fade.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0012-128.3661ce8539ea.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0013.png": {
+      "path": "assets/ake-icons/wpn_sword_0013.bc8e8a48cf7a.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0013-128.bc93396925cf.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0014.png": {
+      "path": "assets/ake-icons/wpn_sword_0014.a5907da6d70d.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0014-128.8ba82bb757fb.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0015.png": {
+      "path": "assets/ake-icons/wpn_sword_0015.65b805dfd9ae.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0015-128.d33bc0a5efc5.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0016.png": {
+      "path": "assets/ake-icons/wpn_sword_0016.19b9a184bf5f.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0016-128.aa12ddabe3bc.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0017.png": {
+      "path": "assets/ake-icons/wpn_sword_0017.395dcd3ed02e.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0017-128.3ec7a038b208.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0018.png": {
+      "path": "assets/ake-icons/wpn_sword_0018.3d5fcd735335.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0018-128.88c7f1c5e3b3.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0019.png": {
+      "path": "assets/ake-icons/wpn_sword_0019.c5217d1da80e.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0019-128.f116c25c82e6.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0020.png": {
+      "path": "assets/ake-icons/wpn_sword_0020.bec52dfe8286.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0020-128.e46594f2e7d7.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0021.png": {
+      "path": "assets/ake-icons/wpn_sword_0021.c60403f5c098.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0021-128.35d27f30c78f.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0022.png": {
+      "path": "assets/ake-icons/wpn_sword_0022.4d00c8e0af94.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0022-128.927dc923baaf.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/itemiconbig/wpn_sword_0026.png": {
+      "path": "assets/ake-icons/wpn_sword_0026.2b7782451b82.webp",
+      "width": 256,
+      "height": 256,
+      "thumbnail": {
+        "path": "assets/ake-icons/wpn_sword_0026-128.e84e7bf811dc.webp",
+        "width": 128,
+        "height": 128
+      }
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_attack_claym.png": {
+      "path": "assets/ake-icons/icon_attack_claym.838b7299ccc0.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_attack_funnel.png": {
+      "path": "assets/ake-icons/icon_attack_funnel.1148b640c427.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_attack_lance.png": {
+      "path": "assets/ake-icons/icon_attack_lance.a143afdfea87.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_attack_pistol.png": {
+      "path": "assets/ake-icons/icon_attack_pistol.d5e570c030dc.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_attack_sword.png": {
+      "path": "assets/ake-icons/icon_attack_sword.0fef38bd2786.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_aglina_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_aglina_01.eae45f636a24.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_antal_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_antal_01.3733d374bda2.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_ardelia_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_ardelia_01.f7df4e9b9e55.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_aurora_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_aurora_01.e3e4e74f5e71.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_avywen_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_avywen_01.eef00081a7d8.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_azrila_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_azrila_01.6d71cf7a63ba.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_bounda_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_bounda_01.b8d1bfcf7b2a.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_camille_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_camille_01.ca2d6e9afd4f.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_chen_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_chen_01.d53e365ab064.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_dapan_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_dapan_01.ca1ae83f3818.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_deepfin_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_deepfin_01.78a06620b016.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_endmin_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_endmin_01.d3ad93f610bd.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_ikut_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_ikut_01.666bdf407e75.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_karin_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_karin_01.e83c904a974b.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_laevat_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_laevat_01.34c6a67b3a13.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_lastrite_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_lastrite_01.72851e093c74.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_lifeng_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_lifeng_01.485b424e6c06.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_liino_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_liino_01.5e575531ee23.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_lizhiyan_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_lizhiyan_01.6f5e4a02167b.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_meurs_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_meurs_01.c5e0de97877a.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_mifu_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_mifu_01.4dea9ddc988b.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_pelica_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_pelica_01.db62654aa7ba.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_pograni_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_pograni_01.b13f2eaa7160.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_seraph_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_seraph_01.89a4ad613a38.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_tangtang_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_tangtang_01.a94fa02ff96b.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_typhoea_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_typhoea_01.cd27062dbf8b.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_whiten_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_whiten_01.1292e885f135.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_wolfgd_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_wolfgd_01.4deaec3bceb2.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_wulfa_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_wulfa_01.ec8c60b0a336.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_yvonne_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_yvonne_01.a0e25d2393fa.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_combo_skill_zhuangfy_01.png": {
+      "path": "assets/ake-icons/icon_combo_skill_zhuangfy_01.2ca17607681d.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_aglina_01.png": {
+      "path": "assets/ake-icons/icon_skill_aglina_01.7ed6070187fd.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_antal_01.png": {
+      "path": "assets/ake-icons/icon_skill_antal_01.94eb39bb087c.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_ardelia_01.png": {
+      "path": "assets/ake-icons/icon_skill_ardelia_01.74ad5bf62d8a.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_aurora_01.png": {
+      "path": "assets/ake-icons/icon_skill_aurora_01.a44f0e092fbe.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_avywen_01.png": {
+      "path": "assets/ake-icons/icon_skill_avywen_01.287ce6956e59.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_azrila_01.png": {
+      "path": "assets/ake-icons/icon_skill_azrila_01.8a3c507f0c30.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_bounda_01.png": {
+      "path": "assets/ake-icons/icon_skill_bounda_01.4c2bb44308e2.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_camille_01.png": {
+      "path": "assets/ake-icons/icon_skill_camille_01.7d4fd759bd94.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_chen_01.png": {
+      "path": "assets/ake-icons/icon_skill_chen_01.6d2970d5f1db.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_dapan_01.png": {
+      "path": "assets/ake-icons/icon_skill_dapan_01.9ec630f8fdb7.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_deepfin_01.png": {
+      "path": "assets/ake-icons/icon_skill_deepfin_01.71c88393db03.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_endmin_01.png": {
+      "path": "assets/ake-icons/icon_skill_endmin_01.beb3a6bd6432.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_ikut_01.png": {
+      "path": "assets/ake-icons/icon_skill_ikut_01.99ef903def7a.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_karin_01.png": {
+      "path": "assets/ake-icons/icon_skill_karin_01.3cc1c8e6edc5.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_laevat_01.png": {
+      "path": "assets/ake-icons/icon_skill_laevat_01.6047bd51b532.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_lastrite_01.png": {
+      "path": "assets/ake-icons/icon_skill_lastrite_01.889a9d6f374e.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_lifeng_01.png": {
+      "path": "assets/ake-icons/icon_skill_lifeng_01.9059b39a1090.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_liino_01.png": {
+      "path": "assets/ake-icons/icon_skill_liino_01.fe81b3e7118b.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_lizhiyan_01.png": {
+      "path": "assets/ake-icons/icon_skill_lizhiyan_01.7d7c8a3f06dd.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_meurs_01.png": {
+      "path": "assets/ake-icons/icon_skill_meurs_01.319f61741d48.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_mifu_01.png": {
+      "path": "assets/ake-icons/icon_skill_mifu_01.e4e0f3d09583.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_pelica_01.png": {
+      "path": "assets/ake-icons/icon_skill_pelica_01.3046f8f8d7d6.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_pograni_01.png": {
+      "path": "assets/ake-icons/icon_skill_pograni_01.c9f11855c978.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_seraph_01.png": {
+      "path": "assets/ake-icons/icon_skill_seraph_01.2f4849131d5b.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_tangtang_01.png": {
+      "path": "assets/ake-icons/icon_skill_tangtang_01.10266d9122b9.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_typhoea_01.png": {
+      "path": "assets/ake-icons/icon_skill_typhoea_01.a5eaa6b0aecd.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_whiten_01.png": {
+      "path": "assets/ake-icons/icon_skill_whiten_01.a08965dfaa03.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_wolfgd_01.png": {
+      "path": "assets/ake-icons/icon_skill_wolfgd_01.9a9657a962c5.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_wulfa_01.png": {
+      "path": "assets/ake-icons/icon_skill_wulfa_01.f26fd28c3aeb.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_yvonne_01.png": {
+      "path": "assets/ake-icons/icon_skill_yvonne_01.f7df858397d0.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_skill_zhuangfy_01.png": {
+      "path": "assets/ake-icons/icon_skill_zhuangfy_01.739c7027b51a.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_aglina_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_aglina_01.3e9359ff6bf6.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_antal_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_antal_01.b87beb1b70cf.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_ardelia_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_ardelia_01.1aeedaeefc62.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_aurora_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_aurora_01.0133fb93d170.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_avywen_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_avywen_01.e07180542655.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_azrila_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_azrila_01.3da090b6030b.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_bounda_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_bounda_01.346500764449.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_camille_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_camille_01.882a92804efb.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_chen_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_chen_01.a88e853776e0.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_dapan_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_dapan_01.2a386fb15c2e.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_deepfin_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_deepfin_01.59c18a9b7395.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_endmin_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_endmin_01.068310720ba2.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_ikut_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_ikut_01.85824b3e75e6.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_karin_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_karin_01.ba06b8ad2ce7.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_laevat_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_laevat_01.e96ef430a038.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_lastrite_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_lastrite_01.17e4e373a4fc.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_lifeng_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_lifeng_01.23f0b8483d7d.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_liino_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_liino_01.6eaed84dd845.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_lizhiyan_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_lizhiyan_01.0b8d48d5bc0a.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_meurs_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_meurs_01.0e5c2d6cd6c8.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_mifu_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_mifu_01.9f29ac5c96fe.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_pelica_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_pelica_01.4dc9dc88129d.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_pograni_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_pograni_01.71e3b729f3cd.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_seraph_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_seraph_01.43b8f59c963c.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_tangtang_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_tangtang_01.cbe13799400b.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_typhoea_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_typhoea_01.5051d510fd76.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_whiten_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_whiten_01.e347c07f390f.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_wolfgd_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_wolfgd_01.390a2a8c4c34.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_wulfa_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_wulfa_01.71ed2851de37.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_yvonne_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_yvonne_01.2558db66d599.webp",
+      "width": 104,
+      "height": 104
+    },
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/icon_ultimate_skill_zhuangfy_01.png": {
+      "path": "assets/ake-icons/icon_ultimate_skill_zhuangfy_01.718773ad650c.webp",
+      "width": 104,
+      "height": 104
+    }
+  },
+  "unavailable": [
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/charremoteicon/icon_chr_9000_endmin.png",
+    "https://data.akedata.wiki/public/images/assets/beyond/dynamicassets/gameplay/ui/sprites/skillicon/s.png"
+  ]
+}

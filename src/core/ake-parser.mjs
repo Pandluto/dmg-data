@@ -39,7 +39,11 @@ export function parseBlackboard(rawEntries = []) {
     const values = {};
     const lineage = {};
     for (const entry of rawEntries ?? []) {
-        const value = entry.valueDouble ?? entry.valueStr ?? null;
+        // AKE serializes both storage slots: a string value still has a
+        // numeric zero alongside it. Only an empty string selects that slot.
+        const value = typeof entry.valueStr === 'string' && entry.valueStr !== ''
+            ? entry.valueStr
+            : entry.valueDouble ?? entry.valueStr ?? null;
         values[entry.key] = value;
         lineage[entry.key] = [{ source: 'SkillData.default', value }];
     }
@@ -50,7 +54,9 @@ function mergeSkillPatch(raw, patchBundle, level) {
     const { values, lineage } = parseBlackboard(raw.blackboard);
     const patch = patchBundle?.SkillPatchDataBundle?.find(entry => Number(entry.level) === Number(level)) ?? null;
     for (const entry of patch?.blackboard ?? []) {
-        const value = entry.value ?? entry.valueStr ?? null;
+        const value = typeof entry.valueStr === 'string' && entry.valueStr !== ''
+            ? entry.valueStr
+            : entry.value ?? entry.valueStr ?? null;
         values[entry.key] = value;
         lineage[entry.key] ??= [];
         lineage[entry.key].push({ source: `SkillPatchTable.level${level}`, value });

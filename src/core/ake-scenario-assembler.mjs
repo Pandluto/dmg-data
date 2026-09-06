@@ -1,3 +1,4 @@
+import { plungingAttackEndCapability } from './ake-attack-input.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -1373,6 +1374,7 @@ export class AkeScenarioAssembler {
             ...[...programs.values()].flatMap(program => program.compiler?.unresolved ?? []),
             ...[...buffs.values()].flatMap(buff => buff.compiler?.unresolved ?? [])
         ];
+        roles.plungingAttackEndId = plungingAttackEndCapability(roles, programs);
         const intrinsicPassives = intrinsicPassiveIds.flatMap(skillId => {
             const raw = rawSkills.get(skillId);
             const program = programs.get(skillId);

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import './WorkbookSheet.css';
 import './BuffDraftPage.css';
-import './OperatorDraftPage.css';
+import './DataEditor.css';
 import { APP_ROUTE_PATHS, navigateToAppPath } from '../utils/appRoute';
 import { normalizeAssetUrl, resolvePublicPath } from '../utils/assetResolver';
 import { persistentLocalStorage } from '../platform/storage/persistentStorage';

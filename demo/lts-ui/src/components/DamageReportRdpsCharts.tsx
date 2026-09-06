@@ -203,9 +203,9 @@ function RdpsTotalBars({ summary }: { summary: RdpsAttributionSummary }) {
 }
 
 /** 图 3：总 RD 双图概览。 */
-export function RdpsOverviewChart({ summary }: { summary: RdpsAttributionSummary | undefined }) {
+export function RdpsOverviewChart({ summary, unavailableReason }: { summary: RdpsAttributionSummary | undefined; unavailableReason?: string }) {
   if (!summary) {
-    return <div className="rdps-empty">暂无归因数据</div>;
+    return <div className="rdps-empty">{unavailableReason || '暂无归因数据'}</div>;
   }
   return (
     <div className="is-rdps-overview">
@@ -262,9 +262,9 @@ function CharacterDomainCard({ character }: { character: RdpsCharacterContributi
 }
 
 /** 图 4：四干员域拆分。 */
-export function RdpsCharacterSplitChart({ summary }: { summary: RdpsAttributionSummary | undefined }) {
+export function RdpsCharacterSplitChart({ summary, unavailableReason }: { summary: RdpsAttributionSummary | undefined; unavailableReason?: string }) {
   if (!summary) {
-    return <div className="rdps-empty">暂无归因数据</div>;
+    return <div className="rdps-empty">{unavailableReason || '暂无归因数据'}</div>;
   }
   const characters = summary.characters.slice(0, 4);
   if (characters.length === 0) {

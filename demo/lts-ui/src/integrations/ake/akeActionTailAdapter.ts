@@ -21,6 +21,7 @@ function finiteFrame(value: unknown, fallback = 0): number {
 }
 
 function actionKind(profile: AkeTimingSkillProfile): CombatActionKind {
+  if (profile.attackMode === 'plunging-impact') return 'other';
   return ACTION_KIND_BY_COMMAND[profile.commandType] ?? 'other';
 }
 
@@ -29,7 +30,7 @@ function eventId(prefix: string, index: number): string {
 }
 
 function hitEvents(profile: AkeTimingSkillProfile): ActionCommitEvent[] {
-  const basicStages = profile.commandType === 'Attack'
+  const basicStages = profile.commandType === 'Attack' && profile.attackMode !== 'plunging-impact'
     ? profile.comboStageSkillIds?.length
       ? profile.comboStageSkillIds
       : [profile.skillId]

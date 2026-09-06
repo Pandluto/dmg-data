@@ -22,6 +22,7 @@ const STATUS_LABELS: Record<WorkNodeTreeNodeModel['status'], string> = {
 type WorkNodeTreeNodeProps = {
   node: WorkNodeTreeNodeModel;
   activeNodeId: string;
+  selectedNodeId: string;
   activePathNodeIds: Set<string>;
   isOmissionMode: boolean;
   isOmissionSelected: boolean;
@@ -106,6 +107,7 @@ function DatabaseForkIcon() {
 export function WorkNodeTreeNode({
   node,
   activeNodeId,
+  selectedNodeId,
   activePathNodeIds,
   isOmissionMode,
   isOmissionSelected,
@@ -126,14 +128,12 @@ export function WorkNodeTreeNode({
   const [titleDraft, setTitleDraft] = useState(node.title);
   const [showDetails, setShowDetails] = useState(false);
   const [showDeleteChoices, setShowDeleteChoices] = useState(false);
-  const clickTimerRef = useRef<number | null>(null);
   const hoverTimerRef = useRef<number | null>(null);
   const isActive = activeNodeId === node.nodeId;
   const isInActivePath = activePathNodeIds.has(node.nodeId);
   const pathClassName = isActive ? ' is-active' : isInActivePath ? ' is-path' : ' is-muted';
   const omissionClassName = isOmissionSelected ? ' is-omission-selected' : '';
   useEffect(() => () => {
-    if (clickTimerRef.current !== null) window.clearTimeout(clickTimerRef.current);
     if (hoverTimerRef.current !== null) window.clearTimeout(hoverTimerRef.current);
   }, []);
 
@@ -154,18 +154,12 @@ export function WorkNodeTreeNode({
 
   const selectNode = () => {
     if (isRenaming) return;
-    if (clickTimerRef.current !== null) window.clearTimeout(clickTimerRef.current);
-    clickTimerRef.current = window.setTimeout(() => {
-      clickTimerRef.current = null;
-      onSelect(node);
-    }, 220);
+    onSelect(node);
   };
 
   const startRename = (event: MouseEvent<HTMLElement>) => {
     event.stopPropagation();
     if (isOmissionMode) return;
-    if (clickTimerRef.current !== null) window.clearTimeout(clickTimerRef.current);
-    clickTimerRef.current = null;
     setTitleDraft(node.title);
     setIsRenaming(true);
   };
@@ -189,12 +183,17 @@ export function WorkNodeTreeNode({
       onPointerLeave={hideDetails}
     >
         <div
-          className={`work-node-tree-node is-${node.status}${pathClassName}${omissionClassName}${isOmissionMode ? ' is-omission-mode' : ''}`}
+          className={`work-node-tree-node is-${node.status}${pathClassName}${selectedNodeId === node.nodeId ? ' is-selected' : ''}${omissionClassName}${isOmissionMode ? ' is-omission-mode' : ''}`}
+          role="button"
+          tabIndex={0}
+          aria-label={`选择版本：${node.title}${isActive ? '，当前版本' : ''}`}
+          aria-pressed={selectedNodeId === node.nodeId}
+          onKeyDown={event => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); selectNode(); } }}
           onClick={selectNode}
         >
           <div className="work-node-tree-node-top">
             <span className="work-node-tree-source">{SOURCE_LABELS[node.source]}</span>
-            <span className="work-node-tree-status">{STATUS_LABELS[node.status]}</span>
+            <span className="work-node-tree-status">{isActive ? '当前版本' : STATUS_LABELS[node.status]}</span>
           </div>
           {isRenaming ? (
             <form className="work-node-tree-title-form" onSubmit={(event) => void saveRename(event)}>
@@ -247,9 +246,9 @@ export function WorkNodeTreeNode({
               <button
                 type="button"
                 className="work-node-tree-sqlite-action"
-                title="以此节点新建 SQLite"
-                aria-label="以此节点新建 SQLite"
-                data-tooltip="另存为 SQLite"
+                title="以此版本新建存档"
+                aria-label="以此版本新建存档"
+                data-tooltip="另存为独立存档"
                 onClick={(event) => stopAction(event, () => onForkAsSqlite(node))}
               >
                 <DatabaseForkIcon />

@@ -1,0 +1,141 @@
+{
+  "members": [
+    {
+      "memberId": "chr_0026_lastrite",
+      "characterId": "chr_0026_lastrite",
+      "weaponId": "wpn_claym_0013",
+      "initialUltimateSp": 240,
+      "level": 90,
+      "skillLevel": 12,
+      "potentialLevel": 0,
+      "weaponLevel": 90,
+      "weaponPotential": 1,
+      "weaponSkillLevels": {
+        "skill1": 9,
+        "skill2": 9,
+        "skill3": 4
+      },
+      "equipment": [
+        {
+          "equipmentId": "item_equip_t4_suit_atb01_body_01",
+          "enhance": 3
+        },
+        {
+          "equipmentId": "item_equip_t4_suit_phy01_hand_02",
+          "enhance": 3
+        },
+        {
+          "equipmentId": "item_equip_t4_suit_atb01_edc_03",
+          "enhance": 3
+        },
+        {
+          "equipmentId": "item_equip_t4_suit_atb01_edc_03",
+          "enhance": 3
+        }
+      ]
+    },
+    {
+      "memberId": "chr_0027_tangtang",
+      "characterId": "chr_0027_tangtang",
+      "weaponId": "wpn_pistol_0011",
+      "initialUltimateSp": 90,
+      "level": 90,
+      "skillLevel": 12,
+      "potentialLevel": 0,
+      "weaponLevel": 90,
+      "weaponPotential": 1,
+      "weaponSkillLevels": {
+        "skill1": 9,
+        "skill2": 9,
+        "skill3": 4
+      },
+      "equipment": [
+        {
+          "equipmentId": "item_equip_t4_suit_attri01_body_05",
+          "enhance": 3
+        },
+        {
+          "equipmentId": "item_equip_t4_suit_attri01_hand_02",
+          "enhance": 3
+        },
+        {
+          "equipmentId": "item_equip_t4_suit_attri01_edc_07",
+          "enhance": 3
+        },
+        {
+          "equipmentId": "item_equip_t4_suit_attri01_edc_07",
+          "enhance": 3
+        }
+      ]
+    }
+  ],
+  "initialAtb": 300,
+  "initialControllerCharacterId": "chr_0026_lastrite",
+  "endFrame": 486,
+  "commands": [
+    {
+      "memberId": "chr_0026_lastrite",
+      "commandType": "Attack",
+      "frame": 0,
+      "commandId": "LA0",
+      "attackMode": "full-combo",
+      "queueMode": "timeline-sequence"
+    },
+    {
+      "memberId": "chr_0027_tangtang",
+      "commandType": "NormalSkill",
+      "frame": 0,
+      "commandId": "TB0",
+      "queueMode": "timeline-sequence"
+    },
+    {
+      "memberId": "chr_0026_lastrite",
+      "commandType": "NormalSkill",
+      "frame": 50,
+      "commandId": "LB50",
+      "queueMode": "timeline-sequence"
+    },
+    {
+      "memberId": "chr_0027_tangtang",
+      "commandType": "ComboSkill",
+      "frame": 60,
+      "commandId": "TC60",
+      "queueMode": "timeline-sequence"
+    },
+    {
+      "memberId": "chr_0027_tangtang",
+      "commandType": "NormalSkill",
+      "frame": 103,
+      "commandId": "TB103",
+      "queueMode": "timeline-sequence"
+    },
+    {
+      "memberId": "chr_0026_lastrite",
+      "commandType": "ComboSkill",
+      "frame": 143,
+      "commandId": "LC143",
+      "queueMode": "timeline-sequence"
+    },
+    {
+      "memberId": "chr_0027_tangtang",
+      "commandId": "deplete-0",
+      "commandType": "NormalSkill",
+      "frame": 171,
+      "queueMode": "timeline-sequence"
+    },
+    {
+      "memberId": "chr_0026_lastrite",
+      "commandType": "UltimateSkill",
+      "frame": 233,
+      "commandId": "LQ233",
+      "queueMode": "timeline-sequence"
+    },
+    {
+      "memberId": "chr_0027_tangtang",
+      "commandType": "UltimateSkill",
+      "frame": 240,
+      "commandId": "TQ240",
+      "queueMode": "timeline-sequence"
+    }
+  ]
+}

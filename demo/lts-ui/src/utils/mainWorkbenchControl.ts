@@ -1,4 +1,4 @@
-import type { Character, SkillButtonType } from '../types';
+import type { Character, SkillButtonType, SkillReleaseAnchor } from '../types';
 import type { DamageReportSnapshot } from '../core/services/damageReportService';
 import type { SkillButtonBuff } from '../types/storage';
 import type { TimelineWorkNodePatchOperation } from '../agentKernel/timelineWorktree/patchDsl';
@@ -55,6 +55,7 @@ export type MainWorkbenchCommand =
       skillDisplayName?: string;
       staffIndex?: number;
       nodeIndex?: number;
+      releaseAnchor?: SkillReleaseAnchor;
       select?: boolean;
     }
   | {

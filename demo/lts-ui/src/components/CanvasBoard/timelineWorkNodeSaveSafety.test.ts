@@ -18,7 +18,7 @@ const saveHandler = source.slice(saveStart, saveEnd);
 const canonicalizeAt = saveHandler.indexOf('buildVisibleTimelineMirrors(');
 const validateAt = saveHandler.indexOf('validateTimelinePayload(payload)');
 const flushAt = saveHandler.indexOf('await flushUserWorkspaceState()');
-const createAt = saveHandler.indexOf('createAiTimelineWorkNodeClient().create(');
+const createAt = saveHandler.indexOf('saveAkeWorkspace(payload)');
 
 assert.ok(canonicalizeAt >= 0, 'every save must rebuild the visible timeline and table mirrors');
 assert.ok(validateAt > canonicalizeAt, 'save must validate the rebuilt payload');

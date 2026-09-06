@@ -1,77 +1,35 @@
-/**
- * 拖拽遮罩层（DraggingOverlay）
- *
- * 只负责拖动中的视觉预览，不参与吸附、落点和存储计算。
- */
-
-import type { CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import { SkillType } from '../../../types';
 
-interface DraggingState {
-  id: string;
-  skillType: SkillType;
-}
-
 interface DraggingOverlayProps {
-  /** 当前拖拽状态（null = 无拖拽，不渲染遮罩） */
-  draggingState: DraggingState | null;
-  /** 鼠标在页面上的坐标 */
+  draggingState: { id: string; skillType: SkillType; skillDisplayName?: string } | null;
   mousePosition: { x: number; y: number };
-  /** 预演得到的真实起止帧；浮动标尺与落点后的标尺共用同一套秒数。 */
   startFrame?: number | null;
   endFrame?: number | null;
   tickRate?: number;
 }
 
 const DRAG_SKILL_LABELS: Record<string, string> = {
-  A: '普攻',
-  B: '战技',
-  E: '连携',
-  Q: '终结',
-  Dot: '持续',
+  A: '普攻', B: '战技', E: '连携', Q: '终结', Dot: '持续',
 };
 
-export function DraggingOverlay({
-  draggingState,
-  mousePosition,
-  startFrame = null,
-  endFrame = null,
-  tickRate = 30,
-}: DraggingOverlayProps) {
+/** One crisp payload beside the pointer. Timing marks belong to the snapped
+ * target/lens, not another translucent ruler. Portal coordinates are viewport
+ * coordinates, independent of canvas layout and reserved row heights. */
+export function DraggingOverlay({ draggingState, mousePosition, startFrame = null,
+  endFrame = null, tickRate = 30 }: DraggingOverlayProps) {
   if (!draggingState) return null;
-
-  const previewSize = 24;
-  const radius = previewSize / 2;
-  const safeTickRate = Math.max(1, Number(tickRate) || 30);
-  const formatFrame = (frame: number | null) => (
-    frame === null ? '—' : `${(frame / safeTickRate).toFixed(2)}秒`
-  );
-
-  return (
-    <div
-      className="dragging-skill-button-preview"
-      data-skill-type={draggingState.skillType}
-      style={{
-        left: mousePosition.x - 40,
-        top: mousePosition.y - 45,
-        width: 80,
-        height: 60,
-        '--drag-preview-size': `${previewSize}px`,
-        '--drag-preview-radius': `${radius}px`,
-      } as CSSProperties}
-    >
-      <div className="dragging-skill-button-anchor">
-        <div className="dragging-skill-button-base">
-          <b>{formatFrame(startFrame)}</b>
-          <i>{formatFrame(endFrame)}</i>
-        </div>
-        <span className="dragging-skill-button-kind">
-          {DRAG_SKILL_LABELS[draggingState.skillType] ?? draggingState.skillType}
-        </span>
-        <div className="dragging-skill-button-orb">
-          <span>{draggingState.skillType}</span>
-        </div>
+  const rate = Math.max(1, tickRate);
+  const title = draggingState.skillDisplayName ?? DRAG_SKILL_LABELS[draggingState.skillType] ?? draggingState.skillType;
+  return createPortal(
+    <div className="dragging-skill-button-preview" aria-hidden="true" data-skill-type={draggingState.skillType}
+      style={{ left: Math.round(Math.max(4, Math.min(mousePosition.x + 14, innerWidth - 174))),
+        top: Math.round(Math.max(4, Math.min(mousePosition.y + 16, innerHeight - 54))) }}>
+      <span className="dragging-skill-token">{draggingState.skillType}</span>
+      <div className="dragging-skill-caption">
+        <strong>{title}</strong>
+        <small>{startFrame === null ? '拖到接续点' : `${(startFrame / rate).toFixed(2)}s${endFrame === null ? '' : ` → ${(endFrame / rate).toFixed(2)}s`}`}</small>
       </div>
-    </div>
+    </div>, document.body,
   );
 }

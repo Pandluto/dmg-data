@@ -15,6 +15,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Character, SandboxSkill, SkillType, SKILL_LABELS } from '../../types';
 import { getElementBackgroundColor, normalizeAssetUrl } from '../../utils/assetResolver';
 import { WorkNodeTreeIcon } from './WorkNodeTreeIcon';
+import { getInstalledAkeCatalog } from '../../integrations/ake/akeCatalogAdapter';
 import './SkillSandbox.css';
 
 interface SkillSandboxProps {
@@ -226,13 +227,14 @@ export function SkillSandbox({
             type="button"
             className="sandbox-reserved-action"
             onClick={onSave}
-            aria-label="保存工作节点"
-            title="保存到工作树"
+            aria-label="保存当前存档"
+            title="保存队伍与排轴，并生成版本"
           >
             <svg className="sandbox-reserved-action-icon" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M5 3h12l2 2v16H5V3zm2 2v6h9V5H7zm0 14h10v-6H7v6zm2-12h5V5H9v2z" />
             </svg>
           </button>
+          {import.meta.env.VITE_AKE_DEMO !== '1' && (
           <button
             type="button"
             className="sandbox-reserved-action"
@@ -244,6 +246,7 @@ export function SkillSandbox({
               <path d="M12 2 4 5v6c0 5.1 3.4 9.7 8 11 4.6-1.3 8-5.9 8-11V5l-8-3zm0 2.2L18 6.4V11c0 3.9-2.4 7.6-6 8.8-3.6-1.2-6-4.9-6-8.8V6.4l6-2.2zm-1 3.3h2v5h-2v-5zm0 6.5h2v2h-2v-2z" />
             </svg>
           </button>
+          )}
           <button
             type="button"
             className={`sandbox-reserved-action sandbox-reserved-action--refresh${isRefreshingAvailableCandidates ? ' is-loading' : ''}`}
@@ -300,8 +303,8 @@ export function SkillSandbox({
           <button
             type="button"
             className="sandbox-reserved-action sandbox-reserved-action--worknode"
-            aria-label="Work node 节点树"
-            title="Work node 节点树"
+            aria-label="存档版本历史"
+            title="存档版本历史"
             onClick={onOpenWorkNodePanel}
           >
             <WorkNodeTreeIcon className="sandbox-reserved-action-icon" />
@@ -446,6 +449,8 @@ export function SkillSandbox({
                 >
                   <div
                     className={`sandbox-skill-button skill-${sandboxSkill.buttonType.toLowerCase()}${sandboxSkill.iconUrl ? ' has-skill-icon-mask' : ''}`}
+                    data-drag-source-id={`palette-${sandboxSkill.id}`}
+                    draggable={false}
                     style={{
                       backgroundColor: getElementBackgroundColor(character.element),
                       '--skill-icon-mask': sandboxSkill.iconUrl
@@ -459,12 +464,13 @@ export function SkillSandbox({
                       }
                       onDragStart(character.id, character.name, sandboxSkill, index, e);
                     }}
-                    title={`${character.name} - ${sandboxSkill.displayName}`}
+                    title={`${character.name} - ${sandboxSkill.displayName}${sandboxSkill.description ? `\n${sandboxSkill.description}` : ''}`}
                   >
                     {/* 技能图标：优先渲染 skillIconMap 中的路径，缺失时退回文字 */}
                     {sandboxSkill.iconUrl ? (
                       <img
                         className="skill-icon"
+                        draggable={false}
                         src={normalizeAssetUrl(sandboxSkill.iconUrl)}
                         alt={sandboxSkill.displayName}
                         onError={(e) => {
@@ -476,8 +482,10 @@ export function SkillSandbox({
                     {/* 兜底文字：图标加载成功时由父容器隐藏，失败时正常显示 */}
                     <span className="skill-label">{sandboxSkill.buttonType}</span>
                   </div>
-                  <div className="sandbox-skill-meta">
-                    <span className="sandbox-skill-tag">{SKILL_DISPLAY_LABELS[sandboxSkill.buttonType]}</span>
+                  <div className="sandbox-skill-meta" title={sandboxSkill.description}>
+                    <span className="sandbox-skill-tag">{getInstalledAkeCatalog()?.timing?.characters[character.id]?.profiles
+                      .find(profile => profile.skillId === sandboxSkill.id)?.attackMode === 'plunging-impact'
+                      ? '下落' : SKILL_DISPLAY_LABELS[sandboxSkill.buttonType]}</span>
                     <span className="sandbox-skill-name">{sandboxSkill.displayName}</span>
                     <span className="sandbox-skill-hit-count">{sandboxSkill.hitCount} hit</span>
                   </div>

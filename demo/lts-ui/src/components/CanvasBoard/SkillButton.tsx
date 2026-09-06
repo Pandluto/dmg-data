@@ -1,5 +1,7 @@
+import { getTimelineDeleteBlockReason } from '../../core/domain/timelineQueuePolicy';
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import type { CSSProperties } from 'react';
+import { GRID_RELEASE_ROW_HEIGHT, GRID_SKILL_BAY_HEIGHT } from '../../core/calculators/gridSnapLayout';
 import { createPortal } from 'react-dom';
 import {
   type HitBuffEffect,
@@ -63,7 +65,6 @@ import {
 import {
   buildAkeRuntimeCommandViewState,
   buildAkeRuntimeStatusLabelMap,
-  selectAkeMainTimelineStatuses,
 } from '../../core/services/akeRuntimeLedger';
 import { getAnomalyStateSnapshotsByIds } from '../../core/services/anomalyStateSnapshotStorage';
 import {
@@ -140,16 +141,6 @@ function formatHitBuffEffectValue(value: number, unit?: string): string {
   const displayValue = unit === 'percent' ? value * 100 : value;
   const formatted = Number.isInteger(displayValue) ? String(displayValue) : displayValue.toFixed(2);
   return `${displayValue >= 0 ? '+' : ''}${formatted}${unit === 'percent' ? '%' : ''}`;
-}
-
-function runtimeStatusToneLabel(tone: string): string {
-  return ({
-    ongoing: '持续生效',
-    changed: '本次变化',
-    consumed: '已消费',
-    expired: '已过期',
-    removed: '已移除',
-  } as Record<string, string>)[tone] ?? '状态';
 }
 
 function buildDetectedHitStatuses(hitBuffs: HitBuffEffect[]): TimelineDetailStatus[] {
@@ -292,6 +283,12 @@ function getRequiredPotentialCount(buffName: string): number | null {
 
 interface SkillButtonProps {
   isDetailRouteActive?: boolean;
+  isCombatInspected?: boolean;
+  onInspect?: () => void;
+  onEditReleaseAnchor?: () => void;
+  releaseRelationLabel?: string;
+  releaseRelationCompactLabel?: string;
+  releaseRelationTitle?: string;
   button: SkillButtonType & { nodeNumber?: number };
   size: number;
   onMouseDown: (e: React.MouseEvent) => void;
@@ -336,6 +333,12 @@ const AKE_TEMPORAL_SHORT_LABELS: Record<string, string> = {
 
 export function SkillButtonComponent({
   isDetailRouteActive = false,
+  isCombatInspected = false,
+  onInspect,
+  onEditReleaseAnchor,
+  releaseRelationLabel,
+  releaseRelationCompactLabel,
+  releaseRelationTitle,
   button,
   size,
   onMouseDown,
@@ -415,12 +418,12 @@ export function SkillButtonComponent({
   const baseHeight = 30;
   const baseCornerRadius = 11;
   const visualOffsetX = isAkeTemporalButton ? baseWidth / 2 - radius : 40;
-  // position.y 就是下格中心；33px 偏移把 60px 按钮完整放进上下两格，
+  // 下格中心随独立起手行下移；上方技能图标保留原来的 30px 空间。
   // 能量行由 CanvasArea 独立渲染，不计入按钮命中盒。
-  const visualOffsetY = isAkeTemporalButton ? 33 : 15;
+  const visualOffsetY = isAkeTemporalButton ? 33 + GRID_RELEASE_ROW_HEIGHT : 15;
   const hitWidth = isAkeTemporalButton ? baseWidth : radius + baseWidth;
   const hitHeight = isAkeTemporalButton
-    ? 60
+    ? GRID_SKILL_BAY_HEIGHT
     : Math.max(size, radius + baseHeight + (akeSettlement ? 25 : 0));
   const outlinePadding = 4;
   const compositeOutlineViewBox = `${-radius - outlinePadding} ${-radius - outlinePadding} ${baseWidth + radius + outlinePadding * 2} ${baseHeight + radius + outlinePadding * 2}`;
@@ -1192,10 +1195,6 @@ export function SkillButtonComponent({
     isAkeRuntimeMode,
   ]);
   const akeRuntimeLedger = akeRuntimeCommandViewState.ledger;
-  const compactTargetStateItems = useMemo(
-    () => selectAkeMainTimelineStatuses(akeRuntimeLedger),
-    [akeRuntimeLedger],
-  );
   const buttonStackCounts = useMemo(
     () => getSkillButtonById(button.id)?.buffStackCounts ?? {},
     [button.id, buffList]
@@ -1976,7 +1975,7 @@ export function SkillButtonComponent({
     // 单击检测：等待一段时间确认不是双击
     if (clickCountRef.current === 1) {
       clickTimerRef.current = setTimeout(() => {
-        // 单击处理（目前无操作）
+        onInspect?.();
         clickCountRef.current = 0;
       }, 250); // 250ms 内无第二次点击视为单击
     } else if (clickCountRef.current === 2) {
@@ -1993,7 +1992,7 @@ export function SkillButtonComponent({
         navigateToAppPath(getTimelineSkillDetailPath(button.id));
       }
     }
-  }, [button, isBrowseMode, onConfigureTimelineModule, timelineModuleKind]);
+  }, [button, isBrowseMode, onConfigureTimelineModule, onInspect, timelineModuleKind]);
 
   /**
    * 图标加载成功时：隐藏圆形图标内的兜底技能字母，底座文字继续显示。
@@ -2077,7 +2076,9 @@ export function SkillButtonComponent({
       && akePreviewCommand.profile.resolutionSource !== 'base-intent'
       && !akeComboStage,
   );
-  const akeTemporalKindLabel = akeComboStage
+  const akeTemporalKindLabel = akePreviewCommand?.profile.attackMode === 'plunging-impact'
+    ? '下落'
+    : akeComboStage
     ? `连携·${akeComboStage.index}段${
       akePreviewCommand?.profile.comboStage?.index === 2
       && akePreviewCommand.precisionVerdict === 'resolved' ? '·精准' : ''
@@ -2120,18 +2121,28 @@ export function SkillButtonComponent({
       <div
         className={`canvas-skill-button ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${isLocked ? 'locked' : ''} ${timelineModuleKind ? `is-timeline-module is-${timelineModuleKind}` : ''} ${basicAttackTailBundle ? `is-basic-tail-bundled ${isBasicTailPredecessor ? 'is-basic-tail-predecessor' : 'is-basic-tail-successor'}` : ''} ${isBrowseMode ? 'is-browse-mode' : ''} ${isBrowseMode && isDotButton ? 'is-browse-dot' : ''} ${isInspectMode ? 'is-inspect-mode' : ''} ${isDragDisabled ? 'is-drag-disabled' : ''} ${akeSettlement ? `has-ake-settlement is-ake-${akeSettlement.state}` : ''} ${akePreviewCommand ? `has-ake-preview is-ake-${akePreviewCommand.state} is-ake-verdict-${akePreviewCommand.releaseVerdict}${akeResolvedEnhancedForm ? ' is-ake-enhanced-form' : ''}${akeUsesSharedProjection ? ' uses-shared-projection' : ''}` : ''}`}
         data-liquid-glass-skill="true"
+        data-combat-inspected={isCombatInspected || undefined}
+        role={onInspect ? 'button' : undefined}
+        tabIndex={onInspect ? 0 : undefined}
+        aria-label={onInspect ? `${characterName} ${timelineModuleDisplayName}；单击查看战斗状态，双击打开详情` : undefined}
+        onKeyDown={onInspect ? (event) => {
+          if (event.target !== event.currentTarget) return;
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onInspect(); }
+        } : undefined}
         data-skill-button-id={button.id}
         data-skill-type={skillType}
         data-timeline-module={timelineModuleKind ?? undefined}
         data-ake-frame={akePreviewFrame ?? undefined}
         data-ake-resolved-skill={akePreviewCommand?.profile.skillId ?? undefined}
-        aria-disabled={isDragDisabled}
+        data-drag-disabled={isDragDisabled || undefined}
+        draggable={false}
         style={{
           left: position.x - radius - visualOffsetX,
           top: position.y - radius - visualOffsetY,
           width: hitWidth,
           height: hitHeight,
           '--skill-button-size': `${visualSize}px`,
+          '--skill-release-row-height': `${GRID_RELEASE_ROW_HEIGHT}px`,
           '--skill-button-radius': `${radius}px`,
           '--skill-button-element-color': getElementBackgroundColor(element ?? ''),
         } as CSSProperties}
@@ -2140,6 +2151,19 @@ export function SkillButtonComponent({
         onContextMenu={isBrowseMode ? (event) => event.preventDefault() : onContextMenu}
       >
         <div className="skill-button-anchor">
+          {onEditReleaseAnchor && releaseRelationLabel && !isBrowseMode && !isInspectMode ? (
+            <button type="button" className="skill-button-release-relation"
+              data-edit-release={button.id}
+              aria-label={`编辑${characterName}${displayName}接续：${releaseRelationLabel}`}
+              title={releaseRelationTitle ?? "编辑接续来源与延迟"}
+              onMouseDown={event => { event.preventDefault(); event.stopPropagation(); }}
+              onClick={event => { event.stopPropagation(); onEditReleaseAnchor(); }}
+            >
+              <span>{(releaseRelationCompactLabel ?? releaseRelationLabel).replace(/\s+\+[\d.]+s$/, '')}</span>
+              {releaseRelationLabel.match(/\+[\d.]+s$/)?.[0]
+                ? <b>{releaseRelationLabel.match(/\+[\d.]+s$/)?.[0]}</b> : null}
+            </button>
+          ) : null}
           {!isInspectMode && !(isBrowseMode && isDotButton) ? (
             <svg
               className="skill-button-composite-outline"
@@ -2207,32 +2231,6 @@ export function SkillButtonComponent({
               title={`${akeTemporalKindLabel} · ${akePreviewCommand.profile.skillId} · ${akePreviewCommand.profile.resolutionSource ?? 'base-intent'}`}
             >
               {akeTemporalKindLabel}
-            </span>
-          ) : null}
-          {akePreviewCommand && compactTargetStateItems.length > 0 ? (
-            <span
-              className="skill-button-target-state"
-              aria-label={`命中后状态：${compactTargetStateItems.map((item) => (
-                `${runtimeStatusToneLabel(item.tone)}${item.displayName}${item.stackCount > 1 ? `${item.stackCount}层` : ''}`
-              )).join('、')}`}
-            >
-              {compactTargetStateItems.slice(0, 3).map((item) => (
-                <i
-                  key={item.key}
-                  className={`is-${item.tone}`}
-                  title={item.title}
-                >
-                  {item.iconUrl ? (
-                    <img src={item.iconUrl} alt="" aria-hidden="true" />
-                  ) : (
-                    <span aria-hidden="true">{item.label.replace(/[\d消]+$/g, '')}</span>
-                  )}
-                  {item.stackCount > 1 ? <em>{item.stackCount}</em> : null}
-                </i>
-              ))}
-              {compactTargetStateItems.length > 3
-                ? <b title={compactTargetStateItems.slice(3).map((item) => item.title).join('\n')}>+{compactTargetStateItems.length - 3}</b>
-                : null}
             </span>
           ) : null}
           {basicAttackTailBundle ? (
@@ -2349,13 +2347,15 @@ export function SkillButtonComponent({
           </button>
           <button
             className="context-menu-item context-menu-item-danger"
+            disabled={!!timelineData && !!getTimelineDeleteBlockReason(timelineData, button.id)}
+            title={timelineData ? getTimelineDeleteBlockReason(timelineData, button.id) ?? '删除队列末尾动作' : undefined}
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
               onConfirmRemove?.();
             }}
           >
-            删除
+            {timelineData && getTimelineDeleteBlockReason(timelineData, button.id) ? '删除（仅队尾）' : '删除'}
           </button>
         </div>,
         document.body

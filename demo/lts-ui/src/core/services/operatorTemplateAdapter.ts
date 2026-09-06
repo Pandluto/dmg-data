@@ -321,6 +321,7 @@ function buildRuntimeSkillFromDraft(
   return {
     id: skillKey,
     displayName: skill.displayName || skillKey,
+    description: skill.description,
     buttonType: skill.buttonType,
     iconUrl: skill.iconUrl ? normalizeAssetUrl(skill.iconUrl) : undefined,
     hitCount: hits.length > 0 ? hits.length : skill.hitCount,
@@ -556,6 +557,7 @@ export function buildSandboxSkillsFromRuntimeTemplate(
   return template.skills.map((skill) => ({
     id: skill.id,
     displayName: skill.displayName,
+    description: skill.description,
     buttonType: skill.buttonType,
     iconUrl: skill.iconUrl,
     hitCount: skill.hitCount,

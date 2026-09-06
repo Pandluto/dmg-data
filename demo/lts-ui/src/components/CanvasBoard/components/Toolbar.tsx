@@ -24,7 +24,7 @@ interface ToolbarProps {
   onAddGroup: () => void;
   /** 减少干员组按钮点击事件 */
   onRemoveGroup: () => void;
-  /** 导出本地存档按钮点击事件 */
+  /** 导出存档管理按钮点击事件 */
   onSave?: () => void;
   /** 恢复按钮点击事件 */
   onRestore?: () => void;
@@ -34,6 +34,7 @@ interface ToolbarProps {
   onCalculate?: () => void;
   calculateLabel?: string;
   calculateDisabled?: boolean;
+  onInspectIssues?: () => void;
 }
 
 /**
@@ -58,6 +59,7 @@ export function Toolbar({
   onCalculate,
   calculateLabel,
   calculateDisabled = false,
+  onInspectIssues,
 }: ToolbarProps) {
   return (
     <div className="toolbar">
@@ -95,14 +97,15 @@ export function Toolbar({
         <button
           className="btn-save"
           onClick={onSave}
-          title="先保存当前工作节点，再导出本地存档"
+          title="新建、打开或导出队伍与排轴存档"
         >
-          本地存档
+          存档管理
         </button>
         <button className="btn-save" onClick={onRestore}>恢复</button>
         <button className="btn-save" onClick={onShare}>导出</button>
-        <button className="btn-calculate" onClick={onCalculate} disabled={calculateDisabled}>
+        <button className="btn-calculate" onClick={onInspectIssues ?? onCalculate} disabled={calculateDisabled && !onInspectIssues}>
           {calculateLabel || '计算伤害'}
+          {onInspectIssues && ' · 查看原因'}
         </button>
       </div>
     </div>

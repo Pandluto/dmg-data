@@ -1,3 +1,4 @@
+import { diffTimelinePayloads } from '../../agentKernel/timelineWorktree/diff';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { createAiTimelineWorkNodeClient } from '../../agentKernel/timelineWorktree/localNodeClient';
 import { createTimelineRepositoryClient, formatTimelineOperationError, type TimelineRepositoryWorkNodePatch } from '../../agentKernel/timelineRepository/localTimelineClient';
@@ -115,6 +116,7 @@ export const WorkNodeTreePanel = forwardRef<WorkNodeTreePanelHandle, WorkNodeTre
   const [commits, setCommits] = useState<AiTimelineWorkNodeCommitListItem[]>([]);
   const [headNodeId, setHeadNodeId] = useState('');
   const [selectedNodeId, setSelectedNodeId] = useState('');
+  const [versionInfo, setVersionInfo] = useState<{ id: string; source: string; loadouts: string[]; changes: string[] } | null>(null);
   const [selectedNodePatches, setSelectedNodePatches] = useState<TimelineRepositoryWorkNodePatch[]>([]);
   const [selectedNodeAuditEvents, setSelectedNodeAuditEvents] = useState<TimelineAuditEvent[]>([]);
   const selectionInitializedRef = useRef(false);
@@ -192,7 +194,7 @@ export const WorkNodeTreePanel = forwardRef<WorkNodeTreePanelHandle, WorkNodeTre
   const activePathNodeIds = useMemo(() => {
     const pathIds = new Set<string>();
     const byId = new Map(viewModel.flatNodes.map((node) => [node.nodeId, node]));
-    let current = selectedNodeId ? byId.get(selectedNodeId) : undefined;
+    let current = headNodeId ? byId.get(headNodeId) : undefined;
 
     while (current) {
       pathIds.add(current.nodeId);
@@ -200,7 +202,7 @@ export const WorkNodeTreePanel = forwardRef<WorkNodeTreePanelHandle, WorkNodeTre
     }
 
     return pathIds;
-  }, [selectedNodeId, viewModel.flatNodes]);
+  }, [headNodeId, viewModel.flatNodes]);
 
   useEffect(() => {
     revisionRef.current = 0;
@@ -318,11 +320,30 @@ export const WorkNodeTreePanel = forwardRef<WorkNodeTreePanelHandle, WorkNodeTre
       return () => { cancelled = true; };
     }
     const repository = createTimelineRepositoryClient();
+    setVersionInfo(null);
     void Promise.all([
+      createAiTimelineWorkNodeClient().get(selectedNodeId),
       repository.listWorkNodePatches(selectedNodeId),
       repository.listAuditEvents(timelineId),
-    ]).then(([patches, events]) => {
+    ]).then(([{ node }, patches, events]) => {
       if (cancelled) return;
+      const payload = node.workingPayload;
+      const diff = diffTimelinePayloads(node.basePayload, payload);
+      const summary = diff.summary;
+      const changes = [
+        diff.selectedCharactersChanged ? '出战队伍发生变化' : '',
+        summary.addedButtonCount ? `新增 ${summary.addedButtonCount} 个排轴输入` : '',
+        summary.removedButtonCount ? `移除 ${summary.removedButtonCount} 个排轴输入` : '',
+        summary.changedButtonCount ? `调整 ${summary.changedButtonCount} 个输入的时序或释放关系` : '',
+        diff.initialControllerChanged ? '初始主控干员发生变化' : '',
+        ...diff.changedOperatorConfigs.map(config => `${config.characterName}：${[...new Set(config.changes.map(change => ({ operator: '等级 / 潜能 / 技能', weapon: '武器', equipment: '装备' })[change.section]))].join('、')}变更`),
+      ].filter(Boolean);
+      setVersionInfo({ id: selectedNodeId, source: payload.source?.dataVersion ? `AKE 数据 ${payload.source.dataVersion}` : '旧存档 · 未记录数据版本',
+        loadouts: payload.selectedCharacters.map(id => {
+          const config = payload.operatorConfigPageCache[id];
+          const name = config?.operator.name || payload.timelineData.staffLines.find(line => line.buttons.some(button => button.characterId === id))?.characterName || id;
+          return config ? `${name} · Lv.${config.operator.level} · ${config.weapon.name || '未配武器'} · ${config.equipment.pieces.map(piece => piece.name).join(' / ') || '未配装备'}` : `${name} · 默认配置`;
+        }), changes });
       setSelectedNodePatches(patches);
       setSelectedNodeAuditEvents(events.filter((event) => event.subjectType === 'work-node' && event.subjectId === selectedNodeId));
     }).catch(() => {
@@ -380,12 +401,8 @@ export const WorkNodeTreePanel = forwardRef<WorkNodeTreePanelHandle, WorkNodeTre
           : '';
         throw new Error(markError || 'Work Node 已应用，但 HEAD 确认失败。');
       }
-      await createTimelineRepositoryClient().setCheckoutRef({
-        timelineId,
-        targetType: 'work-node',
-        targetId: nodeId,
-        updatedAt: Date.now(),
-      });
+      // The renderer command already persisted the verified checkout identity.
+      // Writing a second timestamp here would detach the tree from that identity.
       await reloadNodes();
   };
 
@@ -724,7 +741,7 @@ export const WorkNodeTreePanel = forwardRef<WorkNodeTreePanelHandle, WorkNodeTre
   return (
     <div
       className={`work-node-tree-panel${omissionMode ? ' is-omission-mode' : ''}`}
-      aria-label={`Work node 节点树，${viewModel.nodeCount} 节点，${viewModel.riskCount} 风险`}
+      aria-label={`存档版本历史，${viewModel.nodeCount} 节点，${viewModel.riskCount} 风险`}
       onPointerDown={handleCanvasPointerDown}
       onPointerMove={handleCanvasPointerMove}
       onPointerUp={(event) => stopCanvasDrag(event)}
@@ -740,19 +757,20 @@ export const WorkNodeTreePanel = forwardRef<WorkNodeTreePanelHandle, WorkNodeTre
       ) : null}
       <div className="work-node-tree-count">{viewModel.nodeCount} 节点 / {viewModel.riskCount} 风险 · {Math.round(camera.zoom * 100)}%</div>
       {selectedNode ? (
-        <aside className="work-node-tree-detail" aria-label="Selected Work Node details">
+        <aside className="work-node-tree-detail" aria-label="所选版本内容">
           <strong>{selectedNode.label}</strong>
           {selectedNode.description ? <span>说明：{selectedNode.description}</span> : null}
-          <span>基线：{selectedNode.baseSummary?.characterCount ?? 0} 干员 / {selectedNode.baseSummary?.buttonCount ?? 0} 按钮 / {selectedNode.baseSummary?.buffCount ?? 0} Buff</span>
-          <span>草稿：{selectedNode.workingSummary?.characterCount ?? 0} 干员 / {selectedNode.workingSummary?.buttonCount ?? 0} 按钮 / {selectedNode.workingSummary?.buffCount ?? 0} Buff</span>
-          <span>状态：{selectedNode.status} · 策略：{selectedNode.approvalPolicy}</span>
-          {selectedNode.riskFlags.length ? <span>风险：{selectedNode.riskFlags.map((risk) => risk.message || risk.code).join('；')}</span> : <span>风险：无</span>}
-          {selectedNodePatches[0] ? (
-            <span>最近 Patch：{selectedNodePatches[0].patch.length} 项操作 · 校验 {selectedNodePatches[0].validation.ok === false ? '失败' : '通过'} · {Object.entries(selectedNodePatches[0].diffSummary).filter(([, value]) => Number(value) > 0).map(([key, value]) => `${key}:${value}`).join(' / ') || '无结构变化'}</span>
-          ) : <span>最近 Patch：暂无</span>}
-          {selectedNodeAuditEvents[0]
-            ? <span>最近审计：{selectedNodeAuditEvents[0].eventType} · {new Date(selectedNodeAuditEvents[0].createdAt).toLocaleString()}</span>
-            : selectedNode.logs[0] ? <span>最近日志：{selectedNode.logs[0].message}</span> : <span>最近审计：暂无</span>}
+          {versionInfo?.id === selectedNodeId ? <>
+            <span>{versionInfo.source}</span>
+            {versionInfo.loadouts.map((line, index) => <span key={index}>{line}</span>)}
+            <strong>相对基线的变化</strong>
+            {versionInfo.changes.length ? versionInfo.changes.map(line => <span key={line}>{line}</span>) : <span>队伍与排轴输入一致</span>}
+          </> : <span>正在读取队伍配置与排轴差异…</span>}
+          <details><summary>版本记录</summary>
+            <span>{selectedNode.workingSummary?.buttonCount ?? 0} 个输入 · {new Date(selectedNode.updatedAt).toLocaleString('zh-CN')}</span>
+            {selectedNode.riskFlags.map((risk, index) => <span key={index}>{risk.message || risk.code}</span>)}
+            <span>修改记录 {selectedNodePatches.length} 项 · 审计记录 {selectedNodeAuditEvents.length} 项</span>
+          </details>
         </aside>
       ) : null}
       {error ? <div className="work-node-tree-empty">{error}</div> : null}
@@ -839,7 +857,8 @@ export const WorkNodeTreePanel = forwardRef<WorkNodeTreePanelHandle, WorkNodeTre
           <WorkNodeTreeNode
             key={node.nodeId}
             node={node}
-            activeNodeId={selectedNodeId || headNodeId}
+            activeNodeId={headNodeId}
+            selectedNodeId={selectedNodeId}
             activePathNodeIds={activePathNodeIds}
             isOmissionMode={omissionMode}
             isOmissionSelected={omissionSelectedNodeIds.has(node.nodeId)}

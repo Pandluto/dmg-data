@@ -6,6 +6,7 @@ demo/lts-ui/dist/
 # Replayable Investigation Archive runtime evidence is local by default.
 # Schemas, docs and small deterministic fixtures live elsewhere in the repo.
 /artifacts/index.json
+/artifacts/live/
 /artifacts/indexes/*
 !/artifacts/indexes/.gitkeep
 /artifacts/cases/*

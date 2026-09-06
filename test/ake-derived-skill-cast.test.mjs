@@ -98,6 +98,8 @@ test('the same CastSkill compiler route covers Liino without an operator branch'
 test('Camille enhanced battle-skill input executes the derived combo skill and grants combo on its real final hit', () => {
     const bundle = new AkeSquadScenarioAssembler().assemble({
         enemyId: 'eny_0007_mimicw',
+        // These axes exercise sustained damage, like the calculator's dummy.
+        enemyMaxHp: 1_000_000_000_000,
         initialAtb: 300,
         members: [{
             memberId: 'camille',
@@ -172,9 +174,60 @@ test('Camille enhanced battle-skill input executes the derived combo skill and g
     )).every(burst => burst.castId === command.castId));
 });
 
+test('a following same-actor combo waits for the derived cast and preserves both real combo grants', () => {
+    const bundle = new AkeSquadScenarioAssembler().assemble({
+        enemyId: 'eny_0007_mimicw',
+        // These axes exercise sustained damage, like the calculator's dummy.
+        enemyMaxHp: 1_000_000_000_000,
+        initialAtb: 300,
+        members: [{ memberId: 'camille', characterId: 'chr_0033_camille',
+            level: 90, skillLevel: 12, initialUltimateSp: 130 }]
+    });
+    const result = new AkeSquadScenarioRunner(bundle).run({
+        commands: [
+            // The initial B creates the field needed by the later combo's grant.
+            ['initial-b', 'NormalSkill', 0],
+            ['q', 'UltimateSkill', 159],
+            ['enhanced-b', 'NormalSkill', 292],
+            ['following-e', 'ComboSkill', 316]
+        ].map(([commandId, commandType, frame]) => ({
+            commandId, memberId: 'camille', commandType, frame,
+            queueMode: 'timeline-sequence'
+        })),
+        endFrame: 500
+    });
+    const enhanced = result.commandTrace.find(entry => (
+        entry.commandId === 'enhanced-b' && entry.type === 'CommandExecuted'
+    ));
+    const hits = result.damageLog.filter(hit => (
+        hit.rootCastId === enhanced.castId && hit.damageAttributeType === 'Hp'
+    ));
+    assert.deepEqual(hits.map(hit => hit.frame), [312, 325, 341, 362],
+        'the following E must not cancel the remaining derived hits');
+    const blocked = result.commandAdmissionTrace.find(entry => (
+        entry.commandId === 'following-e' && entry.frame === 316
+    ));
+    assert.equal(blocked.accepted, false);
+    assert.equal(blocked.currentSkillId, 'chr_0033_camille_combo_skill_2');
+    assert.equal(blocked.currentPriority, blocked.newPriority);
+    assert.equal(blocked.nextTimelineFrame, 86);
+    const following = result.commandTrace.find(entry => (
+        entry.commandId === 'following-e' && entry.type === 'CommandExecuted'
+    ));
+    assert.equal(following.frame, 378);
+    assert.deepEqual(result.teamComboLedger.events.map(event => [
+        event.frame, event.type, event.beforeStacks, event.afterStacks
+    ]), [[362, 'grant', 0, 1], [425, 'grant', 1, 2]]);
+    assert.equal(result.teamComboLedger.settlements.find(entry => (
+        entry.commandId === 'enhanced-b'
+    )).inputCommandType, 'NormalSkill', 'the input identity remains B');
+});
+
 test('real Wulfa-Camille axis re-resolves a buffered B against the active form', () => {
     const bundle = new AkeSquadScenarioAssembler().assemble({
         enemyId: 'eny_0007_mimicw',
+        // These axes exercise sustained damage, like the calculator's dummy.
+        enemyMaxHp: 1_000_000_000_000,
         initialAtb: 300,
         members: [{
             memberId: 'wulfa',
@@ -283,4 +336,53 @@ test('real Wulfa-Camille axis re-resolves a buffered B against the active form',
     assert.equal(result.teamComboLedger.events.some(entry => (
         entry.rootCastId === wulfaSettlement?.rootCastId
     )), false, 'the later Camille grant must not be attributed to Wulfa Q');
+});
+
+
+test('appending Wulfa Q after the actual Camille E hit preserves the preceding two combo grants', () => {
+    const bundle = new AkeSquadScenarioAssembler().assemble({
+        enemyId: 'eny_0007_mimicw', initialAtb: 300,
+        enemyMaxHp: 1_000_000_000_000,
+        members: [
+            { memberId: 'wulfa', characterId: 'chr_0028_wulfa', level: 90, skillLevel: 12, initialUltimateSp: 110 },
+            { memberId: 'camille', characterId: 'chr_0033_camille', level: 90, skillLevel: 12, initialUltimateSp: 130 }
+        ]
+    });
+    const commands = [
+        ['wulfa-b', 'wulfa', 'NormalSkill', 0],
+        ['camille-b', 'camille', 'NormalSkill', 0],
+        ['wulfa-e1', 'wulfa', 'ComboSkill', 94],
+        ['wulfa-e2', 'wulfa', 'ComboSkill', 151],
+        ['camille-q', 'camille', 'UltimateSkill', 159],
+        ['camille-enhanced-b', 'camille', 'NormalSkill', 292],
+        ['camille-e', 'camille', 'ComboSkill', 316]
+    ].map(([commandId, memberId, commandType, frame]) => ({
+        commandId, memberId, commandType, frame, queueMode: 'timeline-sequence'
+    }));
+    const appended = [...commands, {
+        commandId: 'wulfa-q', memberId: 'wulfa', commandType: 'UltimateSkill', frame: 369,
+        queueMode: 'timeline-sequence', releaseDependency: { kind: 'damage-hit',
+            sourceCommandId: 'camille-e', sourceSkillId: 'chr_0033_camille_combo_skill',
+            sourceTimelineFrame: 47, delayFrames: 6 }
+    }];
+    const run = input => new AkeSquadScenarioRunner(bundle).run({ commands: input, endFrame: 600 });
+    const before = run(commands);
+    const after = run(appended);
+    const events = result => result.teamComboLedger.events.map(event => [
+        event.frame, event.type, event.beforeStacks, event.afterStacks
+    ]);
+    assert.deepEqual(events(before), [[364, 'grant', 0, 1], [427, 'grant', 1, 2]]);
+    assert.deepEqual(events(after).filter(event => event[0] < 433), events(before));
+    assert.deepEqual(after.damageLog.filter(hit => hit.frame < 433), before.damageLog.filter(hit => hit.frame < 433),
+        'appending after the actual source hit cannot rewrite earlier damage or modifier snapshots');
+    const q = projectAkeTimeline(after).commands.find(command => command.commandId === 'wulfa-q');
+    assert.equal(q.actualFrame, 433);
+    assert.equal(q.success, true);
+    assert.equal(q.reason, null, 'a successful anchor must clear its earlier pending reason');
+    assert.equal(after.teamComboLedger.settlements.find(item => item.commandId === 'wulfa-q').consumedStacks, 2);
+    const brokenAnchor = structuredClone(appended);
+    brokenAnchor.at(-1).releaseDependency.sourceTimelineFrame = 48;
+    const unresolved = projectAkeTimeline(run(brokenAnchor)).commands.find(command => command.commandId === 'wulfa-q');
+    assert.equal(unresolved.success, false);
+    assert.equal(unresolved.reason, 'RELEASE_ANCHOR_NOT_REACHED', 'a missing source hit cannot silently fall back to stale preview time');
 });

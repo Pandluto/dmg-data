@@ -391,6 +391,16 @@ test('real Liino Refrain Buff blocks USP gain only while the Buff is active', ()
         amount: 10
     }, { ...context, frame: 1 });
     assert.equal(blocked.stage, 'ResourceGainSuppressed');
+    const tagged = runtime.execute({
+        type: 'ResourceChange',
+        resourceType: 'UltimateSp',
+        scope: 'Entity',
+        operation: 'Gain',
+        amount: 16,
+        resourceGainTags: [264623624]
+    }, { ...context, frame: 1 });
+    assert.equal(tagged.stage, 'ResourceGainSuppressed',
+        'an empty allowed-tag list blocks tagged recovery as well as generic recovery');
     assert.equal(runtime.resources.describePool('liino:UltimateSp').current, 0);
 
     runtime.execute({ type: 'FinishBuff', target: 'Target', buffId }, {

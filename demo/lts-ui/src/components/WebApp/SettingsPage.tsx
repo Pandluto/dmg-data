@@ -309,11 +309,12 @@ export function SettingsPage() {
         </div>
         <div className="settings-action-row">
           <div>
-            <strong>导出完整 Web LTS 数据库</strong>
-            <span>包含私人排轴、快照、工作节点、配置和自定义图片；官方资料包可重新下载。</span>
+            <strong>导出完整工作区数据库</strong>
+            <span>包含所有排轴存档、版本节点、队伍配置和本地图片。</span>
           </div>
           <button className="dashboard-primary-button" type="button" onClick={handleExport}>导出 SQLite 备份</button>
         </div>
+        {import.meta.env.VITE_AKE_DEMO !== '1' && (
         <div className="settings-action-row">
           <div>
             <strong>移除官方基础资料</strong>
@@ -321,7 +322,8 @@ export function SettingsPage() {
           </div>
           <button type="button" onClick={handleRemovePackage}>移除资料包</button>
         </div>
-        {showLocalResourcePackager && ['127.0.0.1', 'localhost'].includes(window.location.hostname) && (
+        )}
+        {import.meta.env.VITE_AKE_DEMO !== '1' && showLocalResourcePackager && ['127.0.0.1', 'localhost'].includes(window.location.hostname) && (
           <div className="settings-action-row">
             <div>
               <strong>制作完整资源发布包</strong>

@@ -1,0 +1,236 @@
+.release-lens {
+  --release-lens-surface: var(--theme-surface-solid, var(--theme-bg-grid-area, #fff));
+  position: fixed;
+  z-index: 10040;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid var(--theme-border-medium, #b8c7bd);
+  border-radius: max(12px, var(--theme-radius-panel, 12px));
+  background: linear-gradient(var(--release-lens-surface), var(--release-lens-surface)), #fff;
+  color: var(--theme-text-body, #333);
+  box-shadow: 0 14px 38px #0003, var(--theme-shadow-panel);
+  font-family: var(--font-family, sans-serif);
+  font-size: 12px;
+  line-height: 1.35;
+  user-select: none;
+}
+
+.skill-button-release-relation {
+  position: absolute;
+  pointer-events: auto;
+  left: 2px;
+  top: calc(-44px - var(--skill-release-row-height, 0px));
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  box-sizing: border-box;
+  max-width: 76px;
+  padding: 2px 2px;
+  overflow: hidden;
+  border: 1px solid var(--theme-border-subtle, #c4ccd7);
+  border-radius: 3px;
+  background: var(--theme-bg-content, #fff);
+  color: var(--theme-text-body, #263940);
+  font-size: 9px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.skill-button-release-relation:focus-visible { outline: 2px solid var(--theme-accent-strong, #185c37); }
+
+.release-lens-connection {
+  position: fixed;
+  inset: 0;
+  z-index: 10039;
+  width: 100vw;
+  height: 100vh;
+  overflow: visible;
+  pointer-events: none;
+  fill: none;
+  stroke: var(--theme-accent-strong, #185c37);
+  stroke-width: 1.5px;
+}
+
+.release-lens-connection rect {
+  fill: var(--theme-accent-soft, #21734619);
+  stroke-width: 2px;
+}
+
+.release-lens-header {
+  position: absolute;
+  inset: 8px 15px auto;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.release-lens-source-icon {
+  display: flex;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--theme-border-subtle, #ddd);
+  border-radius: 8px;
+  background: var(--theme-bg-content, #f3f3f3);
+  font-size: 20px;
+}
+
+.release-lens-source-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.release-lens-source-text {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.release-lens-source-text strong {
+  overflow: hidden;
+  color: var(--theme-text-title, #1a1a1a);
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.release-lens-eyebrow,
+.release-lens-legend,
+.release-lens-hint,
+.release-lens-pagination,
+.release-lens-seconds {
+  color: var(--theme-text-muted, #5f6f65);
+}
+
+.release-lens-eyebrow { font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.release-lens-legend { display: flex; flex: 0 0 auto; gap: 9px; font-size: 11px; }
+
+.release-lens-axis {
+  position: absolute;
+  left: 0;
+  overflow: visible;
+}
+
+.release-lens-axis-line { stroke: var(--theme-border-medium, #b8c7bd); stroke-width: 1px; }
+.release-lens-time { fill: var(--theme-text-muted, #5f6f65); font-size: 11px; font-variant-numeric: tabular-nums; }
+.release-lens-hit { stroke: var(--theme-text-body, #333); stroke-width: 1.1px; }
+.release-lens-hit-tail { stroke: var(--theme-text-muted, #5f6f65); stroke-dasharray: 2 2; }
+.release-lens-offset-line { stroke: var(--theme-accent-strong, #185c37); stroke-width: 3px; }
+.release-lens-input-line { stroke: var(--theme-accent-strong, #185c37); stroke-width: 1.5px; }
+.release-lens-input-dot { fill: var(--theme-accent-strong, #185c37); }
+.release-lens-port { cursor: pointer; outline: none; }
+.release-lens-port-stem { stroke: var(--theme-border-medium, #b8c7bd); stroke-width: 1px; }
+.release-lens-port-target { fill: var(--release-lens-surface); stroke: none; }
+.release-lens-diamond { fill: var(--release-lens-surface); stroke: var(--theme-text-muted, #5f6f65); stroke-width: 1.5px; }
+.release-lens-port-label { fill: var(--theme-text-body, #333); font-size: 12px; font-weight: 500; }
+.release-lens-port-selected .release-lens-diamond { fill: var(--theme-accent-strong, #185c37); stroke: var(--theme-accent-strong, #185c37); }
+.release-lens-port-selected .release-lens-port-label { fill: var(--theme-text-title, #1a1a1a); font-weight: 700; }
+.release-lens-port:hover .release-lens-port-target,
+.release-lens-port:focus-visible .release-lens-port-target { stroke: var(--theme-accent-strong, #185c37); stroke-width: 1px; }
+
+.release-lens-controls {
+  position: absolute;
+  top: 188px;
+  right: 15px;
+  left: 15px;
+  display: flex;
+  height: 30px;
+  align-items: center;
+  gap: 9px;
+  border-top: 1px solid var(--theme-border-subtle, #e5e5e5);
+  padding-top: 4px;
+}
+
+.release-lens-current {
+  min-width: 0;
+  max-width: 138px;
+  overflow: hidden;
+  color: var(--theme-text-title, #1a1a1a);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.release-lens-offset { display: flex; flex: 0 0 auto; align-items: center; gap: 3px; }
+.release-lens-offset label { display: flex; align-items: center; gap: 3px; }
+
+.release-lens button {
+  display: inline-flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  border: 1px solid var(--theme-border-default, #d1d1d1);
+  border-radius: 5px;
+  padding: 2px 7px;
+  background: var(--release-lens-surface);
+  color: var(--theme-text-body, #333);
+  font: inherit;
+  cursor: pointer;
+}
+
+.release-lens button:hover:not(:disabled) { background: var(--theme-bg-hover, #edf5f0); }
+.release-lens button:disabled { cursor: default; opacity: 0.45; }
+.release-lens button:focus-visible,
+.release-lens input:focus-visible { outline: 2px solid var(--theme-accent-strong, #185c37); outline-offset: 2px; }
+
+.release-lens-offset input {
+  box-sizing: border-box;
+  width: 45px;
+  height: 25px;
+  border: 1px solid var(--theme-border-default, #d1d1d1);
+  border-radius: 4px;
+  padding: 2px 3px;
+  background: var(--release-lens-surface);
+  color: var(--theme-text-title, #1a1a1a);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  appearance: textfield;
+}
+
+.release-lens-offset input::-webkit-inner-spin-button,
+.release-lens-offset input::-webkit-outer-spin-button { margin: 0; appearance: none; }
+.release-lens-seconds { overflow: hidden; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+
+.release-lens-feedback {
+  position: absolute;
+  top: 223px;
+  right: 15px;
+  left: 15px;
+  display: -webkit-box;
+  overflow: hidden;
+  max-height: 26px;
+  color: var(--theme-text-muted, #5f6f65);
+  font-size: 11px;
+  line-height: 13px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.release-lens-feedback strong { color: var(--theme-danger, #b53e33); font-weight: 600; }
+.release-lens-footer { position: absolute; right: 15px; bottom: 5px; left: 15px; display: flex; min-height: 18px; align-items: center; justify-content: space-between; gap: 8px; }
+.release-lens-hint { font-size: 10px; white-space: nowrap; }
+.release-lens-pagination { display: flex; flex: 0 0 auto; align-items: center; gap: 4px; font-size: 10px; }
+.release-lens-pagination button { min-width: 19px; min-height: 18px; padding: 0 4px; line-height: 1; }
+.release-lens-actions { display: flex; align-items: center; gap: 6px; }
+.release-lens-actions button { min-height: 22px; padding: 1px 8px; font-size: 11px; }
+.release-lens button.release-lens-apply { border-color: var(--theme-border-strong, #217346); color: var(--theme-text-title, #1a1a1a); font-weight: 600; }
+.release-lens-blocked .release-lens-input-line,
+.release-lens-blocked .release-lens-offset-line { stroke: var(--theme-danger, #b53e33); }
+.release-lens-blocked .release-lens-input-dot { fill: var(--theme-danger, #b53e33); }
+
+.skill-button-release-relation > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.skill-button-release-relation > b { flex: 0 0 auto; font-size: inherit; font-weight: 600; }

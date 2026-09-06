@@ -2,7 +2,7 @@
 
 研究日期：2026-09-05。代码基线：`1c11c17d1211d3431981f916b674ebe4420a13da`（2026-09-05 18:43:53 +08:00）及本轮开始前已有未提交工作树。**状态：已完成保存恢复、源码取证和可交互显示方案；以下生产改造仍为提案，未实施。**
 
-本次内容提交：由 `git log -1 --format='%H %cI' -- docs/maintenance/timeline-ui-upgrade-20260905.md` 查询；研究时未提交。来源、存档节点及 RIA Run 见 [证据索引](evidence/timeline-ui-20260905/manifest.json)，读数见 [洛茜/卡缪事实](evidence/timeline-ui-20260905/wulfa-camille.json) 和 [显示方案输入](evidence/timeline-ui-20260905/visual-cases.json)。
+本次内容提交：由 `git log -1 --format='%H %cI' -- docs/maintenance/timeline-ui-upgrade-20260905.md` 查询。初版研究提交 `f419797`；交互细化基于后续提交 `41af727` 与同一未提交业务工作树。来源、存档节点及 RIA Run 见 [证据索引](evidence/timeline-ui-20260905/manifest.json)，读数见 [洛茜/卡缪事实](evidence/timeline-ui-20260905/wulfa-camille.json) 和 [显示方案输入](evidence/timeline-ui-20260905/visual-cases.json)。
 
 ## 建议与完成的操作
 
@@ -102,6 +102,7 @@
 主代理独占原Chrome，完成保存/恢复、取证复核和显示方案。两个独立子代理分别核对投影/吸附源码与洛茜/卡缪现有Run，均未操作浏览器或修改生产代码；发现了像素排序、尾部夹点和历史/当前输入不同。模型继承当前任务，实际用量未知。没有为纯研究运行全业务测试。
 
 本提案待用户评审后转为相应Spec/ADR与分阶段实施；本文件不把建议写成既有架构。
+
 
 ## 2026-09-06：原画布局部接续放大镜
 

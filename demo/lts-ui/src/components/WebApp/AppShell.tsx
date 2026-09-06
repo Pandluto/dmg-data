@@ -84,15 +84,15 @@ function sectionMeta(path: string): SectionMeta {
   if (path === APP_ROUTE_PATHS.welcome || path === APP_ROUTE_PATHS.root) {
     return {
       key: 'start',
-      title: '开始',
+      title: '存档',
       description: '本地工作区',
     };
   }
   if (path.startsWith('/data')) {
     return {
       key: 'data',
-      title: '数据',
-      description: '资料与资源',
+      title: '资料',
+      description: '官方只读目录',
     };
   }
   return {
@@ -235,9 +235,9 @@ export function AppShell({ currentPath, children, overlay }: AppShellProps) {
   const suppressLauncherClickRef = useRef(false);
   const meta = sectionMeta(currentPath);
   const navItems: Array<{ key: NavKey; label: string; path: string }> = [
-    { key: 'start', label: '开始', path: APP_ROUTE_PATHS.welcome },
+    { key: 'start', label: '存档', path: APP_ROUTE_PATHS.welcome },
     { key: 'timeline', label: '工作区', path: APP_ROUTE_PATHS.timelineWorkspace },
-    { key: 'data', label: '数据', path: APP_ROUTE_PATHS.dataWorkspace },
+    { key: 'data', label: '资料', path: APP_ROUTE_PATHS.dataWorkspace },
     { key: 'settings', label: '设置', path: APP_ROUTE_PATHS.settings },
   ];
   const windowNavItems = navItems.filter((item) => item.key !== 'timeline');

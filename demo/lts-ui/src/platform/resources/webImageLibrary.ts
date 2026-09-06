@@ -9,6 +9,7 @@ import {
   type WebImageIndexedPath,
 } from './webImagePathIndex';
 import { createWebImageObjectUrlRegistry } from './webImageObjectUrlRegistry';
+import { getBundledAkeImage } from './akeBundledImages';
 
 type CapListener = (caps: WebImageLibraryCapabilities) => void;
 type ImageChangeListener = () => void;
@@ -318,6 +319,10 @@ export function canonicalizeWebImageReferences<T>(value: T): T {
 export function resolveWebImageUrl(path?: string | null): string | null {
   if (!path) return null;
   if (/^(?:data|blob):/i.test(path)) return path;
+  // Do not feed content-hashed filenames back through legacy fuzzy matching:
+  // it can strip the hash and resolve the optimized URL back to an old PNG.
+  const bundled = getBundledAkeImage(path);
+  if (bundled) return staticAssetUrl(bundled.path);
   const canonical = canonicalizeWebImageReference(path);
   if (!canonical) return null;
   if (/^(?:data|blob):/i.test(canonical)) return canonical;

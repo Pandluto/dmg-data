@@ -1,3 +1,4 @@
+import { combatTriggerAttribution, combatTransactionTrigger } from './combat-trigger-attribution.mjs';
 import CombatContext, { cloneValue } from './combat-context.mjs';
 import EffectRuntime from './effect-runtime.mjs';
 import { ClockDomainManager } from './clock-domain-manager.mjs';
@@ -182,6 +183,7 @@ export class CombatRuntime {
         comboPendingTimeResolver = null,
         comboPendingTriggerResolver = null,
         onStatusTransition = null,
+        onCombatEvent = null,
         traceSink = null,
         maxDerivedDepth = 16,
         maxEventsPerRun = 10000
@@ -216,14 +218,19 @@ export class CombatRuntime {
         if (onStatusTransition !== null && typeof onStatusTransition !== 'function') {
             throw new TypeError('onStatusTransition must be a function or null.');
         }
+        if (onCombatEvent !== null && typeof onCombatEvent !== 'function') {
+            throw new TypeError('onCombatEvent must be a function or null.');
+        }
         if (traceSink !== null && typeof traceSink !== 'function') {
             throw new TypeError('traceSink must be a function or null.');
         }
         this.damageResolver = damageResolver;
         this.skillProgramResolver = skillProgramResolver;
+        this.currentSkillResolver = null;
         this.timeDilationResolver = timeDilationResolver;
         this.skillInterruptResolver = skillInterruptResolver;
         this.onDerivedSkillCast = onDerivedSkillCast;
+        this.onCombatEvent = onCombatEvent;
         this.comboPendingTimeResolver = comboPendingTimeResolver;
         this.comboPendingTriggerResolver = comboPendingTriggerResolver;
         this.traceSink = traceSink;
@@ -235,6 +242,7 @@ export class CombatRuntime {
         this.maxEventsPerRun = nonNegativeInteger(maxEventsPerRun, 'maxEventsPerRun');
         if (this.maxEventsPerRun < 1) throw new RangeError('maxEventsPerRun must be positive.');
         this.trace = [];
+        this.mainCharacterId = null;
         this.rules = new Map();
         this.nextRuleSequence = 1;
         this.dispatchDepth = 0;
@@ -253,6 +261,9 @@ export class CombatRuntime {
         this.castLineageByCastId = new Map();
         this.onceActionExecutions = new Set();
         this.programExecutions = new Map();
+        this.skillTimelineConditions = new Map();
+        this.observingSkillTimelineConditions = false;
+        this.activeActionContexts = [];
         this.endedSkillCastIds = new Set();
         this.entityBlackboards = new Map();
         this.skillLoadoutPatchSources = new Map();
@@ -264,7 +275,7 @@ export class CombatRuntime {
         this.timeDilationSampleGenerations = new Map();
         this.currentFrame = 0;
         this.ownsScheduler = schedule === null;
-        this.schedule = schedule ?? ((frame, priority, run, label = '') => {
+        const enqueue = schedule ?? ((frame, priority, run, label = '') => {
             this.pendingEvents.push({
                 frame: nonNegativeInteger(frame, 'scheduled frame'),
                 priority: finite(priority, 'scheduled priority'),
@@ -273,6 +284,13 @@ export class CombatRuntime {
                 sequence: this.nextEventSequence++
             });
         });
+        this.schedule = (frame, priority, run, label = '') => enqueue(
+            frame, priority, () => {
+                const result = run();
+                this.#observeSkillTimelineConditions(frame);
+                return result;
+            }, label
+        );
 
         const clockDefinitions = definitionsArray(
             definitions.clockDomains ?? definitions.clocks,
@@ -663,6 +681,7 @@ export class CombatRuntime {
         this.dispatchDepth += 1;
         try {
             this.#record('EventDispatched', eventContext, { depth: this.dispatchDepth });
+            this.onCombatEvent?.(cloneValue(eventContext));
             const candidates = [...this.rules.values()]
                 .filter(rule => rule.eventTypes.includes('*') || rule.eventTypes.includes(eventContext.eventType))
                 .sort((left, right) => left.priority - right.priority || left.sequence - right.sequence);
@@ -696,12 +715,26 @@ export class CombatRuntime {
 
     execute(actions, eventContext = {}) {
         const context = this.context.createEventContext(eventContext);
-        return this.effects.execute(actions, context);
+        this.activeActionContexts.push(context);
+        try {
+            const result = this.effects.execute(actions, context);
+            this.#observeSkillTimelineConditions(context.frame ?? this.currentFrame, context);
+            return result;
+        } finally {
+            this.activeActionContexts.pop();
+        }
     }
 
     executeTransaction(actions, eventContext = {}) {
         const context = this.context.createEventContext(eventContext);
-        return this.effects.executeTransaction(actions, context);
+        this.activeActionContexts.push(context);
+        try {
+            const result = this.effects.executeTransaction(actions, context);
+            this.#observeSkillTimelineConditions(context.frame ?? this.currentFrame, context);
+            return result;
+        } finally {
+            this.activeActionContexts.pop();
+        }
     }
 
     consumeTeamComboState(input = {}, eventContext = {}) {
@@ -1355,22 +1388,37 @@ export class CombatRuntime {
             }
             const blackboard = this.#runtimeBlackboard(
                 context.ownerId ?? context.sourceId,
-                execution ? execution.blackboard : detachedBlackboard
+                completionFrame === context.frame && tickIndex === 0
+                    ? context.blackboard
+                    : execution ? execution.blackboard : detachedBlackboard
             );
-            const transaction = this.effects.executeTransaction(action.actions, {
+            const tickContext = {
                 ...cloneValue(context),
                 frame: completionFrame,
                 eventType: 'SkillTimelineIntervalTick',
                 timelineFrame,
                 intervalTickIndex: tickIndex,
                 blackboard
-            });
-            if (execution) execution.blackboard = cloneValue(transaction.eventContext.blackboard);
-            else detachedBlackboard = cloneValue(transaction.eventContext.blackboard);
+            };
+            const targetIds = action.targetRef === undefined
+                ? [tickContext.targetId]
+                : this.#entityIds(action.targetRef, tickContext, 'Target');
+            let transaction = null;
+            for (const targetId of targetIds) {
+                transaction = this.effects.executeTransaction(action.actions, {
+                    ...tickContext,
+                    targetId,
+                    payload: { ...cloneValue(tickContext.payload ?? {}), eventTargetId: targetId },
+                    blackboard: cloneValue(tickContext.blackboard)
+                });
+                tickContext.blackboard = cloneValue(transaction.eventContext.blackboard);
+            }
+            if (execution) execution.blackboard = cloneValue(tickContext.blackboard);
+            else detachedBlackboard = cloneValue(tickContext.blackboard);
             // The first tick runs inside the timeline group's live transaction;
             // keep its Blackboard writes visible to following group actions.
             if (completionFrame === context.frame && tickIndex === 0) {
-                context.blackboard = cloneValue(transaction.eventContext.blackboard);
+                context.blackboard = cloneValue(tickContext.blackboard);
             }
             this.#record('SkillProgramIntervalTickExecuted', {
                 ...cloneValue(context),
@@ -1379,6 +1427,7 @@ export class CombatRuntime {
                 programExecutionId: context.programExecutionId ?? null,
                 tickIndex,
                 timelineFrame,
+                targetIds,
                 actionCount: action.actions.length
             });
             return transaction;
@@ -1435,6 +1484,76 @@ export class CombatRuntime {
         };
     }
 
+    watchSkillTimelineCondition(action, eventContext) {
+        const executionId = identifier(eventContext.programExecutionId, 'programExecutionId');
+        const execution = this.programExecutions.get(executionId);
+        if (!execution?.active) return { status: 'Ignored', reason: 'ProgramExecutionInactive' };
+        const watchId = `${executionId}:${execution.generation}:${action.sourcePath}`;
+        this.skillTimelineConditions.set(watchId, {
+            action: cloneValue(action),
+            context: cloneValue(eventContext),
+            executionId,
+            generation: execution.generation
+        });
+        this.#observeSkillTimelineConditions(eventContext.frame);
+        const dependsOnTime = value => {
+            if (Array.isArray(value)) return value.some(dependsOnTime);
+            if (!isRecord(value)) return false;
+            return /Timed|Duration|Resource/.test(String(value.type ?? ''))
+                || Object.values(value).some(dependsOnTime);
+        };
+        if (dependsOnTime(action.conditions)) {
+            const poll = nextFrame => {
+                if (!this.skillTimelineConditions.has(watchId)) return;
+                this.schedule(nextFrame, 80, () => {
+                    this.#observeSkillTimelineConditions(nextFrame);
+                    poll(nextFrame + 1);
+                }, `timeline-condition:${watchId}`);
+            };
+            poll(eventContext.frame + 1);
+        }
+        return { status: 'Watching', watchId, executionId };
+    }
+
+    #observeSkillTimelineConditions(frame, triggeringContext = this.activeActionContexts.at(-1) ?? null) {
+        if (this.observingSkillTimelineConditions || this.skillTimelineConditions.size === 0) return;
+        this.observingSkillTimelineConditions = true;
+        try {
+            for (const [watchId, watch] of this.skillTimelineConditions) {
+                const execution = this.programExecutions.get(watch.executionId);
+                const control = execution?.active
+                    ? this.getSkillProgramControl(watch.executionId, frame) : null;
+                if (!control || execution.generation !== watch.generation
+                    || (watch.action.timelineEndFrame != null
+                        && control.timelineFrame >= watch.action.timelineEndFrame)) {
+                    this.skillTimelineConditions.delete(watchId);
+                    continue;
+                }
+                const context = {
+                    ...cloneValue(watch.context), frame,
+                    timelineFrame: Math.max(0, Math.round(control.timelineFrame)),
+                    blackboard: this.#runtimeBlackboard(
+                        execution.context.ownerId ?? execution.context.sourceId,
+                        execution.blackboard
+                    )
+                };
+                const passed = this.effects.evaluate({
+                    type: 'All', conditions: watch.action.conditions
+                }, context);
+                if (!passed) continue;
+                this.skillTimelineConditions.delete(watchId);
+                this.seekProgram(watch.executionId, {
+                    frame,
+                    sourceTimelineFrame: context.timelineFrame,
+                    destFrame: watch.action.destFrame,
+                    triggeringContext
+                });
+            }
+        } finally {
+            this.observingSkillTimelineConditions = false;
+        }
+    }
+
     seekProgram(executionId, input = {}) {
         const execution = this.programExecutions.get(executionId);
         if (!execution?.active) {
@@ -1465,6 +1584,12 @@ export class CombatRuntime {
             frame,
             reason: 'TimelineSeek'
         }, execution.context);
+        // A conditional seek changes the existing cast; it must not transfer
+        // damage ownership to the action that triggered it.
+        if (input.triggeringContext?.castId != null
+            && input.triggeringContext.castId !== execution.castId) {
+            Object.assign(execution.context, combatTransactionTrigger(input.triggeringContext));
+        }
         execution.timelineAnchorFrame = destFrame;
         execution.timelineAnchorGlobalFrame = frame;
         execution.scheduleFrom(frame, destFrame, execution.generation);
@@ -1484,6 +1609,31 @@ export class CombatRuntime {
         }, result);
         execution.onTimelineSeek?.(cloneValue(result));
         return result;
+    }
+
+    // Admission follows the executing program, including derived casts and
+    // timeline seeks, rather than the button's original wrapper SkillData.
+    getSkillProgramControl(executionId, frame = this.currentFrame) {
+        const execution = this.programExecutions.get(executionId);
+        if (!execution?.active) return null;
+        const localFrame = this.clockDomains.localFrameAt(execution.clockDomainId, frame);
+        const anchorLocalFrame = this.clockDomains.localFrameAt(
+            execution.clockDomainId, execution.timelineAnchorGlobalFrame
+        );
+        return {
+            executionId,
+            castId: execution.castId,
+            skillId: execution.skillId,
+            effectiveSkillType: execution.context.effectiveSkillType,
+            timelineFrame: execution.timelineAnchorFrame + localFrame - anchorLocalFrame,
+            interruptible: execution.interruptible,
+            skill: cloneValue({
+                exclusiveFrames: execution.program.exclusiveFrames,
+                allowNextWindows: execution.program.allowNextWindows,
+                interruptMarks: execution.program.interruptMarks,
+                comboMappings: execution.program.comboMappings
+            })
+        };
     }
 
     markProgramInterruptible(executionId, input = {}) {
@@ -1584,12 +1734,19 @@ export class CombatRuntime {
         }
         const targetFrame = nonNegativeInteger(frame, 'runUntil frame');
         let processed = 0;
+        let sameFrame = null;
+        let processedAtFrame = 0;
         while (true) {
             this.pendingEvents.sort((left, right) => left.frame - right.frame
                 || left.priority - right.priority || left.sequence - right.sequence);
             const event = this.pendingEvents[0];
             if (!event || event.frame > targetFrame) break;
             this.pendingEvents.shift();
+            processedAtFrame = event.frame === sameFrame ? processedAtFrame + 1 : 1;
+            sameFrame = event.frame;
+            if (processedAtFrame > Math.min(10_000, this.maxEventsPerRun)) {
+                throw new Error(`Scheduled event limit at frame ${event.frame} exceeded.`);
+            }
             this.currentFrame = event.frame;
             event.run();
             processed += 1;
@@ -1598,6 +1755,7 @@ export class CombatRuntime {
             }
         }
         this.currentFrame = Math.max(this.currentFrame, targetFrame);
+        this.#observeSkillTimelineConditions(this.currentFrame);
         return { frame: targetFrame, processed, pending: this.pendingEvents.length };
     }
 
@@ -1605,6 +1763,7 @@ export class CombatRuntime {
         return {
             frame: this.currentFrame,
             context: this.context.snapshot(),
+            mainCharacterId: this.mainCharacterId,
             clocks: this.clockDomains.snapshot(),
             resources: this.resources.snapshot(),
             vitals: this.vitals.snapshot(),
@@ -1751,6 +1910,7 @@ export class CombatRuntime {
             frame: eventContext.frame ?? 0,
             stage,
             type: stage,
+            ...combatTriggerAttribution(eventContext),
             sourceId: eventContext.sourceId ?? null,
             ownerId: eventContext.ownerId ?? null,
             targetId: eventContext.targetId ?? null,
@@ -1953,11 +2113,15 @@ export class CombatRuntime {
         const queryTags = (selector.tagIds ?? []).map(tagId => `ake-tag:${String(tagId)}`);
         const matches = entity => {
             if (selector.excludeOwner
-                && (entity.id === eventContext.sourceId || entity.id === eventContext.ownerId)) {
+                && entity.id === (eventContext.ownerId ?? eventContext.sourceId)) {
                 return false;
             }
-            if (selector.faction === 'Ally' && source && entity.team !== source.team) return false;
-            if (selector.faction === 'Anti' && source
+            if (entity.tags.includes('ake-ability-entity-inactive')) return false;
+            if (selector.fixedFaction === 'Good' && entity.team !== 'ally') return false;
+            if (selector.fixedFaction === 'Bad' && entity.team !== 'enemy') return false;
+            if (!selector.fixedFaction && selector.faction === 'Ally'
+                && source && entity.team !== source.team) return false;
+            if (!selector.fixedFaction && selector.faction === 'Anti' && source
                 && (entity.team === source.team || entity.team === null || source.team === null)) {
                 return false;
             }
@@ -1976,6 +2140,14 @@ export class CombatRuntime {
             return this.context.listEntities(matches).map(entity => entity.id);
         }
         if (selector.mode === 'ContextTarget') {
+            // The scenario's range binding places its party alongside the
+            // explicit combat target. An allied aura selects that party;
+            // the enemy target must not replace an explicit Good faction.
+            if (selector.fixedFaction === 'Good'
+                || (!selector.fixedFaction && selector.faction === 'Ally')) {
+                return this.context.listEntities(entity => entity.kind === 'Character'
+                    && matches(entity)).map(entity => entity.id);
+            }
             if (eventContext.targetId === null || eventContext.targetId === undefined
                 || !this.context.hasEntity(eventContext.targetId)) return [];
             const target = this.context.getEntity(eventContext.targetId);
@@ -2043,14 +2215,37 @@ export class CombatRuntime {
             });
     }
 
-    #sourceIsMainCharacter(eventContext) {
-        const sourceId = eventContext.sourceId;
-        if (sourceId === null || sourceId === undefined) return false;
-        if (eventContext.mainCharacterId !== undefined
-            && eventContext.mainCharacterId !== null) {
-            return eventContext.mainCharacterId === sourceId;
+    // Control is live combat state: delayed hits and Buff callbacks must not
+    // retain the controller who happened to be active at cast time.
+    resolveMainCharacterId(eventContext = {}) {
+        return this.mainCharacterId ?? eventContext.mainCharacterId
+            ?? this.context.listEntities(entity => entity.metadata?.isMainCharacter === true)[0]?.id
+            ?? null;
+    }
+
+    setMainCharacter(characterId, { frame = this.currentFrame, reason = 'ControllerChanged', switchId = null } = {}) {
+        if (!this.context.hasEntity(characterId)) {
+            throw new TypeError(`Unknown main character: ${characterId}`);
         }
-        return Boolean(this.context.getEntity(sourceId).metadata?.isMainCharacter);
+        const previousCharacterId = this.mainCharacterId;
+        this.mainCharacterId = characterId;
+        this.context.mainCharacterId = characterId;
+        for (const entity of this.context.listEntities()) {
+            const isMainCharacter = entity.id === characterId;
+            if (entity.metadata?.isMainCharacter === isMainCharacter) continue;
+            if (isMainCharacter || entity.metadata?.isMainCharacter === true) {
+                this.context.patchMetadata(entity.id, { isMainCharacter }, { frame, reason });
+            }
+        }
+        const event = { stage: 'MainCharacterChanged', frame,
+            previousCharacterId, characterId, reason, switchId };
+        this.trace.push(event);
+        return event;
+    }
+
+    #sourceIsMainCharacter(eventContext) {
+        return eventContext.sourceId != null
+            && this.resolveMainCharacterId(eventContext) === eventContext.sourceId;
     }
 
     #resourceGainScalar(resourceType, ownerId, ignoreGainScalar) {
@@ -2276,8 +2471,27 @@ export class CombatRuntime {
                 reason
             });
         }
+        // An entity's timeline dies with its ActionOwner. Keep unrelated
+        // character casts and separately owned Buffs alive, even when they
+        // share the same damage source or root cast.
+        const cancelledPrograms = [];
+        for (const execution of this.programExecutions.values()) {
+            if (execution.active && execution.context.ownerId === entityId) {
+                this.cancelProgramExecution(execution.executionId,
+                    eventContext.frame ?? this.currentFrame, reason);
+                this.finishSkillActionLifetimes({
+                    frame: eventContext.frame ?? this.currentFrame,
+                    actorId: entityId, castId: execution.castId,
+                    skillId: execution.skillId, reason
+                }, { ...execution.context, frame: eventContext.frame ?? this.currentFrame });
+                cancelledPrograms.push(execution.executionId);
+            }
+        }
+        this.auras.removeByOwner({ ownerId: entityId,
+            frame: eventContext.frame ?? this.currentFrame, reason });
         return {
             entityId,
+            cancelledPrograms,
             status: before ? 'AlreadyInactive' : 'Deactivated',
             before,
             requested: true,
@@ -2441,6 +2655,40 @@ export class CombatRuntime {
 
     #defaultHandlers() {
         return {
+            CurrentSkillTypeMatches: (condition, eventContext) => {
+                const targetId = this.#entityId(condition.target, eventContext, 'Owner');
+                const active = this.currentSkillResolver?.({ targetId, frame: eventContext.frame });
+                if (!active) return false;
+                const normalize = value => value === 'NormalAttack' ? 'Attack' : value;
+                const skillType = normalize(active.commandType ?? active.effectiveSkillType);
+                if (!(condition.skillTypes ?? []).map(normalize).includes(skillType)) return false;
+                if (condition.beforeExclusive && Number(active.timelineFrame)
+                    >= Number(active.skill?.exclusiveFrames ?? 0)) return false;
+                if (skillType !== 'Attack' || condition.attackTypeMask === 'All') return true;
+                const specification = active.skill?.skillSpecification;
+                const bit = ({ CharacterNormalAttack: 1, CharacterPowerAttack: 2,
+                    CharacterDashAttack: 16 })[specification]
+                    ?? (specification === 'CharacterPlungingAttack'
+                        ? /(?:^|_)start$/.test(active.skillId) ? 4 : 8 : 0);
+                return (bit & Number(condition.attackTypeMask)) !== 0;
+            },
+            OriginSkillTypeMatches: (condition, eventContext) => {
+                const normalize = type => type === 'NormalAttack' ? 'Attack' : type;
+                const skillType = normalize(eventContext.payload?.originSkillType
+                    ?? eventContext.effectiveSkillType ?? eventContext.skillType);
+                if (!(condition.skillTypes ?? []).map(normalize).includes(skillType)) return false;
+                if (skillType !== 'Attack' || condition.attackTypeMask === 'All') return true;
+                const attackType = eventContext.payload?.originAttackType ?? null;
+                const attackBits = {
+                    NormalAttack: 1, PowerAttack: 2,
+                    PlungingAttackStart: 4, PlungingAttackEnd: 8, DashAttack: 16
+                };
+                const required = typeof condition.attackTypeMask === 'number'
+                    ? condition.attackTypeMask
+                    : String(condition.attackTypeMask).split(/[|,]/).reduce((mask, key) =>
+                        mask | (attackBits[key.trim()] ?? 0), 0);
+                return ((attackBits[attackType] ?? 0) & required) !== 0;
+            },
             BitMaskCompare: (condition, eventContext) => {
                 const value = Math.trunc(Number(this.#value(
                     condition.value ?? condition.left ?? 0,
@@ -2664,10 +2912,17 @@ export class CombatRuntime {
                     ? condition.tagIds
                     : [];
                 const tagQueryType = condition.tagQueryType ?? 'HasAny';
+                // Ability entities have independent execution castIds so their
+                // lifetimes can end separately. A skill-cast-limited marker is
+                // shared by the originating skill's entities and projectiles.
+                const skillCastId = eventContext.rootCastId ?? eventContext.castId;
                 const instances = this.statusEffects.list({
                     active: true,
                     targetId
                 }).filter(instance => buffIds.length === 0 || buffIds.includes(instance.buffId))
+                    .filter(instance => condition.limitSkillCastId !== true
+                        || (skillCastId !== null && skillCastId !== undefined
+                            && (instance.rootCastId ?? instance.castId) === skillCastId))
                     .filter(instance => {
                         if (requestedTagIds.length === 0) return true;
                         const definitionTags = new Set(
@@ -2804,12 +3059,7 @@ export class CombatRuntime {
                     eventContext,
                     'Source'
                 );
-                if (eventContext.mainCharacterId !== undefined
-                    && eventContext.mainCharacterId !== null) {
-                    return targetId === eventContext.mainCharacterId;
-                }
-                const entity = this.context.getEntity(targetId);
-                return entity.metadata?.isMainCharacter === true;
+                return targetId === this.resolveMainCharacterId(eventContext);
             },
             SquadInFight: (_condition, eventContext) => {
                 const sourceId = eventContext.sourceId ?? eventContext.ownerId;
@@ -3167,9 +3417,8 @@ export class CombatRuntime {
                     candidates = candidates.filter(entity => entity.id !== ownerId);
                 }
                 if (action.onlyMainCharacter === true) {
-                    candidates = candidates.filter(entity =>
-                        entity.metadata?.isMainCharacter === true
-                    );
+                    const mainCharacterId = this.resolveMainCharacterId(eventContext);
+                    candidates = candidates.filter(entity => entity.id === mainCharacterId);
                 }
                 const requestedTagIds = action.tagIds ?? [];
                 if (requestedTagIds.length > 0) {
@@ -3513,6 +3762,38 @@ export class CombatRuntime {
                     ...(records.length === 1 ? records[0] : {})
                 };
             },
+            StoreBuffLifetime: (action, eventContext) => {
+                const instance = action.currentBuffInstance === true
+                    ? this.statusEffects.get(eventContext.buffInstanceId)
+                    : null;
+                if (!instance) return {
+                    status: 'Unresolved',
+                    reason: 'BuffLifetimeInstanceMissing',
+                    instanceId: eventContext.buffInstanceId ?? null
+                };
+                const timer = instance.timerId === null || instance.timerId === undefined
+                    ? null
+                    : this.clockDomains.timer(instance.clockDomainId, instance.timerId);
+                // Read the running timer, whose deadline reflects pauses and
+                // resume, rather than the Buff's original configured duration.
+                const remainingTicks = !instance.active ? 0
+                    : instance.durationTicks === null ? null
+                    : timer?.paused ? timer.remainingTicks
+                    : Math.max(0, (timer?.deadlineFrame ?? instance.expireFrame)
+                        - eventContext.frame);
+                const key = identifier(action.key, 'Buff lifetime destination key');
+                const before = cloneValue(eventContext.blackboard[key]);
+                const after = remainingTicks === null ? -1 : remainingTicks / this.tickRate;
+                eventContext.blackboard[key] = after;
+                return {
+                    instanceId: instance.instanceId,
+                    buffId: instance.buffId,
+                    targetId: instance.targetId,
+                    key, before, remainingTicks,
+                    requested: 'remainingLifetimeSeconds',
+                    actual: after, discarded: 0, after
+                };
+            },
             StoreBuffCount: (action, eventContext) => {
                 const targetId = this.#entityId(
                     action.targetRef ?? action.target ?? action.targetId,
@@ -3831,7 +4112,8 @@ export class CombatRuntime {
                 ...this.#attribution(action, eventContext, { target: false }),
                 poolRef: this.#poolRef(action, eventContext),
                 token: this.#resourceActionToken(action, eventContext),
-                tags: action.resourceGainTags ?? action.tags ?? []
+                tags: action.resourceGainTags ?? action.tags ?? [],
+                exceptTags: action.allowedResourceGainTags
             }),
             ResumeResourceGain: (action, eventContext) => this.resources.resumeGain({
                 ...this.#attribution(action, eventContext, { target: false }),
@@ -4508,7 +4790,10 @@ export class CombatRuntime {
                     'Target'
                 );
                 const inflictionContext = this.context.createEventContext(eventContext, {
-                    targetId
+                    targetId,
+                    ...(action.sourceRef === undefined ? {} : {
+                        sourceId: this.#entityId(action.sourceRef, eventContext, 'Source')
+                    })
                 });
                 const beforeAbilityEvents = this.#notifyBeforeOutputSpellInfliction(
                     action,
@@ -4703,12 +4988,15 @@ export class CombatRuntime {
                 buffInstanceId: action.buffInstanceId ?? eventContext.buffInstanceId,
                 sourceId: action.sourceId
             }),
+            WatchSkillTimelineCondition: (action, eventContext) =>
+                this.watchSkillTimelineCondition(action, eventContext),
             SeekSkillTimeline: (action, eventContext) => this.seekProgram(
                 identifier(eventContext.programExecutionId, 'programExecutionId'),
                 {
                     frame: eventContext.frame,
                     sourceTimelineFrame: eventContext.timelineFrame,
-                    destFrame: action.destFrame
+                    destFrame: action.destFrame,
+                    triggeringContext: this.activeActionContexts.at(-1) ?? null
                 }
             ),
             MarkSkillInterruptible: (action, eventContext) => this.markProgramInterruptible(
@@ -5097,10 +5385,8 @@ export class CombatRuntime {
                     inputCommandType,
                     inputSkillId,
                     commandType: derivedCast ? inputCommandType : eventContext.commandType,
-                    skillType: derivedCast ? effectiveSkillType : eventContext.skillType,
-                    effectiveSkillType: derivedCast
-                        ? effectiveSkillType
-                        : eventContext.effectiveSkillType,
+                    skillType: effectiveSkillType === 'NormalAttack' ? 'Attack' : effectiveSkillType,
+                    effectiveSkillType,
                     skillId: childSkillId,
                     rootSkillId: eventContext.rootSkillId
                         ?? eventContext.skillId
@@ -5275,6 +5561,15 @@ export class CombatRuntime {
                 const sourceListenerId = damageEventContext.sourceId
                     ?? damageEventContext.ownerId;
                 const targetListenerId = damageEventContext.targetId;
+                // This event belongs to the DamageAction, not each HP/Poise
+                // unit. Listeners can change the originating timeline before
+                // its damage packet is settled.
+                const actionDamageMask = (action.damageUnits ?? []).reduce((mask, unit) =>
+                    mask | Number(unit.damageDecorateMask ?? 0), 0);
+                this.#notifyDamageEvent('OnBeforeDamageAction', {
+                    damageDecorateMask: actionDamageMask,
+                    damageAttributeType: null
+                }, null, damageEventContext, sourceListenerId);
                 const hitIdentityByUnit = new Map((action.damageUnits ?? []).map(
                     (_unit, damageUnitIndex) => {
                         const sequence = this.nextDamageHitSequence++;
@@ -5324,6 +5619,9 @@ export class CombatRuntime {
                         };
                     }
                 );
+                // A hit refers to the status event stream at its calculation boundary.
+                // Its own hit sequence is a different counter and cannot order statuses.
+                const statusEventSequenceBeforeHit = this.statusEffects.nextEventSequence - 1;
                 const resolution = this.damageResolver({
                     action: cloneValue(action),
                     eventContext: cloneValue(damageEventContext),
@@ -5358,6 +5656,7 @@ export class CombatRuntime {
                             ?? existingIdentity?.hitId
                             ?? `runtime-hit:${fallbackSequence}`,
                         sequence: hit.sequence ?? fallbackSequence,
+                        statusEventSequenceBeforeHit,
                         parentTransactionId: damageEventContext.transactionId ?? null,
                         parentEventId: damageEventContext.parentEventId ?? null,
                         sourceBuffInstanceId: damageEventContext.buffInstanceId ?? null,
@@ -5888,6 +6187,7 @@ export class CombatRuntime {
                     type: 'ApplyBuff',
                     target: targetId,
                     buffId,
+                    metadata: { rdpsExcludedReason: 'imbalance' },
                     reason: 'PoiseBroken'
                 }, context);
             }
@@ -5992,11 +6292,19 @@ export class CombatRuntime {
         }
         this.abilityNotifyDepth += 1;
         try {
+            const program = this.programExecutions.get(eventContext.programExecutionId)?.program;
+            const specification = program?.skillSpecification;
+            const originAttackType = specification === 'CharacterPlungingAttack'
+                ? /(?:^|_)start$/.test(program.skillId) ? 'PlungingAttackStart' : 'PlungingAttackEnd'
+                : ({ CharacterNormalAttack: 'NormalAttack', CharacterPowerAttack: 'PowerAttack',
+                    CharacterDashAttack: 'DashAttack' })[specification] ?? null;
             const context = this.context.createEventContext(eventContext, {
                 eventType,
                 parentHitId: hit.hitId ?? null,
                 hitEventPhase: eventType.startsWith('OnBefore') ? 'before' : 'after',
                 payload: {
+                    originSkillType: eventContext.effectiveSkillType ?? eventContext.skillType,
+                    originAttackType,
                     damageUnitIndex: hit.damageUnitIndex ?? null,
                     hitId: hit.hitId ?? null,
                     parentTransactionId: hit.parentTransactionId

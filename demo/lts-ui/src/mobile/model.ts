@@ -50,6 +50,8 @@ export interface MobileTimelineAction {
   runtimeSkillId: string;
   skillName: string;
   skillIconUrl?: string;
+  /** Settled timing supplied by a report adapter; never used as a simulation input. */
+  reportTimingLabel?: string;
   /** Frozen hit template used by imported snapshots when catalog skills later change. */
   customHits?: SandboxSkillHit[];
   buffs: SkillButtonBuff[];
@@ -125,6 +127,10 @@ export interface MobileDamageReport {
   byOperator: MobileDamageReportRow[];
   bySkill: MobileDamageReportRow[];
   rdps?: RdpsAttributionSummary;
+  /** Optional settled hit series. The original DEF report falls back to slot order. */
+  cumulativeDamage?: Array<{ position: number; value: number; label: string }>;
+  cumulativeAxisLabel?: string;
+  rdpsUnavailableReason?: string;
 }
 
 export interface MobileRuntimeState {

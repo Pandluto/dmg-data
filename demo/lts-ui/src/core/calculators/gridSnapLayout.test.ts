@@ -9,6 +9,8 @@ import {
   getNormalizedGridLineOffsetY,
   getGridOperatorPairTopY,
   GRID_ENERGY_ROW_HEIGHT,
+  GRID_RELEASE_ROW_HEIGHT,
+  getGridReleaseRowTopY,
   GRID_GROUP_HEIGHT,
   GRID_OPERATOR_SLOT_HEIGHT,
   GRID_ROW_HEIGHT,
@@ -22,8 +24,8 @@ const selectedCharacters = [
 ];
 
 assert.equal(SKILL_BUTTON_BASELINE_OFFSET_Y, 0, '拖拽与重载不得使用额外的纵向补偿');
-assert.equal(GRID_OPERATOR_SLOT_HEIGHT, 72, '每名干员应占上下两格和一条独立能量行');
-assert.equal(GRID_GROUP_HEIGHT, 318, '四名干员的完整组高度应包含四条能量行');
+assert.equal(GRID_OPERATOR_SLOT_HEIGHT, 90, '每名干员应占上下两格和一条独立能量行');
+assert.equal(GRID_GROUP_HEIGHT, 390, '四名干员的完整组高度应包含四条能量行');
 
 const canonicalSecondGroupY = getGridGroupTop(1) + getGridLineCenterY(0);
 assert.equal(
@@ -47,12 +49,13 @@ assert.deepEqual(firstMergedCell, {
   left: 42,
   top: 32,
   width: 76,
-  height: 56,
-}, '上下两行应合并成一个留有 2px 缝隙的 80×60 交互大格');
+  height: 74,
+}, '上下两行应合并成一个留有 2px 缝隙的 80px 宽、独立申请 18px 起手行的交互区');
 
 for (let lineIndex = 0; lineIndex < selectedCharacters.length; lineIndex += 1) {
   const pairTop = getGridOperatorPairTopY(lineIndex);
-  const secondRowBottom = pairTop + GRID_ROW_HEIGHT * 2;
+  const secondRowBottom = pairTop + GRID_ROW_HEIGHT * 2 + GRID_RELEASE_ROW_HEIGHT;
+  assert.equal(getGridReleaseRowTopY(lineIndex), pairTop, '起手行应位于按钮顶部、图标格之前');
   const energyTop = getGridEnergyRowTopY(lineIndex);
 
   assert.equal(energyTop, secondRowBottom, `第 ${lineIndex + 1} 名干员的 HIT 应在第二格底线上`);

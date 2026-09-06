@@ -7,7 +7,7 @@ import test from 'node:test';
 import { AkeSquadScenarioAssembler } from '../src/core/ake-squad-scenario-assembler.mjs';
 import { AkeSquadScenarioRunner } from '../src/core/ake-squad-scenario-runner.mjs';
 import { RiaArchive } from '../src/ria/archive.mjs';
-import { recordFixtureRun, replayArchivedRun } from '../src/ria/execute.mjs';
+import { createFixtureWorkerExecutor, recordFixtureRun, replayArchivedRun, startFixtureRunExecution } from '../src/ria/execute.mjs';
 
 const projectRoot = path.resolve(new URL('..', import.meta.url).pathname);
 
@@ -271,4 +271,35 @@ test('a Worker crash is sealed as interrupted without changing the adapter white
     assert.equal(manifest.status, 'interrupted');
     assert.equal(manifest.config.adapter, 'ake-squad-demo');
     assert.equal((await archive.verifyRun('run-worker-crash')).ok, true);
+});
+
+
+test('browser delivery precedes a stalled archive and warm jobs retain identical independent combat results', async t => {
+    const archive = await investigationArchive(t);
+    const executeWorker = createFixtureWorkerExecutor({ projectRoot });
+    t.after(() => executeWorker.close());
+    const fixture = JSON.parse(await fs.readFile(path.join(projectRoot, 'fixtures/ria/pelica-normal-skill.json'), 'utf8'));
+    const first = await startFixtureRunExecution({ archive, caseId: 'case-runtime', sessionId: 'session-runtime',
+        fixture, executeWorker, config: { uiCalculation: true } });
+    const originalDrain = first.writer.drain.bind(first.writer);
+    let unblock;
+    const blocked = new Promise(resolve => { unblock = resolve; });
+    first.writer.drain = async () => { await blocked; return originalDrain(); };
+    t.after(() => unblock());
+    let archived = false;
+    first.execution.then(() => { archived = true; });
+    const firstResult = await first.resultReady;
+    assert.equal(archived, false, 'disk backpressure cannot hold the browser result hostage');
+    unblock();
+    const firstSealed = await first.seal();
+    const second = await startFixtureRunExecution({ archive, caseId: 'case-runtime', sessionId: 'session-runtime',
+        fixture, executeWorker, config: { uiCalculation: true } });
+    const secondResult = await second.resultReady;
+    assert.deepEqual(secondResult.timeline, firstResult.timeline, 'cached compilation must not retain live combat state');
+    assert.deepEqual(secondResult.teamComboLedger, firstResult.teamComboLedger);
+    const secondSealed = await second.seal();
+    assert.equal(secondSealed.manifest.counts.events, firstSealed.manifest.counts.events);
+    assert.equal(firstSealed.manifest.recording.droppedFacts, 0);
+    assert.equal(secondSealed.manifest.recording.droppedFacts, 0);
+    assert.equal(secondSealed.manifest.status, 'completed');
 });

@@ -16,7 +16,8 @@
  * - CLEAR_SKILL_BUTTONS：清空画布
  */
 
-import React, { createContext, useCallback, useContext, useMemo, useReducer, ReactNode, useEffect, useRef } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useReducer, ReactNode, useEffect, useRef, useState } from 'react';
+import { recordRiaDebugEvent } from '../integrations/ake/riaLiveDebug';
 import { LOCAL_LIBRARY_CHANGED_EVENT } from '../constants/events';
 import {
   AppState,
@@ -438,8 +439,17 @@ const AppContext = createContext<AppContextType | null>(null);
  * 初始化时从已经应用的本地干员库加载全部运行时角色
  */
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(appReducer, initialState);
-  const selectedCharactersHydratedRef = useRef(false);
+  const [state, baseDispatch] = useReducer(appReducer, initialState);
+  // This gate must be committed with the restored selection. A ref becomes true
+  // inside the mount effect while later effects still see the initial empty state.
+  const [selectedCharactersHydrated, setSelectedCharactersHydrated] = useState(false);
+  const dispatch = useCallback<React.Dispatch<AppAction>>((action) => {
+    recordRiaDebugEvent('app-action', action.type, action);
+    baseDispatch(action);
+    if (['SET_SELECTED_CHARACTERS', 'SELECT_CHARACTER', 'DESELECT_CHARACTER'].includes(action.type)) {
+      setSelectedCharactersHydrated(true);
+    }
+  }, []);
   const canvasLocalRefreshSignatureRef = useRef<string | null>(null);
   const loadedCharactersSignatureRef = useRef<string | null>(null);
   const isProcessingWorkbenchCommandRef = useRef(false);
@@ -500,16 +510,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadCharacters = useCallback(async () => {
+    let hydrationComplete = false;
     try {
       const characters = loadLocalOperatorCharacters();
       loadedCharactersSignatureRef.current = serializeCharactersForRefresh(characters);
       dispatch({ type: 'SET_LOADED_CHARACTERS', characters });
       const restorableCharacterMap = buildRestorableCharacterMap(characters);
 
-        const selectedCharacterIds = getSelectedCharacterIds();
-        const hasTimelineData = Boolean(safeSessionStorage.getItem(STORAGE_KEYS.TIMELINE_DATA));
+      const selectedCharacterIds = getSelectedCharacterIds();
+      const hasTimelineData = Boolean(safeSessionStorage.getItem(STORAGE_KEYS.TIMELINE_DATA));
 
-      if (selectedCharacterIds.length > 0 && hasTimelineData) {
+      if (selectedCharacterIds.length > 0) {
         const restoredCharacters = selectedCharacterIds
           .map((characterId) => restorableCharacterMap.get(characterId))
           .filter((character): character is Character => Boolean(character))
@@ -522,7 +533,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         if (refreshedRestoredCharacters.length > 0 && refreshedRestoredCharacters.length === expectedCount) {
           dispatch({ type: 'SET_SELECTED_CHARACTERS', characters: refreshedRestoredCharacters });
-          dispatch({ type: 'SET_VIEW', view: 'canvas' });
+          if (hasTimelineData) dispatch({ type: 'SET_VIEW', view: 'canvas' });
+          hydrationComplete = true;
           // 恢复成功后：定向重建模板表（只包含已恢复角色）
           // 注：这里手动重建是为了首轮 hydration，后续变更统一由 selectedCharacters effect 接管
           rebuildSelectedRuntimeTemplateMap(refreshedRestoredCharacters);
@@ -537,14 +549,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
           // 恢复失败：显式清空模板表，避免残留旧数据
           setRuntimeOperatorTemplateMap({});
         }
-        } else {
-          // 无有效恢复条件（未选角色或无 timeline 数据）：清空残留模板表
-          setRuntimeOperatorTemplateMap({});
-        }
+      } else {
+        hydrationComplete = true;
+        setRuntimeOperatorTemplateMap({});
+      }
     } catch (error) {
       console.warn('Failed to load local operator library:', error);
     } finally {
-      selectedCharactersHydratedRef.current = true;
+      // An unresolved library must not turn a saved selection into an empty one.
+      setSelectedCharactersHydrated(hydrationComplete);
     }
   }, [buildRestorableCharacterMap, rebuildSelectedRuntimeTemplateMap, refreshSelectedLocalCharacters]);
 
@@ -753,7 +766,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!selectedCharactersHydratedRef.current) {
+    if (!selectedCharactersHydrated) {
       return undefined;
     }
     void processMainWorkbenchSelectionCommand();
@@ -768,20 +781,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       window.clearInterval(timer);
       window.removeEventListener('def-main-workbench-control', handleControlEvent);
     };
-  }, [processMainWorkbenchSelectionCommand, state.loadedCharacters]);
+  }, [processMainWorkbenchSelectionCommand, selectedCharactersHydrated, state.loadedCharacters]);
 
   useEffect(() => {
-    if (!selectedCharactersHydratedRef.current) {
+    if (!selectedCharactersHydrated) {
       return;
     }
     // 同步选中角色 ID 到 sessionStorage
     setSelectedCharacterIds(state.selectedCharacters.map((character) => character.id));
     // 同步重建运行时模板表（职责收紧：只包含当前已选角色）
     rebuildSelectedRuntimeTemplateMap(state.selectedCharacters);
-  }, [rebuildSelectedRuntimeTemplateMap, state.selectedCharacters]);
+  }, [rebuildSelectedRuntimeTemplateMap, selectedCharactersHydrated, state.selectedCharacters]);
 
   useEffect(() => {
-    if (!selectedCharactersHydratedRef.current || state.currentView !== 'canvas' || state.selectedCharacters.length === 0) {
+    if (!selectedCharactersHydrated || state.currentView !== 'canvas' || state.selectedCharacters.length === 0) {
       return;
     }
 
@@ -807,16 +820,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     rebuildSelectedRuntimeTemplateMap(refreshedCharacters);
-  }, [rebuildSelectedRuntimeTemplateMap, refreshSelectedLocalCharacters, state.currentView, state.selectedCharacters]);
+  }, [rebuildSelectedRuntimeTemplateMap, refreshSelectedLocalCharacters, selectedCharactersHydrated, state.currentView, state.selectedCharacters]);
 
   useEffect(() => {
-    if (!selectedCharactersHydratedRef.current || state.currentView === 'canvas') {
+    if (!selectedCharactersHydrated || state.currentView === 'canvas') {
       return;
     }
     const snapshot = buildSelectionWorkbenchSnapshot(state.selectedCharacters, state.currentView, state.skillButtons);
     writeMainWorkbenchSnapshot(snapshot);
     void pushMainWorkbenchSnapshot(snapshot);
-  }, [state.currentView, state.selectedCharacters, state.skillButtons]);
+  }, [selectedCharactersHydrated, state.currentView, state.selectedCharacters, state.skillButtons]);
 
   const contextValue = useMemo(() => ({
     state,

@@ -166,7 +166,8 @@ export function resetActiveTimelineDocument(): TimelineSessionSnapshot {
 export async function refreshTimelineSessionDocument(): Promise<TimelineSessionSnapshot> {
   const repository = createTimelineRepositoryClient();
   const documents = await repository.listDocuments();
-  const current = documents.find((document) => document.id === snapshot.activeTimelineId);
+  const currentId = snapshot.revision === 0 ? readPersistedTimelineId() : snapshot.activeTimelineId;
+  const current = documents.find((document) => document.id === currentId);
   if (current) {
     const checkoutRef = await repository.getCheckoutRef(current.id);
     persistTimelineId(current.id);

@@ -172,15 +172,164 @@ export type RuntimeCommandViewState =
   | { kind: 'settled'; message: string; ledger: AkeRuntimeCommandLedger; command: AkeCommandSettlement }
   | { kind: 'manual-preview'; message: string; ledger: null };
 
+export type AkeCombatStateEvent = {
+  key: string;
+  buffId: string;
+  label: string;
+  scope: 'team' | 'enemy';
+  frame: number;
+  sequence: number;
+  change: string;
+  before: number | null;
+  after: number | null;
+  sourceId: string | null;
+  actorId: string | null;
+  commandId: string | null;
+  sourceCommandId: string | null;
+  triggerCommandId?: string | null;
+  consumedSources?: Array<{ sourceId: string | null; count: number }>;
+  sourceCommandIds?: string[];
+  iconUrl?: string;
+  shortLabel?: string;
+  mainDisplay?: boolean;
+};
+
+/** Read-only, chronological projection. Team pools use logical events, never recipient mirrors. */
+export function buildAkeCombatStateEvents(
+  report: AkeTeamReport,
+  labels: AkeRuntimeStatusLabelMap = new Map(),
+): AkeCombatStateEvent[] {
+  const commandForCast = (castId: string | null | undefined) => castId
+    ? report.timeline.commands.find(command => command.castId === castId)?.commandId ?? null
+    : null;
+  const events: AkeCombatStateEvent[] = report.statusEvents.filter(isConcreteRuntimeStatusEvent).flatMap(event => {
+    const metadata = runtimeStatusMetadata(event.buffId, labels, event);
+    if (event.buffId === TEAM_COMBO_BUFF_ID || event.targetId !== report.enemyId
+      || metadata.hidden || !isCriticalRuntimeStatus(event.buffId, metadata)
+      || !['StatusEffectApplied', 'StatusEffectRefreshed', 'StatusEffectStackRemoved',
+        'StatusEffectFinished', 'StatusEffectExpired', 'StatusEffectRemoved'].includes(event.stage)) return [];
+    const sourceCommandId = commandForCast(event.rootCastId ?? event.castId);
+    const triggerCommandId = commandForCast(event.triggerRootCastId ?? event.triggerCastId);
+    const terminal = isFinishStage(event.stage) || event.stage === 'StatusEffectStackRemoved';
+    // A timer expiry has an origin, but must not be attributed as an action by its original caster.
+    const consumed = terminal || event.consumption;
+    const commandId = consumed ? triggerCommandId : sourceCommandId;
+    return [{
+      key: `status:${event.traceIndex}`, buffId: event.buffId, label: metadata.label,
+      iconUrl: metadata.iconUrl, shortLabel: metadata.shortLabel,
+      mainDisplay: isPrimaryRuntimeStatus(event.buffId, metadata),
+      scope: 'enemy' as const, frame: event.frame, sequence: event.sequence ?? event.traceIndex,
+      change: event.consumption ? '消费' : event.stage === 'StatusEffectStackRemoved' ? '减少层数' : stageLabel(event), before: event.before,
+      after: isFinishStage(event.stage) ? 0 : event.after ?? event.stackCount,
+      sourceId: event.sourceId, actorId: consumed
+        ? event.triggerRootCastId || event.triggerCastId ? event.consumerId ?? event.triggerSourceId : null : event.sourceId,
+      commandId, sourceCommandId, triggerCommandId,
+    }];
+  });
+  for (const event of report.teamComboLedger?.events ?? []) {
+    const commandId = commandForCast(event.rootCastId ?? event.castId);
+    const terminal = event.type === 'expire' || event.type === 'remove';
+    events.push({
+      key: `combo:${event.eventId}`, buffId: TEAM_COMBO_BUFF_ID, label: '共享连击', scope: 'team',
+      shortLabel: '连', mainDisplay: true,
+      frame: event.frame, sequence: event.sequence,
+      change: ({ grant: '发放', consume: '消费', refresh: '刷新', expire: '到期', remove: '移除' })[event.type],
+      before: event.beforeStacks, after: event.afterStacks,
+      sourceId: event.type === 'consume' ? null : event.sourceId,
+      consumedSources: event.consumptionSnapshot?.sourceStacks,
+      sourceCommandIds: event.type === 'consume' ? [...new Set((report.teamComboLedger?.events ?? [])
+        .filter(grant => (grant.type === 'grant' || grant.type === 'refresh')
+          && (grant.frame < event.frame || (grant.frame === event.frame && grant.sequence < event.sequence))
+          && grant.grantIds.some(id => event.grantIds.includes(id)))
+        .map(grant => commandForCast(grant.rootCastId ?? grant.castId))
+        .filter((id): id is string => id !== null))] : [],
+      actorId: terminal ? null : event.consumerId ?? event.sourceId,
+      commandId: terminal ? null : commandId,
+      sourceCommandId: event.type === 'grant' || event.type === 'refresh' ? commandId : null,
+    });
+  }
+  return events.sort((a, b) => a.frame - b.frame || a.sequence - b.sequence);
+}
+
+export function buildAkeCombatStatesAt(
+  report: AkeTeamReport,
+  frame: number,
+  labels: AkeRuntimeStatusLabelMap = new Map(),
+  sequence = Infinity,
+): Array<{ key: string; label: string; scope: 'team' | 'enemy'; stacks: number; sourceId: string | null }> {
+  const events = report.statusEvents.filter(isConcreteRuntimeStatusEvent).filter(event => event.frame < frame
+    || (event.frame === frame && (event.sequence ?? event.traceIndex) <= sequence)).sort(statusEventOrder);
+  const states: ReturnType<typeof buildAkeCombatStatesAt> = [];
+  for (const [key, active] of activeStatusesAt(events, frame, true)) {
+    const metadata = runtimeStatusMetadata(active.event.buffId, labels, active.event);
+    if (active.event.targetId !== report.enemyId || metadata.hidden
+      || active.event.buffId === TEAM_COMBO_BUFF_ID
+      || !isCriticalRuntimeStatus(active.event.buffId, metadata)) continue;
+    states.push({ key, label: metadata.label, scope: 'enemy', stacks: active.stackCount, sourceId: active.event.sourceId });
+  }
+  const comboEvents = [...(report.teamComboLedger?.events ?? [])]
+    .sort((a, b) => a.frame - b.frame || a.sequence - b.sequence);
+  let comboStacks = comboEvents[0]?.beforeStacks ?? 0;
+  for (const event of comboEvents) {
+    if (event.frame > frame || (event.frame === frame && event.sequence > sequence)) break;
+    comboStacks = event.afterStacks;
+  }
+  if (comboEvents.length > 0) states.unshift({
+    key: 'team-combo', label: '共享连击', scope: 'team', stacks: comboStacks, sourceId: null,
+  });
+  return states;
+}
+
 /**
- * Main-axis badges are an after-command causal projection. Explicit runtime
- * transitions and states that remain active use separate tones; expiry and
- * consumption are never inferred from a gray snapshot.
+ * A command's causal history is not a snapshot at its release position.
+ * Place state changes at their actual event frame on the shared timeline;
+ * keep lifetime-only refreshes in the inspector without duplicating stack markers.
  */
-export function selectAkeMainTimelineStatuses(
-  ledger: AkeRuntimeCommandLedger | null | undefined,
-): AkeRuntimeCompactStatus[] {
-  return ledger?.compactStatuses.filter((status) => status.mainDisplay) ?? [];
+export function buildAkeMainTimelineStateEvents(
+  report: AkeTeamReport,
+  labels: AkeRuntimeStatusLabelMap = new Map(),
+): AkeCombatStateEvent[] {
+  return buildAkeCombatStateEvents(report, labels).filter(event => (
+    event.mainDisplay && event.before !== event.after
+  ));
+}
+
+export type AkeCombatInteraction = {
+  key: string;
+  frame: number;
+  triggerCommandId: string;
+  effectCommandId: string;
+  triggerActorId: string | null;
+  effectActorId: string | null;
+  firstHitFrame: number;
+  lastHitFrame: number;
+  hitCount: number;
+  damage: number;
+};
+
+/** Group only recorded causal links; temporal proximity is never trigger evidence. */
+export function buildAkeCombatInteractions(report: AkeTeamReport): AkeCombatInteraction[] {
+  const commands = new Map(report.timeline.commands.filter(command => command.castId)
+    .map(command => [command.castId, command]));
+  const interactions = new Map<string, AkeCombatInteraction>();
+  for (const hit of report.hits) {
+    if (hit.damageAttributeType !== 'Hp' || hit.triggerFrame == null) continue;
+    const trigger = commands.get(hit.triggerRootCastId ?? hit.triggerCastId ?? '');
+    const effect = commands.get(hit.rootCastId ?? hit.castId ?? '');
+    if (!trigger || !effect || trigger.commandId === effect.commandId) continue;
+    const key = `${trigger.commandId}:${effect.commandId}:${hit.triggerFrame}`;
+    const interaction = interactions.get(key) ?? {
+      key, frame: hit.triggerFrame, triggerCommandId: trigger.commandId, effectCommandId: effect.commandId,
+      triggerActorId: trigger.characterId, effectActorId: effect.characterId,
+      firstHitFrame: hit.frame, lastHitFrame: hit.frame, hitCount: 0, damage: 0,
+    };
+    interaction.firstHitFrame = Math.min(interaction.firstHitFrame, hit.frame);
+    interaction.lastHitFrame = Math.max(interaction.lastHitFrame, hit.frame);
+    interaction.hitCount += 1;
+    interaction.damage += hit.finalDamage;
+    interactions.set(key, interaction);
+  }
+  return [...interactions.values()].sort((a, b) => a.frame - b.frame || a.key.localeCompare(b.key));
 }
 
 type ActiveRuntimeStatus = {
@@ -367,6 +516,15 @@ function statusInstanceKey(event: AkeRuntimeStatusEvent): string {
   return event.instanceId ?? [event.buffId, event.targetId, event.sourceId].join('|');
 }
 
+/** The transport also carries failed creation diagnostics with no status instance.
+ * Keep those in the report for partial-result diagnostics, never in state/badge projections.
+ */
+function isConcreteRuntimeStatusEvent(event: AkeRuntimeStatusEvent): boolean {
+  return event.stage !== 'StatusEffectUnresolved'
+    && typeof event.buffId === 'string' && event.buffId.length > 0
+    && typeof event.instanceId === 'string' && event.instanceId.length > 0;
+}
+
 function isFinishStage(stage: string): boolean {
   return ['StatusEffectFinished', 'StatusEffectExpired', 'StatusEffectRemoved'].includes(stage);
 }
@@ -393,6 +551,16 @@ function activeStatusesAt(events: AkeRuntimeStatusEvent[], frame: number, inclus
 
 function activeStatusesBeforeHit(events: AkeRuntimeStatusEvent[], hit: AkeRuntimeHit) {
   const state = new Map<string, ActiveRuntimeStatus>();
+  const boundary = hit.statusEventSequenceBeforeHit;
+  if (typeof boundary === 'number' && Number.isFinite(boundary)) {
+    // This watermark and event.sequence share the status event counter. It
+    // includes independent same-frame transitions that have no parentHitId.
+    events.filter(event => typeof event.sequence === 'number'
+      && event.sequence <= boundary && event.frame <= hit.frame)
+      .sort((left, right) => left.sequence! - right.sequence!)
+      .forEach(event => applyStatusEvent(state, event));
+    return state;
+  }
   events.forEach((event) => {
     const isBeforeHit = event.frame < hit.frame
       || (event.frame === hit.frame
@@ -1310,7 +1478,9 @@ function hitTitle(
       ? statusEvents.find((event) => event.instanceId === hit.sourceBuffInstanceId)
       : undefined;
     const metadata = runtimeStatusMetadata(hit.sourceBuffId, labels, statusEvent);
-    return metadata.extraHitLabel ?? `${metadata.label}·额外伤害`;
+    if (metadata.extraHitLabel) return metadata.extraHitLabel;
+    if (metadata.label !== '未命名状态') return `${metadata.label}·额外伤害`;
+    return `派生${COMMAND_TYPE_LABELS[hit.effectiveSkillType ?? ''] ?? '技能'}命中 ${index + 1}`;
   }
   if (hit.semanticHitType && hit.semanticHitType !== 'skill') {
     return `${hit.semanticHitType}·额外伤害`;
@@ -1346,7 +1516,7 @@ export function buildAkeRuntimeCommandLedger(input: {
   const castId = command?.castId ?? null;
   if (!command || !castId || !command.success) return null;
   const labels = input.labels ?? new Map<string, string>();
-  const statusEvents = [...(report.statusEvents ?? [])].sort(statusEventOrder);
+  const statusEvents = (report.statusEvents ?? []).filter(isConcreteRuntimeStatusEvent).sort(statusEventOrder);
   const runtimeHits = (report.hits ?? [])
     .filter((hit) => (
       hit.castId === castId || hit.rootCastId === castId

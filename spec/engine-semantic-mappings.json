@@ -29,6 +29,87 @@
       "notes": "AKEDatabase exports SkillData and BuffData but not the Unity AbilityEntity prefab tag table, so this missing prefab property is kept as an auditable data mapping rather than a character branch in runtime code."
     },
     {
+      "id": "akedata.tangtang.water-ability-entity-tags",
+      "actionType": "AbilityEntityTagRule",
+      "selector": {
+        "abilityEntityId": "abilityentity_chr_0027_tangtang_comboskill_water"
+      },
+      "effect": {
+        "operation": "AttachTags",
+        "tagIds": [
+          45117620
+        ]
+      },
+      "confidence": "public-data-inferred",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0027_tangtang_combo_skill_water_gene.json",
+          "observation": "The combo generator consumes the water token to spawn this water AbilityEntity; its child program waits for water_wake or water_ultskillwake before returning."
+        },
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0027_tangtang_normal_skill.json",
+          "observation": "The normal skill selects owner-spawned water with tag 45117620, counts that group, and applies buff_chr_0027_tangtang_water_wake to those selected entities."
+        }
+      ],
+      "notes": "The public dump omits Unity AbilityEntity prefab tags. Preserve the missing prefab property as an auditable mapping, using the same tag-provider contract as other spawned objects."
+    },
+    {
+      "id": "akedata.tangtang.ultimate-center-ability-entity-tags",
+      "actionType": "AbilityEntityTagRule",
+      "selector": {
+        "abilityEntityId": "abilityentity_chr_0027_tangtang_ultskill"
+      },
+      "effect": {
+        "operation": "AttachTags",
+        "tagIds": [
+          -171713892
+        ]
+      },
+      "confidence": "public-data-inferred",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0027_tangtang_ultimate_skill.json",
+          "observation": "The ultimate spawns this center AbilityEntity. The waterwake Buff selects its ultwater_abilityentity group by tag -171713892 to place the returning water."
+        },
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_chr_0027_tangtang_ultskill_waterwake.json",
+          "observation": "The waterwake sequence selects the matching owner-spawned AbilityEntity group using tag -171713892."
+        }
+      ],
+      "notes": "Unity prefab tags are absent from the public dump; this missing data is explicit and inferred, with no character-specific runtime branch."
+    },
+    {
+      "id": "akedata.tangtang.moving-water-ability-entity-tags",
+      "actionType": "AbilityEntityTagRule",
+      "selector": {
+        "abilityEntityId": "abilityentity_chr_0027_tangtang_normal_skill_move"
+      },
+      "effect": {
+        "operation": "AttachTags",
+        "tagIds": [
+          77793925
+        ]
+      },
+      "confidence": "public-data-inferred",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/SkillData/chr_0027_tangtang_normal_skill.json",
+          "observation": "The skill spawns this moving AbilityEntity, then selects its current-cast normalwater_move group by tag 77793925 to pass the water count and wake data."
+        },
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_chr_0027_tangtang_ultskill_waterwake.json",
+          "observation": "The waterwake sequence selects the matching owner-spawned AbilityEntity group using tag 77793925."
+        }
+      ],
+      "notes": "Unity prefab tags are absent from the public dump; this missing data is explicit and inferred, with no character-specific runtime branch."
+    },
+    {
       "id": "calc.command-admission.policy",
       "actionType": "CommandAdmissionPolicy",
       "effect": {
@@ -379,6 +460,157 @@
       "notes": "The action has no concrete skill id. Runtime resolves the owner's currently active ComboSkill slot after preceding ChangeSkillAction effects. bypassSkillCooldown admits that action-created stage while preserving the original group cooldown for the next normal cycle."
     },
     {
+      "actionType": "ComboTriggerRule",
+      "eventTypes": [
+        "StatusEffectApplied",
+        "StatusEffectRefreshed"
+      ],
+      "selector": {
+        "statusBuffIds": [
+          "buff_common_energy_shard_attached_cryst"
+        ],
+        "occurrence": "every-event"
+      },
+      "conditions": [
+        {
+          "type": "EntityKindMatch",
+          "target": "Target",
+          "objectKinds": [
+            "Enemy"
+          ]
+        }
+      ],
+      "confidence": "public-data-derived",
+      "notes": "The trigger condition comes from public descriptions and skill data. The 180-tick pending window uses the existing shared combo convention; a character-specific black-box boundary has not been established.",
+      "id": "tangtang.enemy-receives-cold",
+      "effect": {
+        "operation": "CreateComboPending",
+        "comboSkillId": "chr_0027_tangtang_combo_skill",
+        "pendingDurationTicks": 180,
+        "ownerBinding": "fixed",
+        "ownerId": "chr_0027_tangtang",
+        "triggerTargetBinding": "event-target",
+        "requireComboOffCooldown": true,
+        "pendingPolicy": "replace-all",
+        "selectionPolicy": "newest",
+        "consumePolicy": "all-for-owner-and-skill"
+      },
+      "evidence": [
+        {
+          "type": "public-description",
+          "path": "reference/public-data/akedata/TableCfg/I18nTextTable_CN.json",
+          "observation": "Text -7698982595525591825 enables the combo when an enemy receives cold attachment or spell-burst damage."
+        }
+      ]
+    },
+    {
+      "actionType": "ComboTriggerRule",
+      "eventTypes": [
+        "StatusEffectApplied",
+        "StatusEffectRefreshed"
+      ],
+      "selector": {
+        "statusBuffIds": [
+          "buff_common_energy_shard_attached_cryst"
+        ],
+        "occurrence": "every-event"
+      },
+      "conditions": [
+        {
+          "type": "EntityKindMatch",
+          "target": "Target",
+          "objectKinds": [
+            "Enemy"
+          ]
+        },
+        {
+          "type": "PayloadCompare",
+          "key": "before",
+          "operator": "LT",
+          "value": 3
+        },
+        {
+          "type": "PayloadCompare",
+          "key": "after",
+          "operator": "GE",
+          "value": 3
+        }
+      ],
+      "confidence": "public-data-derived",
+      "notes": "The trigger condition comes from public descriptions and skill data. The 180-tick pending window uses the existing shared combo convention; a character-specific black-box boundary has not been established.",
+      "id": "lastrite.enemy-enters-three-cold-layers",
+      "effect": {
+        "operation": "CreateComboPending",
+        "comboSkillId": "chr_0026_lastrite_combo_skill",
+        "pendingDurationTicks": 180,
+        "ownerBinding": "fixed",
+        "ownerId": "chr_0026_lastrite",
+        "triggerTargetBinding": "event-target",
+        "requireComboOffCooldown": true,
+        "pendingPolicy": "replace-all",
+        "selectionPolicy": "newest",
+        "consumePolicy": "all-for-owner-and-skill"
+      },
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/TableCfg/SkillPatchTable.json",
+          "observation": "chr_0026_lastrite_combo_skill declares count=3 at every skill rank; the description requires an enemy to enter three or more cold layers."
+        }
+      ]
+    },
+    {
+      "actionType": "ComboTriggerRule",
+      "eventTypes": [
+        "SpellBurstTriggered"
+      ],
+      "selector": {
+        "spellBurstTypes": [
+          "Fire",
+          "Pulse",
+          "Cryst",
+          "Natural"
+        ],
+        "occurrence": "every-event"
+      },
+      "conditions": [
+        {
+          "type": "EntityKindMatch",
+          "target": "Target",
+          "objectKinds": [
+            "Enemy"
+          ]
+        }
+      ],
+      "confidence": "public-data-derived",
+      "notes": "The trigger condition comes from public descriptions and skill data. The 180-tick pending window uses the existing shared combo convention; a character-specific black-box boundary has not been established.",
+      "id": "tangtang.enemy-receives-spell-burst",
+      "effect": {
+        "operation": "CreateComboPending",
+        "comboSkillId": "chr_0027_tangtang_combo_skill",
+        "pendingDurationTicks": 180,
+        "ownerBinding": "fixed",
+        "ownerId": "chr_0027_tangtang",
+        "triggerTargetBinding": "event-target",
+        "requireComboOffCooldown": true,
+        "pendingPolicy": "replace-all",
+        "selectionPolicy": "newest",
+        "consumePolicy": "all-for-owner-and-skill"
+      },
+      "evidence": [
+        {
+          "type": "public-description",
+          "path": "reference/public-data/akedata/TableCfg/I18nTextTable_CN.json",
+          "observation": "Text -7698982595525591825 enables the combo on enemy spell-burst damage independently of cold attachment."
+        },
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_common_fire_fire_triggered.json",
+          "observation": "The original reaction Buff emits TriggerSpellBurstEventAction during its damage sequence; the runtime observes that event, not attachment creation."
+        }
+      ]
+    },
+    {
       "id": "pelica.attack4.first-hp-damage",
       "actionType": "ComboTriggerRule",
       "eventType": "BeforeHpDamage",
@@ -688,27 +920,43 @@
     {
       "id": "global.spell-abnormal-initial-damage",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "异常初始伤害倍率" },
+      "selector": {
+        "lookupKey": "异常初始伤害倍率"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": 1.6, "2": 2.4, "3": 3.2, "4": 4.0 },
+        "values": {
+          "1": 1.6,
+          "2": 2.4,
+          "3": 3.2,
+          "4": 4.0
+        },
         "clamp": true,
         "enhancementMode": "SpellAnomalyDamage"
       },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Initial elemental-reaction damage is 80 percent times one plus the consumed attachment level."
-      }]
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Initial elemental-reaction damage is 80 percent times one plus the consumed attachment level."
+        }
+      ]
     },
     {
       "id": "global.spell-conduct-vulnerability",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "导电法术伤害提高" },
+      "selector": {
+        "lookupKey": "导电法术伤害提高"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": 0.12, "2": 0.16, "3": 0.2, "4": 0.24 },
+        "values": {
+          "1": 0.12,
+          "2": 0.16,
+          "3": 0.2,
+          "4": 0.24
+        },
         "clamp": true,
         "enhancementMode": "SpellAnomalyState"
       },
@@ -729,43 +977,68 @@
     {
       "id": "global.spell-conduct-duration",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "导电持续时间" },
+      "selector": {
+        "lookupKey": "导电持续时间"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": 12, "2": 18, "3": 24, "4": 30 },
+        "values": {
+          "1": 12,
+          "2": 18,
+          "3": 24,
+          "4": 30
+        },
         "clamp": true
       },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Conduct lasts 12/18/24/30 seconds by consumed attachment level."
-      }],
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Conduct lasts 12/18/24/30 seconds by consumed attachment level."
+        }
+      ],
       "notes": "Some skill-specific fixtures override the common parent duration after this table read."
     },
     {
       "id": "global.spell-freeze-duration",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "冰冻持续时间" },
+      "selector": {
+        "lookupKey": "冰冻持续时间"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": 6, "2": 7, "3": 8, "4": 9 },
+        "values": {
+          "1": 6,
+          "2": 7,
+          "3": 8,
+          "4": 9
+        },
         "clamp": true
       },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Freeze lasts 6/7/8/9 seconds by consumed attachment level."
-      }]
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Freeze lasts 6/7/8/9 seconds by consumed attachment level."
+        }
+      ]
     },
     {
       "id": "global.spell-burning-damage",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "燃烧每跳伤害" },
+      "selector": {
+        "lookupKey": "燃烧每跳伤害"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": 0.24, "2": 0.36, "3": 0.48, "4": 0.6 },
+        "values": {
+          "1": 0.24,
+          "2": 0.36,
+          "3": 0.48,
+          "4": 0.6
+        },
         "clamp": true,
         "enhancementMode": "SpellAnomalyDamage"
       },
@@ -791,77 +1064,120 @@
     {
       "id": "global.spell-corrosion-tick-resistance",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "腐蚀每跳减抗" },
+      "selector": {
+        "lookupKey": "腐蚀每跳减抗"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": -0.0084, "2": -0.0112, "3": -0.014, "4": -0.0168 },
+        "values": {
+          "1": -0.0084,
+          "2": -0.0112,
+          "3": -0.014,
+          "4": -0.0168
+        },
         "clamp": true,
         "enhancementMode": "SpellAnomalyState"
       },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Corrosion removes 0.84/1.12/1.4/1.68 resistance points per second; AKE modifiers encode resistance as a signed decimal."
-      }]
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Corrosion removes 0.84/1.12/1.4/1.68 resistance points per second; AKE modifiers encode resistance as a signed decimal."
+        }
+      ]
     },
     {
       "id": "global.spell-corrosion-maximum-resistance",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "腐蚀减抗上限" },
+      "selector": {
+        "lookupKey": "腐蚀减抗上限"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": -0.12, "2": -0.16, "3": -0.2, "4": -0.24 },
+        "values": {
+          "1": -0.12,
+          "2": -0.16,
+          "3": -0.2,
+          "4": -0.24
+        },
         "clamp": true,
         "enhancementMode": "SpellAnomalyState"
       },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Corrosion caps at 12/16/20/24 resistance points; AKE modifiers encode the reduction as a negative decimal."
-      }]
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Corrosion caps at 12/16/20/24 resistance points; AKE modifiers encode the reduction as a negative decimal."
+        }
+      ]
     },
     {
       "id": "global.spell-corrosion-initial-resistance",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "腐蚀初始减抗" },
+      "selector": {
+        "lookupKey": "腐蚀初始减抗"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": -0.036, "2": -0.048, "3": -0.06, "4": -0.072 },
+        "values": {
+          "1": -0.036,
+          "2": -0.048,
+          "3": -0.06,
+          "4": -0.072
+        },
         "clamp": true,
         "enhancementMode": "SpellAnomalyState"
       },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Corrosion starts at 3.6/4.8/6/7.2 resistance points; AKE modifiers encode the reduction as a negative decimal."
-      }]
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Corrosion starts at 3.6/4.8/6/7.2 resistance points; AKE modifiers encode the reduction as a negative decimal."
+        }
+      ]
     },
     {
       "id": "global.spell-corrosion-duration",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "腐蚀持续时间" },
+      "selector": {
+        "lookupKey": "腐蚀持续时间"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": 15, "2": 15, "3": 15, "4": 15 },
+        "values": {
+          "1": 15,
+          "2": 15,
+          "3": 15,
+          "4": 15
+        },
         "clamp": true
       },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Corrosion lasts 15 seconds at every attachment level."
-      }]
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Corrosion lasts 15 seconds at every attachment level."
+        }
+      ]
     },
     {
       "id": "global.spell-burst-damage-scale",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "法术爆发伤害倍率" },
+      "selector": {
+        "lookupKey": "法术爆发伤害倍率"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": 1.6, "2": 1.6, "3": 1.6, "4": 1.6 },
+        "values": {
+          "1": 1.6,
+          "2": 1.6,
+          "3": 1.6,
+          "4": 1.6
+        },
         "clamp": true,
         "enhancementMode": "SpellAnomalyDamage"
       },
@@ -882,145 +1198,251 @@
     {
       "id": "global.physical-fracture-duration",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "碎甲持续时间" },
+      "selector": {
+        "lookupKey": "碎甲持续时间"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": 12, "2": 18, "3": 24, "4": 30 },
+        "values": {
+          "1": 12,
+          "2": 18,
+          "3": 24,
+          "4": 30
+        },
         "clamp": true
       },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Physical fracture lasts 12/18/24/30 seconds by consumed NoGuard level."
-      }]
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Physical fracture lasts 12/18/24/30 seconds by consumed NoGuard level."
+        }
+      ]
     },
     {
       "id": "global.physical-fracture-vulnerability",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "碎甲物理伤害提高" },
+      "selector": {
+        "lookupKey": "碎甲物理伤害提高"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": 0.12, "2": 0.16, "3": 0.2, "4": 0.24 },
+        "values": {
+          "1": 0.12,
+          "2": 0.16,
+          "3": 0.2,
+          "4": 0.24
+        },
         "clamp": true,
         "enhancementMode": "PhysicalAnomalyState"
       },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Physical fracture grants 12/16/20/24 percent Physical defender-zone vulnerability."
-      }]
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Physical fracture grants 12/16/20/24 percent Physical defender-zone vulnerability."
+        }
+      ]
     },
     {
       "id": "global.physical-fracture-damage",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "碎甲伤害" },
+      "selector": {
+        "lookupKey": "碎甲伤害"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": 1, "2": 1.5, "3": 2, "4": 2.5 },
+        "values": {
+          "1": 1,
+          "2": 1.5,
+          "3": 2,
+          "4": 2.5
+        },
         "clamp": true,
         "enhancementMode": "PhysicalAnomalyDamage"
       },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Fracture damage multiplier is 50 percent times one plus anomaly level."
-      }]
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Fracture damage multiplier is 50 percent times one plus anomaly level."
+        }
+      ]
     },
     {
       "id": "global.physical-crush-damage",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "猛击伤害" },
+      "selector": {
+        "lookupKey": "猛击伤害"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": 3, "2": 4.5, "3": 6, "4": 7.5 },
+        "values": {
+          "1": 3,
+          "2": 4.5,
+          "3": 6,
+          "4": 7.5
+        },
         "clamp": true,
         "enhancementMode": "PhysicalAnomalyDamage"
       },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Crush damage multiplier is 150 percent times one plus anomaly level."
-      }]
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Crush damage multiplier is 150 percent times one plus anomaly level."
+        }
+      ]
     },
     {
       "id": "global.physical-airborne-damage",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "击飞伤害" },
-      "effect": { "operation": "ReturnTable", "values": { "1": 1.2 }, "clamp": true, "enhancementMode": "PhysicalAnomalyDamage" },
+      "selector": {
+        "lookupKey": "击飞伤害"
+      },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": {
+          "1": 1.2
+        },
+        "clamp": true,
+        "enhancementMode": "PhysicalAnomalyDamage"
+      },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Airborne physical-anomaly damage multiplier is 120 percent."
-      }]
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Airborne physical-anomaly damage multiplier is 120 percent."
+        }
+      ]
     },
     {
       "id": "global.physical-airborne-poise",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "击飞失衡" },
-      "effect": { "operation": "ReturnTable", "values": { "1": 10 }, "clamp": true, "enhancementMode": "PhysicalAnomalyPoise" },
+      "selector": {
+        "lookupKey": "击飞失衡"
+      },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": {
+          "1": 10
+        },
+        "clamp": true,
+        "enhancementMode": "PhysicalAnomalyPoise"
+      },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Airborne adds 10 base poise damage before source-skill enhancement."
-      }]
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Airborne adds 10 base poise damage before source-skill enhancement."
+        }
+      ]
     },
     {
       "id": "global.physical-knockdown-damage",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "倒地伤害" },
-      "effect": { "operation": "ReturnTable", "values": { "1": 1.2 }, "clamp": true, "enhancementMode": "PhysicalAnomalyDamage" },
+      "selector": {
+        "lookupKey": "倒地伤害"
+      },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": {
+          "1": 1.2
+        },
+        "clamp": true,
+        "enhancementMode": "PhysicalAnomalyDamage"
+      },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Knockdown physical-anomaly damage multiplier is 120 percent."
-      }]
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Knockdown physical-anomaly damage multiplier is 120 percent."
+        }
+      ]
     },
     {
       "id": "global.physical-knockdown-poise",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "倒地失衡" },
-      "effect": { "operation": "ReturnTable", "values": { "1": 10 }, "clamp": true, "enhancementMode": "PhysicalAnomalyPoise" },
+      "selector": {
+        "lookupKey": "倒地失衡"
+      },
+      "effect": {
+        "operation": "ReturnTable",
+        "values": {
+          "1": 10
+        },
+        "clamp": true,
+        "enhancementMode": "PhysicalAnomalyPoise"
+      },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Knockdown adds 10 base poise damage before source-skill enhancement."
-      }]
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Knockdown adds 10 base poise damage before source-skill enhancement."
+        }
+      ]
     },
     {
       "id": "global.cryst-shatter-damage",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "碎冰倍率" },
+      "selector": {
+        "lookupKey": "碎冰倍率"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": 2.4, "2": 3.6, "3": 4.8, "4": 6 },
+        "values": {
+          "1": 2.4,
+          "2": 3.6,
+          "3": 4.8,
+          "4": 6
+        },
         "clamp": true,
         "enhancementMode": "SpellAnomalyDamage"
       },
       "confidence": "public-reference",
-      "evidence": [{
-        "type": "public-research",
-        "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
-        "observation": "Cryst shatter damage multiplier is 120 percent times one plus anomaly level."
-      }]
+      "evidence": [
+        {
+          "type": "public-research",
+          "path": "reference/third-party/akedatabase/research/endfield-data-mechanics-guide.md",
+          "observation": "Cryst shatter damage multiplier is 120 percent times one plus anomaly level."
+        }
+      ]
     },
     {
       "id": "global.team-combo-damage",
       "actionType": "ReadSkillSettingData",
-      "selector": { "lookupKey": "连击增伤" },
+      "selector": {
+        "lookupKey": "连击增伤"
+      },
       "effect": {
         "operation": "ReturnTable",
-        "values": { "1": 0.3, "2": 0.225, "3": 0.2, "4": 0.1875 },
+        "values": {
+          "1": 0.3,
+          "2": 0.225,
+          "3": 0.2,
+          "4": 0.1875
+        },
         "valuesBySkillType": {
-          "NormalSkill": { "1": 0.3, "2": 0.225, "3": 0.2, "4": 0.1875 },
-          "UltimateSkill": { "1": 0.2, "2": 0.15, "3": 0.13333333333333333, "4": 0.125 }
+          "NormalSkill": {
+            "1": 0.3,
+            "2": 0.225,
+            "3": 0.2,
+            "4": 0.1875
+          },
+          "UltimateSkill": {
+            "1": 0.2,
+            "2": 0.15,
+            "3": 0.13333333333333333,
+            "4": 0.125
+          }
         },
         "clamp": true
       },

@@ -1,3 +1,8 @@
+import type { RdpsAttributionSummary } from '../../core/services/rdpsAttribution.types';
+import type { AkeRdpsAudit } from '../../../../../src/core/ake-rdps-context.mjs';
+import { getTimelineSessionSnapshot } from '../../agentKernel/timelineRepository/timelineSession';
+import { buildAkeExecutionDigest, resolveAkeCalculationEndFrame } from './akeExecutionIdentity';
+export { resolveAkeCalculationEndFrame } from './akeExecutionIdentity';
 import type { ConfigSnapshot } from '../../core/calculators/operatorPanelCalculator';
 import { persistentLocalStorage } from '../../platform/storage/persistentStorage';
 import type { Character, SkillButtonData, TimelineData } from '../../types';
@@ -8,6 +13,7 @@ import {
   type AkeRealtimeTimeline,
 } from './akeRealtimeTimeline';
 import { GRID_NODE_COUNT } from '../../core/calculators/gridSnapLayout';
+import { resolveInitialControllerLaneId } from '../../core/domain/operatorControlTimeline';
 import {
   configuredRiaUiActionSink,
   type RiaUiActionSink,
@@ -17,6 +23,56 @@ export const AKE_REPORT_STORAGE_KEY = 'def.ake-demo.latest-report.v3';
 export const AKE_REPORT_UPDATED_EVENT = 'def:ake-report-updated';
 const WEAPON_LIBRARY_STORAGE_KEY = 'def.weapon-sheet.library.v1';
 const DEFAULT_ENEMY_ID = 'eny_0007_mimicw';
+
+/** Export semantic relationships without baking a preview frame into the input. */
+export function resolveAkeReleaseDependency(
+  button: Pick<SkillButtonData, 'releaseAnchor'>,
+  preview: {
+    commands: ReadonlyArray<{
+      commandId: string;
+      commandType: string;
+      profile: { hits: ReadonlyArray<Pick<AkeRealtimeTimeline['commands'][number]['profile']['hits'][number],
+        'kind' | 'releaseEligible' | 'offsetFrames' | 'sourceSkillId' | 'sourceTimelineFrame'>> };
+    }>;
+    sharedVariableRateTimeline: Pick<NonNullable<AkeRealtimeTimeline['sharedVariableRateTimeline']>,
+      'operatorSwitches'> | null;
+  },
+) {
+  const anchor = button.releaseAnchor;
+  if (!anchor?.sourceButtonId || anchor.kind === 'group-start') return undefined;
+  const source = preview.commands.find(command => command.commandId === anchor.sourceButtonId);
+  const sourceSwitch = preview.sharedVariableRateTimeline?.operatorSwitches
+    .find(change => change.id === anchor.sourceButtonId);
+  if (!source && !sourceSwitch) return undefined;
+  const delayFrames = Math.max(0, Math.round(anchor.debounceFrames ?? 0));
+  const identity = { sourceCommandId: anchor.sourceButtonId, delayFrames };
+  if (anchor.kind === 'action-start' || anchor.kind === 'action-end') {
+    return { kind: anchor.kind, ...identity };
+  }
+  if (!source) return undefined;
+  if (anchor.kind === 'timed-input') {
+    const sourceOffsetFrames = anchor.sourceTimedInputOffsetFrames;
+    if (!Number.isInteger(sourceOffsetFrames) || Number(sourceOffsetFrames) < 0) return undefined;
+    return { kind: 'timed-input', ...identity, sourceOffsetFrames,
+      ...(anchor.sourceTimedInputKind ? {
+        windowKind: anchor.sourceTimedInputKind,
+        sourceSkillId: anchor.sourceTimedInputSkillId,
+        windowStartOffsetFrames: anchor.sourceTimedInputStartOffsetFrames,
+        windowEndOffsetFramesExclusive: anchor.sourceTimedInputEndOffsetFramesExclusive,
+      } : {}),
+    };
+  }
+  if (anchor.kind !== 'damage-hit' || source.commandType === 'UltimateSkill') return undefined;
+  // Keep the existing release policy: tails and unverified Q hit ports are not
+  // opened by the magnifier. Stable skill/timeline coordinates survive reruns.
+  const hit = source.profile.hits.find((candidate, index) => (
+    (!anchor.sourceHitId || anchor.sourceHitId === `${source.commandId}:preview-hit:${index}`)
+    && candidate.kind !== 'lingering' && candidate.releaseEligible !== false
+    && Math.round(candidate.offsetFrames) === Math.round(anchor.sourceHitOffsetFrames ?? -1)
+  ));
+  return hit ? { kind: 'damage-hit', ...identity, sourceSkillId: hit.sourceSkillId,
+    sourceTimelineFrame: Math.round(hit.sourceTimelineFrame ?? hit.offsetFrames) } : undefined;
+}
 
 const COMMAND_TYPE_BY_SKILL: Record<string, string> = {
   A: 'Attack',
@@ -28,6 +84,7 @@ const COMMAND_TYPE_BY_SKILL: Record<string, string> = {
 type WeaponLibraryItem = { id?: string; name?: string };
 
 export type AkeCommandSettlement = {
+  attackMode?: 'full-combo' | 'plunging-impact' | null;
   commandId: string;
   commandType: string;
   memberId: string | null;
@@ -37,6 +94,7 @@ export type AkeCommandSettlement = {
   actualFrame: number | null;
   actualSeconds: number | null;
   endFrame: number | null;
+  completion?: string | null;
   delayFrames: number | null;
   state: string;
   status?: string;
@@ -177,6 +235,14 @@ export type AkeRuntimeConsumedStatus = {
 };
 
 export type AkeRuntimeHit = {
+  /** Causal input is separate from the actor and cast that own the damage. */
+  triggerCastId?: string | null;
+  triggerRootCastId?: string | null;
+  triggerSourceId?: string | null;
+  triggerSkillId?: string | null;
+  triggerFrame?: number | null;
+  /** Last status-event sequence visible before damage calculation; not the hit sequence. */
+  statusEventSequenceBeforeHit?: number | null;
   hitId?: string;
   sequence?: number;
   parentTransactionId?: string | null;
@@ -413,6 +479,8 @@ export type AkeTimelinePoint = {
 };
 
 export type AkeTimelineHitBurst = {
+  /** Indices into the report hits array; full hit payloads are sent once. */
+  hitIndices?: number[];
   id: string;
   frame: number;
   seconds: number;
@@ -428,6 +496,13 @@ export type AkeTimelineHitBurst = {
 };
 
 export type AkeProjectedTimeline = {
+  /** HTTP projection only; the core engine projection retains its full aliases. */
+  transportProjection?: {
+    schemaVersion: 1;
+    canonicalHitPath: '/hits';
+    burstHitReferences: 'hitIndices';
+    omittedAliases: string[];
+  };
   tickRate: number;
   durationFrames: number;
   durationSeconds: number;
@@ -526,8 +601,19 @@ type AkeSquadMemberResult = {
   };
 };
 
+export type AkeControllerEvent = {
+  stage: 'MainCharacterChanged' | 'MainCharacterSwitchUnresolved';
+  frame: number;
+  previousCharacterId: string | null;
+  characterId: string;
+  reason: string;
+  switchId: string | null;
+};
+
 type AkeSquadSimulation = {
   schemaVersion: 2 | 3;
+  workspaceId?: string;
+  admissionStatus?: string;
   generatedAt: string;
   engine: string;
   tickRate: number;
@@ -538,6 +624,7 @@ type AkeSquadSimulation = {
   hits: AkeRuntimeHit[];
   statusEvents: AkeRuntimeStatusEvent[];
   teamComboLedger?: AkeTeamComboLedger;
+  controllerEvents?: AkeControllerEvent[];
   attributeSnapshots?: Record<string, Record<string, AkeRuntimeAttributeSnapshot>>;
   timeline: AkeProjectedTimeline;
   summary: {
@@ -550,6 +637,7 @@ type AkeSquadSimulation = {
     delayedCommands: number;
   };
   finalState: {
+    mainCharacterId?: string;
     sharedAtb: { current: number; max: number };
     ultimateSpByCharacterId: Record<string, number>;
     activeStatuses: Array<Record<string, unknown>>;
@@ -608,7 +696,11 @@ export type AkeCharacterReport = {
 };
 
 export type AkeTeamReport = {
+  rdps?: RdpsAttributionSummary;
+  rdpsAudit?: AkeRdpsAudit & { elapsedMs: number };
   schemaVersion: 2 | 3;
+  workspaceId?: string;
+  admissionStatus?: string;
   generatedAt: string;
   engine: string;
   enemyId: string;
@@ -628,6 +720,7 @@ export type AkeTeamReport = {
   hits: AkeRuntimeHit[];
   statusEvents: AkeRuntimeStatusEvent[];
   teamComboLedger?: AkeTeamComboLedger;
+  controllerEvents?: AkeControllerEvent[];
   summary: {
     totalDamage: number;
     totalPoiseDamage: number;
@@ -640,30 +733,6 @@ export type AkeTeamReport = {
   };
   finalState: AkeSquadSimulation['finalState'];
 };
-
-const AKE_SETTLEMENT_TAIL_FRAMES = 300;
-
-/**
- * Give every projected action enough runtime tail to settle while retaining
- * fixed waits in the requested horizon.  Deriving this from the variable-rate
- * model avoids falling back to the last pre-wait command frame.
- */
-export function resolveAkeCalculationEndFrame(
-  timeline: Pick<AkeRealtimeTimeline, 'sharedVariableRateTimeline'>,
-): number {
-  const model = timeline.sharedVariableRateTimeline;
-  const projectedEndFrame = Math.max(
-    model?.endFrame ?? 0,
-    ...(model?.actions.map(action => action.endFrame) ?? []),
-    ...(model?.waits.map(wait => wait.endFrame) ?? []),
-    ...(model?.laneWaits.map(wait => wait.endFrame) ?? []),
-    ...(model?.operatorSwitches.map(operatorSwitch => operatorSwitch.endFrame) ?? []),
-  );
-  return Math.max(
-    360,
-    Math.ceil(projectedEndFrame) + AKE_SETTLEMENT_TAIL_FRAMES,
-  );
-}
 
 type PreparedMember = {
   memberId: string;
@@ -944,6 +1013,7 @@ function characterReport(
       ...prepared.reportLoadout,
       weaponId: member.loadout.weaponId,
       weaponName: member.loadout.weaponName,
+      weaponLevel: member.loadout.weaponLevel,
       equipment: member.loadout.equipment.map((equipment, index) => ({
         slotKey: prepared.reportLoadout.equipment[index]?.slotKey ?? equipment.partName,
         equipmentId: equipment.equipmentId,
@@ -985,6 +1055,9 @@ function characterReport(
   };
 }
 
+let latestCalculationSequence = 0;
+let latestTeamReport: AkeTeamReport | null = null;
+
 export async function runAkeTeamCalculation(input: {
   timelineData: TimelineData;
   selectedCharacters: Character[];
@@ -993,8 +1066,18 @@ export async function runAkeTeamCalculation(input: {
   signal?: AbortSignal;
   riaActionSink?: RiaUiActionSink | null;
 }): Promise<AkeTeamReport> {
+  const workspaceId = getTimelineSessionSnapshot().activeTimelineId;
+  const sequence = ++latestCalculationSequence;
+  const startedAt = performance.now();
+  const isCurrent = () => sequence === latestCalculationSequence && !input.signal?.aborted
+    && workspaceId === getTimelineSessionSnapshot().activeTimelineId;
+  const ensureCurrent = () => {
+    if (!isCurrent()) throw new DOMException('Calculation superseded by a newer timeline.', 'AbortError');
+  };
+  ensureCurrent();
   const enemyId = input.enemyId ?? DEFAULT_ENEMY_ID;
   const catalog = await loadAkeCatalog();
+  ensureCurrent();
   const snapshots = getOperatorConfigPageCache();
   const weaponLibrary = parseStoredRecord<Record<string, WeaponLibraryItem>>(WEAPON_LIBRARY_STORAGE_KEY);
   const prepared = input.selectedCharacters.map(character => prepareMember({
@@ -1014,23 +1097,57 @@ export async function runAkeTeamCalculation(input: {
   const plannedFrameByCommandId = new Map(preview.commands.map(command => (
     [command.commandId, command.requestedFrame]
   )));
+  const plannedAttackModeByCommandId = new Map(preview.commands.map(command => (
+    [command.commandId, command.profile.attackMode]
+  )));
+  const releaseDependencyFor = (button: SkillButtonData) => resolveAkeReleaseDependency(button, preview);
+  const model = preview.sharedVariableRateTimeline;
+  const scheduledActionById = new Map(model?.actions.map(action => [action.id, action]) ?? []);
+  const controllerIdForLane = (laneId: string | null) => supported.find(member => (
+    member.character.id === laneId || member.akeCharacterId === laneId
+  ))?.akeCharacterId;
+  const initialControllerCharacterId = controllerIdForLane(resolveInitialControllerLaneId(
+    input.timelineData.initialControllerCharacterId, input.selectedCharacters.map(character => character.id),
+  )) ?? supported[0].akeCharacterId;
+  const operatorSwitches = (model?.operatorSwitches ?? []).map(change => {
+    const characterId = controllerIdForLane(change.targetLaneId);
+    if (!characterId) throw new Error('换人节点的目标干员无法对应到 AKE 队伍。');
+    const button = input.timelineData.staffLines.flatMap(line => line.buttons)
+      .find(button => button.id === change.id);
+    return { switchId: change.id, characterId, frame: Math.round(change.endFrame),
+      timelineOrder: change.endX, releaseDependency: button ? releaseDependencyFor(button) : undefined };
+  });
   const commands = supported.flatMap(member => member.buttons.map(button => ({
     commandId: button.id,
     memberId: member.memberId,
     characterId: member.akeCharacterId,
     commandType: COMMAND_TYPE_BY_SKILL[button.skillType],
     frame: plannedFrameByCommandId.get(button.id) ?? 0,
-    attackMode: button.skillType === 'A' ? 'full-combo' : undefined,
+    timelineOrder: scheduledActionById.get(button.id)?.startX,
+    // A supplied landing action is a point in time, not an attack held in queue.
+    queueMode: plannedAttackModeByCommandId.get(button.id) === 'plunging-impact'
+      ? undefined : 'timeline-sequence' as const,
+    releaseDependency: releaseDependencyFor(button),
+    attackMode: button.skillType === 'A'
+      ? plannedAttackModeByCommandId.get(button.id) ?? 'full-combo' : undefined,
   })));
   const requestedEndFrame = resolveAkeCalculationEndFrame(preview);
+  const executionDigest = buildAkeExecutionDigest({ ...input, catalog, preview });
   const simulationInput = {
     enemyId,
     initialAtb: 300,
+    initialControllerCharacterId,
+    operatorSwitches,
     members: supported.map(member => member.request),
     commands,
     endFrame: requestedEndFrame,
   };
-  const configuredSink = input.riaActionSink ?? configuredRiaUiActionSink();
+  const { liveRiaCalculationSink, recordRiaDebugEvent, publishRiaDebugSection } = await import('./riaLiveDebug');
+  const configuredSink = input.riaActionSink ?? configuredRiaUiActionSink() ?? await liveRiaCalculationSink(isCurrent);
+  if (!configuredSink) recordRiaDebugEvent('error', 'CalculationNotArchived', {
+    reason: 'Browser debug session was unavailable; calculation continues without an archive.',
+  });
+  ensureCurrent();
   const riaContext = configuredSink?.context;
   let riaBound = false;
   if (riaContext) {
@@ -1043,37 +1160,48 @@ export async function runAkeTeamCalculation(input: {
           caseId: riaContext.caseId,
           sessionId: riaContext.sessionId,
           runId: riaContext.runId,
+          executionDigest: executionDigest,
           input: simulationInput,
         }),
       });
       riaBound = startResponse.ok;
-    } catch {
+      if (!riaBound) recordRiaDebugEvent('error', 'RiaRunStartFailed', { status: startResponse.status }, { runId: riaContext.runId });
+    } catch (error) {
       // Investigation recording is observational and cannot change calculation semantics.
       riaBound = false;
+      recordRiaDebugEvent('error', 'RiaRunStartFailed', { error }, { runId: riaContext.runId });
     }
   }
   const riaActionSink = riaContext && !riaBound ? null : configuredSink;
+  const debugCalculation = { caseId: riaContext?.caseId ?? null, runId: riaBound ? riaContext?.runId : null,
+    recording: riaBound, executionDigest: executionDigest, sequence };
+  if (isCurrent()) publishRiaDebugSection('calculation', { ...debugCalculation, phase: 'requested', commandCount: commands.length });
   const finalizeRiaRun = async () => {
     if (!riaBound || !riaContext) return;
-    await fetch('/api/ake/ria/seal', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ caseId: riaContext.caseId, runId: riaContext.runId }),
-    }).catch(() => {});
+    try {
+      const response = await fetch('/api/ake/ria/seal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caseId: riaContext.caseId, runId: riaContext.runId }),
+      });
+      if (!response.ok) throw new Error(`RIA seal HTTP ${response.status}`);
+      recordRiaDebugEvent('calculation', 'RiaRunSealed', { elapsedMs: Math.round(performance.now() - startedAt) }, { runId: riaContext.runId });
+    } catch (error) { recordRiaDebugEvent('error', 'RiaSealFailed', { error }, { runId: riaContext.runId }); }
   };
-  await riaActionSink?.record({
+  const requestedRecording = riaActionSink?.record({
     actionType: 'AkeCalculationRequested',
     payload: {
       enemyId,
       commandCount: commands.length,
       selectedCharacterIds: supported.map(member => member.akeCharacterId),
       requestedEndFrame,
-      executionDigest: input.executionDigest ?? null,
+      executionDigest: executionDigest ?? null,
     },
   });
   let response: Response;
   let payload: AkeSquadSimulation & { error?: string };
   try {
+    ensureCurrent();
     response = await fetch('/api/ake/squad/simulate', {
       method: 'POST',
       headers: {
@@ -1087,23 +1215,27 @@ export async function runAkeTeamCalculation(input: {
       body: JSON.stringify(simulationInput),
     });
     payload = await response.json() as AkeSquadSimulation & { error?: string };
+    ensureCurrent();
   } catch (error) {
-    await riaActionSink?.record({
-      actionType: 'AkeCalculationFailed',
+    if (isCurrent()) publishRiaDebugSection('calculation', { ...debugCalculation, phase: 'failed', error: String(error) });
+    const failedRecording = riaActionSink?.record({
+      actionType: error instanceof DOMException && error.name === 'AbortError'
+        ? 'AkeCalculationCancelled' : 'AkeCalculationFailed',
       payload: {
         status: null,
         error: error instanceof Error ? error.message : String(error),
       },
     });
-    await finalizeRiaRun();
+    void Promise.allSettled([requestedRecording, failedRecording]).then(finalizeRiaRun);
     throw error;
   }
   if (!response.ok) {
-    await riaActionSink?.record({
+    if (isCurrent()) publishRiaDebugSection('calculation', { ...debugCalculation, phase: 'failed', status: response.status, error: payload.error });
+    const failedRecording = riaActionSink?.record({
       actionType: 'AkeCalculationFailed',
       payload: { status: response.status, error: payload.error ?? null },
     });
-    await finalizeRiaRun();
+    void Promise.allSettled([requestedRecording, failedRecording]).then(finalizeRiaRun);
     throw new Error(payload.error || `HTTP ${response.status}`);
   }
   const resultByCharacterId = new Map(payload.members.map(member => [member.characterId, member]));
@@ -1115,6 +1247,8 @@ export async function runAkeTeamCalculation(input: {
   });
   const report: AkeTeamReport = {
     schemaVersion: 3,
+    workspaceId,
+    admissionStatus: preview.sharedVariableRateTimeline?.admissionStatus,
     generatedAt: payload.generatedAt,
     engine: payload.engine,
     enemyId,
@@ -1123,7 +1257,7 @@ export async function runAkeTeamCalculation(input: {
     tickRate: payload.tickRate,
     durationFrames: payload.durationFrames,
     requestedEndFrame,
-    executionDigest: input.executionDigest,
+    executionDigest: executionDigest,
     diagnostics: {
       unresolvedEffectCount: payload.diagnostics.unresolvedEffectCount,
       compilerUnresolvedEffectCount: payload.diagnostics.compilerUnresolvedEffectCount,
@@ -1134,6 +1268,7 @@ export async function runAkeTeamCalculation(input: {
     hits: payload.hits ?? [],
     statusEvents: payload.statusEvents ?? [],
     teamComboLedger: payload.teamComboLedger,
+    controllerEvents: payload.controllerEvents ?? [],
     summary: {
       totalDamage: payload.summary.totalDamage,
       totalPoiseDamage: payload.summary.totalPoiseDamage,
@@ -1148,9 +1283,11 @@ export async function runAkeTeamCalculation(input: {
     },
     finalState: payload.finalState,
   };
+  ensureCurrent();
+  latestTeamReport = report;
   safeSessionStorage.setItem(AKE_REPORT_STORAGE_KEY, JSON.stringify(report));
   window.dispatchEvent(new CustomEvent(AKE_REPORT_UPDATED_EVENT, { detail: report }));
-  await riaActionSink?.record({
+  const completedRecording = riaActionSink?.record({
     actionType: 'AkeCalculationCompleted',
     frame: payload.durationFrames,
     payload: {
@@ -1158,19 +1295,24 @@ export async function runAkeTeamCalculation(input: {
       hitCount: payload.hits?.length ?? 0,
       successfulCommands: payload.summary.successfulCommands,
       failedCommands: payload.summary.failedCommands,
-      executionDigest: input.executionDigest ?? null,
+      executionDigest: executionDigest ?? null,
     },
   });
-  await finalizeRiaRun();
+  void Promise.allSettled([requestedRecording, completedRecording]).then(finalizeRiaRun);
+  publishRiaDebugSection('calculation', { ...debugCalculation, phase: 'completed', elapsedMs: Math.round(performance.now() - startedAt), summary: report.summary,
+    diagnostics: report.diagnostics, commands: report.timeline.commands,
+    controllerEvents: report.controllerEvents, mainCharacterId: report.finalState.mainCharacterId });
   return report;
 }
 
 export function readLatestAkeTeamReport(): AkeTeamReport | null {
+  const workspaceId = getTimelineSessionSnapshot().activeTimelineId;
+  if (latestTeamReport?.workspaceId === workspaceId) return latestTeamReport;
   const raw = safeSessionStorage.getItem(AKE_REPORT_STORAGE_KEY);
   if (!raw) return null;
   try {
     const value = JSON.parse(raw) as Partial<AkeTeamReport>;
-    return (value?.schemaVersion === 2 || value?.schemaVersion === 3)
+    return value.workspaceId === workspaceId && (value?.schemaVersion === 2 || value?.schemaVersion === 3)
       && Array.isArray(value.characters) && value.timeline
       ? {
           ...value,

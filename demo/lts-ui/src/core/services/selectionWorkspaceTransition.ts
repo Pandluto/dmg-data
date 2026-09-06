@@ -15,7 +15,8 @@ import {
 import { createAiTimelineWorkNodeClient } from '../../agentKernel/timelineWorktree/localNodeClient';
 import { validateTimelinePayload } from '../../agentKernel/timelineWorktree/validator';
 import { createEmptyTimelineData, reconcileSelectionChange } from './timelineService';
-import { saveTimelineCheckpoint } from './timelineCheckpointService';
+import { saveAkeWorkspace } from '../../integrations/ake/akeWorkspace';
+import { flushPersistentStorage } from '../../platform/storage/persistentStorage';
 import {
   classifySelectionWorkspaceTransition,
   resolveSelectionHorizontalParentId,
@@ -112,12 +113,7 @@ async function saveCurrentWorkspaceBeforeSelectionTransition(
   if (timelineSession.activeTimelineId !== input.activeTimelineId) {
     throw new Error('当前 SQLite 工作区已发生变化，未切换队伍或新建存档。');
   }
-  await saveTimelineCheckpoint({
-    timelineId: input.activeTimelineId,
-    timelineLabel: timelineSession.activeTimelineLabel,
-    payload: currentPayload,
-    reason: '在选人界面继续排轴或新建存档前，自动保存原工作区。',
-  });
+  await saveAkeWorkspace(currentPayload);
 }
 
 async function createNewTemporaryWorkspace(
@@ -148,19 +144,11 @@ async function createNewTemporaryWorkspace(
     updatedAt: createdAt,
   };
 
-  if (input.activeTimelineIsTemporary && !options.preserveActiveWorkspace) {
-    try {
-      await repository.deleteDocument(input.activeTimelineId);
-    } catch (error) {
-      await repository.deleteDocument(imported.document.id).catch(() => undefined);
-      throw error;
-    }
-  }
-
   applyTimelineSnapshotPayload(payload);
   setSelectedCharacterIds(input.nextCharacters.map((character) => character.id));
   await flushUserWorkspaceState();
   activateTimelineSession({ document: imported.document, checkoutRef, workingPayload: payload });
+  await flushPersistentStorage();
   return { transition: 'new-temporary-workspace', timelineId: imported.document.id, checkoutRef, workingPayload: payload };
 }
 
@@ -258,7 +246,7 @@ async function createHorizontalSelectionBranch(
       updatedAt: appliedAt,
     };
     activateTimelineSession({ document: documentBundle.document, checkoutRef: nextCheckoutRef, workingPayload });
-    await flushUserWorkspaceState();
+    await flushPersistentStorage();
     return {
       transition: 'horizontal-branch',
       timelineId: input.activeTimelineId,
@@ -312,6 +300,11 @@ export async function applySelectionWorkspaceTransition(
     throw new Error('AI 选人必须取得用户手动审批后才能应用。');
   }
   await saveCurrentWorkspaceBeforeSelectionTransition(input);
+  // A named empty archive is already the user's chosen destination. Fill it in place.
+  if (input.previousCharacters.length === 0 && !input.activeTimelineIsTemporary
+    && await createTimelineRepositoryClient().getCheckoutRef(input.activeTimelineId)) {
+    return createHorizontalSelectionBranch(input);
+  }
   return transition === 'new-temporary-workspace'
     ? createNewTemporaryWorkspace(input)
     : createHorizontalSelectionBranch(input);

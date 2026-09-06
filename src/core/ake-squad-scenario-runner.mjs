@@ -1,3 +1,6 @@
+import { combatTriggerAttribution } from './combat-trigger-attribution.mjs';
+import { isPlungingImpactInput, plungingImpactInputRejection } from './ake-attack-input.mjs';
+import { canReplaceAkeSkillCast, executeAkeSkillCastReplacement } from './ake-skill-cast-replacement.mjs';
 import { createAkeDamageResolver } from './ake-damage-resolver.mjs';
 import {
     applyAkeLocalClockTrigger,
@@ -167,7 +170,7 @@ function normalizedCommands(commands, bundle) {
         member.characterId,
         member
     ]));
-    return commands.map((command, index) => {
+    const normalized = commands.map((command, index) => {
         if (!isRecord(command)) throw new TypeError(`commands[${index}] must be an object.`);
         if (typeof command.commandType !== 'string' || command.commandType.length === 0) {
             throw new TypeError(`commands[${index}].commandType must be a non-empty string.`);
@@ -204,6 +207,44 @@ function normalizedCommands(commands, bundle) {
     }).sort((left, right) => left.frame - right.frame
         || lexical(left.memberId, right.memberId)
         || left.inputSequence - right.inputSequence);
+    return normalized;
+}
+
+function validateReleaseDependencies(commands, switches) {
+    const nodes = [...commands.map(command => ({ ...command, id: command.commandId })),
+        ...switches.map(change => ({ ...change, id: change.switchId }))];
+    const byId = new Map(nodes.map(node => [node.id, node]));
+    if (byId.size !== nodes.length) throw new TypeError('Duplicate command or switch identity.');
+    for (const node of nodes) {
+        const dependency = node.releaseDependency;
+        if (!dependency) continue;
+        if (!['action-start', 'action-end', 'damage-hit', 'timed-input'].includes(dependency.kind)
+            || !byId.has(dependency.sourceCommandId)) {
+            throw new TypeError(`Invalid release dependency for ${node.id}.`);
+        }
+        nonNegativeInteger(dependency.delayFrames, 'release dependency delay');
+        if (dependency.kind === 'damage-hit') {
+            if (typeof dependency.sourceSkillId !== 'string') throw new TypeError('Missing release source skill.');
+            nonNegativeInteger(dependency.sourceTimelineFrame, 'release dependency source frame');
+        }
+        if (dependency.kind === 'timed-input') {
+            if (node.switchId) throw new TypeError('A controller switch cannot consume a timed input window.');
+            nonNegativeInteger(dependency.sourceOffsetFrames, 'release input offset');
+            if (dependency.windowKind !== undefined) {
+                if (!['broad', 'precision'].includes(dependency.windowKind)) throw new TypeError('Invalid release window kind.');
+                const start = nonNegativeInteger(dependency.windowStartOffsetFrames, 'release window start');
+                const end = nonNegativeInteger(dependency.windowEndOffsetFramesExclusive, 'release window end');
+                if (end <= start) throw new TypeError('Empty release input window.');
+            }
+        }
+        const visited = new Set([node.id]);
+        let source = dependency.sourceCommandId;
+        while (source) {
+            if (visited.has(source)) throw new TypeError('Release dependency cycle.');
+            visited.add(source);
+            source = byId.get(source)?.releaseDependency?.sourceCommandId;
+        }
+    }
 }
 
 function damageLogFromTrace(trace, memberIdByCharacterId, statusTrace = []) {
@@ -220,8 +261,10 @@ function damageLogFromTrace(trace, memberIdByCharacterId, statusTrace = []) {
             const applied = appliedHits[index]?.result ?? null;
             return {
                 traceIndex,
+                ...combatTriggerAttribution(entry),
                 hitId: hit.hitId ?? `legacy-hit:${traceIndex}:${index}`,
                 sequence: hit.sequence ?? traceIndex,
+                statusEventSequenceBeforeHit: hit.statusEventSequenceBeforeHit ?? null,
                 parentTransactionId: hit.parentTransactionId
                     ?? entry.transactionId
                     ?? null,
@@ -367,9 +410,36 @@ export class AkeSquadScenarioRunner {
         this.lastComboMachine = null;
     }
 
-    run({ commands = [], endFrame = null } = {}) {
+    run({ commands = [], endFrame = null, initialControllerCharacterId = null, operatorSwitches = [] } = {}) {
         const { bundle } = this;
         const submittedCommands = normalizedCommands(commands, bundle);
+        const resolveController = (id) => {
+            const member = bundle.members.find(member => member.characterId === id || member.memberId === id);
+            if (!member) throw new TypeError(`Controller is not a squad member: ${id}`);
+            return member.characterId;
+        };
+        const initialController = resolveController(initialControllerCharacterId ?? bundle.members[0].characterId);
+        if (!Array.isArray(operatorSwitches)) throw new TypeError('operatorSwitches must be an array.');
+        const switches = operatorSwitches.map((entry, index) => ({
+            ...clone(entry),
+            switchId: entry.switchId ?? entry.id ?? `controller-switch:${index + 1}`,
+            characterId: resolveController(entry.characterId ?? entry.memberId),
+            frame: nonNegativeInteger(entry.frame, `operatorSwitches[${index}].frame`),
+            timelineOrder: Number.isFinite(entry.timelineOrder) ? entry.timelineOrder : -1,
+        }));
+        if (endFrame === null && switches.length) {
+            throw new TypeError('A scenario with controller switches requires an explicit endFrame.');
+        }
+        for (const entry of switches) {
+            if (!entry.releaseDependency && endFrame !== null && entry.frame > endFrame) {
+                throw new TypeError('Controller switch exceeds endFrame.');
+            }
+        }
+        validateReleaseDependencies(submittedCommands, switches);
+        const controllerTrace = [];
+        if (endFrame === null && submittedCommands.some(command => command.releaseDependency)) {
+            throw new TypeError('A scenario with release dependencies requires an explicit endFrame.');
+        }
         const enemyId = bundle.identity.enemyId;
         const commandTrace = [];
         const commandAdmissionTrace = [];
@@ -397,6 +467,7 @@ export class AkeSquadScenarioRunner {
         let comboMachine = null;
         let resolveSkillInterrupt = null;
         let resolveDerivedSkillCast = null;
+        let resolveReleaseDependencies = null;
 
         const stateForEvent = eventContext => states.get(eventContext.sourceId)
             ?? states.get(eventContext.ownerId)
@@ -422,7 +493,9 @@ export class AkeSquadScenarioRunner {
                     ?? null,
                 sourceCastId: transition.castId,
                 targetId: transition.targetId,
-                damageAttributeType: null
+                damageAttributeType: null,
+                payload: { before: transition.before, after: transition.after,
+                    actual: transition.actual, stackCount: transition.stackCount }
             }, {
                 currentSkillId: actor?.currentSkill?.skillId ?? transition.rootSkillId,
                 currentPriority: actor?.currentSkill?.priority ?? 0
@@ -525,6 +598,9 @@ export class AkeSquadScenarioRunner {
                     currentPriority: actor?.currentSkill?.priority ?? 0
                 });
             }
+            if (hpHits.length > 0 && !parameters.eventContext.buffInstanceId) {
+                resolveReleaseDependencies?.('damage-hit', parameters.eventContext);
+            }
             return resolution;
         };
         const runtime = new CombatRuntime({
@@ -591,9 +667,21 @@ export class AkeSquadScenarioRunner {
                 });
             },
             onStatusTransition: observeStatusTransitionForCombos,
+            onCombatEvent: event => {
+                if (!comboMachine) return;
+                const actor = stateForEvent(event);
+                comboMachine.observe({ ...event, sourceSkillId: event.skillId,
+                    sourceCastId: event.castId,
+                    sourceCommandType: event.effectiveSkillType ?? event.skillType
+                        ?? event.commandType ?? actor?.currentSkill?.commandType,
+                    rootSkillRoles: rootSkillRolesFor(actor, event.rootSkillId)
+                }, { currentSkillId: actor?.currentSkill?.skillId ?? event.skillId,
+                    currentPriority: actor?.currentSkill?.priority ?? 0 });
+            },
             traceSink: this.traceSink,
             maxEventsPerRun: this.maxEventsPerRun
         });
+        controllerTrace.push(runtime.setMainCharacter(initialController, { frame: 0, reason: 'InitialController' }));
         const loadoutManager = new LoadoutEffectManager({ runtime });
         const loadoutInstallations = bundle.members.flatMap(member =>
             (member.loadoutEffects ?? []).map(effect => loadoutManager.install(effect, {
@@ -658,7 +746,11 @@ export class AkeSquadScenarioRunner {
         this.lastRuntime = runtime;
         this.lastComboMachine = comboMachine;
 
-        const queuedCommandCount = () => [...states.values()].reduce(
+        const controllerAnchorWaits = new Map(switches.filter(entry => entry.releaseDependency)
+            .map(entry => [entry.switchId, { change: entry, matched: false }]));
+        const anchorWaits = new Map(submittedCommands.filter(command => command.releaseDependency)
+            .map(command => [command.commandId, { command, matched: false }]));
+        const queuedCommandCount = () => anchorWaits.size + [...states.values()].reduce(
             (sum, state) => sum + state.queuedCommands.size,
             0
         );
@@ -779,6 +871,8 @@ export class AkeSquadScenarioRunner {
                 });
             }
             state.currentSkill = null;
+            resolveReleaseDependencies?.('action-end', { frame, commandId: finished.commandId,
+                castId: finished.castId, skillId: finished.skillId, completion });
             if (completion === 'Completed') scheduleFightStop(frame, true);
         };
         resolveSkillInterrupt = request => {
@@ -831,6 +925,9 @@ export class AkeSquadScenarioRunner {
             }
             active.naturalEndGeneration += 1;
             active.plannedNaturalEndFrame = frame + Math.max(0, Math.trunc(durationTicks));
+            active.plannedNaturalEndLocalFrame = runtime.clockDomains.localFrameAt(
+                state.actorClockDomainId, frame
+            ) + Math.max(0, Math.trunc(durationTicks));
             const timerId = `command-skill:${state.memberId}:${active.token}:natural-end:${active.naturalEndGeneration}`;
             active.naturalEndTimerId = runtime.clockDomains.startTimer(
                 state.actorClockDomainId,
@@ -885,6 +982,12 @@ export class AkeSquadScenarioRunner {
             active.derivedCasts.push(derived);
             active.executedSkillId = request.executedSkillId;
             active.effectiveSkillType = request.effectiveSkillType;
+            active.controlExecutionId = request.scheduled.executionId;
+            if (request.effectiveSkillType) {
+                const controlType = request.effectiveSkillType === 'NormalAttack'
+                    ? 'Attack' : request.effectiveSkillType;
+                active.priority = this.commandAdmissionProvider.profile(controlType).priority;
+            }
             if (!active.teamComboSettlementResolved) {
                 active.settlementCastId = request.childCastId;
                 active.settlementParentCastId = request.parentCastId;
@@ -928,7 +1031,9 @@ export class AkeSquadScenarioRunner {
                     && state.centerState !== desiredState) {
                     transition(state, frame, desiredState, `command:${commandType}`);
                 }
-                if (previous) finishCurrentSkill(state, frame, 'Interrupted');
+                if (previous) finishCurrentSkill(state, frame,
+                    runtime.clockDomains.localFrameAt(state.actorClockDomainId, frame)
+                        >= previous.plannedNaturalEndLocalFrame ? 'Completed' : 'Interrupted');
                 if (!previous) transition(state, frame, desiredState, `command:${commandType}`);
                 else transition(state, frame, desiredState, `skill-start:${skillId}`);
             }
@@ -966,7 +1071,7 @@ export class AkeSquadScenarioRunner {
                 sourceId: state.characterId,
                 ownerId: state.characterId,
                 targetId: enemyId,
-                mainCharacterId: state.characterId,
+                mainCharacterId: runtime.mainCharacterId,
                 memberId: state.memberId,
                 commandId,
                 skillId,
@@ -991,7 +1096,7 @@ export class AkeSquadScenarioRunner {
                 sourceId: state.characterId,
                 ownerId: state.characterId,
                 targetId: enemyId,
-                mainCharacterId: state.characterId,
+                mainCharacterId: runtime.mainCharacterId,
                 memberId: state.memberId,
                 commandId,
                 skillId,
@@ -1011,7 +1116,7 @@ export class AkeSquadScenarioRunner {
                 sourceId: state.characterId,
                 ownerId: state.characterId,
                 targetId: enemyId,
-                mainCharacterId: state.characterId,
+                mainCharacterId: runtime.mainCharacterId,
                 memberId: state.memberId,
                 commandId,
                 skillId,
@@ -1131,6 +1236,10 @@ export class AkeSquadScenarioRunner {
                 )),
                 'InitialSchedule'
             );
+            if (options.traceCommand !== false) {
+                resolveReleaseDependencies?.('action-start', { frame, commandId,
+                    castId, skillId, characterId: state.characterId });
+            }
             return state.currentSkill;
         };
 
@@ -1272,21 +1381,40 @@ export class AkeSquadScenarioRunner {
             return active.timelineAnchorFrame
                 + (localFrame - active.timelineAnchorLocalFrame);
         };
+        const currentSkillControl = (state, frame) => {
+            const active = state.currentSkill;
+            if (!active) return null;
+            const control = active.controlExecutionId
+                ? runtime.getSkillProgramControl(active.controlExecutionId, frame) : null;
+            return control ? { ...active, ...control } : {
+                ...active, timelineFrame: timelineFrameAt(state, active, frame)
+            };
+        };
+        runtime.currentSkillResolver = ({ targetId, frame }) => {
+            const state = states.get(targetId);
+            const active = state?.currentSkill;
+            // Commands run before natural-end callbacks on the same frame.
+            // A completed occupation must not satisfy "currently casting".
+            if (!active || runtime.clockDomains.localFrameAt(state.actorClockDomainId, frame)
+                >= active.plannedNaturalEndLocalFrame) return null;
+            return currentSkillControl(state, frame);
+        };
         const admission = (state, commandType, skillId, frame, commandId = null) => {
-            const timelineFrame = state.currentSkill
-                ? timelineFrameAt(state, state.currentSkill, frame)
-                : 0;
+            const control = currentSkillControl(state, frame);
             const decision = this.commandAdmissionProvider.evaluate({
                 commandType,
                 skillId,
-                currentSkill: state.currentSkill,
-                timelineFrame
+                currentSkill: control,
+                timelineFrame: control?.timelineFrame ?? 0
             });
             commandAdmissionTrace.push({
                 frame,
                 memberId: state.memberId,
                 characterId: state.characterId,
                 commandId,
+                currentInputSkillId: state.currentSkill?.inputSkillId ?? null,
+                currentInputCommandType: state.currentSkill?.commandType ?? null,
+                currentCastId: control?.castId ?? null,
                 ...clone(decision)
             });
             return decision.accepted ? null : decision;
@@ -1398,11 +1526,17 @@ export class AkeSquadScenarioRunner {
             let skillId = null;
             let skillSource = null;
             let comboGate = null;
+            const plungingImpact = isPlungingImpactInput(command);
+            if (plungingImpact) {
+                const rejection = plungingImpactInputRejection({ roles: state.roles,
+                    actorId: state.characterId, mainCharacterId: runtime.mainCharacterId });
+                if (rejection) { failCommand(state, command, frame, rejection); return; }
+            }
             // Timeline buttons represent the player's A/B/E/Q intent.  Their
             // cached skill id is only a display hint: queued commands must be
             // resolved again against the form state that is active when they
             // actually execute (for example an ultimate-enhanced normal skill).
-            const explicitSkillId = forcedSkillId ?? (
+            const explicitSkillId = plungingImpact ? state.roles.plungingAttackEndId : forcedSkillId ?? (
                 commandUsesSequenceQueue(command) ? null : command.skillId ?? null
             );
             const skillSlot = skillSlotForCommand(command.commandType);
@@ -1424,7 +1558,7 @@ export class AkeSquadScenarioRunner {
             // falling back to the first mapping.  This keeps the input button
             // (B/E/Q/A) separate from the skill that actually settles.
             const comboMappedSkillId = mappedSkill(
-                state.currentSkill?.skill,
+                currentSkillControl(state, frame)?.skill,
                 command.commandType,
                 [override?.targetSkillId, modeSkillId]
             );
@@ -1438,7 +1572,7 @@ export class AkeSquadScenarioRunner {
                 ?? override?.targetSkillId
                 ?? modeSkillId
                 ?? baseRoleSkill(state.roles, command.commandType);
-            skillSource = explicitSkillId
+            skillSource = plungingImpact ? 'plunging-impact-capability' : explicitSkillId
                 ? (fromQueue ? 'next-skill-request' : 'explicit-request')
                 : comboMappedSkillId
                     ? comboMappingSource
@@ -1505,7 +1639,17 @@ export class AkeSquadScenarioRunner {
                 }
                 skillSource = 'poise-execution-gate';
             }
-            const admissionGate = admission(
+            const skill = runtime.resolveSkillProgram(bundle.programs.get(skillId), {
+                ownerId: state.characterId,
+                skillId
+            });
+            if (!skill) throw new Error(`Missing compiled SkillData ${skillId}.`);
+            const replacementContext = { frame, sourceId: state.characterId,
+                ownerId: state.characterId, targetId: enemyId, memberId: state.memberId,
+                commandId: command.commandId, skillId, commandType: command.commandType,
+                clockDomainId: state.actorClockDomainId, blackboard: clone(skill.blackboard ?? {}) };
+            const replacesCast = canReplaceAkeSkillCast(runtime, skill, replacementContext);
+            const admissionGate = replacesCast ? null : admission(
                 state,
                 command.commandType,
                 skillId,
@@ -1513,22 +1657,19 @@ export class AkeSquadScenarioRunner {
                 command.commandId
             );
             if (admissionGate) {
-                if (allowQueue) queueCommand(state, command, frame, skillId, admissionGate);
+                if (plungingImpact) failCommand(state, command, frame, 'PLUNGING_IMPACT_BLOCKED', skillId, skillSource);
+                else if (allowQueue) queueCommand(state, command, frame, skillId, admissionGate);
                 else failCommand(
                     state,
                     command,
                     frame,
-                    'QUEUED_COMMAND_STILL_BLOCKED',
+                    command.releaseDependency ? 'RELEASE_ANCHOR_BLOCKED' : 'QUEUED_COMMAND_STILL_BLOCKED',
                     skillId,
                     skillSource
                 );
                 return;
             }
-            const skill = runtime.resolveSkillProgram(bundle.programs.get(skillId), {
-                ownerId: state.characterId,
-                skillId
-            });
-            if (!skill) throw new Error(`Missing compiled SkillData ${skillId}.`);
+
             const skillCooldownEnd = runtime.cooldowns.getEndFrame(
                 state.characterId,
                 skillId
@@ -1548,6 +1689,27 @@ export class AkeSquadScenarioRunner {
                 skillId,
                 commandId: command.commandId
             });
+            if (replacesCast) {
+                const castId = `command-cast:${state.memberId}:${state.nextCastToken++}`;
+                executeAkeSkillCastReplacement(runtime, skill, { ...replacementContext, castId });
+                commandTrace.push({ type: 'CommandExecuted', frame,
+                    requestedFrame: command.requestedFrame, memberId: state.memberId,
+                    characterId: state.characterId, commandId: command.commandId, castId,
+                    commandType: command.commandType, skillId, skillSource: 'switch-to-buff',
+                    success: true, endFrame: frame, completion: 'Completed',
+                    preservedCastId: state.currentSkill?.castId ?? null });
+                resolveReleaseDependencies?.('action-start', { frame, commandId: command.commandId, castId, skillId });
+                resolveReleaseDependencies?.('action-end', { frame, commandId: command.commandId, castId, skillId });
+                scheduleTeamComboSettlement(state, { castId, commandId: command.commandId,
+                    commandType: command.commandType, inputSkillId: skillId, executedSkillId: skillId,
+                    effectiveSkillType: skill.effectiveSkillType ?? command.commandType }, frame);
+                if (command.commandType === 'ComboSkill' && comboGate?.pending) {
+                    comboMachine.consume({ frame, pendingId: comboGate.pending.id,
+                        currentSkillId: skillId, currentPriority: state.currentSkill?.priority ?? 0,
+                        commandId: command.commandId, castId });
+                }
+                return;
+            }
             if (command.commandType === 'Attack' && command.attackMode === 'full-combo') {
                 beginFullAttackCombo(state, command, frame, skillId, skillSource);
             } else {
@@ -1573,9 +1735,101 @@ export class AkeSquadScenarioRunner {
             }
         };
 
-        for (const command of submittedCommands) {
+        const applyControllerSwitch = (change, frame) => {
+            controllerTrace.push(runtime.setMainCharacter(change.characterId,
+                { frame, switchId: change.switchId, reason: 'TimelineOperatorSwitch' }));
+            const context = { frame, commandId: change.switchId };
+            resolveReleaseDependencies?.('action-start', context);
+            resolveReleaseDependencies?.('action-end', context);
+        };
+        const validateTimedInputDependency = (command, dependency, context, frame) => {
+            // Legacy anchors only stored an offset from source start. Preserve
+            // that relation, but do not invent precision guarantees for them.
+            if (!dependency.windowKind) return null;
+            const offset = frame - context.frame;
+            if (offset < dependency.windowStartOffsetFrames
+                || offset >= dependency.windowEndOffsetFramesExclusive) return 'RELEASE_WINDOW_EXPIRED';
+            if (dependency.windowKind === 'precision') {
+                const windows = runtime.timedInputWindowSnapshot(frame).filter(window => (
+                    (window.sourceCommandId === dependency.sourceCommandId
+                        || (!window.sourceCommandId && window.castId === context.castId))
+                    && window.ownerId === command.characterId
+                    && (!dependency.sourceSkillId || window.sourceSkillId === dependency.sourceSkillId)
+                    && window.inputTypes.includes(command.commandType)
+                ));
+                return windows.some(window => window.state === 'open' && window.sourceActive
+                    && window.inActiveInterval) ? null : 'RELEASE_WINDOW_NOT_ACTIVE';
+            }
+            return comboMachine.snapshot(frame).some(window => (
+                window.sourceCastId === context.castId
+                && window.ownerId === command.characterId
+                && window.remainingFrames > 0
+            )) ? null : 'RELEASE_WINDOW_NOT_ACTIVE';
+        };
+        resolveReleaseDependencies = (kind, context) => {
+            const candidates = [
+                ...controllerAnchorWaits.values(), ...anchorWaits.values(),
+            ].sort((left, right) => (
+                (left.change?.timelineOrder ?? left.command?.timelineOrder ?? 0)
+                - (right.change?.timelineOrder ?? right.command?.timelineOrder ?? 0)
+            ));
+            for (const waiting of candidates) {
+                const node = waiting.command ?? waiting.change;
+                const dependency = node.releaseDependency;
+                const expectedKind = dependency.kind === 'timed-input' ? 'action-start' : dependency.kind;
+                if (waiting.matched || expectedKind !== kind
+                    || dependency.sourceCommandId !== context.commandId) continue;
+                if (kind === 'damage-hit' && (dependency.sourceSkillId !== context.skillId
+                    || dependency.sourceTimelineFrame !== context.timelineFrame)) continue;
+                waiting.matched = true;
+                const frame = context.frame + dependency.delayFrames
+                    + (dependency.kind === 'timed-input' ? dependency.sourceOffsetFrames : 0);
+                const id = waiting.command?.commandId ?? waiting.change.switchId;
+                runtime.schedule(frame, 70, () => {
+                    if (waiting.change) {
+                        controllerAnchorWaits.delete(id);
+                        applyControllerSwitch(waiting.change, frame);
+                        return;
+                    }
+                    anchorWaits.delete(id);
+                    const state = states.get(node.characterId);
+                    commandTrace.push({ type: 'ReleaseAnchorResolved', frame, commandId: id,
+                        sourceCommandId: dependency.sourceCommandId, anchorKind: dependency.kind,
+                        sourceFrame: context.frame,
+                        ...(kind === 'damage-hit' ? { sourceHitFrame: context.frame,
+                            sourceTimelineFrame: context.timelineFrame } : {}),
+                        sourceCastId: context.castId ?? null });
+                    const rejection = dependency.kind === 'timed-input'
+                        ? validateTimedInputDependency(node, dependency, context, frame) : null;
+                    if (rejection) failCommand(state, node, frame, rejection);
+                    else executeCommand(state, node, frame, false, null, false);
+                    scheduleFightStop(frame, false);
+                }, `release-anchor:${id}`);
+            }
+        };
+
+        // Preserve the visual order of zero-time switches and commands sharing
+        // a frame. Without explicit visual positions, switches take effect first.
+        const controlAndCommands = [
+            ...submittedCommands.map(command => ({ kind: 'command', value: command,
+                frame: command.frame, order: Number.isFinite(command.timelineOrder) ? command.timelineOrder : 0 })),
+            ...switches.map(entry => ({ kind: 'switch', value: entry, frame: entry.frame, order: entry.timelineOrder })),
+        ].sort((left, right) => left.frame - right.frame || left.order - right.order
+            || (left.kind === right.kind ? 0 : left.kind === 'switch' ? -1 : 1));
+        for (const entry of controlAndCommands) {
+            if (entry.kind === 'switch') {
+                const change = entry.value;
+                if (!change.releaseDependency) runtime.schedule(change.frame, 70, () => {
+                    applyControllerSwitch(change, change.frame);
+                }, `controller-switch:${change.switchId}`);
+                continue;
+            }
+            const command = entry.value;
             const state = states.get(command.characterId);
-            runtime.schedule(command.frame, 70, () => {
+            // Relations are registered at run start; their preview frame is
+            // only an observation and must not delay a source moved earlier.
+            const submissionFrame = command.releaseDependency ? 0 : command.frame;
+            runtime.schedule(submissionFrame, 70, () => {
                 commandsSeen += 1;
                 commandTrace.push({
                     type: 'CommandSubmitted',
@@ -1585,13 +1839,18 @@ export class AkeSquadScenarioRunner {
                     characterId: state.characterId,
                     commandId: command.commandId,
                     commandType: command.commandType,
+                    ...(command.attackMode ? { attackMode: command.attackMode } : {}),
                     queueWindowFrames: commandUsesSequenceQueue(command)
                         ? null
                         : this.commandQueueWindowFrames,
                     targetId: command.targetId ?? enemyId,
                     sameFrameOrderKey: state.memberId
                 });
-                executeCommand(state, command, command.frame);
+                if (!command.releaseDependency) executeCommand(state, command, command.frame);
+                else commandTrace.push({ type: 'CommandAnchored', frame: submissionFrame,
+                    commandId: command.commandId, memberId: state.memberId,
+                    characterId: state.characterId, commandType: command.commandType,
+                    reason: 'RELEASE_ANCHOR_PENDING', releaseDependency: clone(command.releaseDependency) });
                 scheduleFightStop(command.frame, false);
             }, `command:${state.memberId}:${command.commandType}`);
         }
@@ -1619,6 +1878,18 @@ export class AkeSquadScenarioRunner {
             }
         }
 
+        for (const { command } of anchorWaits.values()) {
+            failCommand(states.get(command.characterId), command, durationTicks,
+                'RELEASE_ANCHOR_NOT_REACHED');
+        }
+        for (const { change } of controllerAnchorWaits.values()) {
+            const failure = { stage: 'MainCharacterSwitchUnresolved', frame: durationTicks,
+                previousCharacterId: runtime.mainCharacterId, characterId: change.characterId,
+                switchId: change.switchId, reason: 'RELEASE_ANCHOR_NOT_REACHED' };
+            controllerTrace.push(failure);
+            runtime.effects.trace.push({ frame: durationTicks, actionType: 'OperatorSwitch',
+                result: { status: 'Unresolved', ...failure } });
+        }
         const damageLog = damageLogFromTrace(
             runtime.effects.trace,
             bundle.memberIdByCharacterId,
@@ -1687,9 +1958,12 @@ export class AkeSquadScenarioRunner {
                     name: member.identity.name,
                     weaponId: member.identity.weaponId
                 })),
-                commands: clone(submittedCommands)
+                commands: clone(submittedCommands),
+                initialControllerCharacterId: initialController,
+                operatorSwitches: clone(switches)
             },
             commandTrace,
+            controllerTrace,
             commandAdmissionTrace,
             comboTrace,
             teamComboSettlementTrace,
@@ -1723,6 +1997,7 @@ export class AkeSquadScenarioRunner {
                     ]))
             },
             finalState: {
+                mainCharacterId: runtime.mainCharacterId,
                 targetHp: vital.currentHp,
                 targetVital: vital,
                 resources: {

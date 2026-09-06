@@ -200,3 +200,16 @@ const groupStart = {
   assert.equal(solution.offsets.get('stage-2'), 77);
   assert.deepEqual(solution.issues, []);
 }
+
+{
+  const points = buildReleaseSnapPoints({
+    actions: ['first', 'second'].map((id, i) => ({ id, groupId:'g',groupIndex:0,
+      startFrame:i*100,endFrame:i*100+80,startX:0,endX:80,label:id })),
+    hits: [{id:'a',commandId:'first',frame:20,offsetFrames:20},
+      {id:'b',commandId:'second',frame:120,offsetFrames:20},
+      {id:'c',commandId:'second',frame:140,offsetFrames:40}],
+    debounceFrames:3,projectFrame:frame=>frame,
+  }).filter(point=>point.kind==='damage-hit');
+  assert.deepEqual(points.map(point=>point.sourceHitOrdinal),[1,1,2], 'hit labels are local to each cast');
+  assert(points.every(point=>point.label.includes('3帧')), 'labels reflect the configured delay');
+}

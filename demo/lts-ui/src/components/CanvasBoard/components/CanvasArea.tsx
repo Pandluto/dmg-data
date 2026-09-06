@@ -1,4 +1,6 @@
-import { forwardRef, useCallback, useMemo, useRef, type MutableRefObject } from 'react';
+import { TimelineStateMarkers } from './TimelineStateMarkers';
+import { getTimelineDeleteBlockReason } from '../../../core/domain/timelineQueuePolicy';
+import { forwardRef, useCallback, useMemo, useRef, type MutableRefObject, type CSSProperties } from 'react';
 import type { MouseEvent } from 'react';
 import { Character, SkillButton, CanvasConfig, SkillButtonSkillChangePayload, SkillButtonSkillOption } from '../../../types';
 import { SkillButtonComponent } from '../SkillButton';
@@ -11,6 +13,7 @@ import {
   getGridMergedCellRect,
   getNormalizedGridLineOffsetY,
   getGridEnergyRowTopY,
+  getGridReleaseRowTopY,
   getGridGroupTop,
   getGridOperatorPairTopY,
   LINE_ROW_INDICES,
@@ -19,6 +22,9 @@ import {
   GRID_ROW_HEIGHT,
   GRID_ENERGY_ROW_HEIGHT,
   GRID_NODE_COUNT,
+  GRID_RELEASE_ROW_HEIGHT,
+  GRID_OPERATOR_SLOT_HEIGHT,
+  GRID_GROUP_HEIGHT,
   GRID_TIMELINE_WIDTH,
 } from '../../../core/calculators/gridSnapLayout';
 import { normalizeAssetUrl } from '../../../utils/assetResolver';
@@ -38,6 +44,8 @@ import {
   type SharedTimelineColumn,
 } from '../../../core/domain/sharedVariableRateTimeline';
 import { resolveInitialControllerLaneId } from '../../../core/domain/operatorControlTimeline';
+import { buildAkeMainTimelineStateEvents, buildAkeCombatInteractions } from '../../../core/services/akeRuntimeLedger';
+import { akeSkillTypeLabel } from '../../../core/services/akeCombatInspection';
 import {
   compactLingeringHitMarkers,
   isLowMultiplierHitMarker,
@@ -46,6 +54,9 @@ import type { CanvasDropTarget } from '../hooks/useCanvasDrag';
 
 interface CanvasAreaProps {
   activeSkillButtonId?: string | null;
+  inspectedCommandId?: string | null;
+  onInspectCommand?: (id: string) => void;
+  onEditReleaseAnchor?: (id: string) => void;
   config: CanvasConfig;
   staffCount: number;
   selectedCharacters: Character[];
@@ -82,6 +93,9 @@ const rowLabels = Array.from({ length: 8 }, (_, index) => String(index + 1));
 
 export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
   activeSkillButtonId = null,
+  inspectedCommandId = null,
+  onInspectCommand,
+  onEditReleaseAnchor,
   config,
   staffCount,
   selectedCharacters,
@@ -158,6 +172,8 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
   );
 
   const variableTimeline = akeRealtimeTimeline?.sharedVariableRateTimeline ?? null;
+  const interactions = useMemo(() => akeRuntimeReport ? buildAkeCombatInteractions(akeRuntimeReport) : [], [akeRuntimeReport]);
+  const stateEvents = useMemo(() => akeRuntimeReport ? buildAkeMainTimelineStateEvents(akeRuntimeReport) : [], [akeRuntimeReport]);
   const resolvedInitialControllerCharacterId = resolveInitialControllerLaneId(
     initialControllerCharacterId,
     selectedCharacters.map(character => character.id),
@@ -510,10 +526,35 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
         const displayButton = button.timelineModuleKind
           ? projectTimelineModuleToAnchor(button)
           : projectButtonToVariableTimeline(button, variableActionById.get(button.id));
+        const releaseRelation = (() => {
+            const anchor = button.releaseAnchor;
+            if (!anchor?.sourceButtonId) return null;
+            const hits = akeRealtimeTimeline?.hits.filter(hit => hit.commandId === anchor.sourceButtonId
+              && hit.releaseEligible !== false && hit.kind !== 'lingering') ?? [];
+            const ordinal = hits.findIndex(hit => hit.offsetFrames === anchor.sourceHitOffsetFrames) + 1;
+            const basis = anchor.kind === 'damage-hit' ? `${ordinal > 0 ? ordinal : '指定'}击后`
+              : anchor.kind === 'action-end' ? '结束后' : anchor.kind === 'action-start' ? '同时起手'
+                : anchor.sourceTimedInputKind === 'broad' ? '普通窗' : '精准窗';
+            const source = skillButtons.find(item => item.id === anchor.sourceButtonId);
+            const delay = anchor.debounceFrames ? ` +${Number((anchor.debounceFrames / (akeRealtimeTimeline?.tickRate ?? 30)).toFixed(3))}s` : '';
+            const action = variableActionById.get(anchor.sourceButtonId);
+            return {
+              label: `◇ ${source?.characterName ?? '?'} ${basis}${delay}`,
+              compactLabel: `◇ ${basis === '同时起手' ? '起手' : basis === '结束后' ? '结束' : basis}${delay}`,
+              title: source ? `接 ${source.characterName} · ${source.skillDisplayName ?? source.skillType}${action ? ` · F${action.startFrame}` : ''} · ${basis}${delay}；点击编辑接续` : '来源不可用；点击核对接续',
+            };
+        })();
         return (
         <SkillButtonComponent
           key={button.id}
           isDetailRouteActive={activeSkillButtonId === button.id}
+          isCombatInspected={inspectedCommandId === button.id}
+          onInspect={onInspectCommand ? () => onInspectCommand(button.id) : undefined}
+          onEditReleaseAnchor={onEditReleaseAnchor && button.releaseAnchor?.sourceButtonId && !button.basicAttackTailBundle
+            ? () => onEditReleaseAnchor(button.id) : undefined}
+          releaseRelationTitle={releaseRelation?.title}
+          releaseRelationLabel={releaseRelation?.label}
+          releaseRelationCompactLabel={releaseRelation?.compactLabel}
           button={displayButton}
           size={config.skillButtonSize}
           onMouseDown={(event) => onButtonMouseDown(event, button.id)}
@@ -569,6 +610,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
       onConfigure={onConfigureTimelineModule}
       contextMenuState={contextMenuState}
       onConfirmRemove={onConfirmRemove}
+            removeBlockedReason={timelineData ? getTimelineDeleteBlockReason(timelineData, button.id) : null}
       onCloseContextMenu={onCloseContextMenu}
       onCopy={onCopy}
     />
@@ -598,6 +640,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
       onConfigure={onConfigureTimelineModule}
       contextMenuState={contextMenuState}
       onConfirmRemove={onConfirmRemove}
+            removeBlockedReason={timelineData ? getTimelineDeleteBlockReason(timelineData, button.id) : null}
       onCloseContextMenu={onCloseContextMenu}
     />
   ));
@@ -790,6 +833,13 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
 
     return (
       <div className="ake-canvas-projection" aria-label={`共享变速时间投影 ${staffIndex + 1}`}>
+        {selectedCharacters.map((character, lineIndex) => (
+          <div key={`release-row:${character.id}`} className="ake-release-caption-lane"
+            data-release-row={lineIndex} aria-label={`${character.name}起手标记行`}
+            style={{ top: getGridReleaseRowTopY(lineIndex), height: GRID_RELEASE_ROW_HEIGHT }}>
+            <span>起手</span>
+          </div>
+        ))}
         {pageColumns.map(column => (
           <span
             key={`rate:${column.id}`}
@@ -812,6 +862,36 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
             <span>{wait.mode === 'seal-only' ? '封组' : '等待'}</span>
           </div>
         ))}
+        {interactions.map(interaction => {
+          const point = visualPointForFrame(interaction.frame, 'after');
+          if (!point || point.pageIndex !== staffIndex) return null;
+          const lineIndex = selectedCharacters.findIndex(character => character.id === interaction.triggerActorId);
+          if (lineIndex < 0) return null;
+          const trigger = akeRuntimeReport?.timeline.commands.find(command => command.commandId === interaction.triggerCommandId);
+          const effect = akeRuntimeReport?.timeline.commands.find(command => command.commandId === interaction.effectCommandId);
+          const name = selectedCharacters.find(character => character.id === interaction.effectActorId)?.name ?? '关联动作';
+          const label = `${trigger?.attackMode === 'plunging-impact' ? '下落' : '触发'} → ${name}${akeSkillTypeLabel(effect?.commandType ?? '')}`;
+          const description = `${label} · F${interaction.frame} · ${interaction.hitCount} 次派生命中，伤害归属${name}`;
+          const alignEnd = point.x > GRID_FIRST_COLUMN_WIDTH + GRID_TIMELINE_WIDTH - 150;
+          return <button key={interaction.key} type="button" className={`ake-interaction-event-marker${alignEnd ? ' is-end-aligned' : ''}`}
+            style={{left: point.x, top: getGridLineCenterY(lineIndex) - 10}}
+            data-trigger-frame={interaction.frame} data-trigger-command-id={interaction.triggerCommandId}
+            data-effect-command-id={interaction.effectCommandId} title={description} aria-label={description}
+            onClick={event => { event.stopPropagation(); onInspectCommand?.(interaction.triggerCommandId); }}>
+            {label}
+          </button>;
+        })}
+        <TimelineStateMarkers left={GRID_FIRST_COLUMN_WIDTH} right={GRID_FIRST_COLUMN_WIDTH + GRID_TIMELINE_WIDTH}
+          laneForLine={line => ({ top: getGridReleaseRowTopY(line) + GRID_RELEASE_ROW_HEIGHT + 2,
+            bottom: getGridEnergyRowTopY(line) - 3, anchorY: getGridEnergyRowTopY(line) })} onInspectCommand={onInspectCommand}
+          events={stateEvents.flatMap(event => {
+            const point = visualPointForFrame(event.frame, 'after');
+            const lineIndex = selectedCharacters.findIndex(character => character.id === (event.actorId ?? event.sourceId));
+            if (!point || point.pageIndex !== staffIndex || lineIndex < 0) return [];
+            const actor = selectedCharacters.find(character => character.id === event.actorId)?.name;
+            const description = `${event.label} · ${event.change} ${event.before ?? '?'}→${event.after ?? '?'}层 · ${seconds(event.frame)} / F${event.frame}${actor ? ` · ${actor}` : ''}`;
+            return [{ event, x: point.x, lineIndex, description }];
+          })} />
         {actionsOnPage.map(action => {
           const lineIndex = selectedCharacters.findIndex(character => character.id === action.laneId);
           if (lineIndex < 0) return null;
@@ -1208,6 +1288,11 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
       <div
         ref={setCanvasRef}
         className={`canvas-container${isDraggingActive ? ' is-dragging-active' : ''}`}
+        style={{
+          '--grid-release-row-height': `${GRID_RELEASE_ROW_HEIGHT}px`,
+          '--grid-operator-slot-height': `${GRID_OPERATOR_SLOT_HEIGHT}px`,
+          '--grid-group-height': `${GRID_GROUP_HEIGHT}px`,
+        } as CSSProperties}
         onClick={onCanvasPlaceCopy}
       >
         <OptionalLiquidTideCanvasEffects

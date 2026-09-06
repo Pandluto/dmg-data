@@ -16,6 +16,8 @@ export type TimelineActionSpec = {
   id: string;
   /** Resolved blocking duration. Delayed hits/effect tails do not belong here. */
   durationFrames: number;
+  /** A verified cast that applies its effect without taking the foreground action slot. */
+  instantaneous?: boolean;
   /**
    * Explicit group-local release offset resolved from the anchor DAG. Omitted
    * values retain the legacy lane-tail chaining behavior.
@@ -443,7 +445,7 @@ function validateSpec(spec: SharedVariableRateTimelineSpec): void {
         requireIntegerFrame(
           action.durationFrames,
           `action ${action.id} durationFrames`,
-          { allowZero: false },
+          { allowZero: action.instantaneous === true },
         );
         if (action.startOffsetFrames !== undefined) {
           requireIntegerFrame(
@@ -657,6 +659,7 @@ function makeActivityColumns(
 ): ActivityTimelineColumn[] {
   const columns: ActivityTimelineColumn[] = [];
   const zeroControlFrames = new Set([
+    ...preliminary.actions.filter(action => action.durationFrames === 0).map(action => action.startFrame),
     ...preliminary.laneWaits
       .filter(wait => wait.durationFrames === 0)
       .map(wait => wait.startFrame),

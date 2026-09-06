@@ -31,6 +31,11 @@ export interface SkillReleaseAnchor {
   sourceHitOffsetFrames?: number;
   sourceTimedInputId?: string;
   sourceTimedInputOffsetFrames?: number;
+  /** Stable window intent; runtime ids above are only observation locators. */
+  sourceTimedInputKind?: 'broad' | 'precision';
+  sourceTimedInputSkillId?: string;
+  sourceTimedInputStartOffsetFrames?: number;
+  sourceTimedInputEndOffsetFramesExclusive?: number;
   debounceFrames: number;
 }
 
@@ -220,6 +225,7 @@ export interface SandboxSkillHit {
 }
 
 export interface SandboxSkill {
+  description?: string;
   id: string;
   displayName: string;
   buttonType: SkillType;
@@ -537,5 +543,7 @@ export interface TimelineData {
   updatedAt: number;               // 最后更新时间
   /** 0 秒时的主控干员；旧存档缺省时由当前队伍首位迁移。 */
   initialControllerCharacterId?: string;
+  /** One-image report annotations, saved with this workspace and its versions. */
+  reportNotes?: Record<string, string>;
   staffLines: StaffLineData[];     // 4 个干员的谱线数据
 }

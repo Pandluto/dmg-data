@@ -17,6 +17,7 @@ interface TimelineWaitSegmentProps {
   onConfigure?: (button: SkillButton) => void;
   contextMenuState?: { buttonId: string; position: { x: number; y: number } } | null;
   onConfirmRemove?: () => void;
+  removeBlockedReason?: string | null;
   onCloseContextMenu?: () => void;
   onCopy?: () => void;
 }
@@ -27,6 +28,7 @@ interface TimelineWaitContextMenuProps {
   onConfigure: () => void;
   onCopy?: () => void;
   onRemove: () => void;
+  removeBlockedReason?: string | null;
   onCancel: () => void;
 }
 
@@ -46,6 +48,7 @@ export function TimelineWaitContextMenu({
   onConfigure,
   onCopy,
   onRemove,
+  removeBlockedReason,
   onCancel,
 }: TimelineWaitContextMenuProps) {
   const run = (callback: () => void) => (event: MouseEvent<HTMLButtonElement>) => {
@@ -74,9 +77,11 @@ export function TimelineWaitContextMenu({
         type="button"
         role="menuitem"
         className="context-menu-item context-menu-item-danger"
+        disabled={!!removeBlockedReason}
+        title={removeBlockedReason ?? undefined}
         onClick={run(onRemove)}
       >
-        删除
+        {removeBlockedReason ? '删除（仅队尾）' : '删除'}
       </button>
       <button type="button" role="menuitem" className="context-menu-item" onClick={run(onCancel)}>
         取消
@@ -104,6 +109,7 @@ export function TimelineWaitSegment({
   onConfigure,
   contextMenuState = null,
   onConfirmRemove,
+  removeBlockedReason,
   onCloseContextMenu,
   onCopy,
 }: TimelineWaitSegmentProps) {
@@ -176,15 +182,16 @@ export function TimelineWaitSegment({
   return (
     <>
       <div
-        className={`timeline-wait-segment ${modeClass}${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-disabled' : ''}`}
+        className={`timeline-wait-segment ${modeClass}${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-drag-disabled' : ''}`}
         data-skill-button-id={button.id}
         data-timeline-module={button.timelineModuleKind}
         data-wait-mode={isLaneWait ? laneConfig.mode : forcedConfig.mode}
         role="button"
         tabIndex={isBrowseMode ? -1 : 0}
         aria-label={`${label}，${formatSeconds(startFrame, tickRate)}到${formatSeconds(endFrame, tickRate)}`}
-        aria-disabled={isInteractionDisabled}
-        title={`${label} · ${formatSeconds(startFrame, tickRate)}—${formatSeconds(endFrame, tickRate)}；双击设置，长按拖动`}
+        data-drag-disabled={isInteractionDisabled || undefined}
+        draggable={false}
+        title={`${label} · ${formatSeconds(startFrame, tickRate)}—${formatSeconds(endFrame, tickRate)}；双击设置；队列内不可拖动`}
         style={{ left, top, width } as CSSProperties}
         onMouseDown={handleMouseDown}
         onDoubleClick={handleDoubleClick}
@@ -217,6 +224,7 @@ export function TimelineWaitSegment({
           }}
           onCopy={onCopy ? () => onCopy() : undefined}
           onRemove={() => onConfirmRemove?.()}
+          removeBlockedReason={removeBlockedReason}
           onCancel={() => onCloseContextMenu?.()}
         />,
         document.body,

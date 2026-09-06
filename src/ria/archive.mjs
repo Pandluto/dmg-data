@@ -400,6 +400,7 @@ export class RiaRunWriter {
         this.runPath = reference.runPath;
         this.currentManifest = manifest;
         this.writeChain = Promise.resolve();
+        this.streamHandles = new Map();
         this.pendingOperations = 0;
         this.failures = [];
         this.droppedFacts = 0;
@@ -492,8 +493,8 @@ export class RiaRunWriter {
             const reservedBytes = jsonLineBytes(event);
             this.#reserveRecord(reservedBytes);
             const startOffset = this.currentManifest.recording.streamBytes.events;
-            const bytes = await appendJsonLine(
-                path.join(this.runPath, JSONL_ARTIFACTS.events),
+            const bytes = await this.#appendLine(
+                'events',
                 event,
                 {
                     maxLineBytes: this.archive.maxJsonlLineBytes,
@@ -524,8 +525,8 @@ export class RiaRunWriter {
                 );
             }
             this.#reserveRecord(jsonLineBytes(snapshot));
-            const bytes = await appendJsonLine(
-                path.join(this.runPath, JSONL_ARTIFACTS.snapshots),
+            const bytes = await this.#appendLine(
+                'snapshots',
                 snapshot,
                 {
                     maxLineBytes: this.archive.maxJsonlLineBytes,
@@ -554,8 +555,8 @@ export class RiaRunWriter {
                 sequence: this.currentManifest.counts[kind] + 1
             };
             this.#reserveRecord(jsonLineBytes(record));
-            const bytes = await appendJsonLine(
-                path.join(this.runPath, JSONL_ARTIFACTS[kind]),
+            const bytes = await this.#appendLine(
+                kind,
                 record,
                 {
                     maxLineBytes: this.archive.maxJsonlLineBytes,
@@ -568,7 +569,38 @@ export class RiaRunWriter {
         });
     }
 
+    async #appendLine(kind, value, { maxLineBytes, sync }) {
+        if (this.currentManifest.config.uiCalculation !== true) {
+            return appendJsonLine(path.join(this.runPath, JSONL_ARTIFACTS[kind]), value, { maxLineBytes, sync });
+        }
+        const line = `${JSON.stringify(value)}\n`;
+        const bytes = Buffer.byteLength(line);
+        if (bytes > maxLineBytes) {
+            throw new RiaInputError(`JSONL record is ${bytes} bytes; maximum is ${maxLineBytes}.`, 'RIA_EVENT_TOO_LARGE');
+        }
+        let handle = this.streamHandles.get(kind);
+        if (!handle) {
+            handle = await fs.open(path.join(this.runPath, JSONL_ARTIFACTS[kind]), 'a', 0o600);
+            this.streamHandles.set(kind, handle);
+        }
+        await handle.writeFile(line);
+        if (sync) {
+            await handle.sync();
+            await handle.close();
+            this.streamHandles.delete(kind);
+        }
+        return bytes;
+    }
+
     async drain() {
+        // Reuse one descriptor within a checkpoint window instead of opening
+        // and closing the same file for every event. Close on the write chain
+        // so a concurrent UI action cannot race descriptor disposal.
+        if (!this.closed) await this.#enqueue(async () => {
+            const handles = [...this.streamHandles.values()];
+            this.streamHandles.clear();
+            await Promise.all(handles.map(handle => handle.close()));
+        });
         await this.writeChain;
         return {
             failures: structuredClone(this.failures),

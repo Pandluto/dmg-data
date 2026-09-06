@@ -82,6 +82,8 @@ export interface RuntimeOperatorTemplateSkill {
   id: string;
   /** 显示名称 */
   displayName: string;
+  /** 技能说明及输入边界。 */
+  description?: string;
   /** 按钮类型（A/B/E/Q/Dot） */
   buttonType: SkillType;
   /** 图标 URL */
@@ -163,6 +165,7 @@ export interface OperatorDraftHit {
  */
 export interface OperatorDraftSkill {
   displayName: string;
+  description?: string;
   buttonType: SkillType;
   iconUrl: string;
   hitCount: number;

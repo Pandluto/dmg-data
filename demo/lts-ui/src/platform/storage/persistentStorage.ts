@@ -41,6 +41,7 @@ class SqliteBackedStorage {
   setItem(key: string, value: string): void {
     const normalizedKey = String(key);
     const normalizedValue = String(value);
+    if (this.values.get(normalizedKey) === normalizedValue) return;
     this.values.set(normalizedKey, normalizedValue);
     this.pending.set(normalizedKey, normalizedValue);
     this.scheduleFlush();
@@ -100,7 +101,17 @@ class SqliteBackedStorage {
         `,
         bind: [this.scope, key, value, now],
       }))))
-      .then(() => undefined);
+      .then(() => undefined)
+      .catch((error) => {
+        // A failed SQLite transaction is still unsaved work. Keep it for the
+        // next explicit flush, without overwriting edits queued in the meantime.
+        for (const [key, value] of updates) {
+          if (!this.pending.has(key) && (this.values.get(key) ?? null) === value) {
+            this.pending.set(key, value);
+          }
+        }
+        throw error;
+      });
     await this.flushChain;
   }
 

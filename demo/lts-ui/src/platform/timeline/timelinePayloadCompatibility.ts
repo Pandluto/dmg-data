@@ -316,6 +316,8 @@ export function normalizeCompatibleTimelinePayload(
       && selectedCharacters.includes(configuredInitialController)
       ? configuredInitialController
       : selectedCharacters[0],
+    ...(originalTimeline.reportNotes ? { reportNotes: Object.fromEntries(Object.entries(originalTimeline.reportNotes)
+      .filter((entry): entry is [string, string] => typeof entry[1] === 'string')) } : {}),
     staffLines,
   };
   const payload = {

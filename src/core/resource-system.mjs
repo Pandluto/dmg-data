@@ -456,8 +456,10 @@ export class ResourceSystem {
         const returnedBefore = pool.returned;
         if (operation === 'gain' && pool.gainSuppressions.size > 0) {
             const matchingSuppression = [...pool.gainSuppressions.values()].find(suppression =>
-                suppression.tags.length === 0
-                || suppression.tags.some(tag => input.resourceGainTags.includes(tag))
+                suppression.exceptTags !== null && suppression.exceptTags !== undefined
+                    ? !suppression.exceptTags.some(tag => input.resourceGainTags.includes(tag))
+                    : suppression.tags.length === 0
+                        || suppression.tags.some(tag => input.resourceGainTags.includes(tag))
             );
             if (matchingSuppression) {
                 return this.#record({
@@ -482,6 +484,7 @@ export class ResourceSystem {
                     resourceGainTags: clone(input.resourceGainTags),
                     suppressionToken: matchingSuppression.token,
                     suppressionTags: clone(matchingSuppression.tags),
+                    allowedResourceGainTags: clone(matchingSuppression.exceptTags),
                     before,
                     requested: requestedAmount,
                     requestedAmount,
@@ -796,6 +799,7 @@ export class ResourceSystem {
             'resource gain suppression token'
         );
         const tags = normalizedTags(input.tags ?? input.resourceGainTags);
+        const exceptTags = input.exceptTags === undefined ? null : normalizedTags(input.exceptTags);
         const results = [];
         for (const pool of this.#matchingPools(input)) {
             const suppression = {
@@ -803,6 +807,7 @@ export class ResourceSystem {
                 poolId: pool.id,
                 frame,
                 tags,
+                exceptTags,
                 sourceId: input.sourceId ?? null,
                 ownerId: input.ownerId ?? pool.ownerId,
                 castId: input.castId ?? null,

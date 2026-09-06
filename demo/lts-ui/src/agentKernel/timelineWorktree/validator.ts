@@ -235,6 +235,17 @@ export function validateTimelinePayload(payload: TimelineSnapshotPayload): AiTim
             || Number(anchor.sourceTimedInputOffsetFrames) < 0)) {
           issues.push(issue('invalid-release-timed-input-anchor', `Button ${buttonId} has an invalid timed-input anchor.`, releasePath));
         }
+        if (anchor.kind === 'timed-input' && anchor.sourceTimedInputKind !== undefined) {
+          const start = anchor.sourceTimedInputStartOffsetFrames;
+          const end = anchor.sourceTimedInputEndOffsetFramesExclusive;
+          if (!['broad', 'precision'].includes(anchor.sourceTimedInputKind)
+            || !Number.isInteger(start) || Number(start) < 0
+            || !Number.isInteger(end) || Number(end) <= Number(start)
+            || (anchor.sourceTimedInputSkillId !== undefined
+              && (typeof anchor.sourceTimedInputSkillId !== 'string' || !anchor.sourceTimedInputSkillId.trim()))) {
+            issues.push(issue('invalid-release-timed-input-window', `Button ${buttonId} has an invalid timed-input window.`, releasePath));
+          }
+        }
       }
     }
     for (const buffId of button.selectedBuff || []) {

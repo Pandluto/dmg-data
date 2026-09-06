@@ -171,19 +171,93 @@ npm run ria -- case close \
 
 存在 unsealed Run 时 Case 不能关闭。Case 关闭后，Session create/append、record、run、replay 和 UI action 都返回 `RIA_CASE_CLOSED`；当前没有隐式 reopen。
 
-## LTS UI 与失败测试归档
+## 浏览器开发者调试接口（自动连接）
 
-把本次 UI 计算要创建的 Case、Session 和新 Run ID 写入浏览器 `sessionStorage`。不要提前对另一份 fixture 启动 replay：AKE provider 会先以它即将提交的**同一份 simulation input**创建 Run，再由该 Run 的 worker 产生页面实际使用的结果和事实事件，因此 UI action 不会挂到另一份独立计算上。
+运行 `npm run demo`，或 `npm run demo:build` 后运行 `npm run demo:serve`，在 Chrome 打开 `http://127.0.0.1:43821/#/timeline`。本机 AKE Demo 自动创建浏览器 Session；每次计算创建独立 Run。无需手工修改 sessionStorage，也无需另开 43822 服务。服务只接受 loopback 和同源访问。
 
-```js
-sessionStorage.setItem('def.ria.active-run.v1', JSON.stringify({
-  caseId: 'combo-investigation',
-  sessionId: 'session-before-fix',
-  runId: 'run-live-ui'
-}));
+能力发现与浏览器列表：
+
+```bash
+curl -sS http://127.0.0.1:43821/api/ria/live/capabilities
+curl -sS http://127.0.0.1:43821/api/ria/live/sessions
 ```
 
-`43821` 的 provider 使用同源 `/api/ria` 路由；Vite 只在本进程拥有该 UI Run 时接收动作，其他 RIA 读取代理到 loopback `43822`。无需跨端口 CORS；直接连接 `43822` 的兼容路径也只允许显式可信的 loopback UI origin，绝不返回 `*`。客户端 sink 串行发送、可 `flush()`，记录失败不改变计算语义。provider 在真实计算前写 requested，收到同一 Run 的结果后写 completed/failed，最后 seal。seal 后晚到动作返回 `RIA_RUN_SEALED`。
+每个浏览器 Session 都有独立的 `sessionId`、`caseId`、连接时间和状态。15 秒没有收到心跳会标为离线；后台标签页可能被 Chrome 节流，查看时应结合 `lastSeenAt`。只操作明确选中的 Session，不能默认把历史记录当作当前页面。
+
+```bash
+curl -sS "http://127.0.0.1:43821/api/ria/live/sessions/SESSION_ID/snapshot"
+curl -sS "http://127.0.0.1:43821/api/ria/live/sessions/SESSION_ID/snapshot?section=planner"
+curl -sS "http://127.0.0.1:43821/api/ria/live/sessions/SESSION_ID/events?kind=interaction&afterSequence=0&limit=100"
+curl -sS "http://127.0.0.1:43821/api/ria/live/sessions/SESSION_ID/events?kind=network&runId=RUN_ID&limit=100"
+```
+
+快照包括六个部分：
+
+| section | 内容 |
+| --- | --- |
+| `workbench` | 工作区、checkout、干员、技能按钮、配装和 Buff |
+| `timeline` | 当前完整排轴输入、主控、输入身份 |
+| `planner` | 请求/预演帧、释放判定、冷却、资源、连携窗口、吸附分组与坐标 |
+| `calculation` | 当前 Run、结算摘要、命令和诊断 |
+| `inspection` | 所选动作/事件、同帧顺序、活动状态、命中索引 |
+| `ui` | 当前路由、焦点、可见控件、选中/禁用状态和位置 |
+
+事件记录点击、双击、右键、选择、快捷键、拖动起终点与时长、应用状态操作、console、错误、请求响应状态。状态事件保存发生变化的快照部分，可还原一次移动前后的排轴。每条记录有服务端 `sequence` 和浏览器 `clientSequence`；重试批次不会重复记账。计算事件保留触发它的浏览器操作序号和独立 `runId`。
+
+实时视图不复制巨大运行时报告。每个实时事件最多 128 KB、每个快照部分最多 512 KB，超过时明确返回 `truncated / originalBytes`；浏览器缓冲最多 2000 条，溢出会记录丢失数量。完整输入、结果、逐帧状态、伤害 factor 和因果事件保存在对应 Run，使用本指南前面的 `events / state / result / replay / diff` 接口。实时观察记录在 `artifacts/live/SESSION_ID/`，服务器重启后仍可查询；它们属于浏览器观察，不是 sealed 引擎事实。
+
+让同一个 Chrome 页面定位动作、打开详情或重新计算：
+
+```bash
+curl -sS -X POST -H 'Content-Type: application/json' \
+  -d '{"op":"inspect-command","commandId":"BUTTON_ID"}' \
+  "http://127.0.0.1:43821/api/ria/live/sessions/SESSION_ID/commands"
+curl -sS "http://127.0.0.1:43821/api/ria/live/sessions/SESSION_ID/commands/COMMAND_ID"
+```
+
+支持 `inspect-command`、`open-details`、`set-panel`（`tools` / `combat`）、`recalculate`、`snapshot`、`workspace-snapshot` 和 `edit-timeline`。命令只作用于目标 Session，页面回传 `done / error`；`recalculate` 回执表示已安排重算，完成情况应继续查计算事件及 Run。接口不执行任意 JavaScript、shell 或绕过工作区规则修改业务数据。Chrome DevTools 也可用 `window.__AKE_DEBUG__.status()`、`.snapshot()` 和 `.flush()` 查看连接/上传错误、当前快照或主动上传。
+
+`edit-timeline` 使用画布现有的工作台命令队列进行可复现实验，必须指定当前活动 `timelineId`，且画布已挂载。添加动作必须属于当前队伍与技能目录；回执包含实际按钮 ID 和落点。`staffIndex` 是从零开始的画布组号，`nodeIndex` 是组内节点号，角色行由 `characterId` 决定；持久化时转换为角色行和全局节点号。每个请求的队列 ID 和按钮 ID 固定，重试消费不会重复添加。移除只接受具体按钮 ID。请求、结果和随后的轴变化都会进入会话日志。
+
+可选 `releaseAnchor` 使用现有关系轴模型（`group-start/action-start/action-end/damage-hit`），来源必须是当前轴上的已有动作。例如在普攻偏移 44 帧的真实命中后 1 帧插入战技：`{"schemaVersion":1,"kind":"damage-hit","sourceButtonId":"普攻按钮 ID","sourceHitId":"planner 中该命中的 ID","sourceHitOffsetFrames":44,"debounceFrames":1}`。命中锚点必须同时保留命中 ID 与偏移，以满足存档的关系完整性校验。节点坐标只负责画布布局，不能代替战斗释放关系。
+
+```json
+{ "op": "edit-timeline", "timelineId": "活动文档 ID", "edit": { "kind": "add", "characterId": "chr_0027_tangtang", "runtimeSkillId": "chr_0027_tangtang_normal_skill", "staffIndex": 1, "nodeIndex": 3 } }
+```
+
+```json
+{ "op": "edit-timeline", "timelineId": "活动文档 ID", "edit": { "kind": "remove", "buttonId": "添加回执中的 buttonId" } }
+```
+
+### 存档与版本状态
+
+`workspace-snapshot` 是只读命令，在选人、存档、配置和报表页面均可调用。
+不传 `timelineId` 时返回活动工作副本；传入某个已存在文档 ID 时读取它的已保存 checkout。
+返回完整 payload（队伍、武器装备、输入与释放锚点）、活动文档身份、SQLite checkout、文档列表和节点父子关系。
+可比较返回的 `checkout` 与 `documentCheckout`，核对 renderer 与数据库是否指向同一版本。
+单次命令结果上限 4 MiB；连续事件和 UI 快照仍使用各自的较小限额。
+
+```json
+{ "op": "workspace-snapshot", "timelineId": "已有文档 ID，可省略" }
+```
+
+### 图片加载与绘制耗时
+
+`snapshot?section=ui` 包含当前图片的真实 `src`（使用 `currentSrc`）、解码状态、
+自然/显示尺寸、`loadState`（`deferred/requested`）和最近的资源耗时。
+`inViewport` 表示矩形与页面视口相交；滚动容器内是否开始加载以 `loadState` 和真实请求为准。
+URL 去除查询串，data/blob 图片仅保留本地图片标记。
+
+实时事件可查询 `network/ImageResourceLoaded`、`state/InteractionPainted` 和
+`state/MainThreadLongTask`。资源事件保留 `durationMs/transferSize/encodedBodySize/responseStatus`；
+绘制事件测量点击后两次 animation frame 的间隔，不表示所有异步图片已下载完成。
+跨站图片未开放 Resource Timing 时字节数可能是 0，不能据此判断缓存命中。
+复查加载问题时，在同一个 Chrome 页打开、关闭、重开选择器，再滚动到末尾，
+对照真实请求、延迟加载状态和绘制事件；不要仅凭截图推断速度。
+
+## 显式绑定单次 Run 与失败测试归档
+
+自动记录之外，保留 `def.ria.active-run.v1` 的兼容入口，供明确指定 Case / Session / Run 的调查脚本使用。每次显式绑定必须使用新的 Run ID。provider 记录它实际提交的同一份 simulation input，并在 completed / failed 后 seal；seal 后不能继续追加 UI action。
 
 opt-in Node test wrapper 不改变默认 `npm test`，也保持原 exit code。仅失败时自动创建 interrupted Run：
 
@@ -212,6 +286,27 @@ npm run ria -- prune --case-id CASE_ID --apply --json
 - `compression=none` 使用可重建稀疏 byte index；sealed gzip 查询会从压缩流起点顺序解压，capabilities 会明确报告这一性能差异；
 - fixture、config、result 与 event 在持久化前递归脱敏，服务限制 1 MiB 请求体，单事件和单 Run 也有独立体积上限；Run 上限在落盘前检查，commands/events/snapshots/UI actions 共用额度。
 
+
+### 交互重算与后台归档
+
+浏览器的 `calculation.phase=completed` 表示当前版本结果已经交付；`recording=true`
+表示结果对应一个正在记录的 Run，不表示已经封存。`elapsedMs` 测量从 Provider 发起到
+报告发布的耗时。封存完成会单独产生 `calculation/RiaRunSealed` 事件；在此之前读取完整
+`result` 归档可能尚不可用，实时 calculation/inspection 快照仍可查询。
+
+自动浏览器计算复用预热工作线程，独立重建每次战斗状态。真实事件在有界缓冲区中保留，
+结果先交付，随后按原顺序归档，超过缓冲窗口则恢复持久化背压，不进行第二次模拟。
+显式记录/回放的实时 SSE checkpoint 契约不变。
+
+追加终结技的复现输入：`fixtures/ria/wulfa-camille-appended-ultimate.json`。
+预期卡缪两次连击获得发生在 F364/F427，洛茜 Q 跟随 E 的最后一击在 F433 释放并消费两层。
+其 `releaseDependency` 可与 Run 中的 `CommandAnchored`/`ReleaseAnchorResolved` 对照。
+
+### 报表归因观测
+
+打开 Chrome 的伤害报表后，`GET /api/ria/live/sessions/SESSION_ID/snapshot?section=report` 返回当前存档/输入身份、RD 状态、干员和来源域汇总、逐项来源记录（包括连击 grant ID）、命中重构误差、失衡/未知来源余额及后台线程耗时。`RdpsCompleted` / `RdpsFailed` 同步进入会话事件。命中重构失败时停止出图，不能把不一致的结果标成完成。原始 Run 保持不变，归因固定本次实际命中和释放计划。
+
+
 ### 接续放大镜观察
 
 Live snapshot 的 `releaseLens` section 在展开时提供来源按钮、候选版本、每个事件的语义标签/帧与窗口边界、选中关系、非负偏移、草稿帧、不可提交原因和待核验说明；关闭时为 `active: false`。这些是交互草稿，必须与 `timeline` 的已保存关系及 `calculation` 的 Run/结算状态分别读取。
@@ -222,3 +317,9 @@ Live snapshot 的 `releaseLens` section 在展开时提供来源按钮、候选�
 `timeline-drag` 用于复现真实页面已有按钮的长按/拖动处理链。先读取 capabilities 与当前 `timeline` 身份，再以 `ui.controls.bounds` 或 `releaseLens.rect/sourceRect` 得到视口 client 坐标。命令接收当前 `timelineId`、已有 `buttonId`、`steps: [{clientX, clientY, holdMs}]` 和 `finish: "release" | "cancel"`。自动先长按 220 ms；最多 12 步，每步停留最多 1000 ms，总等待最多 5 秒；页面必须可见，同一连接不可重入。它不能创建任意选择器、执行 JavaScript 或绕过工作台准入。
 
 命令明确标记 `synthetic: true`，证明的是当前 Chrome DOM 处理链，不能冒充原生鼠标手感。`DebugTimelineDragStep` 附当时的放大镜快照，避免短操作被普通快照采样间隔漏掉；结果返回 `releaseLensOpened` 与事件游标。完整结论仍须比对 `timeline` 保存关系和 `calculation` Run。先以 `finish: "cancel"` 核对草稿，再使用 `release`，验证完恢复原输入。
+
+### 队列拖动与技能列表预览（2026-09-06）
+
+`timeline-drag.buttonId` 可取原页面已存在的按钮 ID，或 `ui.controls[].dragSourceId` 中可见技能列表的 ID（形如 `palette-chr_0027_tangtang_normal_skill`）。已入队按钮会拒绝拖动；技能列表仍经过真实 DOM 处理器进行有界合成拖动。来源必须可见、未遮挡且仍属于当前页面，维持 5 秒上限和原存档身份校验。
+
+`ui.controls[].dragDisabled` 区分禁止拖动与整个控件禁用。`ui.dragPreviews` 以及 `DebugTimelineDragStep.dragPreviews` 记录预览数量、文字、边界、透明度、滤镜、阴影、父节点与鼠标穿透状态。用这些事实检查重影和坐标偏移；合成事件不能代替原生鼠标手感验收。

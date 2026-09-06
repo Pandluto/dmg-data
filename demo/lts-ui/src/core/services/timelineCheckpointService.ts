@@ -98,8 +98,8 @@ export async function saveTimelineCheckpoint(input: {
       ...(parent ? { parentNodeId: parent.id } : { parentNodeId: null }),
       branchId: `automatic-save-${createdAt}`,
       label: parent
-        ? `[auto-save] ${new Date(createdAt).toLocaleString('zh-CN', { hour12: false })}`
-        : `[auto-save] ${input.timelineLabel} ${new Date(createdAt).toLocaleString('zh-CN', { hour12: false })}`,
+        ? `保存 ${new Date(createdAt).toLocaleString('zh-CN', { hour12: false })}`
+        : `保存 ${input.timelineLabel} ${new Date(createdAt).toLocaleString('zh-CN', { hour12: false })}`,
       description: input.reason,
       basePayload: parent?.workingPayload || input.payload,
       workingPayload: input.payload,
@@ -108,7 +108,7 @@ export async function saveTimelineCheckpoint(input: {
     });
     createdNodeId = created.node.id;
     const committed = await workNodeClient.commit(created.node.id, {
-      label: `Checkout ${created.node.label}`,
+      label: `应用 ${created.node.label}`,
       approval: {
         mode: 'manual',
         approvedAt: createdAt,

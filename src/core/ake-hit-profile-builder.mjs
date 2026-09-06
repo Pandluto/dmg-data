@@ -924,6 +924,11 @@ export function enrichAkeTimingWithHitMultipliers({ projectRoot, timing }) {
             skillBlackboardPatches: talentSkillBlackboardPatches(sourceCharacter)
         };
         for (const profile of character.profiles ?? []) {
+            const rootCastProgram = readProgram(profile.skillId, 1);
+            profile.skillSpecification = rootCastProgram?.skillSpecification ?? null;
+            profile.castReplacement = rootCastProgram?.castReplacement
+                ? { asSkillCast: true, conditions: structuredClone(rootCastProgram.castReplacement.conditions) }
+                : null;
             const statusProgramIds = [...new Set([
                 profile.skillId,
                 ...(profile.hits ?? []).map(hit => hit.sourceSkillId)

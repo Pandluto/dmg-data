@@ -30,8 +30,10 @@ import {
 } from '../core/services/buffStorageNormalization';
 import { synchronizeTimelineButtonBuffMirrors } from '../core/domain/timelineButtonBuffMirror';
 import { persistentLocalStorage } from '../platform/storage/persistentStorage';
+import { getInstalledAkeCatalog } from '../integrations/ake/akeCatalogAdapter';
 
 export interface TimelineSnapshotPayload {
+  source?: { engine: 'ake'; schemaVersion: 1; dataVersion: string; sharedRevision: string };
   selectedCharacters: string[];
   timelineData: TimelineData;
   skillButtonTable: SkillButtonTable;
@@ -199,6 +201,7 @@ function isValidTimelineSnapshotPayload(value: unknown): value is TimelineSnapsh
 
 export function normalizeSnapshotPayload(payload: TimelineSnapshotPayload): TimelineSnapshotPayload {
   return {
+    ...(payload.source ? { source: payload.source } : {}),
     selectedCharacters: payload.selectedCharacters,
     timelineData: payload.timelineData,
     skillButtonTable: payload.skillButtonTable,
@@ -312,7 +315,7 @@ function readCurrentPayload(): TimelineSnapshotPayload | null {
   const characterDisplayCacheMap = getCharacterDisplayCacheMap();
   const operatorConfigPageCache = getOperatorConfigPageCache();
 
-  if (!timelineData || selectedCharacters.length === 0) {
+  if (!timelineData) {
     return null;
   }
 
@@ -328,6 +331,9 @@ function readCurrentPayload(): TimelineSnapshotPayload | null {
   }
 
   return {
+    ...(getInstalledAkeCatalog() ? { source: { engine: 'ake' as const, schemaVersion: 1 as const,
+      dataVersion: getInstalledAkeCatalog()!.source.version ?? '',
+      sharedRevision: getInstalledAkeCatalog()!.source.sharedRevision ?? '' } } : {}),
     selectedCharacters,
     timelineData: synchronized.timelineData,
     skillButtonTable,

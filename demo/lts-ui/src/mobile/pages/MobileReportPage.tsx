@@ -48,7 +48,7 @@ export interface MobileReportPageProps {
   operators: Character[];
   operatorConfigs: Record<string, MobileOperatorConfig>;
   operatorSnapshots: Record<string, ConfigSnapshot>;
-  weapons: MobileCatalog['weapons'];
+  weapons: Record<string, Pick<MobileCatalog['weapons'][string], 'id' | 'name' | 'imgUrl'>>;
   equipment: EquipmentLibrary;
   slots: MobileTimelineSlot[];
   slotCalculations: Record<string, MobileSlotCalculation>;
@@ -58,6 +58,8 @@ export interface MobileReportPageProps {
   shareEnabled: boolean;
   onCreateShare?: () => Promise<MobileShareRecord>;
   timelineNotes: Record<string, string>;
+  reportTitle?: string;
+  reportNotice?: string;
   onTimelineNotesChange: (notes: Record<string, string>) => void;
 }
 
@@ -201,9 +203,9 @@ function buildEquipmentMap(library: EquipmentLibrary): Map<string, EquipmentItem
 }
 
 function findWeapon(
-  weapons: MobileCatalog['weapons'],
+  weapons: MobileReportPageProps['weapons'],
   weaponId: string | undefined,
-): MobileCatalog['weapons'][string] | null {
+): MobileReportPageProps['weapons'][string] | null {
   if (!weaponId) return null;
   return Object.entries(weapons).find(([key, weapon]) => key === weaponId || weapon.id === weaponId)?.[1] ?? null;
 }
@@ -260,7 +262,7 @@ function TeamReportSlide({
   operators: Character[];
   operatorConfigs: Record<string, MobileOperatorConfig>;
   operatorSnapshots: Record<string, ConfigSnapshot>;
-  weapons: MobileCatalog['weapons'];
+  weapons: MobileReportPageProps['weapons'];
   equipmentMap: Map<string, EquipmentItem>;
   titleId?: string;
 }) {
@@ -464,18 +466,21 @@ function OperatorShareChart({ rows }: { rows: DisplayReportRow[] }) {
   );
 }
 
-function CumulativeDamageChart({ entries }: { entries: TimelineReportEntry[] }) {
+function CumulativeDamageChart({ entries, report }: { entries: TimelineReportEntry[]; report: MobileDamageReport }) {
   let runningTotal = 0;
-  const points = entries.map((entry, index) => {
+  const fallbackPoints = entries.map((entry, index) => {
     runningTotal += toSafeAmount(entry.calculation?.result.summary.totalExpected);
-    return { index, value: runningTotal, label: `${entry.order}. ${entry.operator.name} ${entry.action.skillName}` };
+    return { position: index, value: runningTotal, label: `${entry.order}. ${entry.operator.name} ${entry.action.skillName}` };
   });
+  const points = report.cumulativeDamage ?? fallbackPoints;
+  runningTotal = points[points.length - 1]?.value ?? 0;
   if (points.length === 0) return <EmptyReportState>暂无时序伤害数据</EmptyReportState>;
+  const maxPosition = Math.max(...points.map(point => point.position), 1);
 
   const maxValue = Math.max(...points.map((point) => point.value), 1);
   const chartPoints = points.map((point) => ({
     ...point,
-    x: points.length === 1 ? 28 : 24 + (point.index / (points.length - 1)) * 276,
+    x: points.length === 1 ? 28 : 24 + (point.position / maxPosition) * 276,
     y: 122 - (point.value / maxValue) * 92,
   }));
   const linePath = chartPoints.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(' ');
@@ -517,7 +522,7 @@ function CumulativeDamageChart({ entries }: { entries: TimelineReportEntry[] }) 
         strokeWidth="2"
         style={{ fill: 'none', stroke: REPORT_CHART_COLORS.ink, strokeWidth: 2 }}
       />
-      {chartPoints.map((point) => (
+      {(report.cumulativeDamage ? [chartPoints[0], chartPoints[chartPoints.length - 1]] : chartPoints).map((point) => (
         <circle
           key={point.label}
           cx={point.x}
@@ -543,7 +548,7 @@ function CumulativeDamageChart({ entries }: { entries: TimelineReportEntry[] }) 
         textAnchor="end"
         fill={REPORT_CHART_COLORS.muted}
         style={{ fill: REPORT_CHART_COLORS.muted, fontSize: 9.5, fontWeight: 720 }}
-      >{entries.length} 次技能</text>
+      >{report.cumulativeAxisLabel ?? `${entries.length} 次技能`}</text>
     </svg>
   );
 }
@@ -585,8 +590,8 @@ function SkillDamageBars({ rows }: { rows: DisplayReportRow[] }) {
   );
 }
 
-function MobileRdpsOverview({ summary }: { summary: RdpsAttributionSummary | undefined }) {
-  if (!summary) return <EmptyReportState>暂无 RD 归因数据</EmptyReportState>;
+function MobileRdpsOverview({ summary, unavailableReason }: { summary: RdpsAttributionSummary | undefined; unavailableReason?: string }) {
+  if (!summary) return <EmptyReportState>{unavailableReason || '暂无 RD 归因数据'}</EmptyReportState>;
   const model = buildRdpsOverviewModel(summary);
   const { actualTotal, characters, parts, canRenderPie } = model;
   if (characters.length === 0 && actualTotal === 0) return <EmptyReportState>当前队伍没有可归因干员</EmptyReportState>;
@@ -724,8 +729,8 @@ function MobileRdpsCharacterCard({ character }: { character: RdpsCharacterContri
   );
 }
 
-function MobileRdpsDomains({ summary }: { summary: RdpsAttributionSummary | undefined }) {
-  if (!summary) return <EmptyReportState>暂无 RD 来源域数据</EmptyReportState>;
+function MobileRdpsDomains({ summary, unavailableReason }: { summary: RdpsAttributionSummary | undefined; unavailableReason?: string }) {
+  if (!summary) return <EmptyReportState>{unavailableReason || '暂无 RD 来源域数据'}</EmptyReportState>;
   const characters = summary.characters.slice(0, 4);
   if (characters.length === 0) return <EmptyReportState>当前队伍没有来源域数据</EmptyReportState>;
   const unresolvedCount = summary.diagnostics.unresolvedDefinitionCount
@@ -770,15 +775,15 @@ function ChartReportSlide({
       </article>
       <article className="mobile-report-chart-card">
         <h3><span>图 2</span>伤害过程时序</h3>
-        <CumulativeDamageChart entries={entries} />
+        <CumulativeDamageChart entries={entries} report={report} />
       </article>
       <article className="mobile-report-chart-card">
         <h3><span>图 3</span>总 RD 归因</h3>
-        <MobileRdpsOverview summary={report.rdps} />
+        <MobileRdpsOverview summary={report.rdps} unavailableReason={report.rdpsUnavailableReason} />
       </article>
       <article className="mobile-report-chart-card" data-export-balance-card="rdps-domains">
         <h3><span>图 4</span>干员来源域 RD</h3>
-        <MobileRdpsDomains summary={report.rdps} />
+        <MobileRdpsDomains summary={report.rdps} unavailableReason={report.rdpsUnavailableReason} />
       </article>
       <article className="mobile-report-chart-card" data-export-balance-card="skill-damage">
         <h3><span>明细</span>技能伤害</h3>
@@ -887,6 +892,7 @@ function TimelineReportSlide({
                           <span className="mobile-report-timeline-action-copy">
                             <strong title={action.skillName}>{action.skillName}</strong>
                             <small><b>{String(slotIndex + 1).padStart(2, '0')}</b>{REPORT_SKILL_TYPE_LABELS[action.skillType]}</small>
+                            {action.reportTimingLabel ? <small>{action.reportTimingLabel}</small> : null}
                           </span>
                           <span
                             className="mobile-report-timeline-card-avatar"
@@ -1188,6 +1194,8 @@ export function MobileReportPage({
   shareEnabled,
   onCreateShare,
   timelineNotes,
+  reportTitle,
+  reportNotice,
   onTimelineNotesChange,
 }: MobileReportPageProps) {
   const [activePage, setActivePage] = useState<ReportPageId>('team');
@@ -1293,7 +1301,7 @@ export function MobileReportPage({
 
       const canvas = await toCanvas(stage, {
         backgroundColor: '#fbfcfb',
-        cacheBust: true,
+        cacheBust: false,
         pixelRatio: REPORT_EXPORT_PIXEL_RATIO,
         skipAutoScale: true,
         width: pageWidth * panels.length,
@@ -1352,10 +1360,11 @@ export function MobileReportPage({
   return (
     <main className="mobile-report-page" aria-label="伤害报表">
       <header className="mobile-report-page-header">
-        <div><p>04 / 伤害报表</p><h1>战术报告</h1></div>
+        <div><p>04 / 伤害报表</p><h1>{reportTitle || '战术报告'}</h1></div>
         <span><small>总期望</small><strong>{safeReport.slotCount > 0 ? formatDamage(safeReport.totalExpected) : '—'}</strong></span>
       </header>
 
+      {reportNotice ? <p className="mobile-report-adapter-notice" role="note">{reportNotice}</p> : null}
       <nav className="mobile-report-page-tabs" aria-label="报表分页">
         {REPORT_PAGES.map((page) => (
           <button
@@ -1393,7 +1402,7 @@ export function MobileReportPage({
         <span>
           <small>EXPORT COMPOSITE</small>
           <strong>导出三联战术报告</strong>
-          <p>01 / 02 / 03 保持窄版构图，以 1280px 原生 HTML 模板直接成像</p>
+          <p>将队伍配置、排轴概览和伤害图表合成一张 PNG</p>
         </span>
         <div className="mobile-report-export-actions">
           <button type="button" onClick={handleExport} disabled={isExporting}>
@@ -1416,6 +1425,7 @@ export function MobileReportPage({
         <MobilePortal>
           <div ref={exportStageRef} className="mobile-report-page mobile-report-export-stage" aria-hidden="true">
             <div className="mobile-report-export-panel mobile-report-export-team-panel">
+              {reportTitle || reportNotice ? <div className="mobile-report-adapter-notice"><strong>{reportTitle}</strong>{reportNotice ? <p>{reportNotice}</p> : null}</div> : null}
               <TeamReportSlide
                 operators={operators}
                 operatorConfigs={operatorConfigs}

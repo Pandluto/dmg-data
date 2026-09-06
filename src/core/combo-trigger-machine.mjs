@@ -43,15 +43,18 @@ function normalizeRule(rawRule, index) {
     const rootSkillRole = selector.rootSkillRole ?? null;
     const statusBuffIds = selector.statusBuffIds ?? [];
     const sourceCommandTypes = selector.sourceCommandTypes ?? [];
-    if (!Array.isArray(statusBuffIds) || !Array.isArray(sourceCommandTypes)) {
+    const spellBurstTypes = selector.spellBurstTypes ?? [];
+    if (!Array.isArray(statusBuffIds) || !Array.isArray(sourceCommandTypes)
+        || !Array.isArray(spellBurstTypes)) {
         throw new Error(
-            `Combo trigger rule ${id} statusBuffIds/sourceCommandTypes must be arrays.`
+            `Combo trigger rule ${id} statusBuffIds/sourceCommandTypes/spellBurstTypes must be arrays.`
         );
     }
     if (rootSkillIds.length === 0 && !rootSkillRole
-        && statusBuffIds.length === 0 && sourceCommandTypes.length === 0) {
+        && statusBuffIds.length === 0 && sourceCommandTypes.length === 0
+        && spellBurstTypes.length === 0) {
         throw new Error(
-            `Combo trigger rule ${id} must select a root skill, semantic role, status, or command type.`
+            `Combo trigger rule ${id} must select a root skill, semantic role, status, command type, or spell burst type.`
         );
     }
     const durationTicks = Number(effect.pendingDurationTicks);
@@ -88,6 +91,8 @@ function normalizeRule(rawRule, index) {
                     `combo trigger rule ${id} sourceCommandTypes[${commandIndex}]`
                 )
             ))],
+            spellBurstTypes: [...new Set(spellBurstTypes.map((type, index) =>
+                requiredString(type, `combo trigger rule ${id} spellBurstTypes[${index}]`)))],
             requireSourceOtherThanOwner: selector.requireSourceOtherThanOwner === true,
             sourceSkillIds: selector.sourceSkillIds
                 ? [...new Set(selector.sourceSkillIds.map((skillId, skillIndex) =>
@@ -246,6 +251,8 @@ export class ComboTriggerMachine {
             && !rule.selector.sourceSkillIds.includes(event.sourceSkillId)) return false;
         if (rule.selector.statusBuffIds.length > 0
             && !rule.selector.statusBuffIds.includes(event.buffId)) return false;
+        if (rule.selector.spellBurstTypes.length > 0
+            && !rule.selector.spellBurstTypes.includes(event.payload?.spellBurstType)) return false;
         if (rule.selector.sourceCommandTypes.length > 0
             && !rule.selector.sourceCommandTypes.includes(event.sourceCommandType)) return false;
         if (rule.selector.damageAttributeType

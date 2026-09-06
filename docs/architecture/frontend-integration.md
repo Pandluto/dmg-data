@@ -38,6 +38,8 @@ LTS 按钮键沿用产品约定：
 
 按钮身份不等于最终结算身份。强化 B 可以实际执行派生连携程序；UI 应显示“战技输入”和“连携结算”两个事实，而不是把按钮改名后丢失输入来源。
 
+排轴节点提交 `queueMode: timeline-sequence`：请求帧表示最早希望执行的位置，动作占用时持续等待并重新解析释放时的技能形态。原始按键模拟仍使用 30 帧输入缓存；不能把排轴节点静默转换成一次按键后过期。运行时契约版本进入 execution digest，准入语义更新后旧报告失效并重算。
+
 ## 预演与结算
 
 前端保留两种结果等级：
@@ -74,6 +76,14 @@ LTS 按钮键沿用产品约定：
 
 `AkeReportDrawer` 展示整队实际时序；`SkillButton` 的详情只读取对应 command ledger。
 
+## 排轴中的战斗检查
+
+AKE 模式下，单击技能会在侧栏显示本次动作，双击继续打开完整命中与乘区详情。侧栏分别显示按钮输入、实际结算类型、请求与释放帧，以及本次动作引起的关键状态变化。排轴被阻断时，底部按钮打开具体原因，并可定位到技能或打开对应时间操作的配置。
+
+状态历程按 `frame + sequence` 展示敌方关键状态与队伍共享连击；点击事件读取该事件之后的状态，保留同帧多次变化。共享连击只使用逻辑 ledger，不统计每个队员的状态镜像。消费动作和原始提供动作分别关联；自然到期不会被归为来源技能再次触发。
+
+检查侧栏只读取匹配当前 execution digest 的报告。结算更新、失败与重试均可见；规划不合法时，已经执行的动作标为部分结果，不能据此宣称整条排轴可执行。检查不依赖 RIA 归档接口，也不创建可写的战斗状态。
+
 ## 面板值与运行时值
 
 LTS 面板攻击用于展示配置公式；AKE runtime attack 用于 Hit 结算。报告同时保留：
@@ -85,12 +95,66 @@ LTS 面板攻击用于展示配置公式；AKE runtime attack 用于 Hit 结算�
 
 二者不同不自动表示错误。UI 必须标明口径，不能用 runtime 值覆盖面板值，也不能把面板舍入差异写成引擎误差。
 
+## 配置与选人图片
+
+AKE 官方目录图片由 `demo/lts-ui/scripts/build-ake-ui-images.mjs` 生成随应用发布的 WebP；
+运行 `npm --prefix demo/lts-ui run images:ake` 更新。完整校验账本在
+`scripts/ake-image-manifest.json`，浏览器只打包精简的 `akeImageManifest.json`。
+默认复用数据版本相同且 SHA-256 正确的文件，`-- --refresh` 强制重新下载。
+目录更新后应重新生成资源，并将资源、运行时映射和账本一起提交。
+
+原尺寸图片无损编码；选择器另有 128px 缩略图，通过 `srcSet/sizes` 适配显示密度。
+官方 URL 与已经解析的哈希路径必须直接命中同一个资源，不能再进入历史文件名模糊匹配，
+否则哈希可能被当成扩展名去掉，图片重新落到旧 PNG。自定义 BLOB、其他外链仍沿用原解析行为。
+
+武器、装备与选人列表使用 `LazyAssetImage`：文本和布局先显示，图片进入滚动可见区域后请求；
+武器/装备入口聚焦或指向时最多预热前 12 项。已加载资源复用浏览器缓存，解码异步执行。
+带内容哈希的图标在 Vite 和构建服务器均返回一年 `immutable` 缓存，支持 HEAD/ETag。
+上游缺失图片由生成账本明确记录，选择器显示文字占位。
+
 ## 仍然存在的前端债务
 
 - realtime planner 仍是一套较大的前端规划实现；它与 settled runtime 的重合部分需要继续缩小。
 - `fixedDummyStateMachine` 仍服务旧/演示链；AKE settled 模式已撤销其数值权威，但物理删除尚未完成。
 - `CanvasBoard` 与 `SkillButton` 仍很大，交互、投影和展示边界需要后续拆分。
 - 页面只能在真实浏览器中证明拖拽、详情、状态持久性和视觉含义；Node 合同测试不能代替可见验收。
+
+
+### 命中锚点与实际结算投影
+
+排轴中的 `damage-hit` 关系不能只提交预演帧。Provider 保留可释放命中的
+`releaseDependency`（来源 command、实际命中 skill、技能局部帧与 debounce），
+由共享运行时在真实直接伤害发生后调度后继输入。排队、技能变形及终结技暂停均不能
+把后继输入提前到来源命中之前。旧的持续伤害锚点仍按既有规则修复，不作为释放边界。
+带依赖的场景必须提供 `endFrame`；来源没有到达指定命中时返回
+`RELEASE_ANCHOR_NOT_REACHED`，不可回退为预演帧执行。
+
+`CommandAnchored` 与 `ReleaseAnchorResolved` 保留等待与解除等待的来源。
+报告与画布使用同一份实际起止帧；显示投影不会写回输入计划，避免反馈重算。
+原始释放关系进入 execution digest（workspace runtime v6），即便两种关系暂时得到同一预演帧，
+更换关系仍会使旧报告失效。
+
+计算具有递增版本，AbortSignal 或过期版本都阻止结果发布与调试状态覆盖。
+RIA 自动记录采用预热工作线程复用不可变数据/编译缓存，每次运行创建独立战斗状态。
+结果交付不等待事件写盘、断言哈希、快照构建和封存；这些继续使用同次执行产生的真实
+事件完成归档，`RiaRunSealed` 单独通知。显式记录和回放保留原有持久化 checkpoint 行为。
+
+
+## AKE 存档与报表边界
+
+`integrations/ake/akeWorkspace.ts` 提供新建、保存、打开和完整文件往返，统一使用 SQLite 文档/工作节点和当前版本指针。
+官方目录只读；用户存档持有队伍配置和排轴输入。新建和切换前保留当前改动，保存不重新恢复画布。
+节点选择与恢复分离，恢复命令独占 checkout 身份的持久化。
+
+`akeExecutionIdentity.ts` 为同一组保存输入生成稳定身份，报告还必须匹配活动 workspaceId。
+报表复用 DEF 原有 `DamageReportPptPage` 分页模板和 `MobileReportPage` 三联一图流/PNG 导出器；`akeReportPresentation` 只适配数据，不重新设计展示层，也不调用 DEF calculator。
+主口径沿用期望伤害，非暴击与暴击另列；DoT 和技能实体按引擎 memberId 归属干员，实际命中帧决定曲线横轴。部分结算标记进入导出图片。
+原图 3/图 4 使用原 DEF Owen 数学模块 `rdpsOwenAttribution`。AKE 命中解析器冻结计算输入，`ake-rdps-context` 按来源过滤后重用引擎属性和伤害公式；`akeRdps.worker` 在报表后台完成归因。固定实际命中和释放计划，完整静态面板归本体，武器/装备被动按实际施加者归属，生成器随来源关闭，严格排除失衡并独立核对未知来源余额。报表只统计敌方 Hp 命中，Poise/Resilience 和己方 Hp 事件保留在原始调试日志。
+归因完成后才允许整图导出；RIA Live 的 `report` section 提供来源记录、逐次重构与层级核对、残差分解和耗时。输入失配或过期报告不冒充当前结果。
+批注进入 timelineData.reportNotes，随 SQLite 存档和节点恢复；批注不属于计算身份。
+本阶段只维护桌面入口；复用 MobileReportPage 的既有图片模板不启动 MobileBootstrap、移动选人或移动排轴流程。
+详见 [存档与报表适配记录](../maintenance/ake-workspace-reports-20260905.md)。
+
 
 ## 局部接续放大镜
 

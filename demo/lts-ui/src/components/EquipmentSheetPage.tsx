@@ -82,7 +82,7 @@ import {
   type EquipmentWorkbookRow,
 } from './equipmentSheetWorkbook';
 import './BuffDraftPage.css';
-import './OperatorDraftPage.css';
+import './DataEditor.css';
 import './WorkbookSheet.css';
 import './EquipmentSheetPage.css';
 

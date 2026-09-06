@@ -5,12 +5,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import {
-    DemoInputError,
-    getDemoCatalog,
-    simulateDemo,
-    simulateSquadDemo
-} from './demo-service.mjs';
+import { createAkeDemoApi } from './ake-api.mjs';
 
 const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(moduleDirectory, '..');
@@ -40,21 +35,6 @@ function sendJson(response, statusCode, value) {
         'Cache-Control': 'no-store'
     });
     response.end(body);
-}
-
-async function readJson(request) {
-    const chunks = [];
-    let length = 0;
-    for await (const chunk of request) {
-        length += chunk.length;
-        if (length > 1_000_000) throw new DemoInputError('请求体超过 1 MB。');
-        chunks.push(chunk);
-    }
-    try {
-        return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
-    } catch {
-        throw new DemoInputError('请求体不是有效 JSON。');
-    }
 }
 
 async function serveStatic(pathname, response) {
@@ -88,37 +68,17 @@ async function serveStatic(pathname, response) {
     }
 }
 
+const api = createAkeDemoApi({ projectRoot, publicRoot });
 const server = http.createServer(async (request, response) => {
     try {
+        if (await api.handle(request, response)) return;
         const url = new URL(request.url, `http://${request.headers.host ?? `${host}:${port}`}`);
-        if (request.method === 'GET' && url.pathname === '/api/health') {
-            sendJson(response, 200, { ok: true, frontend: 'lts-reuse', engine: 'ake' });
-            return;
-        }
-        if (request.method === 'GET' && ['/api/catalog', '/api/ake/catalog'].includes(url.pathname)) {
-            sendJson(response, 200, getDemoCatalog({ projectRoot }));
-            return;
-        }
-        if (request.method === 'POST' && url.pathname === '/api/ake/squad/simulate') {
-            const input = await readJson(request);
-            sendJson(response, 200, simulateSquadDemo(input, { projectRoot }));
-            return;
-        }
-        if (request.method === 'POST' && ['/api/simulate', '/api/ake/simulate'].includes(url.pathname)) {
-            const input = await readJson(request);
-            sendJson(response, 200, simulateDemo(input, { projectRoot }));
-            return;
-        }
         if (request.method !== 'GET' && request.method !== 'HEAD') {
             sendJson(response, 405, { error: '不支持这个请求方法。' });
             return;
         }
         await serveStatic(url.pathname, response);
     } catch (error) {
-        if (error instanceof DemoInputError) {
-            sendJson(response, 400, { error: error.message });
-            return;
-        }
         console.error(error);
         sendJson(response, 500, { error: '模拟失败，请查看服务端日志。' });
     }
@@ -129,5 +89,5 @@ server.listen(port, host, () => {
 });
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
-    process.on(signal, () => server.close(() => process.exit(0)));
+    process.on(signal, () => { void api.close().finally(() => server.close(() => process.exit(0))); });
 }

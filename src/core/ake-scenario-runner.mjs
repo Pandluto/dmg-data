@@ -1,3 +1,6 @@
+import { combatTriggerAttribution } from './combat-trigger-attribution.mjs';
+import { isPlungingImpactInput, plungingImpactInputRejection } from './ake-attack-input.mjs';
+import { canReplaceAkeSkillCast, executeAkeSkillCastReplacement } from './ake-skill-cast-replacement.mjs';
 import { createAkeDamageResolver } from './ake-damage-resolver.mjs';
 import {
     applyAkeLocalClockTrigger,
@@ -93,6 +96,8 @@ function damageLogFromTrace(trace, statusTrace = []) {
             const applied = appliedHits[index]?.result ?? null;
             return {
                 traceIndex,
+                ...combatTriggerAttribution(entry),
+                statusEventSequenceBeforeHit: hit.statusEventSequenceBeforeHit ?? null,
                 frame: entry.frame,
                 sourceId: entry.sourceId,
                 ownerId: entry.ownerId,
@@ -247,7 +252,9 @@ export class AkeScenarioRunner {
                     ?? null,
                 sourceCastId: transition.castId,
                 targetId: transition.targetId,
-                damageAttributeType: null
+                damageAttributeType: null,
+                payload: { before: transition.before, after: transition.after,
+                    actual: transition.actual, stackCount: transition.stackCount }
             }, {
                 currentSkillId: currentSkill?.skillId ?? transition.rootSkillId,
                 currentPriority: currentSkill?.priority ?? 0
@@ -411,9 +418,20 @@ export class AkeScenarioRunner {
                 });
             },
             onStatusTransition: observeStatusTransitionForCombos,
+            onCombatEvent: event => {
+                if (!comboMachine) return;
+                comboMachine.observe({ ...event, sourceSkillId: event.skillId,
+                    sourceCastId: event.castId,
+                    sourceCommandType: event.effectiveSkillType ?? event.skillType
+                        ?? event.commandType ?? currentSkill?.commandType,
+                    rootSkillRoles: rootSkillRolesFor(event.rootSkillId)
+                }, { currentSkillId: currentSkill?.skillId ?? event.skillId,
+                    currentPriority: currentSkill?.priority ?? 0 });
+            },
             traceSink: this.traceSink,
             maxEventsPerRun: this.maxEventsPerRun
         });
+        runtime.setMainCharacter(characterId, { frame: 0, reason: 'InitialController' });
         const loadoutManager = new LoadoutEffectManager({ runtime });
         const loadoutInstallations = (bundle.loadoutEffects ?? []).map(effect => (
             loadoutManager.install(effect, {
@@ -613,6 +631,9 @@ export class AkeScenarioRunner {
             }
             active.naturalEndGeneration += 1;
             active.plannedNaturalEndFrame = frame + Math.max(0, Math.trunc(durationTicks));
+            active.plannedNaturalEndLocalFrame = runtime.clockDomains.localFrameAt(
+                actorClockDomainId, frame
+            ) + Math.max(0, Math.trunc(durationTicks));
             const timerId = `command-skill:${active.token}:natural-end:${active.naturalEndGeneration}`;
             active.naturalEndTimerId = runtime.clockDomains.startTimer(
                 actorClockDomainId,
@@ -669,6 +690,12 @@ export class AkeScenarioRunner {
             active.derivedCasts.push(derived);
             active.executedSkillId = request.executedSkillId;
             active.effectiveSkillType = request.effectiveSkillType;
+            active.controlExecutionId = request.scheduled.executionId;
+            if (request.effectiveSkillType) {
+                const controlType = request.effectiveSkillType === 'NormalAttack'
+                    ? 'Attack' : request.effectiveSkillType;
+                active.priority = this.commandAdmissionProvider.profile(controlType).priority;
+            }
             const derivedEndFrame = request.launchFrame
                 + skillNaturalEndOffset(request.program);
             if (derivedEndFrame > (active.plannedNaturalEndFrame ?? active.startFrame)) {
@@ -702,7 +729,9 @@ export class AkeScenarioRunner {
                 && centerState !== desiredState) {
                 transition(frame, desiredState, `command:${commandType}`);
             }
-            if (previous) finishCurrentSkill(frame, 'Interrupted');
+            if (previous) finishCurrentSkill(frame,
+                runtime.clockDomains.localFrameAt(actorClockDomainId, frame)
+                    >= previous.plannedNaturalEndLocalFrame ? 'Completed' : 'Interrupted');
             if (!previous) transition(frame, desiredState, `command:${commandType}`);
             else transition(frame, desiredState, `skill-start:${skillId}`);
 
@@ -889,19 +918,34 @@ export class AkeScenarioRunner {
             return active.timelineAnchorFrame
                 + (localFrame - active.timelineAnchorLocalFrame);
         };
+        const currentSkillControl = frame => {
+            if (!currentSkill) return null;
+            const control = currentSkill.controlExecutionId
+                ? runtime.getSkillProgramControl(currentSkill.controlExecutionId, frame) : null;
+            return control ? { ...currentSkill, ...control } : {
+                ...currentSkill, timelineFrame: timelineFrameAt(currentSkill, frame)
+            };
+        };
+        runtime.currentSkillResolver = ({ targetId, frame }) => {
+            if (targetId !== characterId || !currentSkill
+                || runtime.clockDomains.localFrameAt(actorClockDomainId, frame)
+                    >= currentSkill.plannedNaturalEndLocalFrame) return null;
+            return currentSkillControl(frame);
+        };
         const admission = (commandType, skillId, frame, commandId = null) => {
-            const timelineFrame = currentSkill
-                ? timelineFrameAt(currentSkill, frame)
-                : 0;
+            const control = currentSkillControl(frame);
             const decision = this.commandAdmissionProvider.evaluate({
                 commandType,
                 skillId,
-                currentSkill,
-                timelineFrame
+                currentSkill: control,
+                timelineFrame: control?.timelineFrame ?? 0
             });
             commandAdmissionTrace.push({
                 frame,
                 commandId,
+                currentInputSkillId: currentSkill?.inputSkillId ?? null,
+                currentInputCommandType: currentSkill?.commandType ?? null,
+                currentCastId: control?.castId ?? null,
                 ...clone(decision)
             });
             return decision.accepted ? null : decision;
@@ -997,11 +1041,18 @@ export class AkeScenarioRunner {
             let skillId = null;
             let skillSource = fromQueue ? 'next-skill-request' : 'combo-mapping';
             let comboGate = null;
-            if (command.commandType === 'Attack') {
-                skillId = forcedSkillId ?? mappedSkill(currentSkill?.skill, 'Attack')
+            const plungingImpact = isPlungingImpactInput(command);
+            if (plungingImpact) {
+                const rejection = plungingImpactInputRejection({ roles: bundle.roles,
+                    actorId: characterId, mainCharacterId: runtime.mainCharacterId });
+                if (rejection) { failCommand(command, frame, rejection); return; }
+                skillId = bundle.roles.plungingAttackEndId;
+                skillSource = 'plunging-impact-capability';
+            } else if (command.commandType === 'Attack') {
+                skillId = forcedSkillId ?? mappedSkill(currentSkillControl(frame)?.skill, 'Attack')
                     ?? bundle.roles.normalAttackIds[0];
             } else if (command.commandType === 'ComboSkill') {
-                const mapped = mappedSkill(currentSkill?.skill, 'ComboSkill');
+                const mapped = mappedSkill(currentSkillControl(frame)?.skill, 'ComboSkill');
                 const override = runtime.skillForms.resolveOverride({
                     targetId: characterId,
                     skillSlot: 'ComboSkill'
@@ -1031,7 +1082,7 @@ export class AkeScenarioRunner {
                     }
                 }
             } else if (command.commandType === 'NormalSkill') {
-                const mapped = mappedSkill(currentSkill?.skill, 'NormalSkill');
+                const mapped = mappedSkill(currentSkillControl(frame)?.skill, 'NormalSkill');
                 skillId = forcedSkillId ?? mapped ?? bundle.roles.normalSkillId;
             } else if (command.commandType === 'UltimateSkill') {
                 skillId = forcedSkillId ?? command.skillId ?? bundle.roles.ultimateSkillId;
@@ -1058,18 +1109,25 @@ export class AkeScenarioRunner {
             }
 
             const commandId = commandIdentifier(command);
-            const admissionGate = admission(command.commandType, skillId, frame, commandId);
-            if (admissionGate) {
-                if (allowQueue) queueCommand(command, frame, skillId, admissionGate);
-                else failCommand(command, frame, 'QUEUED_COMMAND_STILL_BLOCKED', skillId);
-                return;
-            }
-
             const skill = runtime.resolveSkillProgram(bundle.programs.get(skillId), {
                 ownerId: characterId,
                 skillId
             });
             if (!skill) throw new Error(`Missing compiled SkillData ${skillId}.`);
+            const replacementContext = { frame, sourceId: characterId,
+                ownerId: characterId, targetId: enemyId, commandId, skillId,
+                commandType: command.commandType, clockDomainId: actorClockDomainId,
+                blackboard: clone(skill.blackboard ?? {}) };
+            const replacesCast = canReplaceAkeSkillCast(runtime, skill, replacementContext);
+            const admissionGate = replacesCast ? null : admission(command.commandType, skillId, frame, commandId);
+            if (admissionGate) {
+                if (plungingImpact) failCommand(command, frame, 'PLUNGING_IMPACT_BLOCKED', skillId);
+                else if (allowQueue) queueCommand(command, frame, skillId, admissionGate);
+                else failCommand(command, frame, 'QUEUED_COMMAND_STILL_BLOCKED', skillId);
+                return;
+            }
+
+
             const skillCooldownEnd = runtime.cooldowns.getEndFrame(characterId, skillId);
             if (skillCooldownEnd > frame && !comboGate?.pending?.bypassSkillCooldown) {
                 failCommand(command, frame, 'COOLDOWN_ACTIVE', skillId);
@@ -1077,6 +1135,19 @@ export class AkeScenarioRunner {
             }
             if (!canPay(skill, frame)) {
                 failCommand(command, frame, 'INSUFFICIENT_RESOURCE', skillId);
+                return;
+            }
+            if (replacesCast) {
+                const castId = `command-cast:${nextCastToken++}`;
+                executeAkeSkillCastReplacement(runtime, skill, { ...replacementContext, castId });
+                commandTrace.push({ type: 'CommandExecuted', frame, commandId, castId,
+                    commandType: command.commandType, skillId, skillSource: 'switch-to-buff',
+                    success: true, endFrame: frame, completion: 'Completed',
+                    preservedCastId: currentSkill?.castId ?? null });
+                if (command.commandType === 'ComboSkill' && comboGate?.pending) {
+                    comboMachine.consume({ frame, pendingId: comboGate.pending.id,
+                        currentSkillId: skillId, currentPriority: currentSkill?.priority ?? 0 });
+                }
                 return;
             }
             beginSkill(frame, command.commandType, skillId, skillSource, commandId);
@@ -1098,6 +1169,7 @@ export class AkeScenarioRunner {
                     frame: command.frame,
                     commandId: commandIdentifier(command),
                     commandType: command.commandType,
+                    ...(command.attackMode ? { attackMode: command.attackMode } : {}),
                     queueWindowFrames: this.commandQueueWindowFrames,
                     targetId: command.targetId ?? enemyId
                 });

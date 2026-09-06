@@ -7,8 +7,8 @@
  * - 一个逻辑节点横向占一格：80px
  * - 表格组宽度 1160px = 40px(第0列) + 14 * 80px(普通列)
  * - 第0行是 30px 字母标注行(A-N)
- * - 每名干员独占：上格30px + 下格30px + 能量行12px
- * - 表格组高度 318px = 30px + 4 * 72px
+ * - 每名干员独占：起手标记行18px + 上格30px + 下格30px + 能量行12px
+ * - 表格组高度 390px = 30px + 4 * 90px
  * - 谱线中心是每名干员下格的中心；hit 基线是下格底边/能量行顶边
  */
 
@@ -16,8 +16,11 @@ export const GRID_FIRST_COLUMN_WIDTH = 40;
 export const GRID_COLUMN_WIDTH = 80;
 export const GRID_ROW_HEIGHT = 30;
 export const GRID_ENERGY_ROW_HEIGHT = 12;
+/** Reserved caption space, separate from both 30px interaction rows. */
+export const GRID_RELEASE_ROW_HEIGHT = 18;
+export const GRID_SKILL_BAY_HEIGHT = GRID_ROW_HEIGHT * 2 + GRID_RELEASE_ROW_HEIGHT;
 export const GRID_MERGED_CELL_GAP = 2;
-export const GRID_OPERATOR_SLOT_HEIGHT = GRID_ROW_HEIGHT * 2 + GRID_ENERGY_ROW_HEIGHT;
+export const GRID_OPERATOR_SLOT_HEIGHT = GRID_SKILL_BAY_HEIGHT + GRID_ENERGY_ROW_HEIGHT;
 export const GRID_NODE_COUNT = 14;
 export const GRID_TIMELINE_WIDTH = GRID_COLUMN_WIDTH * GRID_NODE_COUNT;
 export const GRID_GROUP_WIDTH = GRID_FIRST_COLUMN_WIDTH + GRID_TIMELINE_WIDTH;
@@ -37,26 +40,31 @@ export function getGridNodeCenterX(nodeIndex: number): number {
 }
 
 export function getGridLineCenterY(lineIndex: number): number {
-  return getGridOperatorPairTopY(lineIndex) + GRID_ROW_HEIGHT + GRID_ROW_HEIGHT / 2;
+  return getGridOperatorPairTopY(lineIndex) + GRID_ROW_HEIGHT + GRID_RELEASE_ROW_HEIGHT + GRID_ROW_HEIGHT / 2;
 }
 
 export function getGridOperatorPairTopY(lineIndex: number): number {
   return GRID_ROW_HEIGHT + lineIndex * GRID_OPERATOR_SLOT_HEIGHT;
 }
 
-/** One interaction bay: the operator's upper and lower 30px rows as a unit. */
+/** Top of the dedicated release/start caption row. */
+export function getGridReleaseRowTopY(lineIndex: number): number {
+  return getGridOperatorPairTopY(lineIndex);
+}
+
+/** Two unchanged 30px cells below a reserved caption row. */
 export function getGridMergedCellRect(lineIndex: number, nodeIndex: number) {
   const gap = GRID_MERGED_CELL_GAP;
   return {
     left: GRID_FIRST_COLUMN_WIDTH + clampGridNodeIndex(nodeIndex) * GRID_COLUMN_WIDTH + gap,
     top: getGridOperatorPairTopY(lineIndex) + gap,
     width: GRID_COLUMN_WIDTH - gap * 2,
-    height: GRID_ROW_HEIGHT * 2 - gap * 2,
+    height: GRID_SKILL_BAY_HEIGHT - gap * 2,
   };
 }
 
 export function getGridEnergyRowTopY(lineIndex: number): number {
-  return getGridOperatorPairTopY(lineIndex) + GRID_ROW_HEIGHT * 2;
+  return getGridOperatorPairTopY(lineIndex) + GRID_SKILL_BAY_HEIGHT;
 }
 
 export function getGridGroupTop(staffIndex: number): number {

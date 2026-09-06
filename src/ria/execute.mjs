@@ -12,12 +12,49 @@ const EXECUTORS = Object.freeze({
 
 export const RIA_EXECUTOR_IDS = Object.freeze(Object.keys(EXECUTORS));
 
+/** A serialized, warm browser worker. Recording/replay retain isolated workers. */
+export function createFixtureWorkerExecutor({ projectRoot }) {
+    let worker = null;
+    let tail = Promise.resolve();
+    const warm = () => {
+        if (!worker) {
+            worker = new Worker(new URL('./fixture-worker.mjs', import.meta.url), {
+                execArgv: [], workerData: { reusable: true, projectRoot },
+            });
+            const current = worker;
+            current.on('error', () => { if (worker === current) worker = null; });
+            current.on('exit', () => { if (worker === current) worker = null; });
+            current.unref();
+        }
+        return worker;
+    };
+    const execute = options => {
+        const pending = tail.then(async () => {
+            const current = warm();
+            current.ref();
+            try { return await executeFixtureWorker({ ...options, reusableWorker: current }); }
+            catch (error) {
+                if (worker === current) worker = null;
+                await current.terminate();
+                throw error;
+            } finally { current.unref(); }
+        });
+        tail = pending.catch(() => {});
+        return pending;
+    };
+    execute.warm = warm;
+    execute.close = async () => { await tail; if (worker) await worker.terminate(); worker = null; };
+    return execute;
+}
+
 export function executeFixtureWorker({
     fixture,
     projectRoot,
     seed = null,
     traceSink,
     traceCheckpoint = async () => {},
+    onResultReady = () => {},
+    reusableWorker = null,
     workerUrl = new URL('./fixture-worker.mjs', import.meta.url),
     workerDataExtras = {}
 } = {}) {
@@ -29,28 +66,28 @@ export function executeFixtureWorker({
     return new Promise((resolve, reject) => {
         let settled = false;
         let receivedResult = false;
+        let readyResult;
         const checkpointBuffer = new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT);
         const checkpointState = new Int32Array(checkpointBuffer);
-        const worker = new Worker(workerUrl, {
+        const data = { adapter: fixture.adapter, input: structuredClone(fixture.input), projectRoot, seed,
+            traceCheckpointBuffer: checkpointBuffer, ...workerDataExtras };
+        const worker = reusableWorker ?? new Worker(workerUrl, {
             // Do not inherit the parent test runner/debugger flags. Node exposes
             // several valid process flags in execArgv which Worker deliberately
             // rejects, and the replay adapter does not require any of them.
             execArgv: [],
-            workerData: {
-                adapter: fixture.adapter,
-                input: structuredClone(fixture.input),
-                projectRoot,
-                seed,
-                traceCheckpointBuffer: checkpointBuffer,
-                ...workerDataExtras
-            }
+            workerData: data
         });
+        const cleanup = () => {
+            worker.off('message', onMessage); worker.off('error', onError); worker.off('exit', onExit);
+        };
         const fail = error => {
             if (settled) return;
             settled = true;
+            cleanup();
             reject(error);
         };
-        worker.on('message', message => {
+        const onMessage = message => {
             if (message?.type === 'trace') {
                 try {
                     traceSink(message.packet);
@@ -69,11 +106,19 @@ export function executeFixtureWorker({
                     });
                 return;
             }
-            if (message?.type === 'result') {
+            if (message?.type === 'result-ready') {
+                readyResult = message.result;
+                onResultReady(readyResult);
+                return;
+            }
+            if (message?.type === 'result' || message?.type === 'trace-complete') {
                 receivedResult = true;
                 if (!settled) {
                     settled = true;
-                    resolve(message.result);
+                    cleanup();
+                    const result = message.type === 'result' ? message.result : readyResult;
+                    if (message.type === 'result') onResultReady(result);
+                    resolve(result);
                 }
                 return;
             }
@@ -83,18 +128,22 @@ export function executeFixtureWorker({
                 error.code = message.error?.code ?? 'RIA_WORKER_EXECUTION_FAILED';
                 fail(error);
             }
-        });
-        worker.once('error', error => {
+        };
+        const onError = error => {
             error.code = error.code ?? 'RIA_WORKER_CRASH';
             fail(error);
-        });
-        worker.once('exit', code => {
+        };
+        const onExit = code => {
             if (!settled && (!receivedResult || code !== 0)) {
                 const error = new Error(`RIA fixture worker exited with code ${code}.`);
                 error.code = 'RIA_WORKER_EXIT';
                 fail(error);
             }
-        });
+        };
+        worker.on('message', onMessage);
+        worker.once('error', onError);
+        worker.once('exit', onExit);
+        if (reusableWorker) worker.postMessage(data);
     });
 }
 
@@ -154,6 +203,7 @@ export async function startFixtureRunExecution({
     uiActions = [],
     expectedResult = null,
     findings = '',
+    executeWorker = executeFixtureWorker,
     workerUrl = undefined,
     workerDataExtras = {}
 } = {}) {
@@ -177,30 +227,36 @@ export async function startFixtureRunExecution({
         maxPending: Number(config.maxPendingTraceWrites ?? 100_000),
         normalize: packet => normalizer.normalize(packet.source, packet.fact)
     });
+    let resolveResult;
+    let rejectResult;
+    const resultReady = new Promise((resolve, reject) => { resolveResult = resolve; rejectResult = reject; });
+    resultReady.catch(() => {});
     const execution = (async () => {
         try {
-        const result = await executeFixtureWorker({
-            fixture,
-            projectRoot: archive.projectRoot,
-            traceSink,
-            // The worker pauses at bounded trace windows until every preceding
-            // fact has reached the append-only file. This is backpressure, and
-            // also guarantees the HTTP/SSE loop can expose persisted facts
-            // while the worker is still executing.
-            traceCheckpoint: () => writer.drain(),
-            seed,
-            ...(workerUrl ? { workerUrl } : {}),
-            workerDataExtras
-        });
-        for (const projection of reportProjectionFacts(result)) {
-            for (const event of normalizer.normalize(projection.source, projection.fact)) {
-                writer.appendEvent(event).catch(() => {});
+            const result = await executeWorker({
+                fixture,
+                projectRoot: archive.projectRoot,
+                traceSink,
+                // The worker pauses at bounded trace windows until every preceding
+                // fact has reached the append-only file. This is backpressure, and
+                // also guarantees the HTTP/SSE loop can expose persisted facts
+                // while the worker is still executing.
+                traceCheckpoint: () => writer.drain(),
+                onResultReady: resolveResult,
+                seed,
+                ...(workerUrl ? { workerUrl } : {}),
+                workerDataExtras: { deferTraceUntilResult: config.uiCalculation === true, ...workerDataExtras }
+            });
+            for (const projection of reportProjectionFacts(result)) {
+                for (const event of normalizer.normalize(projection.source, projection.fact)) {
+                    writer.appendEvent(event).catch(() => {});
+                }
             }
-        }
-        await writer.drain();
-        const assertions = deterministicAssertion(result, expectedResult);
+            await writer.drain();
+            const assertions = deterministicAssertion(result, expectedResult);
             return { result, assertions };
         } catch (error) {
+            rejectResult(error);
             await writer.drain();
             for (const event of normalizer.normalize('archive.recording', {
                 frame: 0,
@@ -281,6 +337,7 @@ export async function startFixtureRunExecution({
         sessionId,
         runId: writer.reference.runId,
         writer,
+        resultReady,
         execution,
         seal
     };

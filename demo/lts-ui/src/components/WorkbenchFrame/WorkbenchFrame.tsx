@@ -6,10 +6,9 @@ import { APP_ROUTE_PATHS, navigateToAppPath } from '../../utils/appRoute';
 import { setSelectedSkillButton } from '../../hooks/useSkillButtonBuffs';
 import { SelectionPanel } from '../SelectionPanel';
 import { CanvasBoard } from '../CanvasBoard';
-import { BuffBatchEditWorkbench } from '../BuffBatchEditWorkbench';
 import './WorkbenchFrame.css';
 
-export type WorkbenchMode = 'selection' | 'timeline' | 'buffBatchEdit';
+export type WorkbenchMode = 'selection' | 'timeline';
 
 interface WorkbenchFrameProps {
   activeSkillButtonId?: string | null;
@@ -59,9 +58,7 @@ export function WorkbenchFrame({ activeSkillButtonId = null }: WorkbenchFramePro
     navigateToAppPath(APP_ROUTE_PATHS.operatorConfig);
   }, [selectedCharacters]);
 
-  const modeLabel = workbenchMode === 'buffBatchEdit'
-    ? '批量 Buff'
-    : workbenchMode === 'timeline'
+  const modeLabel = workbenchMode === 'timeline'
       ? '时间轴'
       : '选择队伍';
 
@@ -95,14 +92,6 @@ export function WorkbenchFrame({ activeSkillButtonId = null }: WorkbenchFramePro
         <span className="workbench-trigger-text">排轴</span>
       </button>
       <button
-        className={`workbench-top-trigger workbench-bottom-nav-button ${workbenchMode === 'buffBatchEdit' ? 'is-active' : ''}`}
-        type="button"
-        disabled={!canAccessCanvas}
-        onClick={() => handleModeClick('buffBatchEdit')}
-      >
-        <span className="workbench-trigger-text">批量 Buff</span>
-      </button>
-      <button
         className="workbench-top-trigger workbench-bottom-nav-button"
         type="button"
         disabled={!canAccessCanvas}
@@ -133,14 +122,6 @@ export function WorkbenchFrame({ activeSkillButtonId = null }: WorkbenchFramePro
             时间轴
           </button>
           <button
-            className={`workbench-drawer-tab ${workbenchMode === 'buffBatchEdit' ? 'is-active' : ''}`}
-            type="button"
-            onClick={() => handleModeClick('buffBatchEdit')}
-            disabled={!canAccessCanvas}
-          >
-            批量 Buff
-          </button>
-          <button
             className="workbench-drawer-tab"
             type="button"
             onClick={() => openOperatorConfig()}
@@ -163,15 +144,7 @@ export function WorkbenchFrame({ activeSkillButtonId = null }: WorkbenchFramePro
             </div>
           </div>
         )}
-        {currentView === 'canvas' && workbenchMode === 'buffBatchEdit' && (
-          <BuffBatchEditWorkbench
-            selectedCharacters={selectedCharacters}
-            workbenchControl={workbenchControl}
-            bottomRightControl={workspaceActions}
-            isWorkbenchTopZoneOpen={isDrawerOpen}
-          />
-        )}
-        {currentView === 'canvas' && workbenchMode !== 'buffBatchEdit' && (
+        {currentView === 'canvas' && (
           <CanvasBoard
             activeSkillButtonId={activeSkillButtonId}
             onOpenOperatorConfig={openOperatorConfig}

@@ -486,3 +486,11 @@
   font-size: 8px;
   color: var(--office-body);
 }
+
+.work-node-tree-node.is-selected { outline: 2px solid #276b70; outline-offset: 3px; }
+
+.work-node-tree-detail { max-height: 52%; overflow: auto; pointer-events: auto; }
+.work-node-tree-detail details { margin-top: 6px; }
+.work-node-tree-detail summary { cursor: pointer; }
+
+.work-node-tree-detail span { white-space: normal; overflow-wrap: anywhere; }

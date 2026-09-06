@@ -41,7 +41,7 @@ function pairCastEnds(commands, centerTrace, durationFrames) {
             };
         });
     for (const command of commands) {
-        if (!command.success || command.actualFrame === null) continue;
+        if (!command.success || command.actualFrame === null || command.endFrame !== null) continue;
         const ending = endings.find(candidate => !candidate.used
             && candidate.frame >= command.actualFrame
             && (command.memberId === null || candidate.memberId === null
@@ -66,13 +66,16 @@ function projectCommands(result, durationFrames) {
         frame: command.frame,
         commandId: command.commandId ?? `command-${index + 1}`,
         commandType: command.commandType,
+        ...(command.attackMode ? { attackMode: command.attackMode } : {}),
         memberId: command.memberId ?? command.uuid ?? null,
         characterId: command.characterId ?? command.casterCharId ?? null
     }));
     const commands = inputs.map((input, index) => {
         const commandId = input.commandId ?? `command-${index + 1}`;
         const related = trace.filter(entry => entry.commandId === commandId);
-        const queuedEvent = related.find(entry => entry.type === 'CommandQueued') ?? null;
+        const queuedEvent = related.find(entry => entry.type === 'CommandQueued'
+            || entry.type === 'CommandAnchored') ?? null;
+        const anchorResolution = related.find(entry => entry.type === 'ReleaseAnchorResolved');
         const terminal = [...related].reverse().find(entry =>
             entry.type === 'CommandExecuted' || entry.type === 'CommandExpired'
         ) ?? null;
@@ -94,6 +97,7 @@ function projectCommands(result, durationFrames) {
             id: commandId,
             commandId,
             commandType: input.commandType,
+            ...(input.attackMode ? { attackMode: input.attackMode } : {}),
             memberId: terminal?.memberId ?? queuedEvent?.memberId ?? input.memberId ?? null,
             characterId: terminal?.characterId ?? queuedEvent?.characterId
                 ?? input.characterId ?? null,
@@ -105,10 +109,10 @@ function projectCommands(result, durationFrames) {
                 : actualFrame / finite(result.tickRate, 30),
             delayFrames: actualFrame === null ? null : actualFrame - requestedFrame,
             queued: Boolean(queuedEvent),
-            predictedFrame: queuedEvent?.executeFrame ?? null,
+            predictedFrame: anchorResolution?.frame ?? queuedEvent?.executeFrame ?? null,
             state: commandState({ queued: queuedEvent, terminal }),
             success,
-            reason: terminal?.reason ?? queuedEvent?.reason ?? null,
+            reason: success ? terminal?.reason ?? null : terminal?.reason ?? queuedEvent?.reason ?? null,
             skillId: terminal?.skillId ?? queuedEvent?.skillId ?? null,
             castId: terminal?.castId ?? null,
             executedSkillIds,
@@ -118,8 +122,8 @@ function projectCommands(result, durationFrames) {
                 hit.damageAttributeType === 'Hp' ? finite(hit.finalDamage) : 0
             ), 0),
             poiseDamage: hits.reduce((sum, hit) => sum + finite(hit.poiseDamage), 0),
-            endFrame: null,
-            completion: null
+            endFrame: terminal?.endFrame ?? null,
+            completion: terminal?.completion ?? null
         };
     });
     pairCastEnds(commands, result.centerStateTrace ?? [], durationFrames);
@@ -428,6 +432,7 @@ export function projectAkeTimeline(result) {
         castId: command.castId,
         commandId: command.commandId,
         commandType: command.commandType,
+        ...(command.attackMode ? { attackMode: command.attackMode } : {}),
         memberId: command.memberId,
         characterId: command.characterId,
         skillId: command.skillId,

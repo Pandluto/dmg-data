@@ -1,3 +1,4 @@
+import { combatTriggerAttribution } from '../src/core/combat-trigger-attribution.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,6 +14,7 @@ import { AkeSquadScenarioAssembler } from '../src/core/ake-squad-scenario-assemb
 import { runAkeScenario } from '../src/core/ake-scenario-runner.mjs';
 import { runAkeSquadScenario } from '../src/core/ake-squad-scenario-runner.mjs';
 import { projectAkeTimeline } from '../src/core/ake-timeline-projector.mjs';
+import { projectAkeTimelineTransport } from './ake-timeline-transport.mjs';
 
 const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
 const defaultProjectRoot = path.resolve(moduleDirectory, '..');
@@ -31,6 +33,12 @@ const CALCULATOR_DUMMY_MAX_HP = 1_000_000_000_000;
 // 1,800-frame demo guard made those requests fail and left the UI displaying a
 // stale report, which looked like realtime calculation had frozen.
 const MAX_TIMELINE_FRAME = 108_000;
+
+// Real persistent skills schedule hundreds of events per cast. A fixed
+// 10,000-event allowance rejected valid rotations after about 23 casts.
+// Requests are already capped at 80/320 commands; keep the budget finite and
+// proportional to accepted input, with the runtime's same-frame guard intact.
+const executionEventBudget = request => 10_000 + request.commands.length * 1_024;
 
 const COMMAND_TYPES = Object.freeze([
     'Attack',
@@ -429,7 +437,9 @@ function normalizeRequest(input) {
             || `command-${index + 1}`;
         if (seenIds.has(commandId)) throw new DemoInputError(`指令 ID 重复：${commandId}`);
         seenIds.add(commandId);
-        return { frame, commandType: command.commandType, commandId, sourceOrder: index };
+        return { frame, commandType: command.commandType, commandId, sourceOrder: index,
+            ...(command.commandType === 'Attack' && command.attackMode === 'plunging-impact'
+                ? { attackMode: 'plunging-impact' } : {}) };
     }).sort((left, right) => left.frame - right.frame || left.sourceOrder - right.sourceOrder)
         .map(({ sourceOrder, ...command }) => command);
 
@@ -667,6 +677,13 @@ function compactStatusEvents(trace, { projectRoot = defaultProjectRoot } = {}) {
 
 function compactHits(damageLog) {
     return damageLog.slice(0, 300).map(hit => ({
+        ...combatTriggerAttribution(hit),
+        triggerCastId: hit.triggerCastId ?? null,
+        triggerRootCastId: hit.triggerRootCastId ?? null,
+        triggerSourceId: hit.triggerSourceId ?? null,
+        triggerSkillId: hit.triggerSkillId ?? null,
+        triggerFrame: hit.triggerFrame ?? null,
+        statusEventSequenceBeforeHit: hit.statusEventSequenceBeforeHit ?? null,
         frame: hit.frame,
         castId: hit.castId,
         skillId: hit.skillId,
@@ -707,6 +724,7 @@ function settleCommands(commands, result) {
         return {
             commandId: command.commandId,
             commandType: command.commandType,
+            ...(command.attackMode ? { attackMode: command.attackMode } : {}),
             requestedFrame: command.frame,
             actualFrame: terminal?.frame ?? null,
             delayFrames: terminal ? terminal.frame - command.frame : null,
@@ -733,8 +751,11 @@ export function simulateDemo(input, { projectRoot = defaultProjectRoot } = {}) {
     const request = normalizeRequest(input);
     const bundle = getBundle(projectRoot, request);
     const result = runAkeScenario(bundle, {
-        commands: request.commands,
-        endFrame: request.endFrame
+        runner: { maxEventsPerRun: executionEventBudget(request) },
+        run: {
+            commands: request.commands,
+            endFrame: request.endFrame
+        }
     });
     const hits = compactHits(result.damageLog);
     const timeline = projectAkeTimeline(result);
@@ -1006,16 +1027,43 @@ function normalizeSquadRequest(input, projectRoot) {
             queueMode: command.queueMode === 'timeline-sequence'
                 ? 'timeline-sequence'
                 : undefined,
-            attackMode: command.commandType === 'Attack' && command.attackMode === 'full-combo'
-                ? 'full-combo'
+            releaseDependency: command.releaseDependency
+                ? structuredClone(command.releaseDependency) : undefined,
+            attackMode: command.commandType === 'Attack' && ['full-combo', 'plunging-impact'].includes(command.attackMode)
+                ? command.attackMode
                 : undefined,
+            timelineOrder: command.timelineOrder === undefined ? undefined
+                : finiteNumber(command.timelineOrder, `commands[${index}].timelineOrder`, 0, 1e9),
             sourceOrder: index
         };
     }).sort((left, right) => left.frame - right.frame
         || left.memberId.localeCompare(right.memberId)
         || left.sourceOrder - right.sourceOrder)
         .map(({ sourceOrder, ...command }) => command);
-    const lastFrame = commands.reduce((maximum, command) => Math.max(maximum, command.frame), 0);
+    const controllerCharacterId = (id, label) => {
+        const member = members.find(member => member.characterId === id || member.memberId === id);
+        if (!member) throw new DemoInputError(`${label} 没有对应的队员：${String(id)}`);
+        return member.characterId;
+    };
+    const initialControllerCharacterId = controllerCharacterId(
+        input.initialControllerCharacterId ?? members[0].characterId, '初始主控');
+    const rawSwitches = input.operatorSwitches ?? [];
+    if (!Array.isArray(rawSwitches) || rawSwitches.length > 320) {
+        throw new DemoInputError('operatorSwitches 必须是最多 320 项的数组。');
+    }
+    const operatorSwitches = rawSwitches.map((entry, index) => {
+        if (!entry || typeof entry !== 'object') throw new DemoInputError(`operatorSwitches[${index}] 格式不正确。`);
+        return {
+            switchId: optionalIdentifier(entry.switchId ?? entry.id, `operatorSwitches[${index}].switchId`, `controller-switch:${index + 1}`),
+            characterId: controllerCharacterId(entry.characterId ?? entry.memberId, `operatorSwitches[${index}]`),
+            releaseDependency: entry.releaseDependency ? structuredClone(entry.releaseDependency) : undefined,
+            frame: finiteInteger(entry.frame, `operatorSwitches[${index}].frame`, 0, MAX_TIMELINE_FRAME),
+            timelineOrder: entry.timelineOrder === undefined ? undefined
+                : finiteNumber(entry.timelineOrder, `operatorSwitches[${index}].timelineOrder`, 0, 1e9),
+        };
+    });
+    const lastFrame = [...commands, ...operatorSwitches]
+        .reduce((maximum, entry) => Math.max(maximum, entry.frame), 0);
     const automaticEndFrame = Math.min(
         MAX_TIMELINE_FRAME,
         Math.max(360, lastFrame + 300)
@@ -1027,6 +1075,8 @@ function normalizeSquadRequest(input, projectRoot) {
         enemyLevel: finiteInteger(input.enemyLevel ?? 1, '敌人等级', 1, 999),
         initialAtb: finiteNumber(input.initialAtb ?? 300, '初始技力', 0, 300),
         commands,
+        initialControllerCharacterId,
+        operatorSwitches,
         endFrame: input.endFrame === undefined
             ? automaticEndFrame
             : finiteInteger(input.endFrame, '结束帧', lastFrame, MAX_TIMELINE_FRAME)
@@ -1054,11 +1104,20 @@ function getSquadBundle(projectRoot, request) {
     return squadBundleCache.get(cacheKey);
 }
 
-function compactSquadHits(damageLog) {
-    return damageLog.slice(0, 1200).map((hit, hitIndex) => ({
+export function compactSquadHits(damageLog) {
+    // This is the authoritative report and attribution input, not a debug
+    // preview. Truncating it silently breaks conservation against the summary.
+    return damageLog.map((hit, hitIndex) => ({
         hitIndex,
+        ...combatTriggerAttribution(hit),
+        triggerCastId: hit.triggerCastId ?? null,
+        triggerRootCastId: hit.triggerRootCastId ?? null,
+        triggerSourceId: hit.triggerSourceId ?? null,
+        triggerSkillId: hit.triggerSkillId ?? null,
+        triggerFrame: hit.triggerFrame ?? null,
         hitId: hit.hitId ?? `legacy-hit:${hitIndex}`,
         sequence: hit.sequence ?? hitIndex,
+        statusEventSequenceBeforeHit: hit.statusEventSequenceBeforeHit ?? null,
         parentTransactionId: hit.parentTransactionId ?? null,
         parentEventId: hit.parentEventId ?? null,
         traceIndex: hit.traceIndex ?? null,
@@ -1116,13 +1175,16 @@ export function simulateSquadDemo(input, {
     const request = normalizeSquadRequest(input, projectRoot);
     const bundle = getSquadBundle(projectRoot, request);
     const result = runAkeSquadScenario(bundle, {
-        runner: { traceSink },
+        runner: { traceSink, maxEventsPerRun: executionEventBudget(request) },
         run: {
             commands: request.commands,
+            initialControllerCharacterId: request.initialControllerCharacterId,
+            operatorSwitches: request.operatorSwitches,
             endFrame: request.endFrame
         }
     });
-    const timeline = projectAkeTimeline(result);
+    const hits = compactSquadHits(result.damageLog);
+    const timeline = projectAkeTimelineTransport(projectAkeTimeline(result), hits);
     const catalogCharacterById = new Map(
         request.catalog.characters.map(character => [character.id, character])
     );
@@ -1205,7 +1267,7 @@ export function simulateSquadDemo(input, {
         members,
         commands: structuredClone(timeline.commands),
         attributeSnapshots: structuredClone(result.attributeSnapshots),
-        hits: compactSquadHits(result.damageLog),
+        hits,
         timeline,
         summary: {
             ...structuredClone(result.damageSummary),
@@ -1216,7 +1278,9 @@ export function simulateSquadDemo(input, {
             failedCommands: timeline.commands.filter(command => !command.success).length,
             delayedCommands: timeline.commands.filter(command => Number(command.delayFrames) > 0).length
         },
+        controllerEvents: structuredClone(result.controllerTrace),
         finalState: {
+            mainCharacterId: result.finalState.mainCharacterId,
             sharedAtb: structuredClone(result.finalState.sharedAtb),
             ultimateSpByCharacterId: structuredClone(result.finalState.ultimateSpByCharacterId),
             cooldowns: structuredClone(result.finalState.cooldowns),

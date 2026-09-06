@@ -40,6 +40,8 @@ runner 对每个输入依次处理：
 
 `CastSkill` 与 ability entity 都编译为 `LaunchSkillProgram`。派生程序继承根施放身份，同时有自己的 `executedSkillId` 和 `parentCastId`。取消根施放时，仍从属于该动作生命周期的派生程序会被取消；已经脱手的状态由其 carrier 和时钟继续管理。
 
+同一角色通过 `CastSkill` 启动派生技能后，准入判定跟随实际程序的类型、优先级、局部时间和 AllowNext/独占窗口。`CombatRuntime.getSkillProgramControl` 读取该程序的执行状态；两个 runner 保留原按钮与 root cast 身份，但不再拿入口包装技能的占用时间和优先级判断后续输入。准入 trace 同时记录 `currentInputSkillId / currentInputCommandType / currentCastId`。这防止强化战技已按连携技执行时，仍被下一次连携技当作低优先级战技提前中断。
+
 ## 条件与值图
 
 AKE 条件不是一组互不相关的布尔 action。compiler 先解释 condition list，再生成运行时谓词：

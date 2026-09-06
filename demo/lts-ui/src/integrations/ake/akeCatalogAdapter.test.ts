@@ -1,4 +1,10 @@
 import assert from 'node:assert/strict';
+import {
+  buildRuntimeOperatorTemplateFromDraft,
+  buildSandboxSkillsFromRuntimeTemplate,
+  parseOperatorDraft,
+} from '../../core/services/operatorTemplateAdapter';
+import { adaptRuntimeTemplateToLegacyCharacter } from '../../core/services/localOperatorAdapter';
 
 import {
   buildAkeEquipmentLibrary,
@@ -71,7 +77,7 @@ function profile(
   };
 }
 
-const attackIds = ['attack1', 'attack2', 'attack3', 'attack4'];
+const attackIds = ['attack1', 'attack2', 'attack3', 'attack4', 'plunging_attack_end'];
 const profiles = [
   profile('attack1', 0, [0.57]),
   profile('attack2', 1, [0.34, 0.34]),
@@ -98,6 +104,11 @@ profiles[1].statusEffects = [{
   kind: 'status',
   statusKey: 'no-guard',
 }];
+profiles.push({
+  ...profile('plunging_attack_end', 4, [2.5]),
+  attackMode: 'plunging-impact',
+  skillSpecification: 'CharacterPlungingAttack',
+});
 
 const catalog = {
   schemaVersion: 2,
@@ -273,6 +284,10 @@ const library = buildAkeOperatorLibrary(catalog) as Record<string, {
     skill: { effects: Record<string, { type: string; value: number; durationSeconds?: number }> };
   };
   skills: Record<string, {
+    displayName: string;
+    description?: string;
+    buttonType: string;
+    iconUrl: string;
     hitCount: number;
     hitMeta: Record<string, {
       displayName: string;
@@ -304,6 +319,31 @@ assert.ok((attack.hitMeta.hit3.hitBuffs ?? []).some((buff) => buff.id === 'state
 assert.ok(Object.values(attack.hitMeta).every(hit => hit.element === 'electric'));
 assert.equal(normalSkill.hitMeta.hit1.levels.M3, 4);
 assert.equal(normalSkill.hitCount, 1, 'callback/DoT settlements must not become player-intent hits');
+const plunge = pelica.skills.plunging_attack_end;
+assert.equal(plunge.displayName, '下落攻击·落地');
+assert.equal(plunge.buttonType, 'A');
+assert.equal(plunge.iconUrl, '/attack.png');
+assert.equal(plunge.hitCount, 1);
+assert.deepEqual(Object.values(plunge.hitMeta).map(hit => hit.levels.M3), [2.5],
+  'plunging impact must only use its own profile, even when the source Attack group also lists it');
+assert.equal(Object.values(pelica.skills).filter(skill => skill.buttonType === 'A').length, 2);
+const operatorDraft = parseOperatorDraft(JSON.stringify(buildAkeOperatorLibrary(catalog).chr_0004_pelica));
+// URL resolution needs a browser origin; this round trip verifies skill identity,
+// description and hits after the catalog icon reuse assertion above.
+operatorDraft.avatarUrl = '';
+Object.values(operatorDraft.skills).forEach(skill => { skill.iconUrl = ''; });
+const runtimeOperator = buildRuntimeOperatorTemplateFromDraft(operatorDraft);
+for (const sandboxSkills of [
+  buildSandboxSkillsFromRuntimeTemplate(runtimeOperator),
+  adaptRuntimeTemplateToLegacyCharacter(runtimeOperator).sandboxSkills ?? [],
+]) {
+  const landing = sandboxSkills.find(skill => skill.id === 'plunging_attack_end');
+  assert.ok(landing);
+  assert.equal(landing.description, plunge.description);
+  assert.match(landing.description ?? '', /开始时刻.*帧偏移.*起跳和空中移动暂未建模/);
+  assert.deepEqual(landing.customHits?.map(hit => hit.multiplier), [2.5]);
+  assert.equal(sandboxSkills.find(skill => skill.id === 'attack1')?.hitCount, 7);
+}
 assert.deepEqual(normalSkill.hitMeta.hit1.hitBuffs, [{
   id: 'buff_common_energy_shard_attached_pulse',
   displayName: '电磁附着',

@@ -2670,3 +2670,20 @@
     scroll-behavior: auto;
   }
 }
+
+/* Adapter status belongs to the exported report as well as the preview. */
+.mobile-report-adapter-notice {
+  padding: 10px 12px;
+  margin: 0 0 12px;
+  color: #675325;
+  background: #fff6df;
+  border: 1px solid #dfca97;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.mobile-report-export-stage .mobile-report-adapter-notice {
+  margin: 0 32px 24px;
+  padding: 20px 24px;
+  font-size: 24px;
+}
+.mobile-report-export-stage .mobile-report-adapter-notice p { margin: 8px 0 0; }

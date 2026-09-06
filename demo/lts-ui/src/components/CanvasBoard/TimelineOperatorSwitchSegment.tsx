@@ -18,6 +18,7 @@ interface TimelineOperatorSwitchSegmentProps {
   onConfigure?: (button: SkillButton) => void;
   contextMenuState?: { buttonId: string; position: { x: number; y: number } } | null;
   onConfirmRemove?: () => void;
+  removeBlockedReason?: string | null;
   onCloseContextMenu?: () => void;
   onCopy?: () => void;
 }
@@ -42,6 +43,7 @@ export function TimelineOperatorSwitchSegment({
   onConfigure,
   contextMenuState = null,
   onConfirmRemove,
+  removeBlockedReason,
   onCloseContextMenu,
   onCopy,
 }: TimelineOperatorSwitchSegmentProps) {
@@ -77,14 +79,15 @@ export function TimelineOperatorSwitchSegment({
   return (
     <>
       <div
-        className={`timeline-operator-switch-segment${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-disabled' : ''}`}
+        className={`timeline-operator-switch-segment${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-drag-disabled' : ''}`}
         data-skill-button-id={button.id}
         data-timeline-module="operator-switch"
         role="button"
         tabIndex={isBrowseMode ? -1 : 0}
         aria-label={`切至${targetName}，${formatSeconds(frame, tickRate)}`}
-        aria-disabled={isInteractionDisabled}
-        title={`切至 ${targetName} · ${formatSeconds(frame, tickRate)}；双击修改，长按拖动`}
+        data-drag-disabled={isInteractionDisabled || undefined}
+        draggable={false}
+        title={`切至 ${targetName} · ${formatSeconds(frame, tickRate)}；双击修改；队列内不可拖动`}
         style={{ left, top, width } as CSSProperties}
         onMouseDown={handleMouseDown}
         onDoubleClick={(event) => {
@@ -126,6 +129,7 @@ export function TimelineOperatorSwitchSegment({
           }}
           onCopy={onCopy}
           onRemove={() => onConfirmRemove?.()}
+          removeBlockedReason={removeBlockedReason}
           onCancel={() => onCloseContextMenu?.()}
         />,
         document.body,

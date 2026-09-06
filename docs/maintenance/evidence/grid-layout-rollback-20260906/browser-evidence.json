@@ -1,0 +1,252 @@
+{
+  "baselineCommit": "5b3bab0",
+  "date": "2026-09-06",
+  "timelineId": "timeline-1788596477136-459dea68-fdfe-4ab9-9054-287b0e68d91a",
+  "checks": {
+    "sameExecutionDigest": true,
+    "sameConfig": true,
+    "beforeDamage": 511169.30090090353,
+    "afterDamage": 511169.30090090353
+  },
+  "timelineDifferences": [
+    ".updatedAt"
+  ],
+  "labels": [
+    {
+      "commandId": "ria-button-command-20260905T111527447z-5bad6beb",
+      "label": "编辑别礼塞什卡的秘传接续：◇ 别礼 同时起手 +1.667s",
+      "bounds": {
+        "x": 237.66494750976562,
+        "y": 109.00173950195312,
+        "width": 115.92882537841797,
+        "height": 15.902778625488281
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111530902z-a24b3d03",
+      "label": "编辑别礼噬冬接续：◇ 别礼 同时起手 +4.767s",
+      "bounds": {
+        "x": 637.6649780273438,
+        "y": 109.00173950195312,
+        "width": 116.84028625488281,
+        "height": 15.902778625488281
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111526403z-35573159",
+      "label": "编辑汤汤踏潮卷浪！接续：◇ 别礼 同时起手",
+      "bounds": {
+        "x": 157.66493225097656,
+        "y": 180.99827575683594,
+        "width": 77.17882537841797,
+        "height": 15.902778625488281
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111528468z-459edde3",
+      "label": "编辑汤汤河水，助我！接续：◇ 别礼 同时起手 +2s",
+      "bounds": {
+        "x": 397.6649475097656,
+        "y": 180.99827575683594,
+        "width": 96.7795181274414,
+        "height": 15.902778625488281
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111529530z-8568e332",
+      "label": "编辑汤汤踏潮卷浪！接续：◇ 别礼 同时起手 +3.433s",
+      "bounds": {
+        "x": 557.6649780273438,
+        "y": 180.99827575683594,
+        "width": 117.96007537841797,
+        "height": 15.902778625488281
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T114139833z-ab8c7335",
+      "label": "编辑汤汤踏潮卷浪！接续：◇ 别礼 同时起手 +5.7s",
+      "bounds": {
+        "x": 797.6649780273438,
+        "y": 180.99827575683594,
+        "width": 104.93923950195312,
+        "height": 15.902778625488281
+      }
+    },
+    {
+      "commandId": "d2i17wam8",
+      "label": "编辑汤汤大当家盯着呢！接续：◇ 汤汤 结束后",
+      "bounds": {
+        "x": 877.6649780273438,
+        "y": 180.99827575683594,
+        "width": 68.17708587646484,
+        "height": 15.902778625488281
+      }
+    },
+    {
+      "commandId": "e8aaq4k8x",
+      "label": "编辑汤汤下落攻击·落地接续：◇ 别礼 结束后",
+      "bounds": {
+        "x": 1117.6650390625,
+        "y": 180.99827575683594,
+        "width": 68.17708587646484,
+        "height": 15.902778625488281
+      }
+    }
+  ],
+  "collisions": [
+    {
+      "a": "编辑汤汤踏潮卷浪！接续：◇ 别礼 同时起手 +5.7s",
+      "b": "编辑汤汤大当家盯着呢！接续：◇ 汤汤 结束后",
+      "width": 24.939239501953125,
+      "height": 15.902778625488281
+    }
+  ],
+  "commands": [
+    {
+      "id": "ria-button-command-20260905T111455797z-eb9f1b66",
+      "requestedFrame": 0,
+      "actualFrame": 0,
+      "endFrame": 143
+    },
+    {
+      "id": "ria-button-command-20260905T111526403z-35573159",
+      "requestedFrame": 0,
+      "actualFrame": 0,
+      "endFrame": 50
+    },
+    {
+      "id": "ria-button-command-20260905T111527447z-5bad6beb",
+      "requestedFrame": 50,
+      "actualFrame": 50,
+      "endFrame": 50
+    },
+    {
+      "id": "ria-button-command-20260905T111528468z-459edde3",
+      "requestedFrame": 60,
+      "actualFrame": 60,
+      "endFrame": 101
+    },
+    {
+      "id": "ria-button-command-20260905T111529530z-8568e332",
+      "requestedFrame": 103,
+      "actualFrame": 103,
+      "endFrame": 170
+    },
+    {
+      "id": "ria-button-command-20260905T111530902z-a24b3d03",
+      "requestedFrame": 143,
+      "actualFrame": 143,
+      "endFrame": 315
+    },
+    {
+      "id": "ria-button-command-20260905T114139833z-ab8c7335",
+      "requestedFrame": 171,
+      "actualFrame": 171,
+      "endFrame": 221
+    },
+    {
+      "id": "d2i17wam8",
+      "requestedFrame": 221,
+      "actualFrame": 221,
+      "endFrame": 306
+    },
+    {
+      "id": "e8aaq4k8x",
+      "requestedFrame": 305,
+      "actualFrame": 306,
+      "endFrame": 321
+    }
+  ],
+  "buttons": [
+    {
+      "commandId": "ria-button-command-20260905T111455797z-eb9f1b66",
+      "bounds": {
+        "x": 126.66667175292969,
+        "y": 90.00000762939453,
+        "width": 80,
+        "height": 60.000003814697266
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111527447z-5bad6beb",
+      "bounds": {
+        "x": 206.6666717529297,
+        "y": 90.00000762939453,
+        "width": 80,
+        "height": 60.000003814697266
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111530902z-a24b3d03",
+      "bounds": {
+        "x": 606.6666870117188,
+        "y": 90.00000762939453,
+        "width": 80,
+        "height": 60.000003814697266
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111526403z-35573159",
+      "bounds": {
+        "x": 126.66667175292969,
+        "y": 161.9965362548828,
+        "width": 80,
+        "height": 60.000003814697266
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111528468z-459edde3",
+      "bounds": {
+        "x": 366.66668701171875,
+        "y": 161.9965362548828,
+        "width": 80,
+        "height": 60.000003814697266
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111529530z-8568e332",
+      "bounds": {
+        "x": 526.6666870117188,
+        "y": 161.9965362548828,
+        "width": 80,
+        "height": 60.000003814697266
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T114139833z-ab8c7335",
+      "bounds": {
+        "x": 766.6666870117188,
+        "y": 161.9965362548828,
+        "width": 80,
+        "height": 60.000003814697266
+      }
+    },
+    {
+      "commandId": "d2i17wam8",
+      "bounds": {
+        "x": 846.6666870117188,
+        "y": 161.9965362548828,
+        "width": 80,
+        "height": 60.000003814697266
+      }
+    },
+    {
+      "commandId": "e8aaq4k8x",
+      "bounds": {
+        "x": 1086.666748046875,
+        "y": 161.9965362548828,
+        "width": 80,
+        "height": 60.000003814697266
+      }
+    },
+    {
+      "commandId": "hudmbiip3",
+      "bounds": {
+        "x": 926.6666870117188,
+        "y": 120.00000762939453,
+        "width": 80,
+        "height": 30.000001907348633
+      }
+    }
+  ]
+}

@@ -18,6 +18,7 @@ type NormalizedOperatorConfig = {
     name: string | null;
     level: string | number | null;
     potential: string | number | null;
+    potentialCount: number | null;
     mainStat: string | null;
     subStat: string | null;
     mainStatFlatBonus: number | null;
@@ -175,6 +176,7 @@ function normalizeOperatorConfig(value: unknown): NormalizedOperatorConfig {
       name: normalizeText(operator.name),
       level: normalizeNumberish(operator.level),
       potential: normalizeNumberish(operator.potential),
+      potentialCount: normalizeNumber(operator.potentialCount),
       mainStat: normalizeText(operator.mainStat),
       subStat: normalizeText(operator.subStat),
       mainStatFlatBonus: normalizeNumber(operator.mainStatFlatBonus),

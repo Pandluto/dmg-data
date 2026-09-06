@@ -10,8 +10,7 @@ import {
 } from '../../core/services/localOperatorAdapter';
 import { LOCAL_LIBRARY_CHANGED_EVENT } from '../../constants/events';
 import { Character } from '../../types';
-import { normalizeAssetUrl } from '../../utils/assetResolver';
-import { APP_ROUTE_PATHS, navigateToAppPath } from '../../utils/appRoute';
+import { LazyAssetImage } from '../LazyAssetImage';
 import { useTimelineSession } from '../../agentKernel/timelineRepository/useTimelineSession';
 import './SelectionPanel.css';
 
@@ -155,16 +154,14 @@ export function SelectionPanel() {
   const handleConfirm = () => applyDraftWorkspace('apply');
   const handleCreateDetachedWorkspace = () => applyDraftWorkspace('detached');
 
-  const openOperatorDraft = () => {
-    navigateToAppPath(APP_ROUTE_PATHS.draft);
-  };
 
   const renderAvatar = (character: Character) => (
     <div className="selection-character-avatar">
       {character.avatarUrl ? (
-        <img
+        <LazyAssetImage
           className="selection-character-avatar-image"
-          src={normalizeAssetUrl(character.avatarUrl)}
+          src={character.avatarUrl}
+          sizes="42px"
           alt={`${character.name} 头像`}
         />
       ) : (
@@ -184,9 +181,6 @@ export function SelectionPanel() {
           <div className="selection-header-actions">
             <button type="button" className="selection-ghost-button" onClick={refreshLocalCharacters}>
               刷新
-            </button>
-            <button type="button" className="selection-ghost-button" onClick={openOperatorDraft}>
-              编辑干员
             </button>
           </div>
         </header>
@@ -265,9 +259,6 @@ export function SelectionPanel() {
             {localCharacters.length === 0 ? (
               <div className="selection-empty">
                 <strong>干员资料尚未载入</strong>
-                <button type="button" className="selection-ghost-button" onClick={openOperatorDraft}>
-                  新建干员
-                </button>
               </div>
             ) : (
               <div className="selection-character-grid">

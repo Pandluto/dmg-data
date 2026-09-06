@@ -469,6 +469,7 @@ export class EffectSourceRegistry {
                         appliedFrame: source.appliedFrame,
                         expireFrame: source.metadata?.expireFrame ?? null,
                         transactionId: source.transactionId,
+                        conditions: cloneValue(modifier.conditions ?? []),
                         metadata: cloneValue(source.metadata)
                     });
                 }

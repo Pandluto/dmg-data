@@ -5,6 +5,7 @@ import test from 'node:test';
 import { AkeActionCompiler } from '../src/core/ake-action-compiler.mjs';
 import { createAkeDamageResolver } from '../src/core/ake-damage-resolver.mjs';
 import { CombatRuntime } from '../src/core/combat-runtime.mjs';
+import { buildAkeRdpsContext } from '../src/core/ake-rdps-context.mjs';
 
 const VULNERABLE = 'buff_common_affixes_vulnerable_physical';
 const WEAKNESS = 'buff_common_affixes_weak';
@@ -88,6 +89,25 @@ function hit(runtime, frame, sourceId = 'caster', targetId = 'enemy') {
     });
     return result.resolution.hits[0];
 }
+
+test('per-action attacker and defender processors remain separate factors and reconstruct in RD', () => {
+    const runtime = createRuntime();
+    const result = runtime.execute({ type: 'ResolveDamagePacket', sourcePath: 'fixture.damageAction',
+        damageUnits: [{ damageType: 'Physical', damageAttributeType: 'Hp', scale: 1,
+            calculationType: 'SimpleAtkScaleCalculation', damageProcessors: [
+                { type: 'DamageScaleProcessor', side: 'Attacker', zoneName: 'NormalCalcZone', addition: 0.2 },
+                { type: 'DamageScaleProcessor', side: 'Defender', zoneName: 'NormalCalcZone', addition: 0.3 }
+            ] }] }, { ...context, frame: 0, castId: 'fixture.processors' });
+    const resolved = result.resolution.hits[0];
+    assert.equal(resolved.nonCriticalDamage, 156);
+    assert.equal(resolved.operands.attackerZoneScale, 1.2);
+    assert.equal(resolved.operands.defenderZoneScale, 1.3);
+    assert.equal(resolved.modifierSnapshot.attackerZone.contributions[0].sourceId, 'caster');
+    assert.equal(resolved.modifierSnapshot.defenderZone.contributions[0].sourceId, 'caster');
+    const rdps = buildAkeRdpsContext({ hits: [resolved], enemyId: 'enemy',
+        characters: [{ localCharacterId: 'caster', akeCharacterId: 'caster' }] });
+    assert.ok(rdps.audit.maximumHitError < 1e-8);
+});
 
 test('real physical vulnerability fixture is a named enemy debuff factor and reconstructs damage', () => {
     const runtime = createRuntime();

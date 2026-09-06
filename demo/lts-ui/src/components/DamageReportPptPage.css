@@ -1253,3 +1253,13 @@
     grid-template-columns: 112px max-content minmax(620px, 1fr) minmax(60px, 0.35fr);
   }
 }
+
+.report-ppt-adapter-notice {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 8px 24px;
+  color: #675325;
+  background: #fff6df;
+  font-size: 12px;
+  line-height: 1.5;
+}

@@ -39,7 +39,10 @@ const CATALOG_REVISION_KEY = 'def.ake-catalog.revision.v1';
 // incorrectly pruned from cached operator profiles.
 // v31 discards profiles that serialized Refresh/Unique Buff metadata as a
 // player-visible stack limit.
-const CATALOG_ADAPTER_VERSION = 31;
+// v32 carries conditional instantaneous casts and the originating attack specification.
+// v33 exposes the original plunging impact as its own A intent and keeps its
+// hits out of the ordinary attack chain.
+const CATALOG_ADAPTER_VERSION = 33;
 
 const LEVEL_KEYS = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'M1', 'M2', 'M3'] as const;
 
@@ -50,6 +53,7 @@ type AkeSkill = {
   description: string;
   iconUrl: string;
   skillIds: string[];
+  attackMode?: 'plunging-impact';
 };
 
 export type AkeHitBuffProfile = {
@@ -82,6 +86,8 @@ export type AkeHitBuffProfile = {
 
 export type AkeTimingHitProfile = {
   offsetFrames: number;
+  /** Frame in the emitting skill; a folded basic combo has a separate display offset. */
+  sourceTimelineFrame?: number;
   launchOffsetFrames?: number | null;
   sourceSkillId: string;
   rootSkillId: string;
@@ -98,7 +104,23 @@ export type AkeTimingHitProfile = {
   multiplierDerivation?: 'compiled-damage-packet' | 'root-blackboard-fallback' | 'unverified' | string;
 };
 
+export type AkeTimingCastCondition = {
+  type: string;
+  conditions?: AkeTimingCastCondition[];
+  condition?: AkeTimingCastCondition;
+  entity?: string;
+  target?: string;
+  skillTypes?: string[];
+  beforeExclusive?: boolean;
+  attackTypeMask?: number | string;
+};
+
 export type AkeTimingSkillProfile = {
+  attackMode?: 'plunging-impact';
+  skillSpecification?: string | null;
+  castReplacement?: { asSkillCast: true; conditions: AkeTimingCastCondition[] } | null;
+  castReplacementActive?: boolean;
+  comboStageControls?: Array<{ startOffsetFrames: number; exclusiveFrames: number; skillSpecification: string | null }>;
   commandType: string;
   skillId: string;
   variantIndex: number;
@@ -545,6 +567,10 @@ function intentTimingProfiles(
   const matched = ids.flatMap(skillId => {
     const profile = timingProfiles.find(candidate => (
       candidate.skillId === skillId && candidate.commandType === skill.commandType
+      && (type !== 'A' || (skill.attackMode === 'plunging-impact'
+        ? candidate.attackMode === 'plunging-impact'
+        : candidate.skillSpecification !== 'CharacterPlungingAttack'
+          && candidate.attackMode !== 'plunging-impact'))
     ));
     return profile ? [profile] : [];
   });
@@ -646,11 +672,26 @@ export function buildAkeOperatorLibrary(catalog: AkeCatalog) {
       character,
       timingProfiles,
     );
-    const skills = Object.fromEntries(character.skills.flatMap((skill) => {
+    const basicAttack = character.skills.find(skill => skill.commandType === 'Attack');
+    const plungeSkills: AkeSkill[] = timingProfiles.filter(profile => (
+      profile.commandType === 'Attack'
+      && profile.attackMode === 'plunging-impact'
+      && profile.skillSpecification === 'CharacterPlungingAttack'
+    )).map(profile => ({
+      groupId: profile.skillId,
+      commandType: 'Attack',
+      attackMode: 'plunging-impact',
+      name: '下落攻击·落地',
+      description: '指定下落攻击落地动作的开始时刻；冲击命中按原始动作的帧偏移结算。起跳和空中移动暂未建模。',
+      iconUrl: basicAttack?.iconUrl ?? '',
+      skillIds: [profile.skillId],
+    }));
+    const skills = Object.fromEntries([...character.skills, ...plungeSkills].flatMap((skill) => {
       const type = buttonType(skill.commandType);
       if (!type) return [];
       const ids = skill.skillIds?.length > 0 ? skill.skillIds : [skill.groupId];
-      // The editor exposes player intent (A/B/E/Q), not raw SkillData forms.
+      // The editor exposes player intent (A/B/E/Q), plus an explicit landing
+      // action that keeps the original impact program's own hit timings.
       // Combo stages and enhanced variants remain in the timing catalog and
       // are selected by the runtime state machine when the button executes.
       const skillId = ids[0];
@@ -1040,8 +1081,8 @@ export function buildAkeEquipmentLibrary(catalog: AkeCatalog) {
   };
 }
 
-export async function installAkeCatalogData(): Promise<AkeCatalog> {
-  if (installedCatalog) return installedCatalog;
+export async function installAkeCatalogData(options: { force?: boolean } = {}): Promise<AkeCatalog> {
+  if (installedCatalog && !options.force) return installedCatalog;
   const response = await fetch('/api/ake/catalog', { cache: 'no-store' });
   const catalog = await response.json() as AkeCatalog & { error?: string };
   if (!response.ok) throw new Error(catalog.error || `AKE 目录载入失败：HTTP ${response.status}`);
@@ -1051,7 +1092,7 @@ export async function installAkeCatalogData(): Promise<AkeCatalog> {
     catalog.source.version,
     catalog.source.sharedRevision,
   ].filter(Boolean).join('@');
-  if (persistentLocalStorage.getItem(CATALOG_REVISION_KEY) !== revision) {
+  if (options.force || persistentLocalStorage.getItem(CATALOG_REVISION_KEY) !== revision) {
     persistentLocalStorage.setItem(OPERATOR_LIBRARY_KEY, JSON.stringify(buildAkeOperatorLibrary(catalog)));
     persistentLocalStorage.setItem(WEAPON_LIBRARY_KEY, JSON.stringify(buildAkeWeaponLibrary(catalog)));
     persistentLocalStorage.setItem(EQUIPMENT_LIBRARY_KEY, JSON.stringify(buildAkeEquipmentLibrary(catalog)));

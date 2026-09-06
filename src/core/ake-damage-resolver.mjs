@@ -414,7 +414,23 @@ export function createAkeDamageResolver({
             }
             const atkScale = finite(resolveValue(unit.scale ?? 0), 'attack scale')
                 * finite(resolveValue(unit.calculationMultiplier ?? 1), 'calculation multiplier');
-            const registeredAttackerZone = runtime.effectSources.damageZone({
+            const damageProcessors = (unit.damageProcessors ?? []).filter(processor =>
+                processor.type === 'DamageScaleProcessor').map((processor, processorIndex) => {
+                const addition = finite(resolveValue(processor.addition), 'damage processor addition');
+                const key = `skill:${String(eventContext.skillId)}:unit:${damageUnitIndex}:processor:${processorIndex}`;
+                return {
+                    contributionId: key, sourceKey: key, sourceType: 'SkillProcessor',
+                    sourceCategory: 'Skill', sourceId, ownerId: eventContext.ownerId ?? sourceId,
+                    carrierId: sourceId, targetId, damageSourceId: sourceId,
+                    sourceSkillId: eventContext.skillId, side: processor.side,
+                    zoneName: processor.zoneName, addition, resolvedValue: addition,
+                    rawField: processor.addition?.blackboardKey ?? 'addition',
+                    rawValue: structuredClone(processor.addition),
+                    metadata: { damageUnitIndex, processorIndex, sourcePath: action.sourcePath },
+                    appliedFrame: eventContext.frame
+                };
+            });
+            const registeredAttackerZone = mergeDamageZone(runtime.effectSources.damageZone({
                 targetId: sourceId,
                 attackerId: sourceId,
                 defenderId: targetId,
@@ -428,7 +444,7 @@ export function createAkeDamageResolver({
                     damageTypeMask: unit.damageTypeMask ?? null,
                     damageDecorateMask: Number(unit.damageDecorateMask ?? 0)
                 }
-            });
+            }), damageProcessors.filter(processor => processor.side === 'Attacker'));
             const attackerZone = mergeDamageZone(
                 registeredAttackerZone,
                 attackerAttributeZone(
@@ -457,7 +473,7 @@ export function createAkeDamageResolver({
                     Number(comboZone.zones[0]?.addition ?? 0)
                 )]
                 : comboZone.contributions;
-            const defenderZone = runtime.effectSources.damageZone({
+            const defenderZone = mergeDamageZone(runtime.effectSources.damageZone({
                 targetId,
                 attackerId: sourceId,
                 defenderId: targetId,
@@ -471,7 +487,7 @@ export function createAkeDamageResolver({
                     damageTypeMask: unit.damageTypeMask ?? null,
                     damageDecorateMask: Number(unit.damageDecorateMask ?? 0)
                 }
-            });
+            }), damageProcessors.filter(processor => processor.side === 'Defender'));
             const commandType = eventContext.effectiveSkillType
                 ?? eventContext.skillType
                 ?? eventContext.payload?.skillType
@@ -726,6 +742,24 @@ export function createAkeDamageResolver({
                 confidence: factorValidation.valid ? 'verified' : 'partial',
                 consumedStatuses,
                 modifierSnapshot: {
+                    // Freeze calculator inputs once. RD evaluates source coalitions with
+                    // the same attribute and damage functions, outside the runtime loop.
+                    rdpsInputs: {
+                        version: 1,
+                        registeredAttackerZone,
+                        attackerAttributes: [AKE_ELEMENT_DAMAGE_ATTRIBUTE[unit.damageType],
+                            AKE_COMMAND_DAMAGE_ATTRIBUTE[commandType]].filter(Boolean).map(attribute => ({
+                            attribute,
+                            value: firstFiniteAttribute(runtime.context, sourceId, [attribute], 0),
+                            snapshot: snapshotFor(sourceId, firstFiniteAttributeEntry(runtime.context, sourceId, [attribute], 0))
+                        })),
+                        configuredAttributes: configuredBonus.components.map(component => ({
+                            ...component,
+                            snapshot: snapshotFor(sourceId, firstFiniteAttributeEntry(runtime.context, sourceId, [component.attribute], 0))
+                        })),
+                        specialAttribute: unit.calculationType === 'BreakingAttackCalculation'
+                            ? snapshotFor(targetId, firstFiniteAttributeEntry(runtime.context, targetId, ['ExecutionDamageScalar', 'executionDamageScalar'], 1)) : null
+                    },
                     attackAttribute: attackSnapshot,
                     defenseAttribute: defenseSnapshot,
                     resistanceAttribute: resistanceSnapshot,

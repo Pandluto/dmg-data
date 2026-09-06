@@ -185,6 +185,7 @@ const preciseComboWindow = {
   },
 } as AkeRealtimeTimeline['comboWindows'][number];
 const comboCandidates = comboTimedInputCandidates({
+  commands: [],
   comboWindows: [preciseComboWindow],
 } as AkeRealtimeTimeline, null);
 assert.deepEqual(

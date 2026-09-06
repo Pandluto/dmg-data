@@ -1,3 +1,4 @@
+import { combatTriggerAttribution } from './combat-trigger-attribution.mjs';
 function requireId(value, label) {
     if ((typeof value !== 'string' && typeof value !== 'number')
         || (typeof value === 'string' && value.length === 0)
@@ -264,6 +265,8 @@ export class StatusEffectSystem {
             return plainClone(unresolved);
         }
         const attribution = {
+            ...combatTriggerAttribution(eventContext),
+            ...combatTriggerAttribution(input),
             sourceId: input.sourceId ?? eventContext.sourceId ?? null,
             // Owner and source are deliberately independent. Summons, auras
             // and derived effects must explicitly choose either identity.
@@ -1836,6 +1839,8 @@ export class StatusEffectSystem {
         const execution = this.executeActions(actions, {
             frame,
             eventType,
+            ...combatTriggerAttribution(instance),
+            ...combatTriggerAttribution(incomingContext),
             sourceId: actionSourceId,
             // In serialized Buff actions, ActionOwner is the entity carrying
             // the Buff. The attribution owner remains stored on the instance
@@ -1926,6 +1931,7 @@ export class StatusEffectSystem {
             sequence,
             frame,
             stage,
+            ...combatTriggerAttribution(instance),
             instanceId: instance.instanceId,
             buffId: instance.buffId,
             stackingKey: instance.stackingKey,

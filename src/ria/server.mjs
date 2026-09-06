@@ -356,7 +356,7 @@ export function createRiaServer({
     }
     const trustedUiOrigins = new Set(allowedUiOrigins);
     const jobs = new Map();
-    const server = http.createServer(async (request, response) => {
+    const handleRequest = async (request, response) => {
         let responseCorsHeaders = {};
         try {
             const url = new URL(request.url, `http://${request.headers.host ?? `${host}:${port}`}`);
@@ -718,9 +718,11 @@ export function createRiaServer({
                 }
             }, responseCorsHeaders);
         }
-    });
+    };
+    const server = http.createServer(handleRequest);
     return {
         server,
+        handleRequest,
         host,
         requestedPort: port,
         jobs,

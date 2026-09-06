@@ -1,0 +1,215 @@
+{
+  "date": "2026-09-06",
+  "baselineCommit": "5b3bab0",
+  "sessionId": "browser-20260906T022313344z-1702c74d",
+  "viewport": {
+    "width": 1633,
+    "height": 842,
+    "pixelRatio": 1.7999999523162842
+  },
+  "buttons": [
+    {
+      "commandId": "ria-button-command-20260905T111455797z-eb9f1b66",
+      "bounds": {
+        "x": 126.66667175292969,
+        "y": 90.00000762939453,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111527447z-5bad6beb",
+      "bounds": {
+        "x": 206.6666717529297,
+        "y": 90.00000762939453,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111530902z-a24b3d03",
+      "bounds": {
+        "x": 606.6666870117188,
+        "y": 90.00000762939453,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111526403z-35573159",
+      "bounds": {
+        "x": 126.66667175292969,
+        "y": 180.00001525878906,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111528468z-459edde3",
+      "bounds": {
+        "x": 366.66668701171875,
+        "y": 180.00001525878906,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111529530z-8568e332",
+      "bounds": {
+        "x": 526.6666870117188,
+        "y": 180.00001525878906,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T114139833z-ab8c7335",
+      "bounds": {
+        "x": 766.6666870117188,
+        "y": 180.00001525878906,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    },
+    {
+      "commandId": "d2i17wam8",
+      "bounds": {
+        "x": 846.6666870117188,
+        "y": 180.00001525878906,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    }
+  ],
+  "captions": [
+    {
+      "id": "ria-button-command-20260905T111527447z-5bad6beb",
+      "label": "编辑别礼塞什卡的秘传接续：◇ 别礼 同时起手 +1.667s",
+      "bounds": {
+        "x": 208.6632080078125,
+        "y": 120.9982681274414,
+        "width": 72.578125,
+        "height": 15.902778625488281
+      },
+      "insideOwnCaptionRow": true
+    },
+    {
+      "id": "ria-button-command-20260905T111530902z-a24b3d03",
+      "label": "编辑别礼噬冬接续：◇ 别礼 同时起手 +4.767s",
+      "bounds": {
+        "x": 608.6632080078125,
+        "y": 120.9982681274414,
+        "width": 73.4982681274414,
+        "height": 15.902778625488281
+      },
+      "insideOwnCaptionRow": true
+    },
+    {
+      "id": "ria-button-command-20260905T111526403z-35573159",
+      "label": "编辑汤汤踏潮卷浪！接续：◇ 别礼 同时起手",
+      "bounds": {
+        "x": 128.6632080078125,
+        "y": 210.99827575683594,
+        "width": 34.644100189208984,
+        "height": 15.902778625488281
+      },
+      "insideOwnCaptionRow": true
+    },
+    {
+      "id": "ria-button-command-20260905T111528468z-459edde3",
+      "label": "编辑汤汤河水，助我！接续：◇ 别礼 同时起手 +2s",
+      "bounds": {
+        "x": 368.6632080078125,
+        "y": 210.99827575683594,
+        "width": 53.69791793823242,
+        "height": 15.902778625488281
+      },
+      "insideOwnCaptionRow": true
+    },
+    {
+      "id": "ria-button-command-20260905T111529530z-8568e332",
+      "label": "编辑汤汤踏潮卷浪！接续：◇ 别礼 同时起手 +3.433s",
+      "bounds": {
+        "x": 528.6632080078125,
+        "y": 210.99827575683594,
+        "width": 74.86979675292969,
+        "height": 15.902778625488281
+      },
+      "insideOwnCaptionRow": true
+    },
+    {
+      "id": "ria-button-command-20260905T114139833z-ab8c7335",
+      "label": "编辑汤汤踏潮卷浪！接续：◇ 别礼 同时起手 +5.7s",
+      "bounds": {
+        "x": 768.6632080078125,
+        "y": 210.99827575683594,
+        "width": 61.58854293823242,
+        "height": 15.902778625488281
+      },
+      "insideOwnCaptionRow": true
+    },
+    {
+      "id": "d2i17wam8",
+      "label": "编辑汤汤大当家盯着呢！接续：◇ 汤汤 结束后",
+      "bounds": {
+        "x": 848.6632080078125,
+        "y": 210.99827575683594,
+        "width": 34.644100189208984,
+        "height": 15.902778625488281
+      },
+      "insideOwnCaptionRow": true
+    }
+  ],
+  "overlaps": [],
+  "lensEvents": [
+    {
+      "clientSequence": 58,
+      "occurredAt": "2026-09-06T02:24:10.802Z",
+      "kind": "interaction",
+      "type": "ReleaseLensOpened",
+      "runId": "run-d37cec24-db9d-41a1-919d-efb0b6b86b92",
+      "payload": {
+        "sourceButtonId": "hudmbiip3",
+        "candidateCount": 1,
+        "editing": true
+      },
+      "sequence": 65,
+      "receivedAt": "2026-09-06T02:24:11.352Z",
+      "sessionId": "browser-20260906T022313344z-1702c74d"
+    },
+    {
+      "clientSequence": 70,
+      "occurredAt": "2026-09-06T02:24:15.843Z",
+      "kind": "interaction",
+      "type": "ReleaseLensCancelled",
+      "runId": "run-d37cec24-db9d-41a1-919d-efb0b6b86b92",
+      "payload": {
+        "buttonId": "e8aaq4k8x"
+      },
+      "sequence": 81,
+      "receivedAt": "2026-09-06T02:24:16.357Z",
+      "sessionId": "browser-20260906T022313344z-1702c74d"
+    },
+    {
+      "clientSequence": 84,
+      "occurredAt": "2026-09-06T02:24:52.763Z",
+      "kind": "interaction",
+      "type": "ReleaseLensCommitted",
+      "runId": "run-d37cec24-db9d-41a1-919d-efb0b6b86b92",
+      "payload": {
+        "buttonId": "e8aaq4k8x",
+        "frame": 306,
+        "anchor": {
+          "schemaVersion": 1,
+          "kind": "action-end",
+          "sourceButtonId": "d2i17wam8",
+          "debounceFrames": 0
+        }
+      },
+      "sequence": 97,
+      "receivedAt": "2026-09-06T02:24:53.382Z",
+      "sessionId": "browser-20260906T022313344z-1702c74d"
+    }
+  ],
+  "note": "User continued editing in Chrome during this change. Current damage is not a fixed-input before/after comparison."
+}

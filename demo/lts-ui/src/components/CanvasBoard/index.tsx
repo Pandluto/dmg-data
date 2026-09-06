@@ -3621,7 +3621,9 @@ export function CanvasBoard({
     selectedCharacters.map((character) => character.id).join(','),
   ].join('|');
   const batchSelection = useBatchTimelineSelection({
-    active: isBatchMode && !isBrowseMode,
+    // Batch mode owns the interaction layer while keeping the book's
+    // read-only cards visible underneath it.
+    active: isBatchMode,
     canvasRef,
     selectableButtonIds: skillButtons.map((button) => button.id),
     resetKey: batchSelectionResetKey,
@@ -3813,24 +3815,28 @@ export function CanvasBoard({
   const handleToggleBrowseMode = useCallback(() => {
     if (isBrowseMode) {
       setIsBrowseMode(false);
+      if (isBatchMode) {
+        exitBatchMode();
+        batchSelection.clearSelection();
+      }
       return;
     }
     setIsBrowseMode(true);
-    setIsBatchMode(false);
     setBatchContextMenuState(null);
     setContextMenuState(null);
-  }, [isBrowseMode]);
+  }, [batchSelection, exitBatchMode, isBatchMode, isBrowseMode]);
 
   const handleToggleBatchMode = useCallback(() => {
     if (isBatchMode) {
       exitBatchMode();
+      batchSelection.clearSelection();
       return;
     }
     setIsBatchMode(true);
-    setIsBrowseMode(false);
+    setIsBrowseMode(true);
     setBatchContextMenuState(null);
     setContextMenuState(null);
-  }, [exitBatchMode, isBatchMode]);
+  }, [batchSelection, exitBatchMode, isBatchMode]);
 
   const handleBatchContextMenu = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();

@@ -46,7 +46,7 @@ function pointIsInsideRect(point: BatchSelectionPoint, rect: BatchSelectionRect)
 
 function getOperationCenter(element: HTMLElement): BatchSelectionPoint | null {
   const centerElement = element.querySelector<HTMLElement>(
-    '.skill-button-orb, .timeline-wait-track, .timeline-switch-track',
+    '.skill-button-reading-card, .skill-button-orb, .timeline-wait-track, .timeline-switch-track',
   ) ?? element;
   const bounds = centerElement.getBoundingClientRect();
   if (bounds.width <= 0 || bounds.height <= 0) return null;

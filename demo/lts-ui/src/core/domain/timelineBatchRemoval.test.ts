@@ -104,4 +104,50 @@ const bundlePlan = planTimelineBatchRemoval(bundled, [predecessor.id, successor.
 assert.equal(bundlePlan.ok, true);
 if (bundlePlan.ok) assert.deepEqual(bundlePlan.removalOrder, [successor.id, predecessor.id]);
 
+// Three-action reading fixture: 别礼 A at frame/node 0, then 汤汤 B and E
+// on the second lane. E is a legal tail by itself; B is blocked until E is
+// selected too. The shared nodeIndex 0 across lanes must not be treated as a
+// same-lane follower.
+const readingA = button('reading-a', 0, {
+  characterId: 'operator-a',
+  characterName: '别礼',
+  staffIndex: 0,
+  lineIndex: 0,
+  releaseAnchor: { schemaVersion: 1, kind: 'group-start', debounceFrames: 0 },
+});
+const readingB = button('reading-b', 0, {
+  characterId: 'operator-b',
+  characterName: '汤汤',
+  staffIndex: 1,
+  lineIndex: 1,
+  releaseAnchor: {
+    schemaVersion: 1,
+    kind: 'action-start',
+    sourceButtonId: readingA.id,
+    debounceFrames: 0,
+  },
+});
+const readingE = button('reading-e', 1, {
+  characterId: 'operator-b',
+  characterName: '汤汤',
+  staffIndex: 1,
+  lineIndex: 1,
+  releaseAnchor: {
+    schemaVersion: 1,
+    kind: 'damage-hit',
+    sourceButtonId: readingA.id,
+    sourceHitOffsetFrames: 76,
+    debounceFrames: 6,
+  },
+});
+const readingFixture = timeline([[readingA], [readingB, readingE]]);
+const eOnlyPlan = planTimelineBatchRemoval(readingFixture, [readingE.id]);
+assert.equal(eOnlyPlan.ok, true, 'the real reading fixture E action is a legal tail');
+const bOnlyPlan = planTimelineBatchRemoval(readingFixture, [readingB.id]);
+assert.equal(bOnlyPlan.ok, false, 'B remains blocked while E is unselected');
+if (!bOnlyPlan.ok) assert.match(bOnlyPlan.reason, /队列末尾/);
+const suffixPlan = planTimelineBatchRemoval(readingFixture, [readingB.id, readingE.id]);
+assert.equal(suffixPlan.ok, true, 'the complete same-lane suffix is removable atomically');
+if (suffixPlan.ok) assert.deepEqual(suffixPlan.removalOrder, [readingE.id, readingB.id]);
+
 console.log('timeline batch removal policy passed');

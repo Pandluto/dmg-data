@@ -33,6 +33,18 @@ assert.match(html, /强制等待只吸附组边界/);
 assert.match(html, /批量选择/);
 assert.equal((html.match(/sandbox-timeline-module/g) ?? []).length, 5);
 
+const browseBatchHtml = renderToStaticMarkup(
+  <SkillSandbox
+    selectedCharacters={[character]}
+    isBrowseMode
+    isBatchMode
+    onDragStart={() => undefined}
+    onAvatarDoubleClick={() => undefined}
+  />,
+);
+assert.match(browseBatchHtml, /aria-label="阅读模式"[^>]*aria-pressed="true"/);
+assert.match(browseBatchHtml, /aria-label="批量选择"[^>]*aria-pressed="true"/);
+
 const waitDialogHtml = renderToStaticMarkup(
   <ForcedWaitConfigDialog
     initialConfig={{ schemaVersion: 1, mode: 'fixed-duration', durationSeconds: 2 }}

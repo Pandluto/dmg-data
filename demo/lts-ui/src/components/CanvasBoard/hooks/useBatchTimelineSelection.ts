@@ -91,6 +91,12 @@ export function useBatchTimelineSelection({
     setDraft(null);
   }, [releasePointerCapture]);
 
+  const cancelSelection = useCallback(() => {
+    clearDraft();
+    clearSelection();
+    onSelectionCancel();
+  }, [clearDraft, clearSelection, onSelectionCancel]);
+
   useEffect(() => {
     const resetKeyChanged = shouldResetBatchTimelineSelection(
       previousResetKeyRef.current,
@@ -113,15 +119,13 @@ export function useBatchTimelineSelection({
         draftRef.current !== null,
       );
       event.preventDefault();
-      clearDraft();
-      clearSelection();
-      onSelectionCancel();
+      cancelSelection();
       if (shouldExit) onExit();
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [active, clearDraft, clearSelection, onExit, onSelectionCancel, selectedButtonIds.length]);
+  }, [active, cancelSelection, clearDraft, onExit, selectedButtonIds.length]);
 
   const finishSelection = useCallback((selectionDraft: BatchSelectionDraft) => {
     const canvas = canvasRef.current;
@@ -181,9 +185,7 @@ export function useBatchTimelineSelection({
         y: event.clientY,
       });
       if (isClick) {
-        clearDraft();
-        clearSelection();
-        onSelectionCancel();
+        cancelSelection();
         return;
       }
       finishSelection(draftRef.current);
@@ -204,11 +206,9 @@ export function useBatchTimelineSelection({
   }, [
     active,
     canvasRef,
-    clearDraft,
-    clearSelection,
+    cancelSelection,
     draft,
     finishSelection,
-    onSelectionCancel,
   ]);
 
   const normalizedSelectionRect: BatchSelectionRect | null = draft
@@ -226,5 +226,6 @@ export function useBatchTimelineSelection({
     handlePointerDown,
     handlePointerCancel: clearDraft,
     clearSelection,
+    cancelSelection,
   };
 }

@@ -3635,11 +3635,6 @@ export function CanvasBoard({
     onSelectionCancel: handleBatchSelectionCancel,
   });
 
-  const handleCancelBatchSelection = useCallback(() => {
-    batchSelection.clearSelection();
-    handleBatchSelectionCancel();
-  }, [batchSelection, handleBatchSelectionCancel]);
-
   useEffect(() => {
     if (!batchContextMenuState) return undefined;
     const close = (event: PointerEvent) => {
@@ -5092,7 +5087,7 @@ export function CanvasBoard({
           count={batchSelection.selectedButtonIds.length}
           position={batchContextMenuState.position}
           onDelete={handleConfirmBatchRemove}
-          onCancelSelection={handleCancelBatchSelection}
+          onCancelSelection={batchSelection.cancelSelection}
         />
       ) : null}
       <div className="canvas-layout">

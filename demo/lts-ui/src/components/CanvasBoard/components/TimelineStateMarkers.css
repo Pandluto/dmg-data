@@ -1,11 +1,11 @@
 .ake-state-markers-layer { position: absolute; inset: 0; pointer-events: none; }
-.ake-state-marker-group { position: absolute; z-index: 20; display: flex; gap: 4px; pointer-events: none; }
+.ake-state-marker-group { position: absolute; z-index: 20; display: flex; pointer-events: none; }
 .ake-state-marker-leaders { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
 .ake-state-marker-leaders path { fill: none; stroke: #000; stroke-width: .5; opacity: .6; }
 .ake-state-marker-leaders circle { fill: #000; opacity: .6; }
 .ake-state-event-marker, .ake-state-event-summary {
-  --state-color: #47746d;
-  --state-fill: rgba(115, 151, 143, .6);
+  --state-color: #2d665b;
+  --state-fill: #4f9181;
   position: relative; flex: 0 0 auto; box-sizing: border-box; width: 20px; height: 20px;
   padding: 1.67px; margin: 0; border: .5px solid #000;
   border-radius: 50%; color: var(--state-color);
@@ -13,11 +13,11 @@
   box-shadow: none; cursor: pointer; pointer-events: auto;
   display: grid; place-items: center;
 }
-.ake-state-event-marker[data-state-tone="fire"] { --state-color: #ba4330; --state-fill: rgba(255, 210, 195, 1); }
-.ake-state-event-marker[data-state-tone="ice"] { --state-color: #367eaa; --state-fill: rgba(200, 235, 255, 1); }
-.ake-state-event-marker[data-state-tone="electric"] { --state-color: #8b731b; --state-fill: rgba(245, 245, 190, 1); }
-.ake-state-event-marker[data-state-tone="nature"] { --state-color: #3f804a; --state-fill: rgba(175, 225, 185, 1); }
-.ake-state-event-marker[data-state-tone="physical"] { --state-color: #856444; --state-fill: #E0D6C8; }
+.ake-state-event-marker[data-state-tone="fire"] { --state-color: #a93625; --state-fill: #cf4e37; }
+.ake-state-event-marker[data-state-tone="ice"] { --state-color: #226b9a; --state-fill: #4c9bca; }
+.ake-state-event-marker[data-state-tone="electric"] { --state-color: #755d08; --state-fill: #b39a27; }
+.ake-state-event-marker[data-state-tone="nature"] { --state-color: #2f6e39; --state-fill: #4e984f; }
+.ake-state-event-marker[data-state-tone="physical"] { --state-color: #704b31; --state-fill: #a47751; }
 .ake-state-event-marker {
   padding: 0;
   border: 1px solid #000;
@@ -29,7 +29,7 @@
 .ake-state-event-marker::before {
   content: "";
   position: absolute;
-  inset: 2px;
+  inset: 3px;
   box-sizing: border-box;
   border: 1px solid #000;
   border-radius: 50%;
@@ -40,7 +40,7 @@
 .ake-state-event-marker .ake-state-icon { width: 15px; height: 15px; object-fit: contain; }
 .ake-state-event-marker .ake-state-icon-mask {
   position: relative; z-index: 1;
-  display: block; width: 10px; height: 10px; background: #fff;
+  display: block; width: 8px; height: 8px; background: #fff;
   mask: var(--state-icon) center / contain no-repeat;
 }
 .ake-state-event-marker .ake-state-icon-fallback {
@@ -48,10 +48,10 @@
   color: #fff; font-size: 8px; font-weight: 700; line-height: 1;
 }
 .ake-state-event-marker > b {
-  position: absolute; right: -3px; bottom: -3px; z-index: 2; min-width: 11.67px; height: 11.67px;
+  position: absolute; right: -1px; bottom: -4px; z-index: 2; min-width: 8px; height: 10px;
   padding: 0; box-sizing: border-box;
-  background: transparent; color: inherit; font: 800 11.67px/11.67px ui-sans-serif, system-ui, sans-serif;
-  text-align: center; box-shadow: none;
+  background: transparent; color: #000; font: 900 10px/10px ui-sans-serif, system-ui, sans-serif;
+  text-align: center; box-shadow: none; -webkit-text-stroke: .5px #fff; paint-order: stroke fill;
 }
 .ake-state-event-marker.is-cleared { --state-color: #7d8584; --state-fill: rgba(153, 163, 160, .38); border-color: #000; border-style: dashed; }
 .ake-state-event-marker.is-cleared .ake-state-icon-mask { opacity: .5; }

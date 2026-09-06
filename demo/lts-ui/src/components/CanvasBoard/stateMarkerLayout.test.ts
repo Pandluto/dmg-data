@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { layoutStateMarkers, markerRectsOverlap, stateBadgeRuns, STATE_BADGE_SIZE, type StateMarkerAnchor, type StateMarkerSpace } from './stateMarkerLayout';
+import { layoutStateMarkers, markerRectsOverlap, stateBadgeRuns, STATE_BADGE_GAP, STATE_BADGE_SIZE, type StateMarkerAnchor, type StateMarkerSpace } from './stateMarkerLayout';
 const event = (key: string, frame: number, x: number, sequence = 0): StateMarkerAnchor => ({ key, frame, x, sequence, width: STATE_BADGE_SIZE });
 const fixture = [event('fire-consumed',148,382,1),event('breach-3',148,382,3),
   event('fire-applied',541,825),event('breach-expired',748,846)];
@@ -19,6 +19,16 @@ const assertFits = (input: StateMarkerAnchor[], area = space) => {
 const placed = assertFits(fixture);
 assert.ok(placed.some(group=>group.top!==space.preferredTop), 'find vertical whitespace around the crowded event');
 assert.deepEqual(placed,layoutStateMarkers(fixture,space),'placement is deterministic');
+
+const sparseSpace: StateMarkerSpace = { left:40, top:50, width:1120, height:55, preferredTop:50, obstacles:[] };
+const rightUpper = assertFits([event('right-upper',10,500)], sparseSpace);
+assert.equal(rightUpper.length,1);
+assert.equal(rightUpper[0].left,506, 'prefer a nearby tray just right of the real event anchor');
+assert.equal(rightUpper[0].top,sparseSpace.top, 'prefer the top of the current lane');
+const sameFrame = assertFits([event('attach',20,500,1),event('breach',20,500,2)], sparseSpace);
+assert.equal(sameFrame.length,1, 'same-frame state changes share one tray');
+assert.equal(sameFrame[0].width,STATE_BADGE_SIZE * 2 + STATE_BADGE_GAP, 'same-frame badges use the compact tray gap');
+assert.equal(sameFrame[0].left,506, 'same-frame tray keeps the right-upper anchor');
 assertFits([event('left-a',0,40),event('left-b',1,42),event('right-a',10,1159),event('right-b',11,1160)]);
 const dense = assertFits(Array.from({length:100},(_,i)=>event(`dense-${i}`,148,400,i)));
 assert.ok(dense.some(group=>group.collapsed));
@@ -36,4 +46,4 @@ assert.deepEqual(stateBadgeRuns(records).map(run=>run.map(e=>e.key)),[['fire-cle
 assert.equal(stateBadgeRuns([status('clear',4,0,1),status('apply',0,1,2)]).length,2);
 assert.equal(stateBadgeRuns([status('a',1,2,1),status('b',2,3,2,149)]).length,2);
 assert.equal(stateBadgeRuns([status('a',1,2,1),{...status('b',2,3,2),commandId:'different-cast'}]).length,2);
-console.log('state badges: real collision anchors, whitespace, boundaries, dense fallback and transaction preservation passed');
+console.log('state badges: right-upper preference, compact same-frame trays, real collision anchors, whitespace, boundaries, dense fallback and transaction preservation passed');

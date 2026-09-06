@@ -5,7 +5,10 @@ export type StateMarkerGroup<T extends StateMarkerAnchor> = MarkerRect & {
 };
 export type StateMarkerSpace = MarkerRect & { preferredTop: number; obstacles: readonly MarkerRect[] };
 export const STATE_BADGE_SIZE = 20;
-const GAP = 4;
+/** Gap between badges that share one exact-time marker tray. */
+export const STATE_BADGE_GAP = 2;
+const OBSTACLE_GAP = 4;
+const RIGHT_OF_ANCHOR_OFFSET = 6;
 
 export function markerRectsOverlap(a: MarkerRect, b: MarkerRect, gap = 0): boolean {
   return a.left < b.left + b.width + gap && a.left + a.width + gap > b.left
@@ -43,25 +46,36 @@ export function layoutStateMarkers<T extends StateMarkerAnchor>(
   const groups: StateMarkerGroup<T>[] = [];
   const bounds = space;
   const height = Math.min(STATE_BADGE_SIZE, bounds.height);
-  const obstacles = space.obstacles.filter(rect => markerRectsOverlap(bounds, rect, GAP));
+  const obstacles = space.obstacles.filter(rect => markerRectsOverlap(bounds, rect, OBSTACLE_GAP));
   const findSpace = (items: T[], collapsed: boolean): StateMarkerGroup<T> | null => {
-    const width = collapsed ? STATE_BADGE_SIZE : items.reduce((sum, item) => sum + item.width, 0) + GAP * (items.length - 1);
+    const width = collapsed ? STATE_BADGE_SIZE
+      : items.reduce((sum, item) => sum + item.width, 0) + STATE_BADGE_GAP * (items.length - 1);
     if (width > bounds.width || height <= 0) return null;
     const anchor = items.reduce((sum, item) => sum + item.x, 0) / items.length;
     const clampX = (x: number) => Math.max(bounds.left, Math.min(bounds.left + bounds.width - width, x));
     const clampY = (y: number) => Math.max(bounds.top, Math.min(bounds.top + bounds.height - height, y));
     const occupied = [...obstacles, ...groups];
-    const xs = new Set([clampX(anchor - width / 2), bounds.left, bounds.left + bounds.width - width]);
+    const preferredLeft = clampX(anchor + RIGHT_OF_ANCHOR_OFFSET);
+    // Put a tray just above/right of the source time first. The centered
+    // candidate remains useful when the preferred side is occupied or clipped.
+    const xs = new Set([preferredLeft, clampX(anchor - width / 2), bounds.left, bounds.left + bounds.width - width]);
     const ys = new Set([clampY(space.preferredTop), bounds.top, bounds.top + bounds.height - height]);
     for (const rect of occupied) {
-      xs.add(clampX(rect.left - width - GAP)); xs.add(clampX(rect.left + rect.width + GAP));
-      ys.add(clampY(rect.top - height - GAP)); ys.add(clampY(rect.top + rect.height + GAP));
+      xs.add(clampX(rect.left - width - OBSTACLE_GAP)); xs.add(clampX(rect.left + rect.width + OBSTACLE_GAP));
+      ys.add(clampY(rect.top - height - OBSTACLE_GAP)); ys.add(clampY(rect.top + rect.height + OBSTACLE_GAP));
     }
     let best: StateMarkerGroup<T> | null = null, bestCost = Infinity;
     for (const top of ys) for (const left of xs) {
       const candidate = { left, top, width, height, events: items, collapsed };
-      const cost = Math.abs(left + width / 2 - anchor) + Math.abs(top - space.preferredTop) * 1.4;
-      if (cost >= bestCost || occupied.some(rect => markerRectsOverlap(candidate, rect, GAP - .01))) continue;
+      const distanceToPreferred = Math.abs(left - preferredLeft);
+      const distanceToAnchor = Math.abs(left + width / 2 - anchor);
+      // Keep a modest bias against sending a callout left of its source when
+      // both sides are otherwise comparable. Distance still dominates, so a
+      // nearby left patch wins over an implausibly distant right edge.
+      const leftPenalty = left < anchor ? 4 : 0;
+      const cost = distanceToPreferred + distanceToAnchor * .25
+        + leftPenalty + Math.abs(top - space.preferredTop) * 1.4;
+      if (cost >= bestCost || occupied.some(rect => markerRectsOverlap(candidate, rect, OBSTACLE_GAP - .01))) continue;
       best = candidate; bestCost = cost;
     }
     return best;
@@ -89,7 +103,7 @@ export function layoutStateMarkers<T extends StateMarkerAnchor>(
     } else {
       // The lane itself is full. A reserved narrow gutter remains available to
       // the caller; this flag asks it to put one disclosure there.
-      groups.push({ events: items, left: bounds.left - STATE_BADGE_SIZE - GAP,
+      groups.push({ events: items, left: bounds.left - STATE_BADGE_SIZE - OBSTACLE_GAP,
         top: bounds.top, width: STATE_BADGE_SIZE, height, collapsed: true });
     }
   }

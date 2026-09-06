@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from
 import { createPortal } from 'react-dom';
 import type { AkeCombatStateEvent } from '../../../core/services/akeRuntimeLedger';
 import { normalizeAssetUrl } from '../../../utils/assetResolver';
-import { layoutStateMarkers, stateBadgeRuns, STATE_BADGE_SIZE, type MarkerRect } from '../stateMarkerLayout';
+import { layoutStateMarkers, stateBadgeRuns, STATE_BADGE_GAP, STATE_BADGE_SIZE, type MarkerRect } from '../stateMarkerLayout';
 import { stateMarkerTone } from '../stateMarkerTone';
 import './TimelineStateMarkers.css';
 
@@ -19,6 +19,7 @@ interface Props {
 // Measure visible ink and controls, not the mostly empty 80 × 78 skill hitbox.
 // RIA uses the selector on the layer to inspect the same obstacles.
 const OBSTACLES = [
+  '.ake-release-caption-lane > span',
   '.skill-button-orb', '.skill-button-temporal-kind', '.skill-button-release-relation',
   '.skill-button-tail-bundle-badge', '.skill-button-inspect-damage',
   '.ake-action-interval > i', '.ake-action-interval > i > b',
@@ -98,17 +99,17 @@ export function TimelineStateMarkers({ events, left, right, laneForLine, onInspe
           records: run.map(event => byKey.get(event.key)!) };
       });
       return layoutStateMarkers(badges, { left, top: lane.top, width: right - left,
-        height: lane.bottom - lane.top, preferredTop: lane.bottom - STATE_BADGE_SIZE,
+        height: lane.bottom - lane.top, preferredTop: lane.top,
         obstacles }).map(group => {
         const records = group.events.flatMap(item => item.records);
         let offset = 0;
         const leaders = group.events.map(item => {
           const center = group.collapsed ? group.width / 2 : offset + item.width / 2;
-          offset += item.width + 4;
+          offset += item.width + STATE_BADGE_GAP;
           return { item, center };
         });
         return <div key={group.events[0].key} className="ake-state-marker-group"
-          style={{ left: group.left, top: group.top, width: group.width, height: group.height }}
+          style={{ left: group.left, top: group.top, width: group.width, height: group.height, gap: STATE_BADGE_GAP }}
           role="group" aria-label={`${records.length}项状态变化`}>
           <svg className="ake-state-marker-leaders" width={group.width} height={group.height} aria-hidden="true">
             {leaders.map(({ item, center }) => <g key={item.key}>

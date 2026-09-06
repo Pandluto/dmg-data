@@ -88,7 +88,9 @@ interface CanvasAreaProps {
   batchSelectionRect?: BatchSelectionRect | null;
   onBatchPointerDown?: (event: PointerEvent<HTMLDivElement>) => void;
   onBatchPointerCancel?: () => void;
-  onBatchContextMenu?: (event: MouseEvent<HTMLDivElement>) => void;
+  onBatchContextMenu?: (
+    event: MouseEvent<HTMLDivElement> | PointerEvent<HTMLDivElement>,
+  ) => void;
   isInspectMode?: boolean;
   isDragDisabled?: boolean;
   resistanceRevision?: number;
@@ -151,6 +153,16 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
       (canvasRef as MutableRefObject<HTMLDivElement | null>).current = node;
     }
   }, [canvasRef]);
+
+  const handleBatchLayerPointerDown = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    if (event.button === 0 && event.ctrlKey) {
+      event.preventDefault();
+      event.stopPropagation();
+      onBatchContextMenu?.(event);
+      return;
+    }
+    onBatchPointerDown?.(event);
+  }, [onBatchContextMenu, onBatchPointerDown]);
 
   const glassElementSignature = useMemo(
     () => [
@@ -1368,7 +1380,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           <div
             className={`canvas-batch-selection-layer${batchSelectionRect ? ' is-dragging' : ''}`}
             aria-label="批量选择画布"
-            onPointerDown={onBatchPointerDown}
+            onPointerDown={handleBatchLayerPointerDown}
             onPointerCancel={onBatchPointerCancel}
             onContextMenu={(event) => {
               event.preventDefault();

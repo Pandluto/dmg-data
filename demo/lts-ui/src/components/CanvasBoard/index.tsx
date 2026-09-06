@@ -3838,7 +3838,9 @@ export function CanvasBoard({
     setContextMenuState(null);
   }, [batchSelection, exitBatchMode, isBatchMode]);
 
-  const handleBatchContextMenu = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+  const handleBatchContextMenu = useCallback((
+    event: React.MouseEvent<HTMLDivElement> | React.PointerEvent<HTMLDivElement>,
+  ) => {
     event.preventDefault();
     event.stopPropagation();
     setContextMenuState(null);

@@ -15,6 +15,7 @@
 | [汤汤](operators/tangtang.md) | 待本轮施冷限次与显式落地交互修订提交后登记 | 待登记 |
 | [别礼](operators/lastrite.md) | `745ebcd3296d3bc6d85ece432c7f3e4e6ae5aaef` | 2026-09-05 18:43:04 +08:00 |
 | [原始动作与解包数据分析](data/raw-action-analysis.md) | 待本轮施冷限次更正提交后登记 | 待登记 |
+| [状态来源、触发与时序](data/status-source-and-trigger.md) | 待本轮内容提交后登记 | 待登记 |
 | [常规实验配装](experiments/default-loadout.md) | 待本轮内容提交后登记 | 待登记 |
 
 ## 按问题路由
@@ -25,6 +26,7 @@
 | 一般测试选多少潜能，武器装备是否装齐 | [常规实验配装](experiments/default-loadout.md) |
 | 汤汤水龙卷、巨浪、下落落地、跨角色触发归属、终结技提前结束、涡流、增伤或连携 | [汤汤分析](operators/tangtang.md) |
 | 别礼普攻中插战技、灌注、追击、回能、三层寒冷 | [别礼分析](operators/lastrite.md) |
+| 附着被错归普攻、持续效果来源、触发动作、生效时序、状态被拉回起手 | [来源与触发的区别](data/status-source-and-trigger.md)、[状态时序 Spec](../specs/timeline-state-flow/spec.md) |
 | SkillData / BuffData / SkillPatch、Blackboard、解包字段与实际效果不一致 | [原始动作分析经验](data/raw-action-analysis.md) |
 | 本轮跑过什么、还缺什么实验、有哪些未确认优化 | [探索记录](../maintenance/engine-exploration.md) |
 | 水位算法、短轴压缩有效但长轴仍宽、瞬时操作重复占格 | [长轴占位设计与证据](../maintenance/long-timeline-width-20260906.md)、[现行排轴 Spec](../specs/timeline-release-lens/spec.md) |

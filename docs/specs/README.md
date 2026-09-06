@@ -4,6 +4,8 @@
 
 ## 当前 Spec
 
+- [排轴状态来源与时序](./timeline-state-flow/spec.md)：区分效果来源、触发动作与生效时刻；普通和阅读视图独立显示状态变化与持续。
+
 - [排轴阅读与批量模式](./timeline-reading-batch/spec.md)：书本组合摘要、单技能卡片与合法队尾的原子批量删除；已整合；阅读中框选、合法队尾删除与撤销已通过完整应用隔离 Chrome 验证。
 
 - [文档与证据系统](./documentation-and-evidence-system/spec.md)：唯一事实层级、来源升级事务、文档生命周期和验收门。

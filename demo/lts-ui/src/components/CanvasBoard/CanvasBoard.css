@@ -2829,13 +2829,30 @@
 .canvas-container.is-browse-mode .canvas-damage-nodes,
 .canvas-container.is-browse-mode .canvas-forced-wait-control-column,
 .canvas-container.is-browse-mode .canvas-initial-controller-picker,
-.canvas-container.is-browse-mode .canvas-controlled-operator-marker,
-.canvas-container.is-browse-mode .ake-canvas-projection {
+.canvas-container.is-browse-mode .canvas-controlled-operator-marker {
+  display: none;
+}
+
+/* 投影容器本身承载共享技力与角色能量；只撤掉阅读模式不需要的细节层。 */
+.canvas-container.is-browse-mode .ake-canvas-projection :is(
+  .ake-release-caption-lane,
+  .ake-variable-column-rate,
+  .ake-wait-column,
+  .ake-interaction-event-marker,
+  .ake-state-markers-layer,
+  .ake-action-interval,
+  .ake-effect-tail,
+  .ake-preview-hit-marker,
+  .ake-hit-marker,
+  .ake-combo-trigger-marker,
+  .ake-combo-precision-window,
+  .ake-live-scope-plate
+) {
   display: none;
 }
 
 .canvas-container.is-browse-mode .canvas-grid-group {
-  outline: none;
+  outline: 1px solid rgba(0, 0, 0, 0.72);
 }
 
 .canvas-container.is-browse-mode .canvas-staff-line {

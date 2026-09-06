@@ -39,8 +39,10 @@ import type {
   AkeRealtimeTimeline,
 } from '../../../integrations/ake/akeRealtimeTimeline';
 import {
+  clipSharedTimelineColumnsToPage,
   projectSharedTimelineFrame,
   type ScheduledTimelineAction,
+  type SharedTimelinePageColumn,
   type SharedTimelineColumn,
 } from '../../../core/domain/sharedVariableRateTimeline';
 import { resolveInitialControllerLaneId } from '../../../core/domain/operatorControlTimeline';
@@ -651,10 +653,12 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
     const tickRate = variableTimeline.tickRate;
     const pageStartX = staffIndex * visualPageWidth;
     const pageEndX = pageStartX + visualPageWidth;
-    const pageColumns = variableTimeline.columns.filter(column => (
-      column.xStart >= pageStartX && column.xStart < pageEndX
-    ));
-    if (pageColumns.length === 0) return null;
+    const pageColumnSegments = clipSharedTimelineColumnsToPage(
+      variableTimeline.columns,
+      pageStartX,
+      pageEndX,
+    );
+    if (pageColumnSegments.length === 0) return null;
 
     const seconds = (frame: number) => `${(frame / tickRate).toFixed(2)}秒`;
     const pointAt = <T extends AkeTimelinePoint,>(points: readonly T[], frame: number): T | null => {
@@ -667,11 +671,17 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
     };
     const boundarySamples = <T,>(read: (frame: number) => T) => {
       const samples: Array<{ x: number; value: T }> = [];
-      pageColumns.forEach((column, index) => {
+      pageColumnSegments.forEach((segment, index) => {
         if (index === 0) {
-          samples.push({ x: column.xStart - pageStartX, value: read(column.startFrame) });
+          samples.push({
+            x: segment.visibleStartX - pageStartX,
+            value: read(segment.startFrame),
+          });
         }
-        samples.push({ x: column.xEnd - pageStartX, value: read(column.endFrame) });
+        samples.push({
+          x: segment.visibleEndX - pageStartX,
+          value: read(segment.endFrame),
+        });
       });
       return samples;
     };
@@ -828,9 +838,9 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
         clippedAtCanvasEnd: projectedEffectEndX === null,
       }];
     });
-    const waitsOnPage = pageColumns.filter(
-      (column): column is Extract<SharedTimelineColumn, { kind: 'wait' }> => column.kind === 'wait',
-    );
+    const waitsOnPage = pageColumnSegments.filter((segment): segment is SharedTimelinePageColumn & {
+      column: Extract<SharedTimelineColumn, { kind: 'wait' }>;
+    } => segment.column.kind === 'wait');
     const visualWidthInBaseColumns = Number(
       (variableTimeline.width / variableTimeline.columnWidth).toFixed(1),
     );
@@ -844,34 +854,38 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
             <span>起手</span>
           </div>
         ))}
-        {pageColumns.map(column => (
-          <span
-            key={`rate:${column.id}`}
-            className={`ake-variable-column-rate is-${column.kind}`}
-            style={{
-              left: GRID_FIRST_COLUMN_WIDTH + column.xStart - pageStartX,
-              width: Math.max(1, column.xEnd - column.xStart),
-            }}
-            title={`${seconds(column.startFrame)}—${seconds(column.endFrame)} · ${column.durationFrames} 帧`}
-          >
-            {column.xEnd - column.xStart >= 40
-              ? column.kind === 'wait'
-                ? column.mode === 'seal-only' ? '封组 · 0秒' : `等待 · ${seconds(column.durationFrames)}`
-                : seconds(column.durationFrames)
-              : null}
-          </span>
-        ))}
+        {pageColumnSegments.map((segment) => {
+          const { column, visibleStartX, visibleEndX, startFrame, endFrame } = segment;
+          const visibleWidth = visibleEndX - visibleStartX;
+          return (
+            <span
+              key={`rate:${column.id}`}
+              className={`ake-variable-column-rate is-${column.kind}`}
+              style={{
+                left: GRID_FIRST_COLUMN_WIDTH + visibleStartX - pageStartX,
+                width: Math.max(1, visibleWidth),
+              }}
+              title={`${seconds(column.startFrame)}—${seconds(column.endFrame)} · ${column.durationFrames} 帧`}
+            >
+              {visibleWidth >= 40
+                ? column.kind === 'wait'
+                  ? column.mode === 'seal-only' ? '封组 · 0秒' : `等待 · ${seconds(endFrame - startFrame)}`
+                  : seconds(endFrame - startFrame)
+                : null}
+            </span>
+          );
+        })}
         {waitsOnPage.map(wait => (
           <div
-            key={wait.id}
-            className={`ake-wait-column is-${wait.mode}`}
+            key={wait.column.id}
+            className={`ake-wait-column is-${wait.column.mode}`}
             style={{
-              left: GRID_FIRST_COLUMN_WIDTH + wait.xStart - pageStartX,
-              width: Math.max(1, wait.xEnd - wait.xStart),
+              left: GRID_FIRST_COLUMN_WIDTH + wait.visibleStartX - pageStartX,
+              width: Math.max(1, wait.visibleEndX - wait.visibleStartX),
             }}
-            title={`${wait.resolutionReason} · ${seconds(wait.startFrame)}—${seconds(wait.endFrame)}`}
+            title={`${wait.column.resolutionReason} · ${seconds(wait.column.startFrame)}—${seconds(wait.column.endFrame)}`}
           >
-            <span>{wait.mode === 'seal-only' ? '封组' : '等待'}</span>
+            <span>{wait.column.mode === 'seal-only' ? '封组' : '等待'}</span>
           </div>
         ))}
         {interactions.map(interaction => {
@@ -1057,7 +1071,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
             .filter(point => point.commandId)
             .map(point => ({ event: point, point: visualPointForFrame(point.frame, 'after') }))
             .filter(entry => entry.point?.pageIndex === staffIndex);
-          const pageEndFrame = pageColumns[pageColumns.length - 1]?.endFrame
+          const pageEndFrame = pageColumnSegments[pageColumnSegments.length - 1]?.endFrame
             ?? variableTimeline.endFrame;
           const pageValue = pointAt(pool.points, pageEndFrame)?.value ?? pool.initial;
           return (

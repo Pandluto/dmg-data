@@ -27,6 +27,7 @@
 | 别礼普攻中插战技、灌注、追击、回能、三层寒冷 | [别礼分析](operators/lastrite.md) |
 | SkillData / BuffData / SkillPatch、Blackboard、解包字段与实际效果不一致 | [原始动作分析经验](data/raw-action-analysis.md) |
 | 本轮跑过什么、还缺什么实验、有哪些未确认优化 | [探索记录](../maintenance/engine-exploration.md) |
+| 水位算法、短轴压缩有效但长轴仍宽、瞬时操作重复占格 | [长轴占位设计与证据](../maintenance/long-timeline-width-20260906.md)、[现行排轴 Spec](../specs/timeline-release-lens/spec.md) |
 
 ## 如何维护
 

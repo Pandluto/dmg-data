@@ -94,7 +94,7 @@ export type SharedVariableRateTimelineSpec = {
   tickRate: number;
   initialFrame?: number;
   columnWidth?: number;
-  /** Width multiplier for positive segments where only existing actions continue. */
+  /** Base width multiplier for every positive segment before span constraints. */
   continuationWidthRatio?: number;
   /** Optional fixed visual page width used to keep full operation columns intact. */
   visualPageWidth?: number;
@@ -286,6 +286,50 @@ export type SharedVariableRateTimelineModel = {
   admissionStatus: TimelineAdmissionStatus;
   isExecutable: boolean;
 };
+
+export type SharedTimelinePageColumn = {
+  column: SharedTimelineColumn;
+  visibleStartX: number;
+  visibleEndX: number;
+  startFrame: number;
+  endFrame: number;
+};
+
+function frameAtSharedTimelineColumnX(column: SharedTimelineColumn, x: number): number {
+  if (column.durationFrames === 0 || column.xEnd <= column.xStart) return column.startFrame;
+  const ratio = Math.max(0, Math.min(1, (x - column.xStart) / (column.xEnd - column.xStart)));
+  return column.startFrame + ratio * column.durationFrames;
+}
+
+/**
+ * Clip only the display segment for a page. Positive-duration columns may
+ * straddle a page boundary; zero-duration controls retain their xStart page
+ * ownership so their before/after affinity remains unchanged.
+ */
+export function clipSharedTimelineColumnsToPage(
+  columns: readonly SharedTimelineColumn[],
+  pageStartX: number,
+  pageEndX: number,
+): SharedTimelinePageColumn[] {
+  return columns.flatMap((column) => {
+    const isZeroDuration = column.durationFrames === 0;
+    if (isZeroDuration
+      ? column.xStart < pageStartX || column.xStart >= pageEndX
+      : column.xEnd <= pageStartX || column.xStart >= pageEndX) {
+      return [];
+    }
+    const visibleStartX = Math.max(pageStartX, column.xStart);
+    const visibleEndX = Math.min(pageEndX, column.xEnd);
+    if (visibleEndX <= visibleStartX) return [];
+    return [{
+      column,
+      visibleStartX,
+      visibleEndX,
+      startFrame: frameAtSharedTimelineColumnX(column, visibleStartX),
+      endFrame: frameAtSharedTimelineColumnX(column, visibleEndX),
+    }];
+  });
+}
 
 export type TimelineProjectionAffinity = 'before' | 'after' | 'center';
 
@@ -689,7 +733,6 @@ function makeActivityColumns(
       .map(wait => wait.startFrame),
     ...preliminary.operatorSwitches.map(operatorSwitch => operatorSwitch.startFrame),
   ]);
-  const operationControlFrames = new Set(zeroControlFrames);
   const appendColumn = (
     column: Omit<ActivityTimelineColumn, 'xStart' | 'xEnd'>,
     width: number,
@@ -734,16 +777,6 @@ function makeActivityColumns(
       .filter((action) => action.startFrame === startFrame)
       .sort((left, right) => left.stableSequence - right.stableSequence)
       .map((action) => action.id);
-    const hasLaneWait = preliminary.laneWaits.some((wait) => (
-      wait.startFrame === startFrame
-      || (wait.startFrame < endFrame && wait.endFrame > startFrame)
-    ));
-    const hasOperatorControl = [...operationControlFrames].some((frame) => (
-      frame >= startFrame && frame < endFrame
-    ));
-    const width = startingActionIds.length > 0 || hasLaneWait || hasOperatorControl
-      ? columnWidth
-      : columnWidth * continuationWidthRatio;
     appendColumn({
       id: `group:${preliminary.id}:column:${columns.length}`,
       kind: 'activity',
@@ -759,7 +792,7 @@ function makeActivityColumns(
         .filter((action) => action.endFrame === endFrame)
         .sort((left, right) => left.stableSequence - right.stableSequence)
         .map((action) => action.id),
-    }, width);
+    }, columnWidth * continuationWidthRatio);
   }
   preliminary.boundaries.forEach(pushZeroControlColumn);
   return columns;
@@ -858,14 +891,200 @@ function materializeOperatorSwitches(
   });
 }
 
+type TimelineWidthConstraint = {
+  startIndex: number;
+  minimumWidth: number;
+};
+
 /**
- * Keep a complete operation column from straddling a visual page boundary.
+ * Re-map every x owner through one shared column boundary map.
  *
- * The page break is a display concern only. When a full column would start in
- * the final partial page slot, its preceding column absorbs the gap and every
- * later boundary moves by the same amount. Frame data and column identity are
- * therefore untouched, while the frame projector continues to use the same
- * per-column interpolation after the adjustment.
+ * Actions and controls deliberately receive their coordinates from their
+ * materialized columns before this helper runs. Keeping the remap in one
+ * place means the solver and the page-break pass cannot disagree about which
+ * visual boundary owns an action edge.
+ */
+function remapTimelineGeometry(
+  model: SharedVariableRateTimelineModel,
+  columns: SharedTimelineColumn[],
+): SharedVariableRateTimelineModel {
+  const boundaryMap = new Map<number, number>();
+  model.columns.forEach((column, index) => {
+    const mapped = columns[index];
+    if (!mapped) {
+      throw new SharedVariableRateTimelineError(
+        'GEOMETRY_COLUMN_MISMATCH',
+        `Could not remap column ${column.id}: column count changed.`,
+      );
+    }
+    boundaryMap.set(column.xStart, mapped.xStart);
+    boundaryMap.set(column.xEnd, mapped.xEnd);
+  });
+  const mapBoundary = (value: number, label: string): number => {
+    const mapped = boundaryMap.get(value);
+    if (mapped === undefined) {
+      throw new SharedVariableRateTimelineError(
+        'GEOMETRY_BOUNDARY_NOT_FOUND',
+        `Could not remap ${label} at x=${value}.`,
+      );
+    }
+    return mapped;
+  };
+  const groups = model.groups.map(group => ({
+    ...group,
+    xStart: mapBoundary(group.xStart, `group ${group.id}.xStart`),
+    xEnd: mapBoundary(group.xEnd, `group ${group.id}.xEnd`),
+  }));
+  const waits = model.waits.map(wait => ({
+    ...wait,
+    xStart: mapBoundary(wait.xStart, `wait ${wait.id}.xStart`),
+    xEnd: mapBoundary(wait.xEnd, `wait ${wait.id}.xEnd`),
+  }));
+  const actions = model.actions.map(action => ({
+    ...action,
+    startX: mapBoundary(action.startX, `action ${action.id}.startX`),
+    endX: mapBoundary(action.endX, `action ${action.id}.endX`),
+  }));
+  const laneWaits = model.laneWaits.map(wait => ({
+    ...wait,
+    startX: mapBoundary(wait.startX, `lane wait ${wait.id}.startX`),
+    endX: mapBoundary(wait.endX, `lane wait ${wait.id}.endX`),
+  }));
+  const operatorSwitches = model.operatorSwitches.map(operatorSwitch => ({
+    ...operatorSwitch,
+    startX: mapBoundary(operatorSwitch.startX, `operator switch ${operatorSwitch.id}.startX`),
+    endX: mapBoundary(operatorSwitch.endX, `operator switch ${operatorSwitch.id}.endX`),
+  }));
+
+  return {
+    ...model,
+    groups,
+    waits,
+    columns,
+    actions,
+    laneWaits,
+    operatorSwitches,
+    width: columns[columns.length - 1]?.xEnd ?? 0,
+  };
+}
+
+/**
+ * Compress continuation segments with one deterministic forward geometry pass.
+ *
+ * The raw columns retain the event boundaries and the materializers retain
+ * the before/after ownership of zero-time controls. Constraints are therefore
+ * collected from their resolved x edges rather than inferred again from
+ * frames. Every edge points forward, so each boundary is solved exactly once.
+ */
+function applyContinuationWidthConstraints(
+  model: SharedVariableRateTimelineModel,
+): SharedVariableRateTimelineModel {
+  if (model.continuationWidthRatio >= 1 || model.columns.length === 0) return model;
+
+  const boundaryIndexByX = new Map<number, number>();
+  model.columns.forEach((column, index) => {
+    boundaryIndexByX.set(column.xStart, index);
+    boundaryIndexByX.set(column.xEnd, index + 1);
+  });
+  const boundaryIndex = (x: number, label: string): number => {
+    const index = boundaryIndexByX.get(x);
+    if (index === undefined) {
+      throw new SharedVariableRateTimelineError(
+        'GEOMETRY_BOUNDARY_NOT_FOUND',
+        `Could not resolve ${label} at x=${x}.`,
+      );
+    }
+    return index;
+  };
+  const constraintsByEnd = new Map<number, TimelineWidthConstraint[]>();
+  const addConstraint = (startX: number, endX: number, label: string): void => {
+    const startIndex = boundaryIndex(startX, `${label}.startX`);
+    const endIndex = boundaryIndex(endX, `${label}.endX`);
+    // A same-boundary relation is intentionally a no-op. This preserves
+    // same-frame semantics and avoids introducing a self-loop in the DAG.
+    if (endIndex <= startIndex) return;
+    const constraints = constraintsByEnd.get(endIndex) ?? [];
+    constraints.push({ startIndex, minimumWidth: model.columnWidth });
+    constraintsByEnd.set(endIndex, constraints);
+  };
+
+  // Each action, ordinary wait, control handoff, and full group wait gets one
+  // span budget, even when its materialized body crosses many columns.
+  model.actions.forEach(action => addConstraint(action.startX, action.endX, `action ${action.id}`));
+  model.laneWaits.forEach(wait => addConstraint(wait.startX, wait.endX, `lane wait ${wait.id}`));
+  model.operatorSwitches.forEach(operatorSwitch => addConstraint(
+    operatorSwitch.startX,
+    operatorSwitch.endX,
+    `operator switch ${operatorSwitch.id}`,
+  ));
+  model.waits.forEach(wait => addConstraint(wait.xStart, wait.xEnd, `wait ${wait.id}`));
+
+  // The switch is drawn on its source lane. Merge all visible starts on that
+  // lane and constrain only adjacent distinct boundaries. Entries at the same
+  // boundary remain simultaneous and do not create an artificial self-loop.
+  const startsByLane = new Map<string, Array<{ id: string; startIndex: number }>>();
+  const addLaneStart = (laneId: string, id: string, startX: number): void => {
+    const startIndex = boundaryIndex(startX, `${id}.startX`);
+    const starts = startsByLane.get(laneId) ?? [];
+    starts.push({ id, startIndex });
+    startsByLane.set(laneId, starts);
+  };
+  model.actions.forEach(action => addLaneStart(action.laneId, `action ${action.id}`, action.startX));
+  model.laneWaits.forEach(wait => addLaneStart(wait.laneId, `lane wait ${wait.id}`, wait.startX));
+  model.operatorSwitches.forEach(operatorSwitch => addLaneStart(
+    operatorSwitch.laneId,
+    `operator switch ${operatorSwitch.id}`,
+    operatorSwitch.startX,
+  ));
+  startsByLane.forEach((starts) => {
+    starts.sort((left, right) => left.startIndex - right.startIndex || left.id.localeCompare(right.id));
+    let previousStartIndex: number | null = null;
+    starts.forEach((entry) => {
+      if (previousStartIndex === null) {
+        previousStartIndex = entry.startIndex;
+        return;
+      }
+      if (entry.startIndex === previousStartIndex) return;
+      const constraints = constraintsByEnd.get(entry.startIndex) ?? [];
+      constraints.push({ startIndex: previousStartIndex, minimumWidth: model.columnWidth });
+      constraintsByEnd.set(entry.startIndex, constraints);
+      previousStartIndex = entry.startIndex;
+    });
+  });
+
+  const baseWidths = model.columns.map(column => (
+    column.durationFrames === 0
+      ? model.columnWidth
+      : model.columnWidth * model.continuationWidthRatio
+  ));
+  const boundaryXs = new Array<number>(model.columns.length + 1);
+  boundaryXs[0] = model.columns[0].xStart;
+  for (let endIndex = 1; endIndex < boundaryXs.length; endIndex += 1) {
+    let resolved = boundaryXs[endIndex - 1] + baseWidths[endIndex - 1];
+    for (const constraint of constraintsByEnd.get(endIndex) ?? []) {
+      resolved = Math.max(
+        resolved,
+        boundaryXs[constraint.startIndex] + constraint.minimumWidth,
+      );
+    }
+    boundaryXs[endIndex] = resolved;
+  }
+  const columns = model.columns.map((column, index) => ({
+    ...column,
+    xStart: boundaryXs[index],
+    xEnd: boundaryXs[index + 1],
+  }));
+  return remapTimelineGeometry(model, columns);
+}
+
+/**
+ * Keep a complete operation start from straddling a visual page boundary.
+ *
+ * The page break is a display concern only. When an action/control/wait start
+ * would land in the final partial page slot, its preceding column absorbs the
+ * gap and every later boundary moves by the same amount. Frame data and
+ * column identity are therefore untouched, while the frame projector
+ * continues to use the same per-column interpolation after the adjustment.
  */
 function applyVisualPageBreaks(
   model: SharedVariableRateTimelineModel,
@@ -874,12 +1093,21 @@ function applyVisualPageBreaks(
   if (pageWidth === undefined || model.columns.length === 0) return model;
 
   const epsilon = 1e-9;
+  const fullOperationStarts = new Set<number>([
+    ...model.actions.map(action => action.startX),
+    ...model.laneWaits.map(wait => wait.startX),
+    ...model.operatorSwitches.map(operatorSwitch => operatorSwitch.startX),
+    ...model.waits.map(wait => wait.xStart),
+  ]);
   let shift = 0;
   const shiftedColumns = model.columns.map((column) => {
     const originalStart = column.xStart;
     const width = column.xEnd - column.xStart;
     let columnShift = shift;
-    if (width + epsilon >= model.columnWidth) {
+    const isFullOperationStart = model.continuationWidthRatio < 1
+      ? fullOperationStarts.has(originalStart)
+      : width + epsilon >= model.columnWidth;
+    if (isFullOperationStart) {
       const shiftedStart = originalStart + shift;
       const pageIndex = Math.floor((shiftedStart + epsilon) / pageWidth);
       const pageStart = pageIndex * pageWidth;
@@ -910,49 +1138,7 @@ function applyVisualPageBreaks(
       previous.xEnd = current.xStart;
     }
   }
-
-  const boundaryMap = new Map<number, number>();
-  model.columns.forEach((column, index) => {
-    boundaryMap.set(column.xStart, shiftedColumns[index].xStart);
-    boundaryMap.set(column.xEnd, shiftedColumns[index].xEnd);
-  });
-  const mapBoundary = (value: number): number => boundaryMap.get(value) ?? value;
-  const groups = model.groups.map(group => ({
-    ...group,
-    xStart: mapBoundary(group.xStart),
-    xEnd: mapBoundary(group.xEnd),
-  }));
-  const waits = model.waits.map(wait => ({
-    ...wait,
-    xStart: mapBoundary(wait.xStart),
-    xEnd: mapBoundary(wait.xEnd),
-  }));
-  const actions = model.actions.map(action => ({
-    ...action,
-    startX: mapBoundary(action.startX),
-    endX: mapBoundary(action.endX),
-  }));
-  const laneWaits = model.laneWaits.map(wait => ({
-    ...wait,
-    startX: mapBoundary(wait.startX),
-    endX: mapBoundary(wait.endX),
-  }));
-  const operatorSwitches = model.operatorSwitches.map(operatorSwitch => ({
-    ...operatorSwitch,
-    startX: mapBoundary(operatorSwitch.startX),
-    endX: mapBoundary(operatorSwitch.endX),
-  }));
-
-  return {
-    ...model,
-    groups,
-    waits,
-    columns: shiftedColumns,
-    actions,
-    laneWaits,
-    operatorSwitches,
-    width: shiftedColumns[shiftedColumns.length - 1].xEnd,
-  };
+  return remapTimelineGeometry(model, shiftedColumns);
 }
 
 function buildCohorts(
@@ -1156,7 +1342,8 @@ export function buildSharedVariableRateTimeline(
     admissionStatus,
     isExecutable: admissionStatus === 'valid',
   };
-  return applyVisualPageBreaks(model);
+  const laidOut = applyContinuationWidthConstraints(model);
+  return applyVisualPageBreaks(laidOut);
 }
 
 /**

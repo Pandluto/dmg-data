@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {
+  clipSharedTimelineColumnsToPage,
   SharedVariableRateTimelineError,
   buildSharedVariableRateTimeline,
   findEarliestSatisfyingFrame,
@@ -147,6 +148,156 @@ function assertErrorCode(run: () => unknown, expectedCode: string): void {
   assert(action(model, 'skill-e').startX - action(model, 'skill-b').startX >= 80);
 }
 
+// A long mixed-lane release group gets one visual budget per operation. The
+// zero-duration B cast and operator switch remain full controls, while action
+// spans and source-lane start spacing expand only the boundaries they need.
+{
+  const model = buildSharedVariableRateTimeline({
+    tickRate: 30,
+    columnWidth: 80,
+    continuationWidthRatio: 0.2,
+    groups: [{
+      id: 'long-axis-width',
+      operatorSwitches: [{
+        id: 'switch-F',
+        laneId: 'Lastrite',
+        targetLaneId: 'Tang',
+        startOffsetFrames: 305,
+      }],
+      lanes: [
+        {
+          laneId: 'Lastrite',
+          actions: [
+            { id: 'Lastrite-A', durationFrames: 143, startOffsetFrames: 0 },
+            { id: 'Lastrite-B', durationFrames: 0, instantaneous: true, startOffsetFrames: 50 },
+            { id: 'Lastrite-E', durationFrames: 172, startOffsetFrames: 143 },
+          ],
+        },
+        {
+          laneId: 'Tang',
+          actions: [
+            { id: 'Tang-B0', durationFrames: 50, startOffsetFrames: 0 },
+            { id: 'Tang-E60', durationFrames: 41, startOffsetFrames: 60 },
+            { id: 'Tang-B103', durationFrames: 67, startOffsetFrames: 103 },
+            { id: 'Tang-B171', durationFrames: 50, startOffsetFrames: 171 },
+            { id: 'Tang-Q221', durationFrames: 85, startOffsetFrames: 221 },
+            { id: 'Tang-land', durationFrames: 15, startOffsetFrames: 306 },
+          ],
+        },
+      ],
+    }],
+  });
+
+  assert.deepEqual(model.columns.map(column => [column.startFrame, column.endFrame]), [
+    [0, 50], [50, 50], [50, 60], [60, 101], [101, 103], [103, 143],
+    [143, 170], [170, 171], [171, 221], [221, 305], [305, 305], [305, 306],
+    [306, 315], [315, 321],
+  ]);
+  assert.deepEqual(model.columns.map(column => column.xEnd - column.xStart), [
+    80, 80, 16, 80, 16, 16, 64, 16, 80, 16, 80, 16, 16, 64,
+  ]);
+  assert.equal(model.width, 640);
+  assert.equal(model.endFrame, 321);
+
+  const actionFrames = model.actions.map(entry => [entry.id, entry.startFrame, entry.endFrame]);
+  assert.deepEqual(actionFrames, [
+    ['Lastrite-A', 0, 143], ['Lastrite-B', 50, 50], ['Lastrite-E', 143, 315],
+    ['Tang-B0', 0, 50], ['Tang-E60', 60, 101], ['Tang-B103', 103, 170],
+    ['Tang-B171', 171, 221], ['Tang-Q221', 221, 306], ['Tang-land', 306, 321],
+  ]);
+  assert.equal(model.operatorSwitches[0].startFrame, 305);
+  assert.equal(model.operatorSwitches[0].startX, 464);
+  model.actions.forEach(entry => {
+    assert(entry.endX - entry.startX >= 80, `${entry.id} span is clickable`);
+  });
+  model.operatorSwitches.forEach(entry => {
+    assert(entry.endX - entry.startX >= 80, `${entry.id} span is clickable`);
+  });
+  for (const laneId of ['Lastrite', 'Tang']) {
+    const starts = [
+      ...model.actions.filter(entry => entry.laneId === laneId).map(entry => entry.startX),
+      ...model.operatorSwitches.filter(entry => entry.laneId === laneId).map(entry => entry.startX),
+    ].sort((left, right) => left - right);
+    for (let index = 1; index < starts.length; index += 1) {
+      if (starts[index] > starts[index - 1]) {
+        assert(starts[index] - starts[index - 1] >= 80, `${laneId} starts stay clickable`);
+      }
+    }
+  }
+  assert.equal(model.columns[2].xEnd - model.columns[2].xStart, 16,
+    'the positive segment after the zero cast does not repeat the control cell');
+  assert.equal(model.columns[11].xEnd - model.columns[11].xStart, 16,
+    'the positive segment after the operator switch stays compact');
+}
+
+// Page breaks use the real operation start even when the first segment at that
+// boundary is narrower than a button. The long-axis E action starts at F143;
+// with a 320px page it moves to the next page without changing its frame.
+{
+  const model = buildSharedVariableRateTimeline({
+    tickRate: 30,
+    columnWidth: 80,
+    continuationWidthRatio: 0.2,
+    visualPageWidth: 320,
+    groups: [{
+      id: 'long-axis-page-break',
+      operatorSwitches: [{
+        id: 'long-axis-page-switch',
+        laneId: 'Lastrite',
+        targetLaneId: 'Tang',
+        startOffsetFrames: 305,
+      }],
+      lanes: [
+        {
+          laneId: 'Lastrite',
+          actions: [
+            { id: 'long-axis-page-A', durationFrames: 143, startOffsetFrames: 0 },
+            { id: 'long-axis-page-B', durationFrames: 0, instantaneous: true, startOffsetFrames: 50 },
+            { id: 'long-axis-page-E', durationFrames: 172, startOffsetFrames: 143 },
+          ],
+        },
+        {
+          laneId: 'Tang',
+          actions: [
+            { id: 'long-axis-page-B0', durationFrames: 50, startOffsetFrames: 0 },
+            { id: 'long-axis-page-E60', durationFrames: 41, startOffsetFrames: 60 },
+            { id: 'long-axis-page-tail103', durationFrames: 43, startOffsetFrames: 60 },
+            { id: 'long-axis-page-B171', durationFrames: 50, startOffsetFrames: 171 },
+          ],
+        },
+      ],
+    }],
+  });
+  const e = action(model, 'long-axis-page-E');
+  assert.equal(e.startFrame, 143);
+  assert.equal(e.startX, 320);
+  assert.equal(projectSharedTimelineFrame(model, e.startFrame), e.startX);
+  assert(e.endX - e.startX >= 80, 'the paged E action keeps its button span');
+}
+
+// A lane wait spanning two compact segments consumes one 80px budget. The
+// action on another lane also spans the same shared boundaries, yielding
+// 16/64/16 rather than repeating a full width for every covered segment.
+{
+  const model = buildSharedVariableRateTimeline({
+    tickRate: 30,
+    columnWidth: 80,
+    continuationWidthRatio: 0.2,
+    groups: [{
+      id: 'cross-lane-wait-span',
+      laneWaits: [{ id: 'lane-A-wait', laneId: 'A', startOffsetFrames: 0, durationFrames: 60 }],
+      lanes: [
+        { laneId: 'A', actions: [] },
+        { laneId: 'B', actions: [{ id: 'lane-B-action', durationFrames: 80, startOffsetFrames: 20 }] },
+      ],
+    }],
+  });
+  assert.deepEqual(model.columns.map(column => column.xEnd - column.xStart), [16, 64, 16]);
+  assert.equal(model.width, 96);
+  assert.equal(model.laneWaits[0].endX - model.laneWaits[0].startX, 80);
+  assert.equal(action(model, 'lane-B-action').endX - action(model, 'lane-B-action').startX, 80);
+}
+
 // Full operation starts keep their width even when a compact continuation is
 // inserted before them. The display page pass moves a full start to the next
 // page when the remaining slot is too small, and updates every x owner at the
@@ -202,6 +353,73 @@ function assertErrorCode(run: () => unknown, expectedCode: string): void {
       assert.equal(model.groups[0].xEnd, 192, 'no unnecessary page gap is inserted');
     }
   }
+}
+
+// Display pages clip a compact positive segment that crosses the page edge,
+// and derive the clipped endpoint frames from x interpolation. A zero-time
+// control keeps its existing xStart page ownership.
+{
+  const model = buildSharedVariableRateTimeline({
+    tickRate: 30,
+    columnWidth: 80,
+    continuationWidthRatio: 0.2,
+    groups: [{
+      id: 'page-clip-crossing-segment',
+      lanes: [
+        { laneId: 'A', actions: [{ id: 'page-clip-long', durationFrames: 153 }] },
+        {
+          laneId: 'B',
+          actions: [
+            { id: 'page-clip-b', durationFrames: 50 },
+            { id: 'page-clip-e', durationFrames: 41, startOffsetFrames: 82 },
+          ],
+        },
+      ],
+    }],
+  });
+  const page = clipSharedTimelineColumnsToPage(model.columns, 100, 200);
+  assert.deepEqual(page.map(segment => [segment.column.id, segment.visibleStartX, segment.visibleEndX]), [
+    ['group:page-clip-crossing-segment:column:2', 100, 176],
+    ['group:page-clip-crossing-segment:column:3', 176, 192],
+  ]);
+  assert.equal(page[0].startFrame, 84.05);
+  assert.equal(page[0].endFrame, 123);
+  assert.equal(page[1].startFrame, 123);
+  assert.equal(page[1].endFrame, 153);
+}
+
+// A button can begin in a 16px segment while its span is satisfied by a later
+// segment. A narrow visual page must still move that whole button to the next
+// page, and frame projection must follow the moved boundaries.
+{
+  const model = buildSharedVariableRateTimeline({
+    tickRate: 30,
+    columnWidth: 80,
+    continuationWidthRatio: 0.2,
+    visualPageWidth: 80,
+    groups: [{
+      id: 'narrow-page-button',
+      lanes: [
+        { laneId: 'A', actions: [{ id: 'narrow-page-a', durationFrames: 200 }] },
+        {
+          laneId: 'B',
+          actions: [{ id: 'narrow-page-b', durationFrames: 50, startOffsetFrames: 50 }],
+        },
+        {
+          laneId: 'C',
+          actions: [{ id: 'narrow-page-c', durationFrames: 60, startOffsetFrames: 60 }],
+        },
+      ],
+    }],
+  });
+  const b = action(model, 'narrow-page-b');
+  assert.equal(b.startFrame, 50);
+  assert.equal(b.endFrame, 100);
+  assert.equal(b.startX, 80, 'the narrow-segment button starts at the next page');
+  assert.equal(projectSharedTimelineFrame(model, b.startFrame), b.startX);
+  assert.equal(projectSharedTimelineFrame(model, b.endFrame), b.endX);
+  assert.equal(model.columns[1].xEnd - model.columns[1].xStart, 80,
+    'the absorbed page gap belongs to the preceding compact boundary');
 }
 
 // An ordinary wait is a lane-local dependency, not a full-column group seal.

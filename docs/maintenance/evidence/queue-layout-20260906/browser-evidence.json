@@ -1,0 +1,539 @@
+{
+  "baseline": "5b3bab0",
+  "date": "2026-09-06",
+  "inputRestore": {
+    "beforeButtonIds": [
+      "ria-button-command-20260905T111455797z-eb9f1b66",
+      "ria-button-command-20260905T111527447z-5bad6beb",
+      "ria-button-command-20260905T111530902z-a24b3d03",
+      "hudmbiip3",
+      "ria-button-command-20260905T111526403z-35573159",
+      "ria-button-command-20260905T111528468z-459edde3",
+      "ria-button-command-20260905T111529530z-8568e332",
+      "ria-button-command-20260905T114139833z-ab8c7335",
+      "d2i17wam8"
+    ],
+    "finalButtonIds": [
+      "ria-button-command-20260905T111455797z-eb9f1b66",
+      "ria-button-command-20260905T111527447z-5bad6beb",
+      "ria-button-command-20260905T111530902z-a24b3d03",
+      "hudmbiip3",
+      "ria-button-command-20260905T111526403z-35573159",
+      "ria-button-command-20260905T111528468z-459edde3",
+      "ria-button-command-20260905T111529530z-8568e332",
+      "ria-button-command-20260905T114139833z-ab8c7335",
+      "d2i17wam8"
+    ],
+    "sameButtons": true,
+    "sameExecutionDigest": true,
+    "sameLoadout": true,
+    "beforeDamage": 454216.8855320063,
+    "finalDamage": 454216.8855320063,
+    "hotReloadReintroducedButton": "e8aaq4k8x",
+    "restoredByTailRemoval": "done"
+  },
+  "captionRows": [
+    {
+      "id": "ria-button-command-20260905T111527447z-5bad6beb",
+      "label": "编辑别礼塞什卡的秘传接续：◇ 别礼 同时起手 +1.667s",
+      "bounds": {
+        "x": 208.6632080078125,
+        "y": 90.9982681274414,
+        "width": 72.578125,
+        "height": 15.902778625488281
+      },
+      "withinTopCaptionRow": true
+    },
+    {
+      "id": "ria-button-command-20260905T111530902z-a24b3d03",
+      "label": "编辑别礼噬冬接续：◇ 别礼 同时起手 +4.767s",
+      "bounds": {
+        "x": 608.6632080078125,
+        "y": 90.9982681274414,
+        "width": 73.4982681274414,
+        "height": 15.902778625488281
+      },
+      "withinTopCaptionRow": true
+    },
+    {
+      "id": "ria-button-command-20260905T111526403z-35573159",
+      "label": "编辑汤汤踏潮卷浪！接续：◇ 别礼 同时起手",
+      "bounds": {
+        "x": 128.6632080078125,
+        "y": 180.99827575683594,
+        "width": 34.644100189208984,
+        "height": 15.902778625488281
+      },
+      "withinTopCaptionRow": true
+    },
+    {
+      "id": "ria-button-command-20260905T111528468z-459edde3",
+      "label": "编辑汤汤河水，助我！接续：◇ 别礼 同时起手 +2s",
+      "bounds": {
+        "x": 368.6632080078125,
+        "y": 180.99827575683594,
+        "width": 53.69791793823242,
+        "height": 15.902778625488281
+      },
+      "withinTopCaptionRow": true
+    },
+    {
+      "id": "ria-button-command-20260905T111529530z-8568e332",
+      "label": "编辑汤汤踏潮卷浪！接续：◇ 别礼 同时起手 +3.433s",
+      "bounds": {
+        "x": 528.6632080078125,
+        "y": 180.99827575683594,
+        "width": 74.86979675292969,
+        "height": 15.902778625488281
+      },
+      "withinTopCaptionRow": true
+    },
+    {
+      "id": "ria-button-command-20260905T114139833z-ab8c7335",
+      "label": "编辑汤汤踏潮卷浪！接续：◇ 别礼 同时起手 +5.7s",
+      "bounds": {
+        "x": 768.6632080078125,
+        "y": 180.99827575683594,
+        "width": 61.58854293823242,
+        "height": 15.902778625488281
+      },
+      "withinTopCaptionRow": true
+    },
+    {
+      "id": "d2i17wam8",
+      "label": "编辑汤汤大当家盯着呢！接续：◇ 汤汤 结束后",
+      "bounds": {
+        "x": 848.6632080078125,
+        "y": 180.99827575683594,
+        "width": 34.644100189208984,
+        "height": 15.902778625488281
+      },
+      "withinTopCaptionRow": true
+    }
+  ],
+  "placedDragControls": [
+    {
+      "commandId": "ria-button-command-20260905T111455797z-eb9f1b66",
+      "dragDisabled": true,
+      "disabled": false,
+      "bounds": {
+        "x": 126.66667175292969,
+        "y": 90.00000762939453,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111527447z-5bad6beb",
+      "dragDisabled": true,
+      "disabled": false,
+      "bounds": {
+        "x": 206.6666717529297,
+        "y": 90.00000762939453,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111530902z-a24b3d03",
+      "dragDisabled": true,
+      "disabled": false,
+      "bounds": {
+        "x": 606.6666870117188,
+        "y": 90.00000762939453,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111526403z-35573159",
+      "dragDisabled": true,
+      "disabled": false,
+      "bounds": {
+        "x": 126.66667175292969,
+        "y": 180.00001525878906,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111528468z-459edde3",
+      "dragDisabled": true,
+      "disabled": false,
+      "bounds": {
+        "x": 366.66668701171875,
+        "y": 180.00001525878906,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T111529530z-8568e332",
+      "dragDisabled": true,
+      "disabled": false,
+      "bounds": {
+        "x": 526.6666870117188,
+        "y": 180.00001525878906,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    },
+    {
+      "commandId": "ria-button-command-20260905T114139833z-ab8c7335",
+      "dragDisabled": true,
+      "disabled": false,
+      "bounds": {
+        "x": 766.6666870117188,
+        "y": 180.00001525878906,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    },
+    {
+      "commandId": "d2i17wam8",
+      "dragDisabled": true,
+      "disabled": false,
+      "bounds": {
+        "x": 846.6666870117188,
+        "y": 180.00001525878906,
+        "width": 80,
+        "height": 77.99479675292969
+      }
+    },
+    {
+      "commandId": "hudmbiip3",
+      "dragDisabled": true,
+      "disabled": false,
+      "bounds": {
+        "x": 926.6666870117188,
+        "y": 137.9947967529297,
+        "width": 80,
+        "height": 30.000001907348633
+      }
+    }
+  ],
+  "dragCancellation": {
+    "sameInput": true,
+    "sameRunId": true,
+    "remainingPreviews": []
+  },
+  "gestures": [
+    {
+      "occurredAt": "2026-09-06T02:46:23.123Z",
+      "type": "DebugTimelineDragStep",
+      "payload": {
+        "step": 1,
+        "point": {
+          "clientX": 600,
+          "clientY": 380
+        },
+        "dragPreviews": [
+          {
+            "text": "B踏潮卷浪！拖到接续点",
+            "bounds": {
+              "x": 613.9931030273438,
+              "y": 395.998291015625,
+              "width": 106.05903625488281,
+              "height": 45.99826431274414
+            },
+            "opacity": "1",
+            "filter": "none",
+            "backdropFilter": "none",
+            "boxShadow": "none",
+            "pointerEvents": "none",
+            "parent": "BODY"
+          }
+        ],
+        "releaseLens": null
+      }
+    },
+    {
+      "occurredAt": "2026-09-06T02:46:24.130Z",
+      "type": "DebugTimelineDragStep",
+      "payload": {
+        "step": 2,
+        "point": {
+          "clientX": 600,
+          "clientY": 380
+        },
+        "dragPreviews": [
+          {
+            "text": "B踏潮卷浪！拖到接续点",
+            "bounds": {
+              "x": 613.9931030273438,
+              "y": 395.998291015625,
+              "width": 106.05903625488281,
+              "height": 45.99826431274414
+            },
+            "opacity": "1",
+            "filter": "none",
+            "backdropFilter": "none",
+            "boxShadow": "none",
+            "pointerEvents": "none",
+            "parent": "BODY"
+          }
+        ],
+        "releaseLens": null
+      }
+    },
+    {
+      "occurredAt": "2026-09-06T02:46:25.136Z",
+      "type": "DebugTimelineDragStep",
+      "payload": {
+        "step": 3,
+        "point": {
+          "clientX": 600,
+          "clientY": 380
+        },
+        "dragPreviews": [
+          {
+            "text": "B踏潮卷浪！拖到接续点",
+            "bounds": {
+              "x": 613.9931030273438,
+              "y": 395.998291015625,
+              "width": 106.05903625488281,
+              "height": 45.99826431274414
+            },
+            "opacity": "1",
+            "filter": "none",
+            "backdropFilter": "none",
+            "boxShadow": "none",
+            "pointerEvents": "none",
+            "parent": "BODY"
+          }
+        ],
+        "releaseLens": null
+      }
+    },
+    {
+      "occurredAt": "2026-09-06T02:46:26.140Z",
+      "type": "DebugTimelineDragStep",
+      "payload": {
+        "step": 4,
+        "point": {
+          "clientX": 600,
+          "clientY": 380
+        },
+        "dragPreviews": [
+          {
+            "text": "B踏潮卷浪！拖到接续点",
+            "bounds": {
+              "x": 613.9931030273438,
+              "y": 395.998291015625,
+              "width": 106.05903625488281,
+              "height": 45.99826431274414
+            },
+            "opacity": "1",
+            "filter": "none",
+            "backdropFilter": "none",
+            "boxShadow": "none",
+            "pointerEvents": "none",
+            "parent": "BODY"
+          }
+        ],
+        "releaseLens": null
+      }
+    },
+    {
+      "occurredAt": "2026-09-06T02:46:26.140Z",
+      "type": "ReleaseLensCancelled",
+      "payload": {
+        "buttonId": "a8thctqxi"
+      }
+    },
+    {
+      "occurredAt": "2026-09-06T02:49:05.280Z",
+      "type": "ReleaseLensOpened",
+      "payload": {
+        "sourceButtonId": "ria-button-command-20260905T111455797z-eb9f1b66",
+        "candidateCount": 5,
+        "editing": false
+      }
+    },
+    {
+      "occurredAt": "2026-09-06T02:49:05.522Z",
+      "type": "DebugTimelineDragStep",
+      "payload": {
+        "step": 1,
+        "point": {
+          "clientX": 143,
+          "clientY": 123
+        },
+        "dragPreviews": [],
+        "releaseLens": {
+          "sourceButtonId": "ria-button-command-20260905T111455797z-eb9f1b66",
+          "sourceName": "别礼 · 严霜之舞 · F0",
+          "rect": {
+            "left": 12,
+            "top": 148.99132537841797,
+            "width": 520,
+            "height": 276
+          },
+          "sourceRect": {
+            "left": 130.67015075683594,
+            "top": 110.9982681274414,
+            "width": 23.9930477142334,
+            "height": 23.993057250976562
+          },
+          "tickRate": 30,
+          "candidateRevision": "[[\"ria-button-command-20260905T111455797z-eb9f1b66\",0,0,0,\"chr_0026_lastrite_attack1\",{\"schemaVersion\":1,\"kind\":\"group-start\",\"debounceFrames\":0},null,null],[\"ria-button-command-20260905T111527447z-5bad6beb\",0,0,2,\"chr_0026_lastrite_normal_skill\",{\"schemaVersion\":1,\"kind\":\"action-start\",\"sourceButtonId\":\"ria-button-command-20260905T111455797z-eb9f1b66\",\"debounceFrames\":50},null,null],[\"ria-button-command-20260905T111530902z-a24b3d03\",0,0,7,\"chr_0026_lastrite_combo_skill\",{\"schemaVersion\":1,\"kind\":\"action-start\",\"sourceButtonId\":\"ria-button-command-20260905T111455797z-eb9f1b66\",\"debounceFrames\":143},null,null],[\"hudmbiip3\",0,0,10,\"timeline-module:operator-switch\",{\"schemaVersion\":1,\"kind\":\"action-end\",\"sourceButtonId\":\"d2i17wam8\",\"debounceFrames\":0},null,\"operator-switch\"],[\"ria-button-command-20260905T111526403z-35573159\",0,1,0,\"chr_0027_tangtang_normal_skill\",{\"schemaVersion\":1,\"kind\":\"action-start\",\"sourceButtonId\":\"ria-button-command-20260905T111455797z-eb9f1b66\",\"debounceFrames\":0},null,null],[\"ria-button-command-20260905T111528468z-459edde3\",0,1,3,\"chr_0027_tangtang_combo_skill\",{\"schemaVersion\":1,\"kind\":\"action-start\",\"sourceButtonId\":\"ria-button-command-20260905T111455797z-eb9f1b66\",\"debounceFrames\":60},null,null],[\"ria-button-command-20260905T111529530z-8568e332\",0,1,5,\"chr_0027_tangtang_normal_skill\",{\"schemaVersion\":1,\"kind\":\"action-start\",\"sourceButtonId\":\"ria-button-command-20260905T111455797z-eb9f1b66\",\"debounceFrames\":103},null,null],[\"ria-button-command-20260905T114139833z-ab8c7335\",0,1,8,\"chr_0027_tangtang_normal_skill\",{\"schemaVersion\":1,\"kind\":\"action-start\",\"sourceButtonId\":\"ria-button-command-20260905T111455797z-eb9f1b66\",\"debounceFrames\":171},null,null],[\"d2i17wam8\",0,1,9,\"chr_0027_tangtang_ultimate_skill\",{\"schemaVersion\":1,\"kind\":\"action-end\",\"sourceButtonId\":\"ria-button-command-20260905T114139833z-ab8c7335\",\"debounceFrames\":0},null,null],[\"e8aaq4k8x\",0,1,11,\"chr_0027_tangtang_plunging_attack_end\",{\"schemaVersion\":1,\"kind\":\"action-end\",\"sourceButtonId\":\"hudmbiip3\",\"debounceFrames\":0},null,null]]",
+          "draft": true,
+          "selectedAnchorId": "damage-hit:ria-button-command-20260905T111455797z-eb9f1b66:preview-hit:0",
+          "offsetFrames": 6,
+          "frame": 18,
+          "anchor": {
+            "schemaVersion": 1,
+            "kind": "damage-hit",
+            "sourceButtonId": "ria-button-command-20260905T111455797z-eb9f1b66",
+            "sourceHitId": "ria-button-command-20260905T111455797z-eb9f1b66:preview-hit:0",
+            "sourceHitOffsetFrames": 12,
+            "debounceFrames": 6
+          },
+          "reason": null,
+          "note": "跨角色衔接；沿用当前主控，松手后核验资源与触发条件",
+          "editing": false,
+          "candidates": [
+            {
+              "id": "damage-hit:ria-button-command-20260905T111455797z-eb9f1b66:preview-hit:0",
+              "label": "第 1 击后",
+              "frame": 12,
+              "anchor": {
+                "schemaVersion": 1,
+                "kind": "damage-hit",
+                "sourceButtonId": "ria-button-command-20260905T111455797z-eb9f1b66",
+                "sourceHitId": "ria-button-command-20260905T111455797z-eb9f1b66:preview-hit:0",
+                "sourceHitOffsetFrames": 12,
+                "debounceFrames": 6
+              }
+            },
+            {
+              "id": "damage-hit:ria-button-command-20260905T111455797z-eb9f1b66:preview-hit:1",
+              "label": "第 2 击后",
+              "frame": 44,
+              "anchor": {
+                "schemaVersion": 1,
+                "kind": "damage-hit",
+                "sourceButtonId": "ria-button-command-20260905T111455797z-eb9f1b66",
+                "sourceHitId": "ria-button-command-20260905T111455797z-eb9f1b66:preview-hit:1",
+                "sourceHitOffsetFrames": 44,
+                "debounceFrames": 6
+              }
+            },
+            {
+              "id": "damage-hit:ria-button-command-20260905T111455797z-eb9f1b66:preview-hit:2",
+              "label": "第 3 击后",
+              "frame": 76,
+              "anchor": {
+                "schemaVersion": 1,
+                "kind": "damage-hit",
+                "sourceButtonId": "ria-button-command-20260905T111455797z-eb9f1b66",
+                "sourceHitId": "ria-button-command-20260905T111455797z-eb9f1b66:preview-hit:2",
+                "sourceHitOffsetFrames": 76,
+                "debounceFrames": 6
+              }
+            },
+            {
+              "id": "damage-hit:ria-button-command-20260905T111455797z-eb9f1b66:preview-hit:3",
+              "label": "第 4 击后",
+              "frame": 106,
+              "anchor": {
+                "schemaVersion": 1,
+                "kind": "damage-hit",
+                "sourceButtonId": "ria-button-command-20260905T111455797z-eb9f1b66",
+                "sourceHitId": "ria-button-command-20260905T111455797z-eb9f1b66:preview-hit:3",
+                "sourceHitOffsetFrames": 106,
+                "debounceFrames": 6
+              }
+            },
+            {
+              "id": "action-end:ria-button-command-20260905T111455797z-eb9f1b66",
+              "label": "动作结束后",
+              "frame": 143,
+              "anchor": {
+                "schemaVersion": 1,
+                "kind": "action-end",
+                "sourceButtonId": "ria-button-command-20260905T111455797z-eb9f1b66",
+                "debounceFrames": 0
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "occurredAt": "2026-09-06T02:49:05.828Z",
+      "type": "DebugTimelineDragStep",
+      "payload": {
+        "step": 2,
+        "point": {
+          "clientX": 600,
+          "clientY": 380
+        },
+        "dragPreviews": [
+          {
+            "text": "B踏潮卷浪！拖到接续点",
+            "bounds": {
+              "x": 613.9931030273438,
+              "y": 395.998291015625,
+              "width": 106.05903625488281,
+              "height": 45.99826431274414
+            },
+            "opacity": "1",
+            "filter": "none",
+            "backdropFilter": "none",
+            "boxShadow": "none",
+            "pointerEvents": "none",
+            "parent": "BODY"
+          }
+        ],
+        "releaseLens": {
+          "active": false
+        }
+      }
+    },
+    {
+      "occurredAt": "2026-09-06T02:49:05.828Z",
+      "type": "ReleaseLensCancelled",
+      "payload": {
+        "buttonId": "vmc7ogi8j"
+      }
+    }
+  ],
+  "rejectedMiddleDrag": {
+    "id": "command-20260906T024105101z-fcd51f65",
+    "command": {
+      "op": "timeline-drag",
+      "timelineId": "timeline-1788596477136-459dea68-fdfe-4ab9-9054-287b0e68d91a",
+      "buttonId": "ria-button-command-20260905T111528468z-459edde3",
+      "steps": [
+        {
+          "clientX": 470,
+          "clientY": 220,
+          "holdMs": 220
+        }
+      ],
+      "finish": "cancel"
+    },
+    "status": "error",
+    "createdAt": "2026-09-06T02:41:05.101Z",
+    "result": null,
+    "error": "Error: 按钮没有进入拖动状态；可能被当前排轴规则锁定。",
+    "completedAt": "2026-09-06T02:41:05.953Z"
+  },
+  "rejectedMiddleDelete": {
+    "id": "command-20260906T024149402z-415d0629",
+    "command": {
+      "op": "edit-timeline",
+      "timelineId": "timeline-1788596477136-459dea68-fdfe-4ab9-9054-287b0e68d91a",
+      "edit": {
+        "kind": "remove",
+        "buttonId": "ria-button-command-20260905T111528468z-459edde3"
+      }
+    },
+    "status": "error",
+    "createdAt": "2026-09-06T02:41:49.403Z",
+    "result": null,
+    "error": "Error: 只能从本角色队列末尾逐个删除，请先删除后面的动作。",
+    "completedAt": "2026-09-06T02:41:49.746Z"
+  }
+}

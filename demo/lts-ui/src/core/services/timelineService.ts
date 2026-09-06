@@ -25,10 +25,7 @@ import {
   GRID_NODE_COUNT,
 } from '../calculators/gridSnapLayout';
 import { synchronizeTimelineButtonBuffMirrors } from '../domain/timelineButtonBuffMirror';
-import {
-  attachLegacyLanePredecessors,
-  getReleaseDeletionBlockers,
-} from '../domain/releaseAnchorGraph';
+import { getTimelineDeleteBlockReason } from '../domain/timelineQueuePolicy';
 import { resolveInitialControllerLaneId } from '../domain/operatorControlTimeline';
 import {
   getSkillButtonById,
@@ -658,21 +655,8 @@ export function removeSkillButton(
   staffIndex: number,
   buttonId: string
 ): TimelineData {
-  const releaseGraphNodes = attachLegacyLanePredecessors(
-    timelineData.staffLines.flatMap(line => line.buttons.map(button => ({
-      id: button.id,
-      staffIndex: getButtonGroupIndex(button.nodeIndex),
-      lineIndex: line.staffIndex,
-      nodeIndex: button.nodeIndex % GRID_NODE_COUNT,
-      releaseAnchor: button.releaseAnchor,
-    }))),
-  );
-  const releaseDependents = getReleaseDeletionBlockers(releaseGraphNodes, buttonId);
-  if (releaseDependents.length > 0) {
-    throw new Error(
-      `RELEASE_GRAPH_NON_LEAF_DELETE: ${buttonId} still has ${releaseDependents.length} dependent action(s).`,
-    );
-  }
+  const deleteBlockReason = getTimelineDeleteBlockReason(timelineData, buttonId);
+  if (deleteBlockReason) throw new Error(deleteBlockReason);
 
   // 1. 先读取 button 的 selectedBuff（删除前保存）
   const buttonToRemove = getSkillButtonById(buttonId);

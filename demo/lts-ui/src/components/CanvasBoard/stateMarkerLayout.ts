@@ -4,7 +4,7 @@ export type StateMarkerGroup<T extends StateMarkerAnchor> = MarkerRect & {
   events: T[]; collapsed: boolean;
 };
 export type StateMarkerSpace = MarkerRect & { preferredTop: number; obstacles: readonly MarkerRect[] };
-export const STATE_BADGE_SIZE = 15;
+export const STATE_BADGE_SIZE = 20;
 const GAP = 4;
 
 export function markerRectsOverlap(a: MarkerRect, b: MarkerRect, gap = 0): boolean {

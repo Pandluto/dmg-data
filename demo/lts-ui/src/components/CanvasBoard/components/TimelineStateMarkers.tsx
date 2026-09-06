@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import type { AkeCombatStateEvent } from '../../../core/services/akeRuntimeLedger';
 import { normalizeAssetUrl } from '../../../utils/assetResolver';
 import {
-  adjustStateMarkerRows,
   layoutStateMarkers,
   stateBadgeRuns,
   STATE_BADGE_GAP,
@@ -25,6 +24,7 @@ export type ProjectedStateMarker = {
 
 interface Props {
   events: ProjectedStateMarker[];
+  isBrowseMode: boolean;
   left: number;
   right: number;
   laneForLine: (line: number) => { top: number; bottom: number; anchorY: number };
@@ -51,6 +51,7 @@ const isReadingHiddenElement = (element: Element) => Boolean(
 
 export function TimelineStateMarkers({
   events,
+  isBrowseMode,
   left,
   right,
   laneForLine,
@@ -59,7 +60,7 @@ export function TimelineStateMarkers({
   const layerRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const [obstacles, setObstacles] = useState<MarkerRect[] | null>(null);
-  const [readingObstacles, setReadingObstacles] = useState<MarkerRect[]>([]);
+  const [owners, setOwners] = useState<Record<string, {left:number;right:number;top:number}>>({});
   const [detail, setDetail] = useState<{ keys: string[]; x: number; y: number } | null>(null);
   const detailEvents = detail ? events.filter(item => detail.keys.includes(item.event.key)) : [];
   const closeDetails = () => { setDetail(null); openerRef.current?.focus({ preventScroll: true }); };
@@ -85,7 +86,7 @@ export function TimelineStateMarkers({
       const scaleX = origin.width / layer.offsetWidth, scaleY = origin.height / layer.offsetHeight;
       if (!scaleX || !scaleY) return;
       const rects: MarkerRect[] = [];
-      const readingCardRects: MarkerRect[] = [];
+      const ownerEdges: Record<string, {left:number;right:number;top:number}> = {};
       obstacleElements().forEach(element => {
         const readingHidden = isReadingHiddenElement(element);
         const retainedBrowseProjection = canvas.classList.contains('is-browse-mode')
@@ -108,29 +109,27 @@ export function TimelineStateMarkers({
         // Wait/switch cards grow in reading mode; their ordinary obstacle
         // height stays fixed by the component's CSS geometry contract.
         const ordinaryHeight = Number.parseFloat(style.getPropertyValue('--state-obstacle-height'));
+        if (owner && element.matches('.skill-button-orb, .skill-button-temporal-kind')) {
+          const id=owner.dataset.skillButtonId!;
+          const previous=ownerEdges[id];
+          ownerEdges[id]={
+            left:Math.min(previous?.left ?? Infinity,(visibleRect.left-origin.left)/scaleX),
+            right:Math.max(previous?.right ?? -Infinity,(visibleRect.right-origin.left)/scaleX),
+            top:Math.min(previous?.top ?? Infinity,(visibleRect.top-origin.top)/scaleY),
+          };
+        }
         rects.push({ left: round((visibleRect.left - origin.left) / scaleX), top: round((visibleRect.top - origin.top) / scaleY),
           width: round(visibleRect.width / scaleX), height: Number.isFinite(ordinaryHeight)
             ? ordinaryHeight : round(visibleRect.height / scaleY) });
       });
-      canvas.querySelectorAll<HTMLElement>('.skill-button-reading-card, .timeline-wait-segment.is-browse-mode, .timeline-operator-switch-segment.is-browse-mode').forEach(element => {
-        const style = getComputedStyle(element);
-        if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return;
-        const rect = element.getBoundingClientRect();
-        if (!rect.width || !rect.height || rect.bottom < origin.top || rect.top > origin.bottom) return;
-        const round = (value: number) => Math.round(value * 100) / 100;
-        readingCardRects.push({ left: round((rect.left - origin.left) / scaleX), top: round((rect.top - origin.top) / scaleY),
-          width: round(rect.width / scaleX), height: round(rect.height / scaleY) });
-      });
       setObstacles(previous => JSON.stringify(previous) === JSON.stringify(rects) ? previous : rects);
-      setReadingObstacles(previous => JSON.stringify(previous) === JSON.stringify(readingCardRects)
-        ? previous : readingCardRects);
+      setOwners(previous => JSON.stringify(previous) === JSON.stringify(ownerEdges) ? previous : ownerEdges);
     };
     const schedule = () => { if (!pending) pending = requestAnimationFrame(measure); };
     measure();
     const resize = new ResizeObserver(schedule);
     resize.observe(canvas);
     obstacleElements().forEach(element => resize.observe(element));
-    canvas.querySelectorAll<HTMLElement>('.skill-button-reading-card, .timeline-wait-segment.is-browse-mode, .timeline-operator-switch-segment.is-browse-mode').forEach(element => resize.observe(element));
     const changes = new MutationObserver(records => {
       if (records.some(record => !(record.target instanceof Element
         ? record.target : record.target.parentElement)?.closest('.ake-state-markers-layer'))) schedule();
@@ -179,12 +178,19 @@ export function TimelineStateMarkers({
         const badges = stateBadgeRuns(items.map(item => item.event)).map(run => {
           const last = run[run.length - 1];
           const item = byKey.get(last.key)!;
+          const owner=last.commandId ? owners[last.commandId] : undefined;
+          const nextLeft=owner ? Math.min(...Object.values(owners)
+            .filter(other=>Math.abs(other.top-owner.top)<10 && other.left>owner.right)
+            .map(other=>other.left-4)) : Infinity;
           return {
             ...item,
             key: run[0].key,
             frame: last.frame,
             sequence: last.sequence,
             width: STATE_BADGE_SIZE,
+            ownerCommandId: last.commandId ?? undefined,
+            ownerRight: owner?.right,
+            ownerLimit: Number.isFinite(nextLeft) ? nextLeft : undefined,
             records: run.map(event => byKey.get(event.key)!),
           };
         });
@@ -196,11 +202,10 @@ export function TimelineStateMarkers({
           preferredTop: lane.top,
           obstacles,
         };
-        return adjustStateMarkerRows(
-          layoutStateMarkers(badges, markerSpace),
-          markerSpace,
-          readingObstacles,
-        ).map(group => {
+        return layoutStateMarkers(badges, markerSpace).map(ordinaryGroup => {
+          const group = isBrowseMode
+            ? { ...ordinaryGroup, top: lane.bottom - STATE_BADGE_SIZE - 3 }
+            : ordinaryGroup;
           const records = group.events.flatMap(item => item.records);
           const range = rangeOf(records);
           const first = group.events[0];
@@ -227,7 +232,7 @@ export function TimelineStateMarkers({
             role="group" aria-label={`${records.length}项状态变化`}>
             {showLeaders ? <svg className="ake-state-marker-leaders" width={group.width} height={group.height} aria-hidden="true">
               {markerCenters.map(({ item, center }) => <g key={item.key}>
-                <path d={`M ${center} ${group.height} V ${group.height + 3} L ${item.x - group.left} ${lane.anchorY - group.top}`} />
+                <path d={`M ${item.x - group.left} ${lane.anchorY - group.top} V ${group.height + 3} H ${center} V ${group.height}`} />
                 <circle cx={item.x - group.left} cy={lane.anchorY - group.top} r={1.3} />
               </g>)}
             </svg> : null}
@@ -253,6 +258,8 @@ export function TimelineStateMarkers({
                 data-state-tone={stateMarkerTone(item.event)}
                 data-state-event-keys={JSON.stringify(item.records.map(record => record.event.key))}
                 data-state-event-frame={item.event.frame} data-state-event-sequence={item.event.sequence}
+                data-state-placement-command-id={item.ownerCommandId}
+                data-state-owner-right={item.ownerRight}
                 data-state-source-command-id={item.event.sourceCommandId ?? undefined}
                 data-state-trigger-command-id={item.event.triggerCommandId ?? undefined}
                 data-state-source-command-ids={JSON.stringify([item.event.sourceCommandId].filter((id): id is string => Boolean(id)))}

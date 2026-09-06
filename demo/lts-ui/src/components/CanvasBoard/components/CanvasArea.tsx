@@ -992,7 +992,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
             {label}
           </button>;
         })}
-        <TimelineStateMarkers left={GRID_FIRST_COLUMN_WIDTH} right={GRID_FIRST_COLUMN_WIDTH + visualPageWidth}
+        <TimelineStateMarkers isBrowseMode={isBrowseMode} left={GRID_FIRST_COLUMN_WIDTH} right={GRID_FIRST_COLUMN_WIDTH + visualPageWidth}
           laneForLine={line => ({
             top: getGridReleaseRowTopY(line) + GRID_RELEASE_ROW_HEIGHT + 2,
             bottom: getGridEnergyRowTopY(line) - 3,

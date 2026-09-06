@@ -2206,9 +2206,14 @@ export function SkillButtonComponent({
               <span className="skill-button-reading-type">{readingSkillLabel}</span>
             </div>
           </div>
-        ) : (
-        <div className="skill-button-anchor">
-          {onEditReleaseAnchor && releaseRelationLabel && !isBrowseMode && !isInspectMode ? (
+        ) : null}
+        <div
+          className={`skill-button-anchor${isBrowseMode ? ' is-reading-hidden-anchor' : ''}`}
+          data-ake-reading-hidden={isBrowseMode || undefined}
+          ref={element => { if (element) element.inert = isBrowseMode; }}
+          aria-hidden={isBrowseMode || undefined}
+        >
+          {onEditReleaseAnchor && releaseRelationLabel && !isInspectMode ? (
             <button type="button" className="skill-button-release-relation"
               data-edit-release={button.id}
               aria-label={`编辑${characterName}${displayName}接续：${releaseRelationLabel}`}
@@ -2346,7 +2351,6 @@ export function SkillButtonComponent({
             </div>
           ) : null}
         </div>
-        )}
       </div>
 
       {/* 右键上下文菜单 - portal 到 body，避免被右侧面板 stacking context 遮挡 */}

@@ -2329,6 +2329,7 @@
 }
 
 .timeline-wait-segment {
+  --state-obstacle-height: 30px;
   --wait-segment-color: #167d48;
   --wait-segment-fill: rgba(232, 248, 238, 0.96);
   --wait-segment-ink: #0f6038;
@@ -2459,6 +2460,7 @@
 }
 
 .timeline-operator-switch-segment {
+  --state-obstacle-height: 30px;
   --switch-color: #6d3db8;
   position: absolute;
   z-index: 15;
@@ -2860,7 +2862,6 @@
   .ake-variable-column-rate,
   .ake-wait-column,
   .ake-interaction-event-marker,
-  .ake-state-markers-layer,
   .ake-action-interval,
   .ake-effect-tail,
   .ake-preview-hit-marker,
@@ -2869,7 +2870,8 @@
   .ake-combo-precision-window,
   .ake-live-scope-plate
 ) {
-  display: none;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .canvas-container.is-browse-mode .canvas-grid-group {
@@ -2878,6 +2880,10 @@
 
 .canvas-container.is-browse-mode .canvas-staff-line {
   background: transparent;
+}
+
+.canvas-container.is-browse-mode .ake-state-marker-leaders {
+  display: none;
 }
 
 .timeline-wait-segment.is-browse-mode,

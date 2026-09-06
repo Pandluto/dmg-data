@@ -30,11 +30,11 @@
   cursor: default;
 }
 
-/* 阅读模式是技能摘要卡：上格保留独立状态带，下格只显示技能图标与类型。 */
+/* 阅读模式是技能摘要卡；普通 anchor 仍保留在同一坐标，只隐藏其绘制。 */
 :root .canvas-skill-button.is-browse-mode .skill-button-reading-card {
   position: absolute;
   left: 0;
-  top: 48px;
+  top: 18px;
   z-index: 8;
   width: 80px;
   height: 30px;
@@ -52,6 +52,11 @@
   box-shadow: none;
   pointer-events: auto;
   user-select: none;
+}
+
+:root .canvas-skill-button.is-browse-mode .skill-button-anchor.is-reading-hidden-anchor {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 :root .canvas-skill-button.is-browse-mode .skill-button-reading-main {
@@ -649,7 +654,7 @@
   transform: translateY(-1px);
 }
 
-.canvas-skill-button.is-browse-dot .skill-button-orb {
+.canvas-skill-button.is-browse-dot .skill-button-reading-orb {
   opacity: 0;
 }
 

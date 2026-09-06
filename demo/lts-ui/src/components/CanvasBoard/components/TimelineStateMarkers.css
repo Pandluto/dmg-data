@@ -1,5 +1,6 @@
 .ake-state-markers-layer { position: absolute; inset: 0; pointer-events: none; }
 .ake-state-marker-group { position: absolute; z-index: 20; display: flex; pointer-events: none; }
+.ake-state-marker-group.is-overflow { z-index: 21; }
 .ake-state-marker-leaders { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
 .ake-state-marker-leaders path { fill: none; stroke: #000; stroke-width: .5; opacity: .6; }
 .ake-state-marker-leaders circle { fill: #000; opacity: .6; }

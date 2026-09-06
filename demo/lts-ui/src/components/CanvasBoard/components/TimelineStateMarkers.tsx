@@ -2,13 +2,27 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from
 import { createPortal } from 'react-dom';
 import type { AkeCombatStateEvent } from '../../../core/services/akeRuntimeLedger';
 import { normalizeAssetUrl } from '../../../utils/assetResolver';
-import { layoutStateMarkers, stateBadgeRuns, STATE_BADGE_GAP, STATE_BADGE_SIZE, type MarkerRect } from '../stateMarkerLayout';
+import {
+  adjustStateMarkerRows,
+  layoutStateMarkers,
+  stateBadgeRuns,
+  STATE_BADGE_GAP,
+  STATE_BADGE_SIZE,
+  type MarkerRect,
+} from '../stateMarkerLayout';
 import { stateMarkerTone } from '../stateMarkerTone';
 import './TimelineStateMarkers.css';
 
 export type ProjectedStateMarker = {
-  event: AkeCombatStateEvent; x: number; lineIndex: number; description: string;
+  event: AkeCombatStateEvent;
+  x: number;
+  lineIndex: number;
+  description: string;
+  fromFrame?: number;
+  toFrame?: number;
+  clipped?: boolean;
 };
+
 interface Props {
   events: ProjectedStateMarker[];
   left: number;
@@ -16,8 +30,10 @@ interface Props {
   laneForLine: (line: number) => { top: number; bottom: number; anchorY: number };
   onInspectCommand?: (id: string) => void;
 }
-// Measure visible ink and controls, not the mostly empty 80 × 78 skill hitbox.
-// RIA uses the selector on the layer to inspect the same obstacles.
+
+// Measure the ordinary timeline geometry in the current canvas. The reading
+// card is presentation-only; its preserved hidden anchor supplies the same
+// obstacle rects in both modes.
 const OBSTACLES = [
   '.ake-release-caption-lane > span',
   '.skill-button-orb', '.skill-button-temporal-kind', '.skill-button-release-relation',
@@ -27,75 +43,117 @@ const OBSTACLES = [
   '.ake-hit-marker', '.ake-hit-marker > span', '.ake-preview-hit-marker', '.ake-preview-hit-marker > *',
   '.ake-effect-tail > span', '.timeline-wait-segment', '.timeline-operator-switch-segment',
 ].join(',');
-export function TimelineStateMarkers({ events, left, right, laneForLine, onInspectCommand }: Props) {
+
+const isReadingCardElement = (element: Element) => Boolean(element.closest('.skill-button-reading-card'));
+const isReadingHiddenElement = (element: Element) => Boolean(
+  element.closest('[data-ake-reading-hidden="true"]'),
+);
+
+export function TimelineStateMarkers({
+  events,
+  left,
+  right,
+  laneForLine,
+  onInspectCommand,
+}: Props) {
   const layerRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const [obstacles, setObstacles] = useState<MarkerRect[] | null>(null);
-  const [sources, setSources] = useState<Record<string, MarkerRect>>({});
+  const [readingObstacles, setReadingObstacles] = useState<MarkerRect[]>([]);
   const [detail, setDetail] = useState<{ keys: string[]; x: number; y: number } | null>(null);
   const detailEvents = detail ? events.filter(item => detail.keys.includes(item.event.key)) : [];
   const closeDetails = () => { setDetail(null); openerRef.current?.focus({ preventScroll: true }); };
+
   useEffect(() => {
     if (!detail) return;
-    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') { event.stopPropagation(); closeDetails(); } };
+    const close = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.stopPropagation(); closeDetails(); }
+    };
     window.addEventListener('keydown', close, true);
     return () => window.removeEventListener('keydown', close, true);
   }, [detail]);
+
   useLayoutEffect(() => {
     const layer = layerRef.current, canvas = layer?.closest('.canvas-container');
     if (!layer || !canvas) return;
     let pending = 0;
+    const obstacleElements = () => [...canvas.querySelectorAll<HTMLElement>(OBSTACLES)]
+      .filter(element => !isReadingCardElement(element));
     const measure = () => {
       pending = 0;
       const origin = layer.getBoundingClientRect();
       const scaleX = origin.width / layer.offsetWidth, scaleY = origin.height / layer.offsetHeight;
       if (!scaleX || !scaleY) return;
       const rects: MarkerRect[] = [];
-      const sourceRects: Record<string, MarkerRect> = {};
-      const localRect = (rect: DOMRect): MarkerRect => ({
-        left: (rect.left - origin.left) / scaleX, top: (rect.top - origin.top) / scaleY,
-        width: rect.width / scaleX, height: rect.height / scaleY,
-      });
-      canvas.querySelectorAll<HTMLElement>('[data-skill-button-id]').forEach(button => {
-        const orb = button.querySelector('.skill-button-orb');
-        if (!orb) return;
-        const rect = button.getBoundingClientRect(), ink = orb.getBoundingClientRect();
-        if (!rect.width || ink.top < origin.top || ink.bottom > origin.bottom) return;
-        sourceRects[button.dataset.skillButtonId!] = { ...localRect(rect), top: localRect(ink).top };
-      });
-      canvas.querySelectorAll<HTMLElement>(OBSTACLES).forEach(element => {
-        // The kind label has a wide layout box; only its text is visible ink.
-        const range = document.createRange();
-        range.selectNodeContents(element);
-        const rect = element.matches('.skill-button-temporal-kind')
-          ? range.getBoundingClientRect() : element.getBoundingClientRect();
+      const readingCardRects: MarkerRect[] = [];
+      obstacleElements().forEach(element => {
+        const readingHidden = isReadingHiddenElement(element);
+        const retainedBrowseProjection = canvas.classList.contains('is-browse-mode')
+          && Boolean(element.closest('.ake-canvas-projection'));
+        const owner = element.closest<HTMLElement>('[data-skill-button-id]');
+        const ownerStyle = owner ? getComputedStyle(owner) : null;
+        if (ownerStyle?.display === 'none' || ownerStyle?.opacity === '0'
+          || (!readingHidden && ownerStyle?.visibility === 'hidden')) return;
+        const rect = element.getBoundingClientRect();
         if (!rect.width || !rect.height || rect.bottom < origin.top || rect.top > origin.bottom) return;
         const style = getComputedStyle(element);
-        if (style.visibility === 'hidden' || style.display === 'none' || style.opacity === '0') return;
+        if (style.display === 'none' || style.opacity === '0') return;
+        if (!readingHidden && !retainedBrowseProjection && style.visibility === 'hidden') return;
+        // The kind label has a wide layout box; only its visible text is ink.
+        const visibleRect = element.matches('.skill-button-temporal-kind')
+          ? (() => { const range = document.createRange(); range.selectNodeContents(element); return range.getBoundingClientRect(); })()
+          : rect;
+        if (!visibleRect.width || !visibleRect.height) return;
         const round = (value: number) => Math.round(value * 100) / 100;
-        rects.push({ left: round((rect.left - origin.left) / scaleX), top: round((rect.top - origin.top) / scaleY),
+        // Wait/switch cards grow in reading mode; their ordinary obstacle
+        // height stays fixed by the component's CSS geometry contract.
+        const ordinaryHeight = Number.parseFloat(style.getPropertyValue('--state-obstacle-height'));
+        rects.push({ left: round((visibleRect.left - origin.left) / scaleX), top: round((visibleRect.top - origin.top) / scaleY),
+          width: round(visibleRect.width / scaleX), height: Number.isFinite(ordinaryHeight)
+            ? ordinaryHeight : round(visibleRect.height / scaleY) });
+      });
+      canvas.querySelectorAll<HTMLElement>('.skill-button-reading-card, .timeline-wait-segment.is-browse-mode, .timeline-operator-switch-segment.is-browse-mode').forEach(element => {
+        const style = getComputedStyle(element);
+        if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return;
+        const rect = element.getBoundingClientRect();
+        if (!rect.width || !rect.height || rect.bottom < origin.top || rect.top > origin.bottom) return;
+        const round = (value: number) => Math.round(value * 100) / 100;
+        readingCardRects.push({ left: round((rect.left - origin.left) / scaleX), top: round((rect.top - origin.top) / scaleY),
           width: round(rect.width / scaleX), height: round(rect.height / scaleY) });
       });
       setObstacles(previous => JSON.stringify(previous) === JSON.stringify(rects) ? previous : rects);
-      setSources(previous => JSON.stringify(previous) === JSON.stringify(sourceRects) ? previous : sourceRects);
+      setReadingObstacles(previous => JSON.stringify(previous) === JSON.stringify(readingCardRects)
+        ? previous : readingCardRects);
     };
     const schedule = () => { if (!pending) pending = requestAnimationFrame(measure); };
     measure();
     const resize = new ResizeObserver(schedule);
     resize.observe(canvas);
-    canvas.querySelectorAll(OBSTACLES).forEach(element => resize.observe(element));
+    obstacleElements().forEach(element => resize.observe(element));
+    canvas.querySelectorAll<HTMLElement>('.skill-button-reading-card, .timeline-wait-segment.is-browse-mode, .timeline-operator-switch-segment.is-browse-mode').forEach(element => resize.observe(element));
     const changes = new MutationObserver(records => {
       if (records.some(record => !(record.target instanceof Element
         ? record.target : record.target.parentElement)?.closest('.ake-state-markers-layer'))) schedule();
     });
     changes.observe(canvas, { subtree: true, childList: true, attributes: true, characterData: true });
     window.addEventListener('resize', schedule);
-    return () => { cancelAnimationFrame(pending); resize.disconnect(); changes.disconnect(); window.removeEventListener('resize', schedule); };
+    return () => {
+      cancelAnimationFrame(pending);
+      resize.disconnect();
+      changes.disconnect();
+      window.removeEventListener('resize', schedule);
+    };
   });
+
   const lanes = new Map<number, ProjectedStateMarker[]>();
-  events.forEach(item => { const lane = lanes.get(item.lineIndex) ?? []; lane.push(item); lanes.set(item.lineIndex, lane); });
+  events.forEach(item => {
+    const lane = lanes.get(item.lineIndex) ?? [];
+    lane.push(item);
+    lanes.set(item.lineIndex, lane);
+  });
   const openDetails = (keys: string[], element: HTMLElement) => {
-    const rect = element.getBoundingClientRect(); openerRef.current = element;
+    const rect = element.getBoundingClientRect();
+    openerRef.current = element;
     setDetail({ keys, x: Math.max(8, Math.min(rect.left, innerWidth - 388)),
       y: Math.max(8, Math.min(rect.bottom + 8, innerHeight - 270)) });
   };
@@ -105,61 +163,114 @@ export function TimelineStateMarkers({ events, left, right, laneForLine, onInspe
     : <span className="ake-state-icon-fallback" aria-hidden="true">{(event.shortLabel ?? event.label).slice(0, 1)}</span>;
   const detailIcon = (event: AkeCombatStateEvent) => <span aria-hidden="true"
     className={`ake-state-event-marker${event.after === 0 ? ' is-cleared' : ''}`}
-    data-state-tone={stateMarkerTone(event)}>{stateIcon(event)}</span>;
+    data-state-tone={stateMarkerTone(event)} data-state-event-frame={event.frame}
+    data-state-source-command-id={event.sourceCommandId ?? undefined}
+    data-state-trigger-command-id={event.triggerCommandId ?? undefined}>{stateIcon(event)}</span>;
+  const rangeOf = (records: ProjectedStateMarker[]) => ({
+    fromFrame: Math.min(...records.map(record => record.event.frame)),
+    toFrame: Math.max(...records.map(record => record.event.frame)),
+  });
+
   return <>
     <div ref={layerRef} className="ake-state-markers-layer" data-state-obstacle-selector={OBSTACLES}>
-    {obstacles && [...lanes].flatMap(([line, items]) => {
-      const lane = laneForLine(line);
-      const byKey = new Map(items.map(item => [item.event.key, item]));
-      const badges = stateBadgeRuns(items.map(item => item.event)).map(run => {
-        const last = run[run.length - 1], item = byKey.get(last.key)!;
-        return { ...item, key: run[0].key, frame: last.frame, sequence: last.sequence, width: STATE_BADGE_SIZE,
-          source: last.commandId ? sources[last.commandId] : undefined,
-          records: run.map(event => byKey.get(event.key)!) };
-      });
-      return layoutStateMarkers(badges, { left, top: lane.top, width: right - left,
-        height: lane.bottom - lane.top, preferredTop: lane.top,
-        obstacles }).map(group => {
-        const records = group.events.flatMap(item => item.records);
-        let offset = 0;
-        const leaders = group.events.map(item => {
-          const center = group.collapsed ? group.width / 2 : offset + item.width / 2;
-          offset += item.width + STATE_BADGE_GAP;
-          return { item, center };
+      {obstacles && [...lanes].flatMap(([line, items]) => {
+        const lane = laneForLine(line);
+        const byKey = new Map(items.map(item => [item.event.key, item]));
+        const badges = stateBadgeRuns(items.map(item => item.event)).map(run => {
+          const last = run[run.length - 1];
+          const item = byKey.get(last.key)!;
+          return {
+            ...item,
+            key: run[0].key,
+            frame: last.frame,
+            sequence: last.sequence,
+            width: STATE_BADGE_SIZE,
+            records: run.map(event => byKey.get(event.key)!),
+          };
         });
-        return <div key={group.events[0].key} className="ake-state-marker-group"
-          style={{ left: group.left, top: group.top, width: group.width, height: group.height, gap: STATE_BADGE_GAP }}
-          role="group" aria-label={`${records.length}项状态变化`}>
-          <svg className="ake-state-marker-leaders" width={group.width} height={group.height} aria-hidden="true">
-            {leaders.map(({ item, center }) => <g key={item.key}>
-              <path d={`M ${center} ${group.height} V ${group.height + 3} L ${item.x - group.left} ${lane.anchorY - group.top}`} />
-              <circle cx={item.x - group.left} cy={lane.anchorY - group.top} r={1.3} />
-            </g>)}
-          </svg>
-          {group.collapsed ? <button type="button" className="ake-state-event-summary"
-            style={{ width: group.width }} data-state-event-keys={JSON.stringify(records.map(item => item.event.key))}
-            aria-label={`${records.length}项状态变化，点击展开逐条记录`}
-            title={records.map(item => item.description).join('\n')}
-            onClick={event => { event.stopPropagation(); openDetails(records.map(item => item.event.key), event.currentTarget); }}>
-            +{records.length}
-          </button> : group.events.map(item => {
-            const description = item.records.map(record => record.description).join('\n');
-            return <button key={item.key} type="button"
-              className={`ake-state-event-marker${item.event.after === 0 ? ' is-cleared' : ''}`}
-              data-state-tone={stateMarkerTone(item.event)}
-              data-state-event-keys={JSON.stringify(item.records.map(record => record.event.key))}
-              data-state-event-frame={item.event.frame} data-state-event-sequence={item.event.sequence}
-              data-state-stacks={item.event.after} data-state-buff-id={item.event.buffId}
-              data-state-anchor-x={item.x} data-state-anchor-y={lane.anchorY}
-              title={description} aria-label={description}
-              onClick={event => { event.stopPropagation(); openDetails(item.records.map(record => record.event.key), event.currentTarget); }}>
-              {stateIcon(item.event)}
-              <b aria-hidden="true">{item.event.after === 0 ? '×' : item.event.after ?? '?'}</b>
-            </button>;
-          })}
-        </div>;
-      });
-    })}
+        const markerSpace = {
+          left,
+          top: lane.top,
+          width: right - left,
+          height: lane.bottom - lane.top,
+          preferredTop: lane.top,
+          obstacles,
+        };
+        return adjustStateMarkerRows(
+          layoutStateMarkers(badges, markerSpace),
+          markerSpace,
+          readingObstacles,
+        ).map(group => {
+          const records = group.events.flatMap(item => item.records);
+          const range = rangeOf(records);
+          const first = group.events[0];
+          const sourceCommandIds = [...new Set(records
+            .map(item => item.event.sourceCommandId)
+            .filter((id): id is string => Boolean(id)))];
+          const triggerCommandIds = [...new Set(records
+            .map(item => item.event.triggerCommandId)
+            .filter((id): id is string => Boolean(id)))];
+          const summarySourceCommandId = sourceCommandIds.length === 1 ? sourceCommandIds[0] : undefined;
+          const summaryTriggerCommandId = triggerCommandIds.length === 1 ? triggerCommandIds[0] : undefined;
+          const summaryStacks = new Set(records.map(item => item.event.after));
+          const summaryBuffIds = new Set(records.map(item => item.event.buffId));
+          const isRangeSummary = Boolean(group.range);
+          let markerOffset = 0;
+          const markerCenters = group.events.map(item => {
+            const center = markerOffset + item.width / 2;
+            markerOffset += item.width + STATE_BADGE_GAP;
+            return { item, center };
+          });
+          const showLeaders = !group.range && !group.overflow;
+          return <div key={`${line}:${group.events[0].key}`} className={`ake-state-marker-group${isRangeSummary ? ' is-range-summary' : ''}${group.overflow ? ' is-overflow' : ''}`}
+            style={{ left: group.left, top: group.top, width: group.width, height: group.height, gap: STATE_BADGE_GAP }}
+            role="group" aria-label={`${records.length}项状态变化`}>
+            {showLeaders ? <svg className="ake-state-marker-leaders" width={group.width} height={group.height} aria-hidden="true">
+              {markerCenters.map(({ item, center }) => <g key={item.key}>
+                <path d={`M ${center} ${group.height} V ${group.height + 3} L ${item.x - group.left} ${lane.anchorY - group.top}`} />
+                <circle cx={item.x - group.left} cy={lane.anchorY - group.top} r={1.3} />
+              </g>)}
+            </svg> : null}
+            {group.collapsed ? <button type="button" className="ake-state-event-summary"
+              style={{ width: group.width }} data-state-event-keys={JSON.stringify(records.map(item => item.event.key))}
+              data-state-event-frame={first.event.frame} data-state-source-command-id={summarySourceCommandId}
+              data-state-trigger-command-id={summaryTriggerCommandId}
+              data-state-source-command-ids={JSON.stringify(sourceCommandIds)}
+              data-state-trigger-command-ids={JSON.stringify(triggerCommandIds)}
+              data-state-stacks={summaryStacks.size === 1 ? first.event.after ?? undefined : undefined}
+              data-state-buff-id={summaryBuffIds.size === 1 ? first.event.buffId : undefined}
+              data-state-anchor-x={first.x}
+              data-state-line-index={line}
+              data-state-from-frame={group.range?.fromFrame ?? range.fromFrame} data-state-to-frame={group.range?.toFrame ?? range.toFrame}
+              aria-label={`${records.length}项状态变化，F${range.fromFrame}至F${range.toFrame}，点击展开逐条记录`}
+              title={records.map(item => item.description).join('\n')}
+              onClick={event => { event.stopPropagation(); openDetails(records.map(item => item.event.key), event.currentTarget); }}>
+              +{records.length}
+            </button> : group.events.map(item => {
+              const description = item.records.map(record => record.description).join('\n');
+              return <button key={item.key} type="button"
+                className={`ake-state-event-marker${item.event.after === 0 ? ' is-cleared' : ''}`}
+                data-state-tone={stateMarkerTone(item.event)}
+                data-state-event-keys={JSON.stringify(item.records.map(record => record.event.key))}
+                data-state-event-frame={item.event.frame} data-state-event-sequence={item.event.sequence}
+                data-state-source-command-id={item.event.sourceCommandId ?? undefined}
+                data-state-trigger-command-id={item.event.triggerCommandId ?? undefined}
+                data-state-source-command-ids={JSON.stringify([item.event.sourceCommandId].filter((id): id is string => Boolean(id)))}
+                data-state-trigger-command-ids={JSON.stringify([item.event.triggerCommandId].filter((id): id is string => Boolean(id)))}
+                data-state-stacks={item.event.after ?? undefined} data-state-buff-id={item.event.buffId}
+                data-state-anchor-x={item.x} data-state-anchor-y={lane.anchorY}
+                data-state-line-index={line}
+                data-state-from-frame={item.fromFrame} data-state-to-frame={item.toFrame}
+                data-state-clipped={item.clipped || undefined}
+                title={description} aria-label={description}
+                onClick={event => { event.stopPropagation(); openDetails(item.records.map(record => record.event.key), event.currentTarget); }}>
+                {stateIcon(item.event)}
+                <b aria-hidden="true">{item.event.after === 0 ? '×' : item.event.after ?? '?'}</b>
+              </button>;
+            })}
+          </div>;
+        });
+      })}
     </div>
     {detail && detailEvents.length > 0 ? createPortal(
       <div className="ake-state-detail-dismiss" onMouseDown={event => { if (event.target === event.currentTarget) closeDetails(); }}>

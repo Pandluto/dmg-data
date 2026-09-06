@@ -51,6 +51,7 @@ import {
   buildAkeCombatInteractions,
 } from '../../../core/services/akeRuntimeLedger';
 import { akeSkillTypeLabel } from '../../../core/services/akeCombatInspection';
+import { stateMarkerIntervals } from '../stateMarkerLayout';
 import {
   compactLingeringHitMarkers,
   isLowMultiplierHitMarker,
@@ -205,6 +206,9 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
   const visualPageWidth = variableTimeline?.visualPageWidth ?? GRID_TIMELINE_WIDTH;
   const interactions = useMemo(() => akeRuntimeReport ? buildAkeCombatInteractions(akeRuntimeReport) : [], [akeRuntimeReport]);
   const stateEvents = useMemo(() => akeRuntimeReport ? buildAkeMainTimelineStateEvents(akeRuntimeReport) : [], [akeRuntimeReport]);
+  const stateIntervals = useMemo(() => akeRuntimeReport
+    ? stateMarkerIntervals(stateEvents, akeRuntimeReport.durationFrames)
+    : [], [akeRuntimeReport, stateEvents]);
   const resolvedInitialControllerCharacterId = resolveInitialControllerLaneId(
     initialControllerCharacterId,
     selectedCharacters.map(character => character.id),
@@ -605,7 +609,6 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           skillChangeOptions={getSkillChangeOptions?.(button) ?? []}
           akeSettlement={command}
           akeRuntimeReport={akeRuntimeReport}
-          readingStateEvents={stateEvents}
           akePreviewCommand={previewCommand}
           akePreviewCommands={akeRealtimeTimeline?.commands}
           akeUsesSharedProjection={Boolean(variableTimeline)}
@@ -876,6 +879,56 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
     const visualWidthInBaseColumns = Number(
       (variableTimeline.width / variableTimeline.columnWidth).toFixed(1),
     );
+    const runtimeCharacterForId = (id: string | null | undefined) => id
+      ? akeRuntimeReport?.characters.find(character => (
+        character.localCharacterId === id
+        || character.akeCharacterId === id
+        || character.memberId === id
+      )) ?? null
+      : null;
+    const stateLineIndex = (event: { sourceId: string | null; actorId: string | null }) => {
+      // The event actor owns the row; sourceId is the fallback for grants that
+      // carry no separate actor. A terminal event may have no actor, but it
+      // still closes the preceding interval in stateMarkerIntervals.
+      const sourceId = event.actorId ?? event.sourceId;
+      const reportCharacter = runtimeCharacterForId(sourceId);
+      return selectedCharacters.findIndex(character => (
+        character.id === sourceId || character.id === reportCharacter?.localCharacterId
+      ));
+    };
+    const stateCharacterName = (id: string | null | undefined) => {
+      const reportCharacter = runtimeCharacterForId(id);
+      return reportCharacter?.characterName
+        ?? selectedCharacters.find(character => character.id === id)?.name
+        ?? (id ? '未知角色' : '未知角色');
+    };
+    const stateCommandLabel = (id: string | null | undefined) => {
+      if (!id) return '无显式动作';
+      const command = akeRuntimeReport?.timeline.commands.find(candidate => candidate.commandId === id);
+      if (!command) return `未知动作(${id})`;
+      return `${stateCharacterName(command.characterId)}·${akeSkillTypeLabel(command.commandType, command.attackMode)}`;
+    };
+    const stateDescription = (event: typeof stateEvents[number]) => (
+      `效果来源：${stateCommandLabel(event.sourceCommandId)} · 触发：${stateCommandLabel(event.triggerCommandId)}`
+      + ` · 生效 F${event.frame}（${seconds(event.frame)}） · ${event.label} · ${event.change}`
+      + ` ${event.before ?? '?'}→${event.after ?? '?'}层`
+    );
+    const stateIntervalByKey = new Map(stateIntervals.map(interval => [interval.event.key, interval]));
+    const projectedStateMarkers = stateEvents.flatMap(event => {
+      const point = visualPointForFrame(event.frame, 'after');
+      const lineIndex = stateLineIndex(event);
+      if (!point || point.pageIndex !== staffIndex || lineIndex < 0) return [];
+      const interval = stateIntervalByKey.get(event.key);
+      return [{
+        event,
+        x: point.x,
+        lineIndex,
+        description: stateDescription(event),
+        fromFrame: interval?.fromFrame,
+        toFrame: interval?.toFrame,
+        clipped: interval?.clipped,
+      }];
+    });
 
     return (
       <div className="ake-canvas-projection" aria-label={`共享变速时间投影 ${staffIndex + 1}`}>
@@ -940,16 +993,12 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           </button>;
         })}
         <TimelineStateMarkers left={GRID_FIRST_COLUMN_WIDTH} right={GRID_FIRST_COLUMN_WIDTH + visualPageWidth}
-          laneForLine={line => ({ top: getGridReleaseRowTopY(line) + GRID_RELEASE_ROW_HEIGHT + 2,
-            bottom: getGridEnergyRowTopY(line) - 3, anchorY: getGridEnergyRowTopY(line) })} onInspectCommand={onInspectCommand}
-          events={stateEvents.flatMap(event => {
-            const point = visualPointForFrame(event.frame, 'after');
-            const lineIndex = selectedCharacters.findIndex(character => character.id === (event.actorId ?? event.sourceId));
-            if (!point || point.pageIndex !== staffIndex || lineIndex < 0) return [];
-            const actor = selectedCharacters.find(character => character.id === event.actorId)?.name;
-            const description = `${event.label} · ${event.change} ${event.before ?? '?'}→${event.after ?? '?'}层 · ${seconds(event.frame)} / F${event.frame}${actor ? ` · ${actor}` : ''}`;
-            return [{ event, x: point.x, lineIndex, description }];
-          })} />
+          laneForLine={line => ({
+            top: getGridReleaseRowTopY(line) + GRID_RELEASE_ROW_HEIGHT + 2,
+            bottom: getGridEnergyRowTopY(line) - 3,
+            anchorY: getGridEnergyRowTopY(line),
+          })}
+          onInspectCommand={onInspectCommand} events={projectedStateMarkers} />
         {actionsOnPage.map(action => {
           const lineIndex = selectedCharacters.findIndex(character => character.id === action.laneId);
           if (lineIndex < 0) return null;

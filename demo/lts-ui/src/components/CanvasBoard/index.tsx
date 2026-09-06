@@ -3630,7 +3630,13 @@ export function CanvasBoard({
 
   useEffect(() => {
     if (!batchContextMenuState) return undefined;
-    const close = () => setBatchContextMenuState(null);
+    const close = (event: PointerEvent) => {
+      const target = event.target;
+      if (target instanceof HTMLElement && target.closest('.timeline-batch-context-menu')) {
+        return;
+      }
+      setBatchContextMenuState(null);
+    };
     window.addEventListener('pointerdown', close);
     return () => window.removeEventListener('pointerdown', close);
   }, [batchContextMenuState]);

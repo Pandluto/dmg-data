@@ -43,6 +43,7 @@ import {
 import {
   cleanupBuffsOnButtonRemove,
   cleanupBuffsOnButtonsRemove,
+  loadBuffsToCache,
   recomputeSkillButtonPanel,
 } from './buffService';
 
@@ -791,6 +792,7 @@ export function removeSkillButtons(
     // contract atomic if a custom storage bridge rejects one write.
     replaceSkillButtonTable(currentSkillButtonTable);
     setAllBuffList(currentBuffList);
+    loadBuffsToCache();
     saveTimelineRepo(timelineData);
     throw error;
   }

@@ -2266,6 +2266,7 @@
 
 .timeline-batch-context-menu {
   width: 132px;
+  box-sizing: border-box;
 }
 
 .context-menu-item {

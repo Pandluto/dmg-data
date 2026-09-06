@@ -16,6 +16,13 @@ interface UseBatchTimelineSelectionOptions {
   onExit: () => void;
 }
 
+export function shouldResetBatchTimelineSelection(
+  previousResetKey: string | null,
+  nextResetKey: string,
+): boolean {
+  return previousResetKey !== nextResetKey;
+}
+
 export function useBatchTimelineSelection({
   active,
   canvasRef,
@@ -27,6 +34,7 @@ export function useBatchTimelineSelection({
   const [draft, setDraft] = useState<BatchSelectionDraft | null>(null);
   const draftRef = useRef<BatchSelectionDraft | null>(null);
   const pointerIdRef = useRef<number | null>(null);
+  const previousResetKeyRef = useRef<string | null>(null);
   const selectableButtonIdsRef = useRef<ReadonlySet<string>>(new Set());
 
   useEffect(() => {
@@ -48,8 +56,13 @@ export function useBatchTimelineSelection({
   }, []);
 
   useEffect(() => {
+    const resetKeyChanged = shouldResetBatchTimelineSelection(
+      previousResetKeyRef.current,
+      resetKey,
+    );
+    previousResetKeyRef.current = resetKey;
     clearDraft();
-    if (!active) {
+    if (!active || resetKeyChanged) {
       clearSelection();
     }
   }, [active, clearDraft, clearSelection, resetKey]);

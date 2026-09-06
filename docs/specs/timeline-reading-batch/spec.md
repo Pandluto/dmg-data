@@ -4,7 +4,7 @@
 
 **Status:** Accepted for implementation
 
-**Implementation:** Implemented and integrated; Chrome reading/toggle checks passed, native batch gesture acceptance pending
+**Implementation:** Implemented and integrated; full application batch selection/deletion/undo verified in isolated Chrome; exact original user failure remains unconfirmed
 
 **Updated:** 2026-09-06
 
@@ -53,20 +53,20 @@
 - AND 每个技能及其状态处于同一白色圆角细黑框内；状态不可被不透明卡片遮挡
 - AND 同一来源同一状态跨帧多次变化时，卡片只显示该来源最后一条结果，归零显示 ×；不把别的来源的状态合并进来。详情保留全部原始事务
 - AND 不改变任何帧、按钮 ID、依赖、伤害、资源或存档，不新增模拟计算；再次关闭恢复原视图
-- AND 阅读模式禁止新增/拖拽/删除；单击可查看状态详情，不能因事件冒泡执行编辑动作
+- AND 单独阅读模式禁止新增/拖拽/删除；开启批量后可在阅读卡片上执行受限尾部删除。单独阅读时单击可查看状态详情，不能因事件冒泡执行编辑动作
 
 ### Requirement BATCH-01: 明确的框选模式
 
 - WHEN 点击新增批量 SVG
-- THEN 退出阅读模式，按钮显示选中状态，画布变为针形光标（准确 hotspot，失败回退 crosshair）；工具栏正常光标
-- AND 从画布拖拽框选，按可见技能按钮中心进入选框判定选中，跨角色/页可选；仅状态角标不构成新操作
+- THEN 自动进入并保持阅读模式，批量按钮显示选中状态，画布变为针形光标（准确 hotspot，失败回退 crosshair）；工具栏正常光标
+- AND 从画布拖拽框选，按可见阅读卡片中心进入选框判定选中，跨角色/页可选；仅状态角标不构成新操作，阅读卡片边框显示选中高亮
 - AND 选框使用轻浅填充、细边线，选中卡片清楚高亮；拖动只更新选择，不搬动已有技能，不打开接续放大镜
-- AND 普通框选替换选择，空白点击清空；Escape 或再点批量入口退出并清空，pointercancel 清除临时选框
-- AND 打开阅读模式时退出批量模式；存档/队伍切换后清空选择，避免旧 ID 残留
+- AND 普通框选替换选择，空白点击清空；Escape 或再点批量入口退出并清空但保留阅读视图，pointercancel 清除临时选框
+- AND 关闭书本阅读模式时同时退出批量；存档/队伍切换后清空选择，避免旧 ID 残留
 
 ### Requirement BATCH-02: 只删除合法队尾集合
 
-- WHEN 有选择且右键
+- WHEN 有选择且右键（包括 macOS Control+左击）
 - THEN 显示「删除所选 N 项」；不提供失效的复制项
 - AND 在当前最新队列副本上，反复使用现有 getTimelineDeleteBlockReason 找出可合法删除的选中尾项并模拟移除；全部选择都可移除才允许执行
 - AND 不能用最大 x、最大 frame 或数组最后一项替代合法性规则；必须处理跨角色、同帧、分组、显式依赖及普攻拆段尾链
@@ -80,7 +80,7 @@
 - 批量入口同在 SkillSandbox；CanvasBoard/index.tsx 负责模式协调和原子编辑；选择几何和删除预检优先抽独立 hook/domain helper，避免继续膨胀主组件。
 - 原单项删除：CanvasBoard/index.tsx 的 handleConfirmRemoveSkillButton、core/domain/timelineQueuePolicy.ts；先理解拆段关联删除。
 - DEF 只读参考：/Users/sailstellar/Documents/coding/dmg-end-field/src/components/BuffBatchEditWorkbench.tsx 的 isBoxSelectArmed 及其 hook；不恢复旧 buff 填充功能，不继承参考库的发布约定。
-- 两项实现各自独立 checkout 和提交。共享入口由主代理合并，最终协调为单一模式状态，不能互相覆盖。
+- 两项实现各自独立 checkout 和提交。共享入口由主代理合并：批量是阅读视图上的框选操作层，可有普通编辑、仅阅读、阅读并批量三种状态，不能出现批量开启但阅读关闭。
 
 ## Testing Decisions
 
@@ -101,5 +101,8 @@
 - 批量返修：菜单 pointerdown 不再先行关闭自身，位置限制于视口；存档身份改变清空选择；异常回滚同步 Buff 缓存。
 - 阅读资源/分组纠正：阅读模式不再隐藏整个 `.ake-canvas-projection` 或分组 outline；保留 `.ake-shared-atb-lane`、`.ake-operator-usp-lane` 与 `.canvas-grid-group`，仅选择性隐藏投影内时间、动作、命中、拖尾、接续和状态引线子层。
 - 合并后 typecheck 与阅读状态、批量队尾、菜单、选择重置、工具栏定向检查通过。取当前 Chrome 的三动作开发者快照，在隔离内存存储中调用真实 removeSkillButtons：有后继依赖的中间动作被拒绝且零写入；全部合法尾部集合一次移除，按钮表和队列表各写一次。
-- Chrome 已检查书本显示与批量/阅读互斥，最后保留阅读模式。前后 RIA commands 和伤害完全相同（75636.04798874758），排轴字段仅 updatedAt 因热更新变化；未删除或保存用户浏览器中的轴。
-- 原生批量框选、右键删除及撤销整条 UI 链路未完成现场验收：当前脚本没有原生鼠标事件投递权限。本次不把定向策略/服务检查算作原生操作已通过；后续实际鼠标使用需核对框选手感与撤销入口。
+- 首次整合时 Chrome 已检查书本显示与当时的批量/阅读互斥（该交互已被下方的新要求替代），最后保留阅读模式。前后 RIA commands 和伤害完全相同（75636.04798874758），排轴字段仅 updatedAt 因热更新变化；未删除或保存用户浏览器中的轴。
+- 首次整合未完成当前用户窗口内的原生框选、右键删除及撤销；后续改用安装在本机的 Google Chrome，在独立临时上下文加载完整应用和当前三动作夹具完成操作，不将简化 harness 代替完整应用证据。
+- 用户补充后的模式修订：开启框选自动开启阅读；按阅读卡片中心选中并在卡片边框高亮；退出批量保留阅读，关闭阅读同时退出批量。完整应用鼠标操作已验证：末尾 E 单项删除至 2 项，撤销恢复 3 项；单独 B 被后继阻塞且保留 3 项；B+E 一起删除至 1 项；退出框选保留阅读且移除覆盖层。全部删除实验在隔离 Chrome 内完成，当前用户窗口的三动作数据未被改写。
+- 已复现 Control+左击被普通框选分支接管、清空选择且菜单不出现；普通鼠标右键流程通过。该证据仅确认一条失败路径，不能据此断言用户此前多次点击删除无效的原因完全相同。
+- Control+左击修补由 Luna 提交 76a1563，主库整合为 7278a10；批量覆盖层把该手势直接路由至菜单，不进入框选。完整应用隔离 Chrome 复核：选中 ID 保持，菜单出现，删除及撤销成功；普通右键仍能打开菜单并保持选择。typecheck 通过。当前可见 Chrome 最后留在阅读+批量模式，三动作、能量条、共享技力及分组框均保留。

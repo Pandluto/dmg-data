@@ -79,7 +79,7 @@ export function TimelineOperatorSwitchSegment({
   return (
     <>
       <div
-        className={`timeline-operator-switch-segment${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-drag-disabled' : ''}`}
+        className={`timeline-operator-switch-segment${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-drag-disabled' : ''}${isBrowseMode ? ' is-browse-mode' : ''}`}
         data-skill-button-id={button.id}
         data-timeline-module="operator-switch"
         role="button"

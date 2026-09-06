@@ -182,7 +182,7 @@ export function TimelineWaitSegment({
   return (
     <>
       <div
-        className={`timeline-wait-segment ${modeClass}${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-drag-disabled' : ''}`}
+        className={`timeline-wait-segment ${modeClass}${button.isSelected ? ' selected' : ''}${button.isDragging ? ' dragging' : ''}${isInteractionDisabled ? ' is-drag-disabled' : ''}${isBrowseMode ? ' is-browse-mode' : ''}`}
         data-skill-button-id={button.id}
         data-timeline-module={button.timelineModuleKind}
         data-wait-mode={isLaneWait ? laneConfig.mode : forcedConfig.mode}

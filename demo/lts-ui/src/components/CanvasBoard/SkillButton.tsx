@@ -92,11 +92,14 @@ import { useSkillButtonAnomaly } from './useSkillButtonAnomaly';
 import { buildAnomalyDamageSegments } from './skillButtonAnomalyDamage';
 import { TimelineSkillDetailWorkbench } from './TimelineSkillDetailWorkbench';
 import type { TimelineDetailStatus } from './TimelineSkillDetailWorkbench';
+import { formatReadingStateStack, summarizeReadingStateEvents } from './readingModeState';
+import { stateMarkerTone } from './stateMarkerTone';
 import type {
   AkeCommandSettlement,
   AkeTeamReport,
   AkeTimelinePoint,
 } from '../../integrations/ake/akeProvider';
+import type { AkeCombatStateEvent } from '../../core/services/akeRuntimeLedger';
 import type { AkeRealtimeCommand } from '../../integrations/ake/akeRealtimeTimeline';
 import { getInstalledAkeCatalog } from '../../integrations/ake/akeCatalogAdapter';
 import './SkillButton.css';
@@ -307,6 +310,7 @@ interface SkillButtonProps {
   resistanceRevision?: number;
   akeSettlement?: AkeCommandSettlement | null;
   akeRuntimeReport?: AkeTeamReport | null;
+  readingStateEvents?: readonly AkeCombatStateEvent[];
   akePreviewCommand?: AkeRealtimeCommand | null;
   akePreviewCommands?: readonly AkeRealtimeCommand[];
   akeUsesSharedProjection?: boolean;
@@ -357,6 +361,7 @@ export function SkillButtonComponent({
   resistanceRevision = 0,
   akeSettlement = null,
   akeRuntimeReport = null,
+  readingStateEvents = [],
   akePreviewCommand = null,
   akePreviewCommands,
   akeUsesSharedProjection = false,
@@ -1195,6 +1200,12 @@ export function SkillButtonComponent({
     isAkeRuntimeMode,
   ]);
   const akeRuntimeLedger = akeRuntimeCommandViewState.ledger;
+  const readingStateBadges = useMemo(
+    () => isBrowseMode
+      ? summarizeReadingStateEvents(readingStateEvents, button.id)
+      : [],
+    [button.id, isBrowseMode, readingStateEvents],
+  );
   const buttonStackCounts = useMemo(
     () => getSkillButtonById(button.id)?.buffStackCounts ?? {},
     [button.id, buffList]
@@ -1928,6 +1939,7 @@ export function SkillButtonComponent({
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     if (isBrowseMode || isDragDisabled) {
+      if (isBrowseMode) e.stopPropagation();
       return;
     }
 
@@ -1965,8 +1977,13 @@ export function SkillButtonComponent({
   /**
    * 处理点击事件（区分单击和双击）
    */
-  const handleClick = useCallback(() => {
-    if (isBrowseMode) return;
+  const handleClick = useCallback((event: React.MouseEvent) => {
+    if (isBrowseMode) {
+      event.preventDefault();
+      event.stopPropagation();
+      onInspect?.();
+      return;
+    }
     // 如果是长按，不处理点击
     if (isLongPressRef.current) return;
 
@@ -2116,6 +2133,58 @@ export function SkillButtonComponent({
     return '不可释放';
   })();
 
+  const readingSkillLabel = timelineModuleKind
+    ? timelineModuleDisplayName
+    : browseModeDisplayName;
+  const readingSkillGlyph = timelineModuleKind === 'forced-wait'
+    ? '封'
+    : timelineModuleKind === 'lane-wait'
+      ? '等'
+      : timelineModuleKind === 'dodge'
+        ? '闪'
+        : timelineModuleKind === 'perfect-dodge'
+          ? '极'
+          : timelineModuleKind === 'operator-switch'
+            ? '切'
+            : isDotButton ? '~' : skillType;
+  const renderReadingStateBadge = (event: AkeCombatStateEvent) => {
+    const stack = formatReadingStateStack(event);
+    const detail = `${event.label} · ${event.change} ${event.before ?? '?'}→${event.after ?? '?'}层`;
+    return (
+      <button
+        key={event.key}
+        type="button"
+        className={`skill-button-reading-state${event.after === 0 ? ' is-cleared' : ''}`}
+        data-state-tone={stateMarkerTone(event)}
+        data-state-event-key={event.key}
+        aria-label={`${event.label} ${stack}；点击查看状态详情`}
+        title={`${detail}；点击查看状态详情`}
+        onMouseDown={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onInspect?.();
+        }}
+      >
+        {event.iconUrl ? (
+          <span
+            className="skill-button-reading-state-icon"
+            aria-hidden="true"
+            style={{ '--state-icon': `url(${JSON.stringify(normalizeAssetUrl(event.iconUrl))})` } as CSSProperties}
+          />
+        ) : (
+          <span className="skill-button-reading-state-fallback" aria-hidden="true">
+            {(event.shortLabel ?? event.label).slice(0, 1)}
+          </span>
+        )}
+        <b aria-hidden="true">{stack}</b>
+      </button>
+    );
+  };
+
   return (
     <>
       <div
@@ -2124,7 +2193,7 @@ export function SkillButtonComponent({
         data-combat-inspected={isCombatInspected || undefined}
         role={onInspect ? 'button' : undefined}
         tabIndex={onInspect ? 0 : undefined}
-        aria-label={onInspect ? `${characterName} ${timelineModuleDisplayName}；单击查看战斗状态，双击打开详情` : undefined}
+        aria-label={onInspect ? `${characterName} ${timelineModuleDisplayName}；${isBrowseMode ? '单击查看战斗状态' : '单击查看战斗状态，双击打开详情'}` : undefined}
         onKeyDown={onInspect ? (event) => {
           if (event.target !== event.currentTarget) return;
           if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onInspect(); }
@@ -2148,8 +2217,44 @@ export function SkillButtonComponent({
         } as CSSProperties}
         onMouseDown={handleMouseDown}
         onClick={handleClick}
-        onContextMenu={isBrowseMode ? (event) => event.preventDefault() : onContextMenu}
+        onContextMenu={isBrowseMode ? (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        } : onContextMenu}
       >
+        {isBrowseMode ? (
+          <div className="skill-button-reading-card">
+            <div className="skill-button-reading-main">
+              <div
+                className={`skill-button-reading-orb${hasVisibleSkillIcon ? ' has-skill-icon-mask' : ''}`}
+                title={`${characterName} - ${readingSkillLabel}`}
+                style={{
+                  '--skill-icon-mask': hasVisibleSkillIcon ? `url(${JSON.stringify(normalizedSkillIconUrl)})` : 'none',
+                } as CSSProperties}
+              >
+                {hasVisibleSkillIcon ? (
+                  <img
+                    className="skill-icon"
+                    key={normalizedSkillIconUrl}
+                    src={normalizedSkillIconUrl}
+                    alt={displayName}
+                    onLoad={handleIconLoad}
+                    onError={handleIconError}
+                  />
+                ) : null}
+                <span className={`skill-label ${hasVisibleSkillIcon ? 'hidden' : ''}`}>
+                  {readingSkillGlyph}
+                </span>
+              </div>
+              <span className="skill-button-reading-type">{readingSkillLabel}</span>
+            </div>
+            {readingStateBadges.length > 0 ? (
+              <div className="skill-button-reading-states" aria-label="技能产生的最终状态">
+                {readingStateBadges.map(renderReadingStateBadge)}
+              </div>
+            ) : null}
+          </div>
+        ) : (
         <div className="skill-button-anchor">
           {onEditReleaseAnchor && releaseRelationLabel && !isBrowseMode && !isInspectMode ? (
             <button type="button" className="skill-button-release-relation"
@@ -2289,6 +2394,7 @@ export function SkillButtonComponent({
             </div>
           ) : null}
         </div>
+        )}
       </div>
 
       {/* 右键上下文菜单 - portal 到 body，避免被右侧面板 stacking context 遮挡 */}

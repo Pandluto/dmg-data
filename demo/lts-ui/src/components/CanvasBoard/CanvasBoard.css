@@ -2756,6 +2756,84 @@
   background: transparent;
 }
 
+/* 书本阅读模式保留角色身份与卡片位置，移除所有编辑/时间投影层。 */
+.canvas-container.is-browse-mode .canvas-grid-background,
+.canvas-container.is-browse-mode .canvas-grid-labels,
+.canvas-container.is-browse-mode .canvas-merged-drop-grid,
+.canvas-container.is-browse-mode .canvas-damage-nodes,
+.canvas-container.is-browse-mode .canvas-forced-wait-control-column,
+.canvas-container.is-browse-mode .canvas-initial-controller-picker,
+.canvas-container.is-browse-mode .canvas-controlled-operator-marker,
+.canvas-container.is-browse-mode .ake-canvas-projection {
+  display: none;
+}
+
+.canvas-container.is-browse-mode .canvas-grid-group {
+  outline: none;
+}
+
+.canvas-container.is-browse-mode .canvas-staff-line {
+  background: transparent;
+}
+
+.timeline-wait-segment.is-browse-mode,
+.timeline-operator-switch-segment.is-browse-mode {
+  cursor: default;
+  touch-action: auto;
+}
+
+.timeline-wait-segment.is-browse-mode {
+  z-index: 16;
+  height: 44px;
+}
+
+.timeline-wait-segment.is-browse-mode .timeline-wait-track,
+.timeline-operator-switch-segment.is-browse-mode .timeline-switch-track {
+  inset: 0 3px;
+  min-height: 30px;
+  border: 1px solid #111;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.timeline-wait-segment.is-browse-mode .timeline-wait-track {
+  padding: 4px 6px;
+}
+
+.timeline-wait-segment.is-browse-mode .timeline-wait-track > b,
+.timeline-operator-switch-segment.is-browse-mode .timeline-switch-track b {
+  color: #111;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.timeline-wait-segment.is-browse-mode .timeline-wait-track > small,
+.timeline-operator-switch-segment.is-browse-mode .timeline-switch-track small,
+.timeline-wait-segment.is-browse-mode .timeline-wait-cursor,
+.timeline-operator-switch-segment.is-browse-mode .timeline-switch-cursor,
+.timeline-operator-switch-segment.is-browse-mode .timeline-switch-track svg {
+  display: none;
+}
+
+.timeline-operator-switch-segment.is-browse-mode {
+  z-index: 16;
+  height: 44px;
+}
+
+.timeline-operator-switch-segment.is-browse-mode .timeline-switch-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+}
+
+.timeline-operator-switch-segment.is-browse-mode .timeline-switch-track b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* AKE 共享变速投影：列内斜率唯一，按钮不再拥有私有压缩时间。 */
 .ake-canvas-projection {
   position: absolute;

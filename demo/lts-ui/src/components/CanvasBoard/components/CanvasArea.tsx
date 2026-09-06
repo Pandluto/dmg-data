@@ -46,7 +46,10 @@ import {
   type SharedTimelineColumn,
 } from '../../../core/domain/sharedVariableRateTimeline';
 import { resolveInitialControllerLaneId } from '../../../core/domain/operatorControlTimeline';
-import { buildAkeMainTimelineStateEvents, buildAkeCombatInteractions } from '../../../core/services/akeRuntimeLedger';
+import {
+  buildAkeMainTimelineStateEvents,
+  buildAkeCombatInteractions,
+} from '../../../core/services/akeRuntimeLedger';
 import { akeSkillTypeLabel } from '../../../core/services/akeCombatInspection';
 import {
   compactLingeringHitMarkers,
@@ -576,6 +579,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
           skillChangeOptions={getSkillChangeOptions?.(button) ?? []}
           akeSettlement={command}
           akeRuntimeReport={akeRuntimeReport}
+          readingStateEvents={stateEvents}
           akePreviewCommand={previewCommand}
           akePreviewCommands={akeRealtimeTimeline?.commands}
           akeUsesSharedProjection={Boolean(variableTimeline)}
@@ -1313,7 +1317,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(({
     <div className="canvas-area">
       <div
         ref={setCanvasRef}
-        className={`canvas-container${isDraggingActive ? ' is-dragging-active' : ''}`}
+        className={`canvas-container${isDraggingActive ? ' is-dragging-active' : ''}${isBrowseMode ? ' is-browse-mode' : ''}`}
         style={{
           '--grid-release-row-height': `${GRID_RELEASE_ROW_HEIGHT}px`,
           '--grid-operator-slot-height': `${GRID_OPERATOR_SLOT_HEIGHT}px`,

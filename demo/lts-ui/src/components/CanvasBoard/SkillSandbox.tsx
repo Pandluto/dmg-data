@@ -287,8 +287,8 @@ export function SkillSandbox({
           <button
             type="button"
             className={`sandbox-reserved-action sandbox-reserved-action--browse${isBrowseMode ? ' is-active' : ''}`}
-            aria-label="浏览模式"
-            title="浏览模式"
+            aria-label="阅读模式"
+            title="阅读模式"
             aria-pressed={isBrowseMode}
             onClick={onToggleBrowseMode}
           >

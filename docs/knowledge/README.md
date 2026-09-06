@@ -15,7 +15,7 @@
 | [汤汤](operators/tangtang.md) | 待本轮施冷限次与显式落地交互修订提交后登记 | 待登记 |
 | [别礼](operators/lastrite.md) | `745ebcd3296d3bc6d85ece432c7f3e4e6ae5aaef` | 2026-09-05 18:43:04 +08:00 |
 | [原始动作与解包数据分析](data/raw-action-analysis.md) | 待本轮施冷限次更正提交后登记 | 待登记 |
-| [状态来源、触发与时序](data/status-source-and-trigger.md) | `003a212a8ccc149e1f993b27062d0152087a4377` | 2026-09-06 20:54:38 +08:00 |
+| [状态来源、触发与时序](data/status-source-and-trigger.md) | `be6f3588323bb1c3cf2bc1b02162c826ab747357` | 2026-09-06 21:56:20 +08:00 |
 | [常规实验配装](experiments/default-loadout.md) | 待本轮内容提交后登记 | 待登记 |
 
 ## 按问题路由

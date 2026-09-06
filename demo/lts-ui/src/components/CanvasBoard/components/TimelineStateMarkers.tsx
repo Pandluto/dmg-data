@@ -232,7 +232,7 @@ export function TimelineStateMarkers({
             role="group" aria-label={`${records.length}项状态变化`}>
             {showLeaders ? <svg className="ake-state-marker-leaders" width={group.width} height={group.height} aria-hidden="true">
               {markerCenters.map(({ item, center }) => <g key={item.key}>
-                <path d={`M ${item.x - group.left} ${lane.anchorY - group.top} V ${group.height + 3} H ${center} V ${group.height}`} />
+                <path d={`M ${item.x - group.left} ${lane.anchorY - group.top} L ${center} ${group.height}`} />
                 <circle cx={item.x - group.left} cy={lane.anchorY - group.top} r={1.3} />
               </g>)}
             </svg> : null}

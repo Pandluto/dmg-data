@@ -1,4 +1,5 @@
 import { combatTriggerAttribution } from './combat-trigger-attribution.mjs';
+import { parseAkeOperationOrder } from './ake-operation-order.mjs';
 import { isPlungingImpactInput, plungingImpactInputRejection } from './ake-attack-input.mjs';
 import { canReplaceAkeSkillCast, executeAkeSkillCastReplacement } from './ake-skill-cast-replacement.mjs';
 import { createAkeDamageResolver } from './ake-damage-resolver.mjs';
@@ -163,7 +164,7 @@ function lexical(left, right) {
     return left < right ? -1 : left > right ? 1 : 0;
 }
 
-function normalizedCommands(commands, bundle) {
+function normalizedCommands(commands, bundle, operationOrder) {
     if (!Array.isArray(commands)) throw new TypeError('commands must be an array.');
     const membersById = new Map(bundle.members.map(member => [member.memberId, member]));
     const membersByCharacterId = new Map(bundle.members.map(member => [
@@ -202,11 +203,11 @@ function normalizedCommands(commands, bundle) {
             uuid: member.memberId,
             characterId: member.characterId,
             commandId: commandIdentifier(command) ?? `${member.memberId}:command:${index + 1}`,
-            inputSequence: index
+            inputSequence: operationOrder.isV1 ? command.operationOrder : index
         };
     }).sort((left, right) => left.frame - right.frame
-        || lexical(left.memberId, right.memberId)
-        || left.inputSequence - right.inputSequence);
+        || (operationOrder.isV1 ? operationOrder.compare(left, right)
+            : lexical(left.memberId, right.memberId) || left.inputSequence - right.inputSequence));
     return normalized;
 }
 
@@ -410,9 +411,10 @@ export class AkeSquadScenarioRunner {
         this.lastComboMachine = null;
     }
 
-    run({ commands = [], endFrame = null, initialControllerCharacterId = null, operatorSwitches = [] } = {}) {
+    run({ commands = [], endFrame = null, initialControllerCharacterId = null, operatorSwitches = [], operationOrderVersion } = {}) {
         const { bundle } = this;
-        const submittedCommands = normalizedCommands(commands, bundle);
+        const operationOrder = parseAkeOperationOrder({ commands, operatorSwitches, operationOrderVersion });
+        const submittedCommands = normalizedCommands(commands, bundle, operationOrder);
         const resolveController = (id) => {
             const member = bundle.members.find(member => member.characterId === id || member.memberId === id);
             if (!member) throw new TypeError(`Controller is not a squad member: ${id}`);
@@ -425,8 +427,12 @@ export class AkeSquadScenarioRunner {
             switchId: entry.switchId ?? entry.id ?? `controller-switch:${index + 1}`,
             characterId: resolveController(entry.characterId ?? entry.memberId),
             frame: nonNegativeInteger(entry.frame, `operatorSwitches[${index}].frame`),
-            timelineOrder: Number.isFinite(entry.timelineOrder) ? entry.timelineOrder : -1,
+            ...(operationOrder.isV1 ? {} : {
+                timelineOrder: Number.isFinite(entry.timelineOrder) ? entry.timelineOrder : -1,
+            }),
         }));
+        if (operationOrder.isV1) switches.sort((left, right) => left.frame - right.frame
+            || operationOrder.compare(left, right));
         if (endFrame === null && switches.length) {
             throw new TypeError('A scenario with controller switches requires an explicit endFrame.');
         }
@@ -1769,7 +1775,8 @@ export class AkeSquadScenarioRunner {
         resolveReleaseDependencies = (kind, context) => {
             const candidates = [
                 ...controllerAnchorWaits.values(), ...anchorWaits.values(),
-            ].sort((left, right) => (
+            ].sort((left, right) => operationOrder.isV1
+                ? operationOrder.compare(left.change ?? left.command, right.change ?? right.command) : (
                 (left.change?.timelineOrder ?? left.command?.timelineOrder ?? 0)
                 - (right.change?.timelineOrder ?? right.command?.timelineOrder ?? 0)
             ));
@@ -1808,12 +1815,14 @@ export class AkeSquadScenarioRunner {
             }
         };
 
-        // Preserve the visual order of zero-time switches and commands sharing
-        // a frame. Without explicit visual positions, switches take effect first.
+        // Time and event priority remain primary. v0 retains its historical
+        // switch-first defaults; v1 uses the explicit shared operation order.
         const controlAndCommands = [
             ...submittedCommands.map(command => ({ kind: 'command', value: command,
-                frame: command.frame, order: Number.isFinite(command.timelineOrder) ? command.timelineOrder : 0 })),
-            ...switches.map(entry => ({ kind: 'switch', value: entry, frame: entry.frame, order: entry.timelineOrder })),
+                frame: command.frame, order: operationOrder.isV1 ? command.operationOrder
+                    : Number.isFinite(command.timelineOrder) ? command.timelineOrder : 0 })),
+            ...switches.map(entry => ({ kind: 'switch', value: entry, frame: entry.frame,
+                order: operationOrder.isV1 ? entry.operationOrder : entry.timelineOrder })),
         ].sort((left, right) => left.frame - right.frame || left.order - right.order
             || (left.kind === right.kind ? 0 : left.kind === 'switch' ? -1 : 1));
         for (const entry of controlAndCommands) {
@@ -1951,6 +1960,7 @@ export class AkeSquadScenarioRunner {
             durationTicks,
             scenario: {
                 ...clone(bundle.identity),
+                ...(operationOrder.isV1 ? { operationOrderVersion: 1 } : {}),
                 members: bundle.members.map(member => ({
                     memberId: member.memberId,
                     uuid: member.memberId,

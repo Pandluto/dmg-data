@@ -183,6 +183,7 @@ type TimelineOperationSequence = {
 ## Implementation Decisions
 
 - 优先在现有共享时间轴的 schedule/preliminary 阶段提取帧、角色行、操作身份和逻辑序，不另起第二个时间求解器。`makeActivityColumns`、压缩、分页、materialize 的 x 仍属于渲染职责。
+- 同帧控制采用“现有预演发来源事件 → 纯 ready/控制 dispatcher → 派生控制计划”。绝对输入预先入 ready，依赖只注册 pending；来源真实发生时按本批序号唤醒，以帧、原相位和 FIFO 入队次序消费。dispatcher 只管理操作到达、切人与 before/after 位置，不计算伤害、资源或技能时长；queued 重试也沿用这条到达顺序。自然结束、打断结束和真实命中的通知由预演对应事件处发出，不能仅凭 preliminary 的最终帧预先制造来源事实。缺少可确定的来源时保留诊断，不猜测合法主控。
 - 窄的纯 Interface 负责 `validate / migrate / apply-edit` 序列操作，输入/输出普通数据。统一实现后供 provider、预演、存档与草稿校验使用；不散落多个 Array.sort 补丁。
 - 新持久化字段在 `TimelineData`，无需 SQLite 表迁移或 v2 容器整体改版；既有白名单/显式构造需要保留字段。
 - 前端拥有 v1 逻辑序列与新请求产生；根引擎拥有新旧请求合同校验、调度及历史重放。两个任务不跨文件所有权修改对方代码。

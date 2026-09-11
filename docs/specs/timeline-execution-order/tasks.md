@@ -62,6 +62,7 @@
 - [ ] 利用 sharedVariableRateTimeline 的 schedule/preliminary 阶段提供真实帧、操作身份及逻辑序，materialize/压缩/分页只追加几何结果。不要复制完整求时器。
 - [ ] 新 AKE 主控查询使用 `{frame, operationOrder, phase: 'before' | 'after'}` 或等价清楚的数据 Interface；覆盖查询切人自身、两个同帧切人、同帧普攻及瞬时 B 替代。
 - [ ] ORDER-03 的依赖反例用统一解析执行位置处理：低序号动作跟随高序号切人、非祖先切人已在来源前生效、两个来源的后继分批到达。保持持久化序列不变；不能只纳入祖先或全局 ordinal 排序。与 B 的真实 runner trace 对照。
+- [ ] 按 Spec 的来源事件驱动 dispatcher 方案，把预演实际起手、命中、自然结束/打断结束和 queued 重试接入同一 ready/FIFO 合同；纯控制计划供预演、校验和草稿查询，缺少来源事实不得预先制造后继。
 - [ ] AKE 预演准入不再读取 startX/endX/projectSharedTimelineFrame 的结果；多个待用输入同帧时也使用统一逻辑序。
 - [ ] 拖入先命中语义候选，再给草稿生成逻辑位置；取消不改真实序列。保留原队尾限制和无浏览器原生拖动规则。
 - [ ] 如旧 DEF/显示查询确实仍需要坐标，隔离命名和调用范围；不能通过保留一个默认坐标分支让 AKE 继续落回旧规则。

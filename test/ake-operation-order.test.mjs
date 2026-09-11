@@ -44,6 +44,17 @@ test('empty v1 and sparse safe integer orders are valid; v0 is not upgraded', ()
     assert.equal(parseAkeOperationOrder({ ...base, commands: [{ ...base.commands[0], operationOrder: Number.MAX_SAFE_INTEGER }] }).isV1, true);
 });
 
+test('submission trace reports the versioned order while preserving legacy metadata', () => {
+    const v1 = runAkeSquadScenario(getBundle(), base).commandTrace.find(e => e.type === 'CommandSubmitted');
+    assert.deepEqual([v1.sameFrameOrderKey, v1.operationOrderVersion, v1.operationOrder], [10, 1, 10]);
+    const { operationOrder: unusedOrder, ...command } = base.commands[0];
+    const v0 = runAkeSquadScenario(getBundle(), { commands: [command], endFrame: base.endFrame })
+        .commandTrace.find(e => e.type === 'CommandSubmitted');
+    assert.equal(v0.sameFrameOrderKey, 'p');
+    assert.equal(Object.hasOwn(v0, 'operationOrderVersion'), false);
+    assert.equal(Object.hasOwn(v0, 'operationOrder'), false);
+});
+
 test('same-source zero-delay successors order switches and commands after the cause, independent of arrays', () => {
     const dependency = { kind: 'action-start', sourceCommandId: 'source', delayFrames: 0 };
     const input = { ...base, commands: [

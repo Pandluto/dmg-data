@@ -18,6 +18,8 @@ v1 要求显式非空 commandId / switchId。demo 保留这些身份，不执行
 
 runner 的 `scenario` 保留顶层版本及 commands / operatorSwitches 每项序号。demo v1 报告新增 `operationOrderVersion` 和按序号排列的 `operationOrders` 身份表；旧报告不增加字段。该表用于追溯，未替代前端有效输入摘要。
 
+审查补修：v1 `CommandSubmitted.sameFrameOrderKey` 改为实际 operationOrder，并附 operationOrderVersion / operationOrder；v0 保留原 memberId 字符串且不新增字段。真实 runner trace 回归覆盖两版本。这是 trace 元数据修正，不改变调度或战斗事实；补修后顺序测试文件为 5 个测试。
+
 ## 调度边界
 
 真实 frame 仍优先，所有现有事件优先级和运行时调度器不变。初始已 ready 同帧输入按序号安排；同一次来源事件唤醒的后继按序号安排，零偏移仍排在来源事件之后。多个来源逐次发生时，各自唤醒的批次保留原事件到达顺序，不对 pendingEvents 进行全局重排。

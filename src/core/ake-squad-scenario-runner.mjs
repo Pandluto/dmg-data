@@ -1853,7 +1853,11 @@ export class AkeSquadScenarioRunner {
                         ? null
                         : this.commandQueueWindowFrames,
                     targetId: command.targetId ?? enemyId,
-                    sameFrameOrderKey: state.memberId
+                    sameFrameOrderKey: operationOrder.isV1 ? command.operationOrder : state.memberId,
+                    ...(operationOrder.isV1 ? {
+                        operationOrderVersion: 1,
+                        operationOrder: command.operationOrder,
+                    } : {}),
                 });
                 if (!command.releaseDependency) executeCommand(state, command, command.frame);
                 else commandTrace.push({ type: 'CommandAnchored', frame: submissionFrame,

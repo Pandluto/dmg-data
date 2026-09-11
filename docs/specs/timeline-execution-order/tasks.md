@@ -59,6 +59,7 @@
 
 - [ ] 利用 sharedVariableRateTimeline 的 schedule/preliminary 阶段提供真实帧、操作身份及逻辑序，materialize/压缩/分页只追加几何结果。不要复制完整求时器。
 - [ ] 新 AKE 主控查询使用 `{frame, operationOrder, phase: 'before' | 'after'}` 或等价清楚的数据 Interface；覆盖查询切人自身、两个同帧切人、同帧普攻及瞬时 B 替代。
+- [ ] ORDER-03 的依赖反例用统一解析执行位置处理：低序号动作跟随高序号切人、非祖先切人已在来源前生效、两个来源的后继分批到达。保持持久化序列不变；不能只纳入祖先或全局 ordinal 排序。与 B 的真实 runner trace 对照。
 - [ ] AKE 预演准入不再读取 startX/endX/projectSharedTimelineFrame 的结果；多个待用输入同帧时也使用统一逻辑序。
 - [ ] 拖入先命中语义候选，再给草稿生成逻辑位置；取消不改真实序列。保留原队尾限制和无浏览器原生拖动规则。
 - [ ] 如旧 DEF/显示查询确实仍需要坐标，隔离命名和调用范围；不能通过保留一个默认坐标分支让 AKE 继续落回旧规则。
@@ -118,6 +119,7 @@
 - [ ] 审查 `normalizedCommands`、`controlAndCommands`、`resolveReleaseDependencies`，v1 在各处使用同一序号合同；不要只改 initial sort。
 - [ ] 按帧优先，已有事件相位优先；同来源、同刻到达的多个后继按序号，零偏移后继仍在来源事件之后。
 - [ ] 多个来源事件在同帧先后发生时，不让尚未 ready 的后继抢先；不以全局排序重写 pendingEvents 既有优先级。
+- [ ] 向 A 提供 ORDER-03 依赖反例的真实 runner 事件及相关调度相位，帮助预演形成同一逻辑控制计划；v1 调试 trace 不再把 memberId 标成实际同帧排序键，v0 记录保持原样。
 - [ ] 保留来源失败/未命中/循环/越界拒绝、动作队列与真实时钟语义。技能优先级、资源、伤害和控制规则本身不改。
 
 交付条件：同帧切人先/后两种输入体现各自主控；后继身份明确且不会提前改变历史。

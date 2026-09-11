@@ -2,13 +2,15 @@
 
 对应 [Spec](spec.md)。基线 `9ff9f94`；共同规格提交 `11ef693b867b83fb733db9db69c186eb8500a702`；状态：2026-09-12 已派发 A/B，实现进行中。任务打勾必须有对应提交与证据，派发不算实现完成。
 
+**当前交付：** B 已回传 `f304315`、`b2f322e`、`b9f0bca`；主任务完成运行时差异审查，并接入隔离集成分支 `codex/timeline-order-integration`（对应 `b4a82f8`、`21f06f1`、`6e65c9d`）。A 仍在补齐来源事件驱动的同帧控制计划、迁移上下文及保存接线；完整前后端验收尚未完成。B 的七类事实对照、既有测试失败及 trace 元数据修订见其交付分支的 implementation-runtime.md，不代表主库已接入业务代码。
+
 ## 分工与运行约束
 
 | 责任人 | 既有任务 | 独立工作树 | 分支 |
 | --- | --- | --- | --- |
 | A：前端逻辑顺序与持久化 | 实现排轴阅读模式，`01a07602-198b-7573-9b51-15b32989b99b` | `/Users/sailstellar/.codex/worktrees/a548/dmg-timeline-order-frontend` | `codex/timeline-order-frontend` |
 | B：小队输入与运行时调度 | 实现排轴批量选择与队尾删除，`01a07602-7aae-7f53-9d87-d74acbf5c20b` | `/Users/sailstellar/.codex/worktrees/b014/dmg-timeline-order-runtime` | `codex/timeline-order-runtime` |
-| 主任务：设计、协调、审查与隔离集成 | 提升项目 UI 与机制，`01a06f92-30c4-7c91-bffc-497fa9aa3564` | 主库只写文档；业务集成使用另一个独立工作树 | 完成后记录 |
+| 主任务：设计、协调、审查与隔离集成 | 提升项目 UI 与机制，`01a06f92-30c4-7c91-bffc-497fa9aa3564` | `/Users/sailstellar/.codex/worktrees/4c1f/dmg-timeline-order-integration`；主库只写文档 | `codex/timeline-order-integration` |
 
 保留两个任务现有 GPT-6 / low 配置，不改模型，不另建任务。A/B 都从包含本 Spec/tasks 的同一提交起步，不从各自旧阅读/批量分支继续施工。
 

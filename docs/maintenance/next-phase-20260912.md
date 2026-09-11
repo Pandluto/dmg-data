@@ -11,6 +11,8 @@
 
 ## 1. 让执行顺序脱离画布坐标
 
+2026-09-12 用户已授权本项进入规格与双任务实施，现行施工要求见 [Spec](../specs/timeline-execution-order/spec.md) 和 [详细任务](../specs/timeline-execution-order/tasks.md)。下文保留分析依据；其余阶段尚未随本次授权实施。
+
 当前 [provider](../../demo/lts-ui/src/integrations/ake/akeProvider.ts) 的 `runAkeTeamCalculation` 仍提交 `timelineOrder: action.startX` 与切人的 `change.endX`；[小队 runner](../../src/core/ake-squad-scenario-runner.mjs) 在同帧命令和多个待解析依赖中使用它排序。这条依赖路径已由源码确认。单调压缩未必改变顺序，本次没有证明当前轴因缩放发生伤害变化；风险是执行合同仍依赖视觉布局。
 
 建议以持久化操作身份、队列顺序与显式依赖形成稳定序号，技能和切人共用一套规则。真实因果事件及运行时相位优先，同帧无依赖动作的先后必须有明确规则，不能改成另一种隐含的数组或角色顺序。

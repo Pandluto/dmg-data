@@ -68,3 +68,64 @@ node --test test/ake-operation-order.test.mjs test/ake-operation-order-fixtures.
 源码核对 `src/ria/execute.mjs` 将完整 fixture.input structuredClone 后传给 worker，`fixture-worker.mjs` 将完整 data.input 交给 simulateSquadDemo，结果完整传回；demo/ake-api 同样将完整输入交给 service，RIA 输入 hash 包含新字段。fixture schema 接受普通 JSON 对象，没有丢字段的白名单。因此无需改动 Worker/RIA 生产代码或 schema。
 
 A 的真实持久化迁移、有效摘要及请求构造尚待主任务隔离集成核对。当前实际服务未接入本分支，不能把在线端点现状当作本包合同验证。全程未打开或运行浏览器（含 headless），未导航/刷新页面、调用活动 RIA、启动/重启/终止开发服务、监听 HTTP 端口或改动主库。未浏览器验收；未 push、部署或合并主库。
+
+## 同帧因果与主控：两类一次性离线实测
+
+2026-09-12 在 `b9f0bca` 上通过一次性 Node 调用真实 assembler/runner 执行以下输入。未启动服务；这些是最小控制案例，不是伤害基准，也没有增加业务代码。
+
+共同设置：成员 p=`chr_0004_pelica`、c=`chr_0005_chen`，敌人 `eny_0007_mimicw`，初始主控 p，operationOrderVersion=1，endFrame=25。配装使用 assembler 默认值，所有操作的请求 frame=20。
+
+```js
+// 案例一：低序号 C 依赖高序号切人 X。
+const commands = [{ commandId: 'C', memberId: 'c', commandType: 'Attack',
+  frame: 20, operationOrder: 1,
+  releaseDependency: { kind: 'action-end', sourceCommandId: 'X', delayFrames: 0 } }];
+const operatorSwitches = [{ switchId: 'X', characterId: 'chr_0005_chen',
+  frame: 20, operationOrder: 7 }];
+```
+
+实际 controllerTrace 为 InitialController(p,F0) → MainCharacterChanged(X,c,F20)。commandTrace 为 C CommandSubmitted(frame20,order1) → CommandAnchored(F0) → ReleaseAnchorResolved(F20,source X) → CommandExecuted(F20)。C 起手时实际主控为 c：不能用 C.order1 小于 X.order7 判断切人尚未生效。
+
+```js
+// 案例二：X 不是 C 的祖先，但已在来源 S 起手前完成切人。
+const commands = [
+  { commandId: 'C', memberId: 'c', commandType: 'Attack', frame: 20, operationOrder: 1,
+    releaseDependency: { kind: 'action-start', sourceCommandId: 'S', delayFrames: 0 } },
+  { commandId: 'S', memberId: 'p', commandType: 'Attack', frame: 20, operationOrder: 7 },
+];
+const operatorSwitches = [{ switchId: 'X', characterId: 'chr_0005_chen',
+  frame: 20, operationOrder: 5 }];
+```
+
+实际 X → S → C 均发生于 F20。commandTrace 中 C 先注册 CommandAnchored(F0)，随后 S CommandExecuted(F20)，再 C ReleaseAnchorResolved(F20,source S) 和 CommandExecuted(F20)。S、C 两次起手的主控均为 c；仅把 C 的切人祖先补进查询仍会遗漏 X。
+
+主控并非根据最后终态倒推。实验在同步 traceSink 的真实 OnBeforeCastSkill 委托事件回调中读取当时的 `runner.lastRuntime.mainCharacterId`：
+
+```js
+const observed = [];
+let runner;
+runner = new AkeSquadScenarioRunner(bundle, { traceSink: packet => {
+  if (packet.fact?.reason === 'OnBeforeCastSkill') observed.push({
+    frame: packet.fact.frame,
+    castId: packet.fact.castId,
+    mainCharacterId: runner.lastRuntime.mainCharacterId,
+  });
+  return true;
+} });
+runner.run(input);
+```
+
+| 案例 | 同步起手观测（frame / castId / mainCharacterId） |
+| --- | --- |
+| 切人祖先 | 20 / command-cast:c:1 / chr_0005_chen |
+| 非祖先 X | 20 / command-cast:p:1 / chr_0005_chen；20 / command-cast:c:1 / chr_0005_chen |
+
+### 供前端控制计划消费的窄合同
+
+1. 区分绝对 ready 输入与依赖 pending 输入。绝对技能/切人在 run 开始按 frame / operationOrder 入 priority70 队列；依赖技能的 F0 注册不是执行。CommandSubmitted.frame 保留请求帧提示，不能当成实际起手时间。
+2. 来源真实 action-start / action-end / damage-hit 发生时，只唤醒匹配这次事件的 pending 项。本批次按 operationOrder 排序，在实际来源帧加 offset/delay 的位置入 priority70 队列，获得新的 FIFO enqueueSequence。来源未发生就不能预先把后继放进 ready 队列。
+3. 队列选择规则为 frame → priority → enqueueSequence。零延迟后继追加在同帧/同优先级已有 ready 项之后；不同来源逐次唤醒的批次不合并为一次全局 operationOrder 排序。切人实际应用时同步发出自身 start/end，相关后继仍通过队列追加。
+4. 来源事件相位沿用运行时：cast-start 动作为 priority0，settlement 为0.5，技能时间轴 damage 组为1，输入为70；action-end 从真实完成路径发出。帧相同不表示这些事件可按操作序号任意互换。
+5. 控制查询需要真实逻辑时间、来源事件 kind/发生位置、ready 批次与入队顺序，以及沿消费队列累计的控制 before/after 状态。控制状态包含此前发生的非祖先切人，不能只查依赖祖先或最终 frame/ordinal。
+
+主任务已据此裁决 A 复用现有预演发出来源事件，由纯 ready/控制 dispatcher 处理 pending、FIFO 和派生控制计划；不复制技能/伤害引擎。以上实测支撑这一边界，尚不代表前端新 dispatcher 已实现或已验收。

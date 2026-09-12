@@ -4,6 +4,8 @@
 
 ## 当前 Spec
 
+- [技能扣费、冷却归属与独立叠层修复](./runtime-mechanism-contracts/spec.md)：自主探索确认的三项机制错误，统一通用行为并以最小验证交付；已接受，待实施，详见 [任务表](./runtime-mechanism-contracts/tasks.md)。
+
 - [排轴执行顺序与渲染分离](./timeline-execution-order/spec.md)：时间、因果与同帧操作序号独立于像素；旧存档/RIA 兼容、前端预演与根引擎双线实施。已接受，尚未实现；详见 [任务表](./timeline-execution-order/tasks.md)。
 
 - [排轴状态来源与时序](./timeline-state-flow/spec.md)：区分效果来源、触发动作与生效时刻；普通和阅读视图独立显示状态变化与持续。

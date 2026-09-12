@@ -4,7 +4,7 @@
 
 **Status:** Accepted
 
-**Implementation:** Not started
+**Implementation:** In progress in an isolated worktree
 
 **Updated:** 2026-09-12
 

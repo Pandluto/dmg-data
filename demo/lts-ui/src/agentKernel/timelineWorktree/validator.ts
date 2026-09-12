@@ -2,6 +2,7 @@ import type { TimelineSnapshotPayload } from '../../utils/timelineSnapshotStorag
 import type { AiTimelineValidationIssue, AiTimelineValidationResult } from './types';
 import { GRID_NODE_COUNT } from '../../core/calculators/gridSnapLayout';
 import { wouldCreateReleaseCycle } from '../../core/domain/releaseAnchorGraph';
+import { validateTimelineOperationSequence } from '../../core/domain/timelineOperationSequence';
 
 function collectTimelineButtonEntries(payload: TimelineSnapshotPayload) {
   return payload.timelineData.staffLines.flatMap((staffLine, staffOffset) => (
@@ -30,6 +31,11 @@ export function validateTimelinePayload(payload: TimelineSnapshotPayload): AiTim
     issues.push(issue('invalid-buff-list', 'allBuffList must be an array.', 'allBuffList'));
   }
   if (issues.length) return { ok: false, issues };
+
+  if (payload.timelineData.operationSequence !== undefined) {
+    try { validateTimelineOperationSequence(payload.timelineData); }
+    catch (error) { issues.push(issue('invalid-operation-sequence', String(error), 'timelineData.operationSequence')); }
+  }
 
   const timelineButtonEntries = collectTimelineButtonEntries(payload);
   const timelineButtonIds = new Set(timelineButtonEntries.map(({ button }) => button.id));

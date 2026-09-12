@@ -137,6 +137,7 @@ import {
 import { buildAiTimelineCheckoutDecision } from '../../agentKernel/timelineWorktree/checkoutDecision.mjs';
 import { planTimelineWorkNodeCheckoutLifecycle } from '../../agentKernel/timelineWorktree/checkoutLifecycle';
 import { DEFAULT_TIMELINE_ID } from '../../core/domain/timeline';
+import { prepareTimelineOperations } from '../../core/services/timelineService';
 import type { TimelineCheckoutRef, TimelineDocument } from '../../core/domain/timeline';
 import { createTimelineRepositoryClient, formatTimelineOperationError } from '../../agentKernel/timelineRepository/localTimelineClient';
 import type {
@@ -452,9 +453,11 @@ function buildVisibleTimelineMirrors(
   characters: Character[],
   visibleButtons: SkillButton[],
   previousPayload: TimelineSnapshotPayload,
+  logicalTimeline: TimelineData,
   initialControllerCharacterId?: string | null,
 ): Pick<TimelineSnapshotPayload, 'timelineData' | 'skillButtonTable'> {
   const previousTable = previousPayload.skillButtonTable || {};
+  const logicalButtons = new Map(logicalTimeline.staffLines.flatMap(line => line.buttons).map(button => [button.id, button]));
   const now = Date.now();
   const skillButtonTable = Object.fromEntries(visibleButtons.map((button) => {
     const lineIndex = button.lineIndex;
@@ -467,7 +470,9 @@ function buildVisibleTimelineMirrors(
       throw new Error(`VISIBLE_TIMELINE_SKILL_UNTRUSTED: ${button.id} 的 ${button.skillType} 无法在干员技能目录中解析。`);
     }
     const previous = previousTable[button.id];
-    const persistentNodeIndex = button.staffIndex * GRID_NODE_COUNT + (button.nodeIndex ?? 0);
+    const logicalButton = logicalButtons.get(button.id);
+    if (!logicalButton) throw new Error(`VISIBLE_TIMELINE_OPERATION_MISSING: ${button.id}`);
+    const persistentNodeIndex = logicalButton.nodeIndex;
     const selectedBuff = [...(previous?.selectedBuff ?? [])];
     const persisted: PersistedSkillButton = {
       id: button.id,
@@ -498,6 +503,7 @@ function buildVisibleTimelineMirrors(
     return [button.id, persisted];
   }));
   const timelineData: TimelineData = {
+    operationSequence: logicalTimeline.operationSequence,
     version: previousPayload.timelineData.version || '1.0.0',
     createdAt: previousPayload.timelineData.createdAt || now,
     updatedAt: now,
@@ -1105,16 +1111,17 @@ export function CanvasBoard({
       }),
     };
     const normalizedTimelineData = normalizeTimelineData(canonicalTimelineData, resolvedCharacters);
+    const preparedTimelineData = prepareTimelineOperations(normalizedTimelineData, resolvedCharacters);
     // Build and validate every visible runtime button before mutating any
     // sessionStorage or React state. A trusted-skill/identity failure must
     // leave the previous checkout projection byte-for-byte intact.
-    const restoredButtons = buildRuntimeSkillButtonsFromTimelineData(normalizedTimelineData, resolvedCharacters);
+    const restoredButtons = buildRuntimeSkillButtonsFromTimelineData(preparedTimelineData, resolvedCharacters);
     setSessionWorkingPayload(payload, 'checkout');
     applyTimelineSnapshotPayload(payload);
     setSkillButtonTable(normalizedSkillButtonTable);
     saveTimelineRepo(normalizedTimelineData);
     const commitReactRuntime = () => {
-      replaceTimelineData(normalizedTimelineData);
+      replaceTimelineData(preparedTimelineData, resolvedCharacters);
       dispatch({ type: 'SET_SELECTED_CHARACTERS', characters: resolvedCharacters });
       dispatch({ type: 'SET_SKILL_BUTTONS', buttons: restoredButtons });
     };
@@ -2997,7 +3004,7 @@ export function CanvasBoard({
         );
         const mirroredSnapshot = readMainWorkbenchSnapshot();
         const mirroredSkillButtons = Array.isArray(mirroredSnapshot?.skillButtons) ? mirroredSnapshot.skillButtons : [];
-        if (timelineSkillButtonIds.length === 0 && mirroredSkillButtons.length > 0) {
+        if (!isAkeMode && timelineSkillButtonIds.length === 0 && mirroredSkillButtons.length > 0) {
           const mirroredSkillButtonTable = Object.fromEntries(mirroredSkillButtons.map((button) => [button.id, {
             id: button.id,
             characterId: button.characterId,
@@ -3052,7 +3059,7 @@ export function CanvasBoard({
         }
         const persistedSkillButtonTable = getSkillButtonTable();
         const persistedSkillButtonIds = Object.keys(persistedSkillButtonTable);
-        if (timelineSkillButtonIds.length === 0 && persistedSkillButtonIds.length > 0) {
+        if (!isAkeMode && timelineSkillButtonIds.length === 0 && persistedSkillButtonIds.length > 0) {
           const repairedTimelineData: TimelineData = {
             version: '1.0.0',
             createdAt: Date.now(),
@@ -3101,7 +3108,9 @@ export function CanvasBoard({
             ? timelineSkillButtonIds
             : persistedSkillButtonIds;
         const snapshot = isAkeMode
-          ? buildAkeWorkbenchDamageSnapshot(await runAkeTeamCalculation({ timelineData, selectedCharacters }))
+          ? buildAkeWorkbenchDamageSnapshot(await runAkeTeamCalculation({
+            timelineData: prepareTimelineOperations(getCurrentTimelineData(), selectedCharacters), selectedCharacters,
+          }))
           : buildDamageReportSnapshot({ buttonIds: currentSkillButtonIds });
         const result = command.op === 'calculateDamage' && command.buttonId
           ? {
@@ -3170,8 +3179,6 @@ export function CanvasBoard({
         buttons: Array.isArray(staffLine.buttons) ? [...staffLine.buttons] : [],
       })),
     };
-    const currentSkillButtonTable = getSkillButtonTable();
-    const nextSkillButtonTable = { ...currentSkillButtonTable };
     let hasMetadataSync = false;
 
     dataToRestore.staffLines.forEach((staffLine, staffLineIndex) => {
@@ -3241,16 +3248,6 @@ export function CanvasBoard({
             skillDisplayName: nextSkillDisplayName,
             skillIconUrl: nextSkillIconUrl,
           };
-          const persistedButton = nextSkillButtonTable[btn.id];
-          if (persistedButton) {
-            nextSkillButtonTable[btn.id] = {
-              ...persistedButton,
-              runtimeSkillId: nextRuntimeSkillId,
-              skillDisplayName: nextSkillDisplayName,
-              skillIconUrl: nextSkillIconUrl,
-              updatedAt: Date.now(),
-            };
-          }
         }
 
         restoredButtons.push({
@@ -3283,15 +3280,15 @@ export function CanvasBoard({
     });
 
     if (hasMetadataSync) {
-      saveTimelineRepo(nextTimelineData);
-      setSkillButtonTable(nextSkillButtonTable);
+      // Catalog-derived labels belong to the hydrated draft until a user edit/save.
+      replaceTimelineData(nextTimelineData, selectedCharacters);
     }
 
     dispatch({ type: 'CLEAR_SKILL_BUTTONS' });
     restoredButtons.forEach((button) => {
       dispatch({ type: 'ADD_SKILL_BUTTON', button });
     });
-  }, [currentView, dispatch, loadTimelineData, normalizeTimelineData, selectedCharacters]);
+  }, [currentView, dispatch, loadTimelineData, normalizeTimelineData, replaceTimelineData, selectedCharacters]);
 
   useEffect(() => {
     return onSkillButtonBuffAdded(({ buttonId, buffId }) => {
@@ -4496,6 +4493,7 @@ export function CanvasBoard({
         selectedCharacters,
         skillButtons,
         currentPayload,
+        getCurrentTimelineData(),
         initialControllerCharacterId,
       );
       payload = { ...currentPayload, ...visibleMirrors };

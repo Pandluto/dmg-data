@@ -28,6 +28,10 @@ import { synchronizeTimelineButtonBuffMirrors } from '../domain/timelineButtonBu
 import { getTimelineDeleteBlockReason } from '../domain/timelineQueuePolicy';
 import { planTimelineBatchRemoval } from '../domain/timelineBatchRemoval';
 import { resolveInitialControllerLaneId } from '../domain/operatorControlTimeline';
+import { editTimelineOperationSequence, validateTimelineOperationSequence } from '../domain/timelineOperationSequence';
+import { migrateAkeTimelineOperations } from '../../integrations/ake/akeRealtimeTimeline';
+import { getInstalledAkeCatalog } from '../../integrations/ake/akeCatalogAdapter';
+import { getSelectedCharacterIds } from '../../utils/storage';
 import {
   getSkillButtonById,
   getSkillButtonTable,
@@ -53,6 +57,7 @@ import {
 export function createEmptyTimelineData(characters: { id?: string; name: string }[]): TimelineData {
   const now = Date.now();
   return {
+    operationSequence: { schemaVersion: 1, operationIds: [] },
     version: "1.2.0",
     createdAt: now,
     updatedAt: now,
@@ -67,6 +72,19 @@ export function createEmptyTimelineData(characters: { id?: string; name: string 
       buttons: [],
     })),
   };
+}
+
+export function prepareTimelineOperations(data: TimelineData, selectedCharacters?: { id?: string; name: string }[]): TimelineData {
+  if (data.operationSequence !== undefined) { validateTimelineOperationSequence(data); return data; }
+  const catalog = getInstalledAkeCatalog();
+  const roster = selectedCharacters ?? getSelectedCharacterIds().map(id => ({ id,
+    name: catalog?.characters.find(character => character.id === id)?.name ?? id }));
+  const characters = roster.map(character => {
+    if (!character.id) throw new Error('LEGACY_OPERATION_MIGRATION_REQUIRES_ROSTER_ID');
+    return { id: character.id, name: character.name };
+  });
+  if (!characters.length && data.staffLines.some(line => line.buttons.length)) throw new Error('LEGACY_OPERATION_MIGRATION_REQUIRES_ROSTER');
+  return migrateAkeTimelineOperations({ timelineData: data, selectedCharacters: characters, catalog, staffCount: 1 });
 }
 
 /**
@@ -123,7 +141,7 @@ export function normalizeTimelineData(
       characters.map(character => character.id),
     ) ?? undefined,
     staffLines: normalizedStaffLines,
-    updatedAt: Date.now(),
+    updatedAt: data.updatedAt,
   };
 }
 
@@ -203,7 +221,7 @@ function buildTimelineDataFromSkillButtonTable(
   characters: { id?: string; name: string }[],
   existingTimelineData?: TimelineData | null
 ): TimelineData {
-  const fallbackTimelineData = existingTimelineData ?? createEmptyTimelineData(characters);
+  const fallbackTimelineData = existingTimelineData ?? { ...createEmptyTimelineData(characters), operationSequence: undefined };
   return {
     ...fallbackTimelineData,
     initialControllerCharacterId: resolveInitialControllerLaneId(
@@ -277,6 +295,7 @@ export function reconcileSelectionChange(
   );
 
   const currentTimelineData = loadTimelineRepo() ?? createEmptyTimelineData(nextCharacters);
+  const beforeSelection = prepareTimelineOperations(currentTimelineData, _prevCharacters);
   const currentSkillButtonTable = getSkillButtonTable();
   const nextSkillButtonTable: Record<string, PersistedSkillButton> = {};
   const removedButtonBuffRefs: string[][] = [];
@@ -317,6 +336,9 @@ export function reconcileSelectionChange(
     nextCharacters,
     currentTimelineData
   );
+  const retained = new Set(collectTimelineButtonIds(nextTimelineData));
+  nextTimelineData.operationSequence = editTimelineOperationSequence(beforeSelection, nextTimelineData,
+    { remove: collectTimelineButtonIds(beforeSelection).filter(id => !retained.has(id)) }).operationSequence;
 
   saveTimelineRepo(nextTimelineData);
   return nextTimelineData;
@@ -339,26 +361,27 @@ export function ensureTimelineDataConsistency(
     }
 
     const rebuiltTimelineData = buildTimelineDataFromSkillButtonTable(currentSkillButtonTable, characters);
-    saveTimelineRepo(rebuiltTimelineData);
-    return rebuiltTimelineData;
+    return prepareTimelineOperations(rebuiltTimelineData, characters);
   }
 
   const normalizedTimelineData = normalizeTimelineData(currentTimelineData, characters);
   if (hasTimelineTableMismatch(normalizedTimelineData, currentSkillButtonTable)) {
+    if (currentTimelineData.operationSequence !== undefined) {
+      validateTimelineOperationSequence(normalizedTimelineData);
+      const ids = collectTimelineButtonIds(normalizedTimelineData);
+      if (ids.length !== Object.keys(currentSkillButtonTable).length || ids.some(id => !currentSkillButtonTable[id])) {
+        throw new Error('OPERATION_SEQUENCE_TABLE_MISMATCH');
+      }
+    }
     const rebuiltTimelineData = buildTimelineDataFromSkillButtonTable(
       currentSkillButtonTable,
       characters,
       normalizedTimelineData
     );
-    saveTimelineRepo(rebuiltTimelineData);
-    return rebuiltTimelineData;
+    return prepareTimelineOperations(rebuiltTimelineData, characters);
   }
 
-  if (JSON.stringify(currentTimelineData) !== JSON.stringify(normalizedTimelineData)) {
-    saveTimelineRepo(normalizedTimelineData);
-  }
-
-  return normalizedTimelineData;
+  return prepareTimelineOperations(normalizedTimelineData, characters);
 }
 
 /**
@@ -370,6 +393,7 @@ export function addSkillButton(
   buttonData: Omit<SkillButtonData, 'id' | 'nodeNumber'>,
   customId?: string
 ): { newButton: SkillButtonData; newTimelineData: TimelineData } {
+  timelineData = prepareTimelineOperations(timelineData);
   const buttonId = customId || `btn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   const newButton: SkillButtonData = {
     ...buttonData,
@@ -411,7 +435,7 @@ export function addSkillButton(
 
   // 更新 timelineData
   const newTimelineData: TimelineData = {
-    ...timelineData,
+    ...prepareTimelineOperations(timelineData),
     updatedAt: Date.now(),
     staffLines: [...timelineData.staffLines],
   };
@@ -437,6 +461,8 @@ export function addSkillButton(
     .sort((a, b) => a.nodeIndex - b.nodeIndex);
 
   staffLine.occupiedNodes = rebuildOccupiedNodes(staffLine.buttons);
+
+  newTimelineData.operationSequence = editTimelineOperationSequence(timelineData, newTimelineData, { append: [buttonId] }).operationSequence;
 
   saveTimelineRepo(newTimelineData);
   return { newButton, newTimelineData };
@@ -495,7 +521,7 @@ export function updateBasicAttackTailBundle(
     basicAttackTailBundle: bundle,
   };
   const newTimelineData: TimelineData = {
-    ...timelineData,
+    ...prepareTimelineOperations(timelineData),
     updatedAt: Date.now(),
     staffLines: timelineData.staffLines.map(line => ({
       ...line,
@@ -542,7 +568,7 @@ export function updateInitialControllerCharacterId(
     throw new Error('INITIAL_CONTROLLER_CHARACTER_REQUIRED');
   }
   const newTimelineData: TimelineData = {
-    ...timelineData,
+    ...prepareTimelineOperations(timelineData),
     initialControllerCharacterId: normalizedCharacterId,
     updatedAt: Date.now(),
   };
@@ -569,7 +595,7 @@ export function updateForcedWaitConfig(
   const updatedAt = Date.now();
   const updatedButton = { ...currentButton, forcedWaitConfig: config };
   const newTimelineData: TimelineData = {
-    ...timelineData,
+    ...prepareTimelineOperations(timelineData),
     updatedAt,
     staffLines: timelineData.staffLines.map(line => ({
       ...line,
@@ -604,7 +630,7 @@ export function updateLaneWaitConfig(
   const updatedAt = Date.now();
   const updatedButton = { ...currentButton, laneWaitConfig: config };
   const newTimelineData: TimelineData = {
-    ...timelineData,
+    ...prepareTimelineOperations(timelineData),
     updatedAt,
     staffLines: timelineData.staffLines.map(line => ({
       ...line,
@@ -639,7 +665,7 @@ export function updateOperatorSwitchConfig(
   const updatedAt = Date.now();
   const updatedButton = { ...currentButton, operatorSwitchConfig: config };
   const newTimelineData: TimelineData = {
-    ...timelineData,
+    ...prepareTimelineOperations(timelineData),
     updatedAt,
     staffLines: timelineData.staffLines.map(line => ({
       ...line,
@@ -664,6 +690,7 @@ export function removeSkillButton(
   staffIndex: number,
   buttonId: string
 ): TimelineData {
+  timelineData = prepareTimelineOperations(timelineData);
   const deleteBlockReason = getTimelineDeleteBlockReason(timelineData, buttonId);
   if (deleteBlockReason) throw new Error(deleteBlockReason);
 
@@ -699,7 +726,7 @@ export function removeSkillButton(
 
   // 4. 清理 timelineData 中的引用
   const newTimelineData: TimelineData = {
-    ...timelineData,
+    ...prepareTimelineOperations(timelineData),
     updatedAt: Date.now(),
     staffLines: timelineData.staffLines.map(line => {
       const buttons = line.buttons
@@ -716,6 +743,8 @@ export function removeSkillButton(
   };
 
   void staffIndex; // retained for the public compatibility signature
+
+  newTimelineData.operationSequence = editTimelineOperationSequence(timelineData, newTimelineData, { remove: [buttonId] }).operationSequence;
 
   saveTimelineRepo(newTimelineData);
   return newTimelineData;
@@ -738,6 +767,7 @@ export function removeSkillButtons(
   removalOrder: string[];
   newTimelineData: TimelineData;
 } {
+  timelineData = prepareTimelineOperations(timelineData);
   const plan = planTimelineBatchRemoval(timelineData, buttonIds);
   if (!plan.ok) {
     throw new Error(plan.reason);
@@ -781,6 +811,7 @@ export function removeSkillButtons(
   // that would publish intermediate queues and repeatedly synchronize storage.
   const newTimelineData: TimelineData = {
     ...plan.timelineData,
+    operationSequence: editTimelineOperationSequence(timelineData, plan.timelineData, { remove: plan.selectedButtonIds }).operationSequence,
     updatedAt: Date.now(),
   };
   try {
@@ -816,6 +847,7 @@ export function updateSkillButtonPosition(
   newNodeIndex: number,
   newReleaseAnchor?: SkillReleaseAnchor,
 ): { updatedButton: SkillButtonData | null; newTimelineData: TimelineData } {
+  timelineData = prepareTimelineOperations(timelineData);
   // 先更新 skill-button 总表
   const existingButton = getSkillButtonById(buttonId);
   if (existingButton) {
@@ -861,7 +893,7 @@ export function updateSkillButtonPosition(
   };
 
   const newTimelineData: TimelineData = {
-    ...timelineData,
+    ...prepareTimelineOperations(timelineData),
     updatedAt: Date.now(),
     staffLines: [...timelineData.staffLines],
   };
@@ -892,6 +924,7 @@ export function moveSkillButtonToStaff(
   newNodeIndex: number,
   newReleaseAnchor?: SkillReleaseAnchor,
 ): { movedButton: SkillButtonData | null; newTimelineData: TimelineData } {
+  timelineData = prepareTimelineOperations(timelineData);
   // 先更新 skill-button 总表
   const existingButton = getSkillButtonById(buttonId);
   if (existingButton) {
@@ -977,7 +1010,7 @@ export function moveSkillButtonToStaff(
   };
 
   const newTimelineData: TimelineData = {
-    ...timelineData,
+    ...prepareTimelineOperations(timelineData),
     updatedAt: Date.now(),
     staffLines: [...timelineData.staffLines],
   };
@@ -1004,15 +1037,18 @@ export function moveSkillButtonToStaff(
 /**
  * 保存 Timeline 数据
  */
-export function saveTimelineData(timelineData: TimelineData): void {
-  saveTimelineRepo(timelineData);
+export function saveTimelineData(timelineData: TimelineData, selectedCharacters?: { id?: string; name: string }[]): void {
+  const prepared = prepareTimelineOperations(timelineData, selectedCharacters);
+  validateTimelineOperationSequence(prepared);
+  saveTimelineRepo(prepared);
 }
 
 /**
  * 加载 Timeline 数据
  */
-export function loadTimelineData(): TimelineData | null {
-  return loadTimelineRepo();
+export function loadTimelineData(selectedCharacters?: { id?: string; name: string }[]): TimelineData | null {
+  const data = loadTimelineRepo();
+  return data ? prepareTimelineOperations(data, selectedCharacters) : null;
 }
 
 /**
@@ -1051,6 +1087,7 @@ export function updateSkillButtonType(
   timelineData: TimelineData,
   payload: SkillButtonSkillChangePayload
 ): { updatedButton: SkillButtonData | null; updatedPersistedButton: PersistedSkillButton | null; newTimelineData: TimelineData } {
+  timelineData = prepareTimelineOperations(timelineData);
   const { buttonId, nextSkillType, nextRuntimeSkillId, nextSkillDisplayName, nextSkillIconUrl, nextCustomHits } = payload;
   // 1. 查找按钮所在 staffLine
   let targetStaffLine: StaffLineData | null = null;
@@ -1103,7 +1140,7 @@ export function updateSkillButtonType(
   };
 
   const newTimelineData: TimelineData = {
-    ...timelineData,
+    ...prepareTimelineOperations(timelineData),
     updatedAt: Date.now(),
     staffLines: [...timelineData.staffLines],
   };

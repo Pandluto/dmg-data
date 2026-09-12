@@ -6,6 +6,8 @@ import { normalizeExtraHitConfig } from '../../core/services/buffExtraHit';
 import { diffTimelinePayloads } from './diff';
 import type { AiTimelineRiskFlag, TimelinePayloadDiff } from './types';
 import { validateTimelinePayload } from './validator';
+import { prepareTimelineOperations } from '../../core/services/timelineService';
+import { editTimelineOperationSequence, timelineOperationIds } from '../../core/domain/timelineOperationSequence';
 
 type TimelinePatchTarget = {
   buttonId?: string;
@@ -877,7 +879,17 @@ export function applyTimelineWorkNodePatch(
 
   const workingPayload = clonePayload(basePayload);
   try {
-    operations.forEach((operation, index) => applyPatchOperation(workingPayload, operation, index, summary, riskFlags));
+    workingPayload.timelineData = prepareTimelineOperations(workingPayload.timelineData, workingPayload.selectedCharacters.map((id, index) => ({ id,
+      name: workingPayload.timelineData.staffLines[index]?.characterName ?? id })));
+    operations.forEach((operation, index) => {
+      const before = structuredClone(workingPayload.timelineData);
+      applyPatchOperation(workingPayload, operation, index, summary, riskFlags);
+      const oldIds = new Set(timelineOperationIds(before));
+      const nextIds = new Set(timelineOperationIds(workingPayload.timelineData));
+      workingPayload.timelineData = editTimelineOperationSequence(before, workingPayload.timelineData, {
+        append: [...nextIds].filter(id => !oldIds.has(id)), remove: [...oldIds].filter(id => !nextIds.has(id)),
+      });
+    });
   } catch (error) {
     return {
       ok: false,

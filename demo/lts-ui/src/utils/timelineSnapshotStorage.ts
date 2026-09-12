@@ -1,5 +1,6 @@
 import { STORAGE_KEYS } from '../constants/storage-keys';
 import type { TimelineData } from '../types';
+import { validateTimelineOperationSequence } from '../core/domain/timelineOperationSequence';
 import type {
   AnomalyStateSnapshot,
   BuffList,
@@ -200,6 +201,7 @@ function isValidTimelineSnapshotPayload(value: unknown): value is TimelineSnapsh
 }
 
 export function normalizeSnapshotPayload(payload: TimelineSnapshotPayload): TimelineSnapshotPayload {
+  if (payload.timelineData?.operationSequence !== undefined) validateTimelineOperationSequence(payload.timelineData);
   return {
     ...(payload.source ? { source: payload.source } : {}),
     selectedCharacters: payload.selectedCharacters,

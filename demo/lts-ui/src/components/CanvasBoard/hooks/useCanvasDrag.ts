@@ -35,12 +35,11 @@ import {
 } from '../../../core/calculators/gridSnapLayout';
 import { calculateNodeNumber } from '../../../utils/nodeNumbering';
 import { SKILL_BUTTON_BASELINE_OFFSET_Y } from '../../../constants/canvas-layout';
-import type { AkeRealtimeTimeline } from '../../../integrations/ake/akeRealtimeTimeline';
+import { queryAkeDraftControl, type AkeRealtimeTimeline } from '../../../integrations/ake/akeRealtimeTimeline';
 import type { AkeProjectedTimeline } from '../../../integrations/ake/akeProvider';
 import { projectSharedTimelineFrame } from '../../../core/domain/sharedVariableRateTimeline';
 import { debounceFramesForTickRate } from '../../../core/domain/combatActionTailPlanner';
 import {
-  controlledOperatorAt,
   isFrameInsideUltimate,
   resolveInitialControllerLaneId,
 } from '../../../core/domain/operatorControlTimeline';
@@ -722,15 +721,9 @@ export function useCanvasDrag({
       ) && variableModel && isFrameInsideUltimate(variableModel.actions, point.frame)) {
         continue;
       }
-      const controlledCharacterId = controlledOperatorAt(
-        resolveInitialControllerLaneId(
-          initialControllerCharacterId,
-          selectedCharacters.map(character => character.id),
-        ),
-        variableModel?.operatorSwitches ?? [],
-        point.frame,
-        point.globalX,
-      );
+      const controlledCharacterId = variableModel && akeRealtimeTimeline
+        ? queryAkeDraftControl(akeRealtimeTimeline, draggingState.id, point.frame, point.anchor)?.controllerBefore
+        : resolveInitialControllerLaneId(initialControllerCharacterId, selectedCharacters.map(character => character.id));
 
       const visual = visualLocationForGlobalX(point.globalX);
       if (visual.staffIndex >= staffCount) continue;
@@ -757,13 +750,6 @@ export function useCanvasDrag({
             && action.groupId === point.groupId
           ));
         if (sameFrameCollision) continue;
-        if (draggingState.timelineModuleKind === 'operator-switch') {
-          const sameSwitchPosition = (variableModel?.operatorSwitches ?? []).some(operatorSwitch => (
-            operatorSwitch.id !== movingButtonId
-            && operatorSwitch.startFrame === point.frame
-          ));
-          if (sameSwitchPosition) continue;
-        }
 
         const occupied = new Set(skillButtons
           .filter(button => (
@@ -773,10 +759,11 @@ export function useCanvasDrag({
           ))
           .map(button => clampGridNodeIndex(button.nodeIndex ?? 0)));
         const sourceButton = sourceButtonId ? skillButtons.find(button => button.id === sourceButtonId) : null;
+        if (sourceButtonId && !sourceButton) continue;
         const preferredNodeIndex = point.kind === 'group-start'
           ? 0
           : clampGridNodeIndex(
-            (sourceButton?.nodeIndex ?? Math.floor((visual.markerX - GRID_FIRST_COLUMN_WIDTH) / GRID_COLUMN_WIDTH))
+            (sourceButton?.nodeIndex ?? 0)
               + (point.kind === 'action-start' ? 0 : 1),
           );
         const nodeIndex = nearestAvailableNode(preferredNodeIndex, occupied);
@@ -955,20 +942,18 @@ export function useCanvasDrag({
         if (globalX !== null) target = { ...target, ...visualLocationForGlobalX(globalX) };
         const collision = model.actions.find(action => action.id !== draggingState.id
           && action.laneId === selectedCharacters[target!.lineIndex]?.id && action.startFrame === target!.frame);
-        const duplicateSwitch = draggingState.timelineModuleKind === 'operator-switch'
-          && model.operatorSwitches.some(item => item.id !== draggingState.id && item.startFrame === target!.frame);
-        if (collision || duplicateSwitch) {
-          reason = collision ? '该角色在这一帧已有动作起手；请调整延迟' : '这一帧已有切人操作';
+        if (collision) {
+          reason = '该角色在这一帧已有动作起手；请调整延迟';
           target = null;
         }
       }
       if (target && model) {
-        const globalX = projectSharedTimelineFrame(model, target.frame, 'after');
         const restricted = (draggingState.skillType === 'A' && !draggingState.timelineModuleKind)
           || ['dodge', 'perfect-dodge', 'operator-switch'].includes(draggingState.timelineModuleKind ?? '');
-        if (restricted && controlledOperatorAt(resolveInitialControllerLaneId(initialControllerCharacterId,
-          selectedCharacters.map(character => character.id)), model.operatorSwitches, target.frame, globalX ?? 0)
-          !== selectedCharacters[target.lineIndex]?.id) {
+        const controlPosition = frozen.timeline ? queryAkeDraftControl(frozen.timeline, draggingState.id, target.frame, target.anchor) : null;
+        if (restricted && !controlPosition) {
+          reason = '该接点的主控事件顺序尚未核验'; target = null;
+        } else if (restricted && controlPosition?.controllerBefore !== selectedCharacters[target.lineIndex]?.id) {
           reason = '该时刻的主控不匹配'; target = null;
         } else if (['dodge', 'perfect-dodge', 'operator-switch'].includes(draggingState.timelineModuleKind ?? '')
           && isFrameInsideUltimate(model.actions, target.frame)) {

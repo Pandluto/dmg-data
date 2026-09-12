@@ -4,7 +4,8 @@ import type {
   AkeTimingComboTrigger,
   AkeTimingSkillProfile,
 } from './akeCatalogAdapter';
-import { buildAkeRealtimeTimeline, projectSettledAkeTimeline } from './akeRealtimeTimeline';
+import { buildAkeRealtimeTimeline, projectSettledAkeTimeline, migrateAkeTimelineOperations, queryAkeDraftControl } from './akeRealtimeTimeline';
+import { buildAkeExecutionDigest } from './akeExecutionIdentity';
 import { isComboReleaseFrameAvailable } from '../../components/CanvasBoard/hooks/useCanvasDrag';
 
 function assertEqual<T>(actual: T, expected: T, message: string): void {
@@ -2367,6 +2368,8 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
   } });
   assertEqual(projected.sharedVariableRateTimeline?.actions[0].startFrame, 64, 'canvas follows actual admission');
   assertEqual(projected.sharedVariableRateTimeline?.actions[0].endFrame, 130, 'canvas follows actual completion');
+  assertEqual(projected.controlFlow, undefined, 'changed settlement does not reuse stale preview dispatch');
+  assertEqual(queryAkeDraftControl(projected, 'draft', 64), null, 'missing settled event trace remains unverified');
   assertEqual(projected.sharedVariableRateTimeline?.cohorts[0].status,
     preview.sharedVariableRateTimeline?.cohorts[0].status, 'coordinate changes retain admission status');
   assertEqual(projected.sharedVariableRateTimeline?.cohorts[0].reason,
@@ -2514,4 +2517,58 @@ function fourStageAttackProfiles(): AkeTimingSkillProfile[] {
   );
   assertEqual(build([a, b], other.id).commands.find(command => command.commandId === b.id)?.profile.castReplacementActive,
     undefined, 'an off-field actor cannot use the main-character replacement branch');
+}
+
+
+// The runtime's two causal-control counterexamples, through the actual preview.
+for (const throughSkill of [false, true]) {
+  const p = character('p');
+  const c = character('c');
+  const source = { ...button('S', p.id, 0), releaseAnchor: { schemaVersion: 1 as const, kind: 'group-start' as const, debounceFrames: 20 } };
+  const change: SkillButtonData = { ...button('X', p.id, 1), skillType: 'Dot', timelineModuleKind: 'operator-switch',
+    operatorSwitchConfig: { schemaVersion: 1, targetCharacterId: c.id },
+    releaseAnchor: { schemaVersion: 1, kind: 'group-start', debounceFrames: 20 } };
+  const child = { ...button('C', c.id, 0), releaseAnchor: { schemaVersion: 1 as const,
+    kind: throughSkill ? 'action-start' as const : 'action-end' as const, sourceButtonId: throughSkill ? 'S' : 'X', debounceFrames: 0 } };
+  const data = { ...timeline([{ characterId: p.id, buttons: throughSkill ? [source, change] : [change] },
+    { characterId: c.id, buttons: [child] }]), initialControllerCharacterId: p.id,
+    operationSequence: { schemaVersion: 1 as const, operationIds: throughSkill ? ['C', 'X', 'S'] : ['C', 'X'] } };
+  const config = catalog({ p: [profile({ costValue: 0 })], c: [profile({ costValue: 0 })] });
+  const build = (timelineData: TimelineData) => buildAkeRealtimeTimeline({ timelineData, selectedCharacters: [p, c], catalog: config, staffCount: 1 });
+  const result = build(data);
+  assertEqual(result.controlDispatch?.C.controllerBefore, 'c', 'causal child sees independent prior switch');
+  const order = Object.entries(result.controlDispatch ?? {}).sort((a, b) => a[1].dispatchOrdinal - b[1].dispatchOrdinal).map(([id]) => id).join(',');
+  assertEqual(order, throughSkill ? 'X,S,C' : 'X,C', 'causal ready FIFO beats global operationOrder');
+  const draft = queryAkeDraftControl(result, 'draft', 20, child.releaseAnchor);
+  assertEqual(draft?.controllerBefore, 'c', 'draft probes the same causal control stream');
+  const moved = { ...data, updatedAt: 999, reportNotes: { C: 'note' }, staffLines: data.staffLines.map(line => ({
+    ...line, buttons: [...line.buttons].reverse().map(button => ({ ...button, position: { x: 90000, y: -500 } })),
+  })) };
+  const movedResult = build(moved);
+  assertEqual(JSON.stringify(result.controlDispatch), JSON.stringify(movedResult.controlDispatch), 'geometry and array order do not change dispatch');
+  const digest = buildAkeExecutionDigest({ timelineData: data, selectedCharacters: [p, c], catalog: config, preview: result });
+  assertEqual(buildAkeExecutionDigest({ timelineData: moved, selectedCharacters: [p, c], catalog: config, preview: movedResult }), digest, 'display-only edits do not change identity');
+  assertEqual(buildAkeExecutionDigest({ timelineData: { ...data, operationSequence: { schemaVersion: 1, operationIds: [...data.operationSequence.operationIds].reverse() } },
+    selectedCharacters: [p, c], catalog: config, preview: result }) === digest, false, 'operation order changes identity');
+  const legacy = { ...data, operationSequence: undefined };
+  const before = JSON.stringify(legacy);
+  const migrated = migrateAkeTimelineOperations({ timelineData: legacy, selectedCharacters: [p, c], catalog: config, staffCount: 1 });
+  assertEqual(JSON.stringify(legacy), before, 'legacy migration does not mutate input');
+  assertEqual(JSON.stringify(migrateAkeTimelineOperations({ timelineData: { ...legacy }, selectedCharacters: [p, c], catalog: config, staffCount: 99 }).operationSequence),
+    JSON.stringify(migrated.operationSequence), 'page count cannot change fixed legacy migration');
+}
+
+{
+  const p = character('p');
+  const c = character('c');
+  const change: SkillButtonData = { ...button('only-switch', p.id, 0), skillType: 'Dot', timelineModuleKind: 'operator-switch',
+    operatorSwitchConfig: { schemaVersion: 1, targetCharacterId: c.id },
+    releaseAnchor: { schemaVersion: 1, kind: 'group-start', debounceFrames: 20 } };
+  const data = { ...timeline([{ characterId: p.id, buttons: [change] }]), initialControllerCharacterId: p.id };
+  const input = { timelineData: data, selectedCharacters: [p, c], catalog: catalog({ p: [], c: [] }), staffCount: 1 };
+  const migrated = migrateAkeTimelineOperations(input);
+  assertEqual(migrated.operationSequence?.operationIds.join(','), 'only-switch', 'module-only legacy has an exact ID sequence');
+  const result = buildAkeRealtimeTimeline({ ...input, timelineData: migrated });
+  assertEqual(result.controlDispatch?.['only-switch']?.frame, 0, 'module-only switch uses the existing group-start solver (debounce does not offset group-start)');
+  assertEqual(result.controlDispatch?.['only-switch']?.controllerAfter, c.id, 'idle selected target remains available');
 }

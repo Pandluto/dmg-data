@@ -1,5 +1,6 @@
 import type { SkillButtonData, TimelineData } from '../../types';
 import { getTimelineDeleteBlockReason } from './timelineQueuePolicy';
+import { editTimelineOperationSequence } from './timelineOperationSequence';
 
 export type TimelineBatchRemovalPlan =
   | {
@@ -39,7 +40,7 @@ export function simulateTimelineButtonRemoval(timelineData: TimelineData, button
       : button.basicAttackTailBundle.predecessorButtonId
     : null;
 
-  return {
+  const result: TimelineData = {
     ...timelineData,
     staffLines: timelineData.staffLines.map((line) => {
       const buttons = line.buttons
@@ -56,6 +57,8 @@ export function simulateTimelineButtonRemoval(timelineData: TimelineData, button
       };
     }),
   };
+  return timelineData.operationSequence === undefined ? result
+    : editTimelineOperationSequence(timelineData, result, { remove: [buttonId] });
 }
 
 /**

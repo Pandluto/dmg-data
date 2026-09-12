@@ -305,6 +305,7 @@ export function normalizeCompatibleTimelinePayload(
   const originalTimeline = normalizedDefaults.timelineData;
   const configuredInitialController = nonEmptyText(originalTimeline.initialControllerCharacterId);
   const timelineData: TimelineData = {
+    ...(originalTimeline.operationSequence !== undefined ? { operationSequence: originalTimeline.operationSequence } : {}),
     version: nonEmptyText(originalTimeline.version) || '1',
     createdAt: Number.isFinite(Number(originalTimeline.createdAt))
       ? Number(originalTimeline.createdAt)

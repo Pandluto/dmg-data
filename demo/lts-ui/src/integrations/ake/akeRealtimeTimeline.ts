@@ -1,3 +1,6 @@
+import { migrateTimelineOperationSequence, timelineOperationOrder, requireTimelineOperationOrder, draftTimelineOperationOrder } from '../../core/domain/timelineOperationSequence';
+import { createTimelineControlDispatcher, probeTimelineControlPosition, type ControlDependency, type ControlDispatchPosition, type ControlOperation, type ControlDispatchTrace } from '../../core/domain/timelineControlDispatch';
+import { legacyControlledOperatorAt, migrateLegacyPlannedOperationOrder } from '../../core/domain/legacyTimelineOperationOrder';
 import type {
   Character,
   HitBuffEffect,
@@ -23,7 +26,6 @@ import {
 } from '../../core/calculators/gridSnapLayout';
 import {
   buildSharedVariableRateTimeline,
-  projectSharedTimelineFrame,
   type ReleaseCohortDraft,
   type SharedVariableRateTimelineModel,
   type SharedVariableRateTimelineSpec,
@@ -34,7 +36,6 @@ import {
 } from '../../core/domain/combatActionTailPlanner';
 import { solveReleaseStartOffsets } from '../../core/domain/releaseAnchorGraph';
 import {
-  controlledOperatorAt,
   isFrameInsideUltimate,
   resolveInitialControllerLaneId,
   validateOperatorControlTimeline,
@@ -152,6 +153,9 @@ export type AkeRealtimeCommand = AkeCommandSettlement & {
 };
 
 export type AkeRealtimeTimeline = {
+  controlDispatch?: Record<string, ControlDispatchPosition>;
+  controlFlow?: ControlDispatchTrace;
+  operationSequence?: NonNullable<TimelineData['operationSequence']>;
   schemaVersion: 2;
   source: 'precompiled-local-preview' | 'settled-runtime-projection';
   tickRate: number;
@@ -307,9 +311,11 @@ function fallbackProfile(commandType: string): AkeTimingSkillProfile {
 
 function inputsFromTimeline(
   timelineData: TimelineData,
-  characters: Character[],
+  characters: Pick<Character, 'id' | 'name'>[],
   requestedFrames?: ReadonlyMap<string, number>,
+  legacy = false,
 ): TimelineInput[] {
+  const orders = legacy ? null : timelineOperationOrder(timelineData);
   const characterByName = new Map(characters.map(character => [character.name, character]));
   let sequence = 0;
   return timelineData.staffLines.flatMap(line => line.buttons.flatMap(button => {
@@ -320,7 +326,7 @@ function inputsFromTimeline(
     if (!character) return [];
     const sourceNodeIndex = Math.max(0, Math.round(finite(button.nodeIndex)));
     return [{
-      sequence: sequence++,
+      sequence: orders ? requireTimelineOperationOrder(orders, button.id) : sequence++,
       commandId: button.id,
       characterId: character.id,
       characterName: character.name,
@@ -337,7 +343,7 @@ function inputsFromTimeline(
     }];
   })).sort((left, right) => (
     left.requestedFrame - right.requestedFrame
-    || left.characterId.localeCompare(right.characterId)
+    || (legacy ? left.characterId.localeCompare(right.characterId) : 0)
     || left.sequence - right.sequence
   ));
 }
@@ -1003,16 +1009,31 @@ function clearNaturallyCompletedActive(actor: ActorState, frame: number): void {
 
 type AkeRealtimeTimelineBuildInput = {
   timelineData: TimelineData;
-  selectedCharacters: Character[];
+  selectedCharacters: Pick<Character, 'id' | 'name'>[];
   catalog: AkeCatalog | null;
   staffCount: number;
 };
+
+function dependencyFor(anchor: SkillReleaseAnchor | undefined): ControlDependency | undefined {
+  if (!anchor?.sourceButtonId || anchor.kind === 'group-start') return undefined;
+  return { sourceId: anchor.sourceButtonId,
+    kind: anchor.kind === 'timed-input' ? 'action-start' : anchor.kind,
+    delayFrames: anchor.debounceFrames + (anchor.kind === 'timed-input' ? anchor.sourceTimedInputOffsetFrames ?? 0 : 0),
+    sourceOffsetFrames: anchor.sourceHitOffsetFrames, sourceHitId: anchor.sourceHitId };
+}
+
+export function queryAkeDraftControl(timeline: AkeRealtimeTimeline, id: string, frame: number, anchor?: SkillReleaseAnchor): ControlDispatchPosition | null {
+  if (!timeline.controlFlow) return null;
+  return probeTimelineControlPosition(timeline.controlFlow, { id, frame,
+    operationOrder: draftTimelineOperationOrder(timeline.operationSequence, id), dependency: dependencyFor(anchor), value: null });
+}
 
 function simulateAkeRealtimeTimeline(
   input: AkeRealtimeTimelineBuildInput,
   requestedFrames?: ReadonlyMap<string, number>,
   plannedBlockingEndFrames?: ReadonlyMap<string, number>,
   controlPlan?: SharedVariableRateTimelineModel,
+  legacy = false,
 ): AkeRealtimeTimeline {
   const timing = input.catalog?.timing;
   const tickRate = timing?.tickRate ?? DEFAULT_TICK_RATE;
@@ -1025,11 +1046,13 @@ function simulateAkeRealtimeTimeline(
     resumeDelayFramesAfterSpend: 16,
     quantization: 'float32',
   };
-  const inputs = inputsFromTimeline(
+  const rawInputs = inputsFromTimeline(
     input.timelineData,
     input.selectedCharacters,
     requestedFrames,
+    legacy,
   );
+  const inputs = legacy ? rawInputs : repairIneligibleDamageHitAnchors(rawInputs, initialTimelineActionProfiles(timing, rawInputs)).inputs;
   const firstSourceGroupIndex = inputs.length > 0
     ? Math.min(...inputs.map(item => item.sourceGroupIndex))
     : 0;
@@ -1041,6 +1064,26 @@ function simulateAkeRealtimeTimeline(
     inputFrames.set(commandInput.requestedFrame, entries);
   }
   const queuedFrames = new Map<number, ScheduledInput[]>();
+  type ReadyValue = { kind: 'input'; input: TimelineInput } | { kind: 'queued'; scheduled: ScheduledInput } | { kind: 'switch' };
+  const orders = legacy ? null : timelineOperationOrder(input.timelineData);
+  const controlOperations: ControlOperation<ReadyValue>[] = legacy ? [] : [
+    ...inputs.map(item => ({ id: item.commandId, frame: item.requestedFrame, operationOrder: item.sequence,
+      dependency: dependencyFor(item.releaseAnchor), value: { kind: 'input' as const, input: item } })),
+    ...(controlPlan?.operatorSwitches ?? []).map(change => ({ id: change.id, frame: change.startFrame,
+      operationOrder: requireTimelineOperationOrder(orders!, change.id), targetLaneId: change.targetLaneId,
+      dependency: dependencyFor(input.timelineData.staffLines.flatMap(line => line.buttons).find(button => button.id === change.id)?.releaseAnchor),
+      value: { kind: 'switch' as const } })),
+  ];
+  const dispatcher = createTimelineControlDispatcher(controlOperations, resolveInitialControllerLaneId(
+    input.timelineData.initialControllerCharacterId, input.selectedCharacters.map(character => character.id)));
+  const notifyEnd = (command: AkeRealtimeCommand, frame: number, phase: 'inline' | 'after-ready' = 'inline') => {
+    if (!legacy) dispatcher.notifySource({ sourceId: command.commandId, kind: 'action-end', frame, phase });
+  };
+  const completeActive = (actor: ActorState, frame: number) => {
+    const active = actor.active;
+    clearNaturallyCompletedActive(actor, frame);
+    if (active && !actor.active) notifyEnd(active, frame, 'after-ready');
+  };
   const pendingResources = new Map<number, PendingResourceEvent[]>();
   const pendingHits = new Map<number, AkeRealtimeHit[]>();
   const pendingTargetStatuses = new Map<number, PendingTargetStatusEvent[]>();
@@ -1102,7 +1145,8 @@ function simulateAkeRealtimeTimeline(
   }
   const maxActorQueuedBudget = Math.max(0, ...actorQueuedBudgets.values());
   const durationFrames = Math.max(
-    input.staffCount * GRID_NODE_COUNT * nodeFrameScale,
+    (legacy ? input.staffCount : 1) * GRID_NODE_COUNT * nodeFrameScale,
+    controlPlan?.endFrame ?? 0,
     maxRequestedFrame + maxActorQueuedBudget + maxProfileTail,
   );
 
@@ -1667,7 +1711,10 @@ function simulateAkeRealtimeTimeline(
     };
   };
 
-  const observeHitForCombos = (hit: AkeRealtimeHit, frame: number) => {
+  const observeHitForCombos = (hit: AkeRealtimeHit, frame: number, phase: 'inline' | 'before-ready' = 'inline') => {
+    if (!legacy && hit.kind !== 'lingering' && hit.releaseEligible !== false) dispatcher.notifySource({ sourceId: hit.commandId, kind: 'damage-hit', frame,
+      phase,
+      sourceOffsetFrames: hit.offsetFrames, sourceHitId: hit.id });
     if (hit.hitCount <= 0) return;
     const context = comboObservationContext(
       hit.commandId,
@@ -1794,9 +1841,10 @@ function simulateAkeRealtimeTimeline(
     if (!profile.castReplacement?.asSkillCast) return false;
     const initial = resolveInitialControllerLaneId(input.timelineData.initialControllerCharacterId,
       input.selectedCharacters.map(character => character.id));
-    const position = controlPlan?.actions.find(action => action.id === command.commandId)?.startX
-      ?? Number.POSITIVE_INFINITY;
-    const controlled = controlledOperatorAt(initial, controlPlan?.operatorSwitches ?? [], frame, position);
+    const controlled = legacy
+      ? legacyControlledOperatorAt(initial, controlPlan?.operatorSwitches ?? [], frame,
+        controlPlan?.actions.find(action => action.id === command.commandId)?.startX ?? Number.POSITIVE_INFINITY)
+      : dispatcher.currentController();
     const evaluate = (condition: AkeTimingCastCondition): boolean | null => {
       if (condition.type === 'All' || condition.type === 'Any') {
         const values = (condition.conditions ?? []).map(evaluate);
@@ -1919,6 +1967,7 @@ function simulateAkeRealtimeTimeline(
       ? 'COMBO_TRIGGER_UNVERIFIED'
       : command.queued ? `QUEUED_${admissionReason}` : 'CAST_ACCEPTED';
     if (replacementApplies(profile, actor, command, frame)) {
+      if (!legacy) dispatcher.notifySource({ sourceId: command.commandId, kind: 'action-start', frame });
       command.endFrame = frame;
       command.naturalEndFrame = frame;
       command.tailEndFrame = frame;
@@ -1934,6 +1983,7 @@ function simulateAkeRealtimeTimeline(
       }
       if (comboPending) consumeComboPending(comboPending, frame, command.commandId);
       point(frame, profile.costValue > 0 ? 'Spend' : 'Cast', command.commandId);
+      notifyEnd(command, frame);
       return;
     }
     command.naturalEndFrame = frame + Math.max(1, profile.bodyEndOffset);
@@ -1954,6 +2004,7 @@ function simulateAkeRealtimeTimeline(
       );
       actor.active.endFrame = frame;
       actor.active.completion = 'interrupted';
+      notifyEnd(actor.active, frame);
       pruneFutureCommandEvents(
         actor.active,
         frame,
@@ -1964,6 +2015,10 @@ function simulateAkeRealtimeTimeline(
         pendingComboActions,
       );
     }
+    if (!legacy && actor.active && actor.active.naturalEndFrame !== null && actor.active.naturalEndFrame <= frame) {
+      notifyEnd(actor.active, frame);
+    }
+    if (!legacy) dispatcher.notifySource({ sourceId: command.commandId, kind: 'action-start', frame });
     if (command.commandType === 'UltimateSkill') actor.basicComboCursor = null;
     actor.active = command;
 
@@ -2090,7 +2145,7 @@ function simulateAkeRealtimeTimeline(
 
   const scheduleInput = (commandInput: TimelineInput, frame: number) => {
     const actor = actorFor(commandInput.characterId);
-    clearNaturallyCompletedActive(actor, frame);
+    if (legacy) clearNaturallyCompletedActive(actor, frame);
     const profile = resolveIntentProfile(timing, commandInput, actor);
     const command = makeCommand(commandInput, profile, tickRate);
     command.atbBefore = ordinary + returned;
@@ -2130,9 +2185,12 @@ function simulateAkeRealtimeTimeline(
       command.admissionReason = admission.reason;
       command.releaseVerdict = 'queued';
       command.releaseReason = `QUEUED_${admission.reason}`;
-      const queued = queuedFrames.get(admission.frame) ?? [];
-      queued.push(scheduled);
-      queuedFrames.set(admission.frame, queued);
+      if (legacy) {
+        const queued = queuedFrames.get(admission.frame) ?? [];
+        queued.push(scheduled);
+        queuedFrames.set(admission.frame, queued);
+      } else dispatcher.enqueue({ id: commandInput.commandId, frame: admission.frame, operationOrder: commandInput.sequence,
+        value: { kind: 'queued', scheduled } }, admission.frame);
       return;
     }
     startCommand(scheduled, actor, frame, admission.reason, false);
@@ -2140,7 +2198,7 @@ function simulateAkeRealtimeTimeline(
 
   const executeQueued = (scheduled: ScheduledInput, frame: number) => {
     const actor = actorFor(scheduled.input.characterId);
-    clearNaturallyCompletedActive(actor, frame);
+    if (legacy) clearNaturallyCompletedActive(actor, frame);
     // A queued button is an intent, not a frozen raw SkillData id. Resolve it
     // again here so modes/overrides created while it waited can transform it.
     scheduled.profile = resolveIntentProfile(timing, scheduled.input, actor);
@@ -2164,9 +2222,12 @@ function simulateAkeRealtimeTimeline(
       scheduled.command.actualSeconds = admission.frame / tickRate;
       scheduled.command.delayFrames = admission.frame - scheduled.command.requestedFrame;
       scheduled.command.admissionReason = admission.reason;
-      const queued = queuedFrames.get(admission.frame) ?? [];
-      queued.push(scheduled);
-      queuedFrames.set(admission.frame, queued);
+      if (legacy) {
+        const queued = queuedFrames.get(admission.frame) ?? [];
+        queued.push(scheduled);
+        queuedFrames.set(admission.frame, queued);
+      } else dispatcher.enqueue({ id: scheduled.input.commandId, frame: admission.frame, operationOrder: scheduled.input.sequence,
+        value: { kind: 'queued', scheduled } }, admission.frame);
       return;
     }
     if (admission.frame > scheduled.expiresAt) {
@@ -2186,7 +2247,7 @@ function simulateAkeRealtimeTimeline(
   for (let frame = 0; frame <= durationFrames; frame += 1) {
     expireCombos(frame);
     for (const actor of actors.values()) {
-      clearNaturallyCompletedActive(actor, frame);
+      if (legacy) clearNaturallyCompletedActive(actor, frame);
     }
     for (const formEvent of pendingForms.get(frame) ?? []) applyFormEvent(formEvent);
     for (const comboAction of pendingComboActions.get(frame) ?? []) {
@@ -2198,7 +2259,7 @@ function simulateAkeRealtimeTimeline(
     if (frame >= recoveryResumeFrame && !recoveryPaused && frame >= atbConfig.firstTickFrame) {
       addAtb(recoveryPerFrame, 'Gain');
     }
-    for (const hit of pendingHits.get(frame) ?? []) observeHitForCombos(hit, frame);
+    for (const hit of pendingHits.get(frame) ?? []) observeHitForCombos(hit, frame, 'before-ready');
     const targetStatusEvents = pendingTargetStatuses.get(frame) ?? [];
     for (const event of targetStatusEvents) observeStandaloneTargetStatusForCombos(event);
 
@@ -2225,7 +2286,7 @@ function simulateAkeRealtimeTimeline(
       || left.characterId.localeCompare(right.characterId)
       || (left.kind === 'queued' ? -1 : 1)
     ));
-    for (const event of frameEvents) {
+    const executeFrameEvent = (event: typeof frameEvents[number]) => {
       const eventInput = event.kind === 'queued'
         ? (event.value as ScheduledInput).input
         : event.value as TimelineInput;
@@ -2236,6 +2297,45 @@ function simulateAkeRealtimeTimeline(
       }
       if (event.kind === 'queued') executeQueued(event.value as ScheduledInput, frame);
       else scheduleInput(event.value as TimelineInput, frame);
+    };
+    const drainReady = () => {
+      let operation;
+      while ((operation = dispatcher.take(frame))) {
+        const value = operation.value;
+        if (value.kind === 'switch') {
+          const before = dispatcher.positions.get(operation.id)?.controllerBefore;
+          const actor = before ? actors.get(before) : undefined;
+          if (actor?.active && actor.active.commandType !== 'UltimateSkill') {
+            actor.active.endFrame = frame;
+            actor.active.completion = 'interrupted';
+            notifyEnd(actor.active, frame);
+            pruneFutureCommandEvents(actor.active, frame, pendingResources, pendingHits, pendingTargetStatuses, pendingForms, pendingComboActions);
+            actor.active = null;
+          }
+          dispatcher.notifySource({ sourceId: operation.id, kind: 'action-start', frame });
+          dispatcher.notifySource({ sourceId: operation.id, kind: 'action-end', frame });
+        } else {
+          const item = value.kind === 'input' ? value.input : value.scheduled.input;
+          executeFrameEvent({ kind: value.kind, value: value.kind === 'input' ? value.input : value.scheduled,
+            characterId: item.characterId, sequence: item.sequence });
+        }
+      }
+    };
+    if (legacy) frameEvents.forEach(executeFrameEvent);
+    else {
+      drainReady();
+      // Natural completion is priority 80, after already-ready priority 70 work.
+      const completing = [...actors.values()].filter(actor => actor.active?.naturalEndFrame !== null
+        && actor.active !== null && actor.active.naturalEndFrame! <= frame)
+        .sort((a, b) => a.active!.naturalEndFrame! - b.active!.naturalEndFrame!
+          || (dispatcher.positions.get(a.active!.commandId)?.dispatchOrdinal ?? 0)
+            - (dispatcher.positions.get(b.active!.commandId)?.dispatchOrdinal ?? 0));
+      for (const actor of completing) {
+        completeActive(actor, frame);
+        // Each priority-80 callback can enqueue priority-70 work, which runs
+        // before the next natural-end callback at this frame.
+        drainReady();
+      }
     }
     // A full-column group seal is a real cancellation boundary even when no
     // successor starts on this actor at the same frame. Appended successors
@@ -2251,6 +2351,7 @@ function simulateAkeRealtimeTimeline(
         || plannedEnd >= active.naturalEndFrame) continue;
       active.endFrame = plannedEnd;
       active.completion = 'interrupted';
+      notifyEnd(active, frame);
       pruneFutureCommandEvents(
         active,
         plannedEnd,
@@ -2263,6 +2364,7 @@ function simulateAkeRealtimeTimeline(
       actor.basicComboCursor = null;
       actor.active = null;
     }
+    if (!legacy) drainReady();
     if (resourceEvents.length > 0
       || targetStatusEvents.length > 0
       || frameEvents.length > 0
@@ -2273,8 +2375,10 @@ function simulateAkeRealtimeTimeline(
 
   const hits = commands.flatMap(command => command.hits)
     .sort((left, right) => left.frame - right.frame || left.id.localeCompare(right.id));
+  if (!legacy) diagnostics.push(...dispatcher.unresolvedOperationIds().map(id => `CONTROL_SOURCE_UNRESOLVED: ${id}`));
   return {
     schemaVersion: 2,
+    ...(!legacy ? { controlDispatch: Object.fromEntries(dispatcher.positions), controlFlow: dispatcher.trace } : {}),
     source: 'precompiled-local-preview',
     tickRate,
     nodeFrameScale,
@@ -2540,6 +2644,8 @@ function timelineReleaseAnchorIssues(
 }
 
 function makeSharedVariableRateTimelineSpec(input: {
+  legacy?: boolean;
+  operationOrders?: ReadonlyMap<string, number>;
   tickRate: number;
   timelineInputs: readonly TimelineInput[];
   timelineModules: readonly SkillButtonData[];
@@ -2550,6 +2656,11 @@ function makeSharedVariableRateTimelineSpec(input: {
     const entries = grouped.get(timelineInput.sourceGroupIndex) ?? [];
     entries.push(timelineInput);
     grouped.set(timelineInput.sourceGroupIndex, entries);
+  }
+  if (!input.legacy) for (const module of input.timelineModules) {
+    if (module.timelineModuleKind !== 'operator-switch' && module.timelineModuleKind !== 'lane-wait') continue;
+    const group = Math.floor(module.nodeIndex / GRID_NODE_COUNT);
+    if (!grouped.has(group)) grouped.set(group, []);
   }
   const sourceGroups = [...grouped.entries()]
     .sort(([left], [right]) => left - right);
@@ -2613,9 +2724,9 @@ function makeSharedVariableRateTimelineSpec(input: {
 
   return {
     tickRate: input.tickRate,
-    columnWidth: GRID_COLUMN_WIDTH,
+    columnWidth: input.legacy ? 80 : GRID_COLUMN_WIDTH,
     continuationWidthRatio: 0.2,
-    visualPageWidth: GRID_TIMELINE_WIDTH,
+    visualPageWidth: input.legacy ? 1120 : GRID_TIMELINE_WIDTH,
     ...(initialWaitModule
       ? { initialWait: waitSpecForModule(initialWaitModule) }
       : {}),
@@ -2716,6 +2827,7 @@ function makeSharedVariableRateTimelineSpec(input: {
               };
               return {
                 id: timelineInput.commandId,
+                operationOrder: input.operationOrders?.get(timelineInput.commandId),
                 durationFrames: facts.durationFrames,
                 instantaneous: facts.instantaneous,
                 startOffsetFrames: releaseOffsets.get(timelineInput.commandId) ?? 0,
@@ -2747,6 +2859,7 @@ function makeSharedVariableRateTimelineSpec(input: {
         })),
         operatorSwitches: groupOperatorSwitches.map(module => ({
           id: module.id,
+          operationOrder: input.operationOrders?.get(module.id),
           laneId: module.characterId ?? `line:${module.staffIndex}`,
           targetLaneId: module.operatorSwitchConfig?.targetCharacterId
             ?? `missing-switch-target:${module.id}`,
@@ -2830,6 +2943,8 @@ function validateDodgeControlModules(
   modules: readonly SkillButtonData[],
   model: SharedVariableRateTimelineModel,
   initialControllerLaneId: string | undefined,
+  operationOrders: ReadonlyMap<string, number>,
+  simulation: AkeRealtimeTimeline,
 ): Array<{ code: string; message: string; buttonId: string; frame: number | null }> {
   const actionsById = new Map(model.actions.map(action => [action.id, action]));
   const switchesById = new Map(model.operatorSwitches.map(operatorSwitch => [operatorSwitch.id, operatorSwitch]));
@@ -2846,7 +2961,6 @@ function validateDodgeControlModules(
       const sourceAction = anchor.sourceButtonId ? actionsById.get(anchor.sourceButtonId) : undefined;
       const sourceSwitch = anchor.sourceButtonId ? switchesById.get(anchor.sourceButtonId) : undefined;
       let frame: number | null = null;
-      let x: number | null = null;
       if (anchor.kind === 'group-start') {
         const group = model.groups.find(candidate => model.actions.some(action => {
           const payload = action.payload as { sourceGroupIndex?: number } | undefined;
@@ -2854,34 +2968,27 @@ function validateDodgeControlModules(
             && payload?.sourceGroupIndex === Math.floor(module.nodeIndex / GRID_NODE_COUNT);
         }));
         frame = group?.startFrame ?? null;
-        x = group?.xStart ?? null;
       } else if (sourceAction) {
         if (anchor.kind === 'action-start') {
           frame = sourceAction.startFrame + anchor.debounceFrames;
-          x = sourceAction.startX;
         } else if (anchor.kind === 'action-end') {
           frame = sourceAction.endFrame + anchor.debounceFrames;
-          x = sourceAction.endX;
         } else if (Number.isFinite(anchor.sourceHitOffsetFrames)) {
           frame = sourceAction.startFrame
             + Number(anchor.sourceHitOffsetFrames)
             + anchor.debounceFrames;
-          x = projectSharedTimelineFrame(model, frame, 'after');
         }
       } else if (sourceSwitch && anchor.kind === 'action-end') {
         frame = sourceSwitch.endFrame + anchor.debounceFrames;
-        x = sourceSwitch.endX;
       }
-      if (frame === null || x === null) {
+      if (frame === null) {
         return [{ code: 'DODGE_ANCHOR_UNRESOLVED', message: `${module.id}: 无法解析闪避释放位置。`, buttonId: module.id, frame: null }];
       }
       const issues: Array<{ code: string; message: string }> = [];
-      const controlled = controlledOperatorAt(
-        initialControllerLaneId,
-        model.operatorSwitches,
-        frame,
-        x,
-      );
+      const position = simulation.controlFlow ? probeTimelineControlPosition(simulation.controlFlow, { id: module.id, frame,
+        operationOrder: requireTimelineOperationOrder(operationOrders, module.id), dependency: dependencyFor(anchor), value: null }) : null;
+      if (!position) return [{ code: 'DODGE_CONTROL_UNRESOLVED', message: `${module.id}: 无法解析闪避的控制事件位置。`, buttonId: module.id, frame }];
+      const controlled = position.controllerBefore ?? initialControllerLaneId;
       const sourceLaneId = module.characterId ?? `line:${module.staffIndex}`;
       if (controlled !== sourceLaneId) {
         issues.push({
@@ -2904,14 +3011,47 @@ function validateDodgeControlModules(
  * Stateful skill forms can change blocking duration, so the planner and the
  * runtime are iterated with a small deterministic cap until both agree.
  */
-export function buildAkeRealtimeTimeline(
+const legacyMigrations = new WeakMap<TimelineData, { catalog: AkeCatalog | null; roster: string; data: TimelineData }>();
+
+/** In-memory only; no repository writes and no changes to legacy timestamps. */
+export function migrateAkeTimelineOperations(input: AkeRealtimeTimelineBuildInput): TimelineData {
+  if (input.timelineData.operationSequence !== undefined) return migrateTimelineOperationSequence(input.timelineData);
+  const roster = JSON.stringify(input.selectedCharacters.map(character => [character.id, character.name]));
+  const prior = legacyMigrations.get(input.timelineData);
+  if (prior && prior.catalog === input.catalog && prior.roster === roster) return prior.data;
+  if (!input.timelineData.staffLines.some(line => line.buttons.length)) return migrateTimelineOperationSequence(input.timelineData);
+  if (!input.catalog?.timing) throw new Error('LEGACY_OPERATION_MIGRATION_REQUIRES_TIMING_CATALOG');
+  const legacy = buildTimelinePlan(input, true);
+  // The old provider emitted no operations for a module-only timeline. The
+  // compatibility adapter can still order its non-executed IDs without
+  // inventing frames or pretending that those modules ran.
+  const legacyPlan = legacy.sharedVariableRateTimeline
+    ?? { actions: [], operatorSwitches: [] };
+  const migrated = migrateLegacyPlannedOperationOrder(input.timelineData, legacyPlan,
+    new Map(input.selectedCharacters.map(character => [character.id,
+      (input.catalog!.characters.find(item => item.id === character.id)
+        ?? input.catalog!.characters.find(item => item.name === character.name))?.id ?? character.id])));
+  legacyMigrations.set(input.timelineData, { catalog: input.catalog, roster, data: migrated });
+  return migrated;
+}
+
+export function buildAkeRealtimeTimeline(input: AkeRealtimeTimelineBuildInput): AkeRealtimeTimeline {
+  const timelineData = migrateAkeTimelineOperations(input);
+  return { ...buildTimelinePlan({ ...input, timelineData }), operationSequence: timelineData.operationSequence };
+}
+
+function buildTimelinePlan(
   input: AkeRealtimeTimelineBuildInput,
+  legacy = false,
 ): AkeRealtimeTimeline {
+  const operationOrders = legacy ? undefined : timelineOperationOrder(input.timelineData);
   const timing = input.catalog?.timing;
   const tickRate = timing?.tickRate ?? DEFAULT_TICK_RATE;
   const persistedTimelineInputs = inputsFromTimeline(
     input.timelineData,
     input.selectedCharacters,
+    undefined,
+    legacy,
   );
   const timelineModules = input.timelineData.staffLines.flatMap(line => (
     line.buttons.filter(button => button.timelineModuleKind)
@@ -2925,8 +3065,9 @@ export function buildAkeRealtimeTimeline(
     && module.timelineModuleKind !== 'lane-wait'
     && module.timelineModuleKind !== 'operator-switch'
   ));
-  if (persistedTimelineInputs.length === 0) {
-    const emptySimulation = simulateAkeRealtimeTimeline(input);
+  if (persistedTimelineInputs.length === 0 && (legacy || !timelineModules.some(module =>
+    module.timelineModuleKind === 'operator-switch' || module.timelineModuleKind === 'lane-wait'))) {
+    const emptySimulation = simulateAkeRealtimeTimeline(input, undefined, undefined, undefined, legacy);
     if (unresolvedTimelineModules.length === 0) return emptySimulation;
     return {
       ...emptySimulation,
@@ -2945,6 +3086,8 @@ export function buildAkeRealtimeTimeline(
   const releaseAnchorIssues = timelineReleaseAnchorIssues(timelineInputs, timelineModules, tickRate);
   let facts = timelineActionFacts(timelineInputs, profiles, tickRate, timelineModules);
   let spec = makeSharedVariableRateTimelineSpec({
+    legacy,
+    operationOrders,
     tickRate,
     timelineInputs,
     timelineModules,
@@ -2963,10 +3106,13 @@ export function buildAkeRealtimeTimeline(
       requestedFramesFromPlan(plan),
       blockingEndFramesFromPlan(plan),
       plan,
+      legacy,
     );
     profiles = timelineActionProfilesFromSimulation(simulation, profiles);
     facts = timelineActionFacts(timelineInputs, profiles, tickRate, timelineModules);
     const nextSpec = makeSharedVariableRateTimelineSpec({
+      legacy,
+      operationOrders,
       tickRate,
       timelineInputs,
       timelineModules,
@@ -2990,6 +3136,7 @@ export function buildAkeRealtimeTimeline(
       requestedFramesFromPlan(plan),
       blockingEndFramesFromPlan(plan),
       plan,
+      legacy,
     );
   }
 
@@ -3009,15 +3156,18 @@ export function buildAkeRealtimeTimeline(
       return validateRuntimeCohort(cohort, simulation as AkeRealtimeTimeline);
     },
   });
-  const operatorControlIssues = validateOperatorControlTimeline(
+  if (!legacy) validatedPlan.controlDispatch = simulation.controlDispatch;
+  const operatorControlIssues = legacy ? [] : validateOperatorControlTimeline(
     validatedPlan,
     initialControllerLaneId,
     new Set(input.selectedCharacters.map(character => character.id)),
   );
-  const dodgeControlIssues = validateDodgeControlModules(
+  const dodgeControlIssues = legacy ? [] : validateDodgeControlModules(
     timelineModules,
     validatedPlan,
     initialControllerLaneId ?? undefined,
+    operationOrders!,
+    simulation,
   );
   const controlValidatedPlan = operatorControlIssues.length > 0 || dodgeControlIssues.length > 0
     ? {
@@ -3196,7 +3346,18 @@ export function projectSettledAkeTimeline(
   const unresolvedModules = preview.planningIssues?.some(issue => issue.code === 'TIMELINE_MODULE_RUNTIME_REQUIRED');
   const admissionStatus = structuralIssues.length > 0 ? 'invalid'
     : unresolvedModules && model.admissionStatus === 'valid' ? 'unverified' : model.admissionStatus;
+  const controlFactsUnchanged = commands.every(command => {
+    const original = preview.commands.find(item => item.commandId === command.commandId);
+    return original && original.success === command.success && original.actualFrame === command.actualFrame
+      && original.endFrame === command.endFrame && original.completion === command.completion;
+  });
   return { ...preview, source: 'settled-runtime-projection', commands,
+    // Settlement contains no ordered switch/source callback trace. If it
+    // changes execution facts, stale preview control must not admit a draft.
+    controlFlow: controlFactsUnchanged ? preview.controlFlow : undefined,
+    controlDispatch: controlFactsUnchanged ? preview.controlDispatch : undefined,
+    diagnostics: controlFactsUnchanged ? preview.diagnostics
+      : [...preview.diagnostics, 'CONTROL_FLOW_REQUIRES_RUNTIME_TRACE: settled execution differs from preview; draft control is unverified.'],
     comboWindows,
     hits: commands.flatMap(command => command.hits),
     sharedAtb,

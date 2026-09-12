@@ -1,0 +1,38 @@
+[run-ts-test] /src/core/repositories/skillButtonReadPurity.test.ts
+11:32:36 AM [vite] (ssr) Error when evaluating SSR module /src/core/repositories/skillButtonReadPurity.test.ts: repository: reading a legacy button must not persist normalization
+
+1 !== 0
+
+      at eval (/Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/src/core/repositories/skillButtonReadPurity.test.ts:46:35)
+      at async ESModulesEvaluator.runInlinedModule (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/node_modules/vite/dist/node/module-runner.js:913:3)
+      at async SSRCompatModuleRunner.directRequest (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/node_modules/vite/dist/node/module-runner.js:1146:59)
+      at async SSRCompatModuleRunner.directRequest (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/node_modules/vite/dist/node/chunks/config.js:15184:22)
+      at async SSRCompatModuleRunner.cachedRequest (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/node_modules/vite/dist/node/module-runner.js:1053:73)
+      at async SSRCompatModuleRunner.import (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/node_modules/vite/dist/node/module-runner.js:1014:10)
+      at async instantiateModule (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/node_modules/vite/dist/node/chunks/config.js:15157:10)
+      at async file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/scripts/run-ts-test.mjs:29:5
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: repository: reading a legacy button must not persist normalization
+
+1 !== 0
+
+    at eval (/Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/src/core/repositories/skillButtonReadPurity.test.ts:46:35)
+    at async ESModulesEvaluator.runInlinedModule (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/node_modules/vite/dist/node/module-runner.js:913:3)
+    at async SSRCompatModuleRunner.directRequest (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/node_modules/vite/dist/node/module-runner.js:1146:59)
+    at async SSRCompatModuleRunner.directRequest (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/node_modules/vite/dist/node/chunks/config.js:15184:22)
+    at async SSRCompatModuleRunner.cachedRequest (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/node_modules/vite/dist/node/module-runner.js:1053:73)
+    at async SSRCompatModuleRunner.import (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/node_modules/vite/dist/node/module-runner.js:1014:10)
+    at async instantiateModule (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/node_modules/vite/dist/node/chunks/config.js:15157:10)
+    at async file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/demo/lts-ui/scripts/run-ts-test.mjs:29:5 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.16.0

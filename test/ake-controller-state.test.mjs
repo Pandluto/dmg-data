@@ -54,6 +54,22 @@ test('a zero-time switch before or after the same-frame infusion has different r
     assert.equal(after.commands[1].endFrame, 50);
 });
 
+test('v1 same-frame handoff consumes logical order and survives transport array reversal', () => {
+    const commands = [{ ...attack, operationOrder: 0 }, { ...infuse, operationOrder: 10 }];
+    for (const [order, expectedHits] of [[5, 3], [20, 6]]) {
+        const input = { operationOrderVersion: 1, commands,
+            operatorSwitches: [{ switchId: 'handoff', characterId: tangtang, frame: 50, operationOrder: order }] };
+        const result = run(input);
+        assert.equal(direct(result).length, expectedHits);
+        const reversed = run({ ...input, commands: [...commands].reverse() });
+        for (const key of ['commands', 'hits', 'controllerEvents', 'statusEvents', 'resourceEvents', 'finalState']) {
+            assert.deepEqual(reversed[key], result[key], key);
+        }
+        assert.equal(result.operationOrderVersion, 1);
+        assert.deepEqual(result.operationOrders.map(entry => entry.operationOrder), [0, order, 10].sort((a, b) => a - b));
+    }
+});
+
 test('a switch anchored to a real heavy impact waits for the resolved hit', () => {
     const result = run({ commands: [attack], operatorSwitches: [{ switchId: 'handoff',
         characterId: tangtang, frame: 0, releaseDependency: { kind: 'damage-hit',

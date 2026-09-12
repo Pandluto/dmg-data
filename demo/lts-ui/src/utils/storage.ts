@@ -778,9 +778,7 @@ export function getSkillButtonTable(): SkillButtonTable {
         normalizePersistedSkillButton(button),
       ])
     );
-    if (JSON.stringify(normalized) !== raw) {
-      safeSessionStorage.setItem(STORAGE_KEYS.SKILL_BUTTON_TABLE, JSON.stringify(normalized));
-    }
+    // Hydration keeps legacy normalization in memory until an explicit write.
     return normalized;
   } catch {
     return {};

@@ -538,6 +538,7 @@ export interface StaffLineData {
  * 包含 4 个干员的谱线数据
  */
 export interface TimelineData {
+  operationSequence?: { schemaVersion: 1; operationIds: string[] };
   version: string;                 // 数据版本号
   createdAt: number;               // 创建时间
   updatedAt: number;               // 最后更新时间

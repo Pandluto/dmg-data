@@ -1,0 +1,18 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: repeated service hydration must not write
+
+1 !== 0
+
+    at file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/artifacts/ui-mechanism-merge-20260912/integration-smoke.mjs:69:12 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.16.0

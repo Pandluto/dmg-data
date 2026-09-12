@@ -19,6 +19,7 @@ assert.equal(resolveInitialControllerLaneId(undefined, []), null);
       id: 'control',
       operatorSwitches: [{
         id: 'switch-A-to-B',
+        operationOrder: 7,
         laneId: 'A',
         targetLaneId: 'B',
         startOffsetFrames: 30,
@@ -28,6 +29,7 @@ assert.equal(resolveInitialControllerLaneId(undefined, []), null);
           laneId: 'A',
           actions: [{
             id: 'A-ultimate',
+            operationOrder: 0,
             durationFrames: 30,
             startOffsetFrames: 0,
             payload: { commandType: 'UltimateSkill', skillType: 'Q' },
@@ -37,6 +39,7 @@ assert.equal(resolveInitialControllerLaneId(undefined, []), null);
           laneId: 'B',
           actions: [{
             id: 'B-attack',
+            operationOrder: 8,
             durationFrames: 30,
             startOffsetFrames: 30,
             payload: {
@@ -49,9 +52,12 @@ assert.equal(resolveInitialControllerLaneId(undefined, []), null);
       ],
     }],
   });
-  const operatorSwitch = model.operatorSwitches[0];
-  assert.equal(controlledOperatorAt('A', model.operatorSwitches, 30, operatorSwitch.startX), 'A');
-  assert.equal(controlledOperatorAt('A', model.operatorSwitches, 30, operatorSwitch.endX), 'B');
+  assert.equal(controlledOperatorAt('A', model.operatorSwitches, { frame: 30, operationOrder: 6, phase: 'before' }), 'A');
+  assert.equal(controlledOperatorAt('A', model.operatorSwitches, { frame: 30, operationOrder: 7, phase: 'before' }), 'A');
+  assert.equal(controlledOperatorAt('A', model.operatorSwitches, { frame: 30, operationOrder: 7, phase: 'after' }), 'B');
+  assert.equal(controlledOperatorAt('A', model.operatorSwitches, { frame: 30, operationOrder: 8, phase: 'before' }), 'B');
+  model.operatorSwitches[0].endX = -99999;
+  assert.equal(controlledOperatorAt('A', model.operatorSwitches, { frame: 30, operationOrder: 6, phase: 'before' }), 'A');
   assert.deepEqual(validateOperatorControlTimeline(model, 'A'), []);
 }
 
@@ -62,6 +68,7 @@ assert.equal(resolveInitialControllerLaneId(undefined, []), null);
       id: 'invalid-control',
       operatorSwitches: [{
         id: 'switch-during-q',
+        operationOrder: 2,
         laneId: 'A',
         targetLaneId: 'B',
         startOffsetFrames: 15,
@@ -71,6 +78,7 @@ assert.equal(resolveInitialControllerLaneId(undefined, []), null);
           laneId: 'A',
           actions: [{
             id: 'A-ultimate',
+            operationOrder: 0,
             durationFrames: 60,
             payload: { commandType: 'UltimateSkill', skillType: 'Q' },
           }],
@@ -79,6 +87,7 @@ assert.equal(resolveInitialControllerLaneId(undefined, []), null);
           laneId: 'C',
           actions: [{
             id: 'C-attack',
+            operationOrder: 1,
             durationFrames: 30,
             payload: { commandType: 'Attack', skillType: 'A' },
           }],

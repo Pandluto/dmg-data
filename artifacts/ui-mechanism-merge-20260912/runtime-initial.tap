@@ -1,0 +1,104 @@
+TAP version 13
+# Subtest: lastrite-tangtang-status-provenance: v0 baseline and explicit v1 copy preserve full execution facts
+ok 1 - lastrite-tangtang-status-provenance: v0 baseline and explicit v1 copy preserve full execution facts
+  ---
+  duration_ms: 7075.123417
+  type: 'test'
+  ...
+# Subtest: wulfa-camille-appended-ultimate: v0 baseline and explicit v1 copy preserve full execution facts
+not ok 2 - wulfa-camille-appended-ultimate: v0 baseline and explicit v1 copy preserve full execution facts
+  ---
+  duration_ms: 671.701333
+  type: 'test'
+  location: '/Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/test/ake-operation-order-fixtures.test.mjs:47:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    v0 changed from the executed pre-edit baseline
+    + actual - expected
+
+    + '6fcf1fbbbb678f1e6e021a6999322d0e6bee981843fbf7ac4631fc2746c9a5e4'
+    - '9f0286860556732f497088cf27f37e9491d8c228d6a25c4ddd3ef8899641d212'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '9f0286860556732f497088cf27f37e9491d8c228d6a25c4ddd3ef8899641d212'
+  actual: '6fcf1fbbbb678f1e6e021a6999322d0e6bee981843fbf7ac4631fc2746c9a5e4'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/ui-mechanism-merge-source/test/ake-operation-order-fixtures.test.mjs:51:16)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    Test.postRun (node:internal/test_runner/test:1447:19)
+    Test.run (node:internal/test_runner/test:1372:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: v1 invalid inputs fail in the parser, direct runner, convenience runner and demo adapter
+ok 3 - v1 invalid inputs fail in the parser, direct runner, convenience runner and demo adapter
+  ---
+  duration_ms: 287.603458
+  type: 'test'
+  ...
+# Subtest: empty v1 and sparse safe integer orders are valid; v0 is not upgraded
+ok 4 - empty v1 and sparse safe integer orders are valid; v0 is not upgraded
+  ---
+  duration_ms: 9.182667
+  type: 'test'
+  ...
+# Subtest: submission trace reports the versioned order while preserving legacy metadata
+ok 5 - submission trace reports the versioned order while preserving legacy metadata
+  ---
+  duration_ms: 17.373584
+  type: 'test'
+  ...
+# Subtest: same-source zero-delay successors order switches and commands after the cause, independent of arrays
+ok 6 - same-source zero-delay successors order switches and commands after the cause, independent of arrays
+  ---
+  duration_ms: 17.910125
+  type: 'test'
+  ...
+# Subtest: a lower order cannot run before its later cause or reorder separate ready batches
+ok 7 - a lower order cannot run before its later cause or reorder separate ready batches
+  ---
+  duration_ms: 5.956542
+  type: 'test'
+  ...
+# Subtest: COST-01 successful ultimate pays once and grants the source-defined weapon buff
+ok 8 - COST-01 successful ultimate pays once and grants the source-defined weapon buff
+  ---
+  duration_ms: 5187.918
+  type: 'test'
+  ...
+# Subtest: IDENTITY-01 enhanced normal attack executes after ultimate action end
+ok 9 - IDENTITY-01 enhanced normal attack executes after ultimate action end
+  ---
+  duration_ms: 256.947833
+  type: 'test'
+  ...
+# Subtest: STACK-01 independently timed weapon stacks expire with their attribute contribution
+ok 10 - STACK-01 independently timed weapon stacks expire with their attribute contribution
+  ---
+  duration_ms: 214.276292
+  type: 'test'
+  ...
+# Subtest: skill cost transaction notifies once for success and never for zero or failure
+ok 11 - skill cost transaction notifies once for success and never for zero or failure
+  ---
+  duration_ms: 0.433167
+  type: 'test'
+  ...
+# Subtest: stack lifetime preserves shared refresh, independent expiry, consumption and clear
+ok 12 - stack lifetime preserves shared refresh, independent expiry, consumption and clear
+  ---
+  duration_ms: 0.996042
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 11
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 14015.763791

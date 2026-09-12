@@ -13,6 +13,7 @@
 export type TimelineFrame = number;
 
 export type TimelineActionSpec = {
+  operationOrder?: number;
   id: string;
   /** Resolved blocking duration. Delayed hits/effect tails do not belong here. */
   durationFrames: number;
@@ -42,6 +43,7 @@ export type TimelineLaneWaitSpec = {
 
 /** A zero-time control handoff rendered inside one release group. */
 export type TimelineOperatorSwitchSpec = {
+  operationOrder?: number;
   id: string;
   /** The operator who must be controlled immediately before the handoff. */
   laneId: string;
@@ -104,6 +106,7 @@ export type SharedVariableRateTimelineSpec = {
 };
 
 export type ScheduledTimelineAction = {
+  operationOrder?: number;
   id: string;
   groupId: string;
   laneId: string;
@@ -140,6 +143,7 @@ export type ScheduledTimelineLaneWait = {
 };
 
 export type ScheduledTimelineOperatorSwitch = {
+  operationOrder?: number;
   id: string;
   groupId: string;
   laneId: string;
@@ -262,6 +266,7 @@ export type SharedVariableRateTimelineBuildOptions = {
 };
 
 export type SharedVariableRateTimelineModel = {
+  controlDispatch?: Record<string, import('./timelineControlDispatch').ControlDispatchPosition>;
   schemaVersion: 1;
   /** Version 1 intentionally implements the explainable event-sweep policy. */
   columnBoundaryPolicy: 'strong-event-boundaries';
@@ -523,7 +528,7 @@ function validateSpec(spec: SharedVariableRateTimelineSpec): void {
         requireFiniteNonNegative(action.sharedAtbCost ?? 0, `action ${action.id} sharedAtbCost`);
       });
     });
-    if (actionCount === 0) {
+    if (actionCount === 0 && !group.laneWaits?.length && !group.operatorSwitches?.length) {
       throw new SharedVariableRateTimelineError(
         'EMPTY_GROUP',
         `Release group ${group.id} must contain at least one action.`,
@@ -586,6 +591,7 @@ function scheduleGroup(
     durationFrames: wait.durationFrames,
   }));
   const operatorSwitches = (group.operatorSwitches ?? []).map(operatorSwitch => ({
+    operationOrder: operatorSwitch.operationOrder,
     id: operatorSwitch.id,
     groupId: group.id,
     laneId: operatorSwitch.laneId,
@@ -614,6 +620,7 @@ function scheduleGroup(
         : startFrame + action.startOffsetFrames;
       const actionEnd = actionStart + action.durationFrames;
       const scheduled: PreliminaryAction = {
+        operationOrder: action.operationOrder,
         id: action.id,
         groupId: group.id,
         laneId: lane.laneId,

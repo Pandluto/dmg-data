@@ -1,4 +1,5 @@
 import { combatTriggerAttribution } from '../src/core/combat-trigger-attribution.mjs';
+import { parseAkeOperationOrder } from '../src/core/ake-operation-order.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -864,6 +865,9 @@ function normalizeSquadRequest(input, projectRoot) {
     if (!input || typeof input !== 'object' || Array.isArray(input)) {
         throw new DemoInputError('请求体必须是一个对象。');
     }
+    let operationOrder;
+    try { operationOrder = parseAkeOperationOrder(input); }
+    catch (error) { throw new DemoInputError(error.message); }
     if (!Array.isArray(input.members) || input.members.length < 1 || input.members.length > 4) {
         throw new DemoInputError('members 必须包含 1–4 名干员。');
     }
@@ -1009,8 +1013,9 @@ function normalizeSquadRequest(input, projectRoot) {
             throw new DemoInputError(`第 ${index + 1} 个指令类型不受支持。`);
         }
         const rawId = String(command.commandId ?? `${memberId}:command:${index + 1}`);
-        const commandId = rawId.replace(/[^a-zA-Z0-9:_-]/g, '-').slice(0, 96)
-            || `${memberId}:command:${index + 1}`;
+        const commandId = operationOrder.isV1 ? command.commandId
+            : rawId.replace(/[^a-zA-Z0-9:_-]/g, '-').slice(0, 96)
+                || `${memberId}:command:${index + 1}`;
         if (seenCommandIds.has(commandId)) throw new DemoInputError(`指令 ID 重复：${commandId}`);
         seenCommandIds.add(commandId);
         return {
@@ -1032,13 +1037,15 @@ function normalizeSquadRequest(input, projectRoot) {
             attackMode: command.commandType === 'Attack' && ['full-combo', 'plunging-impact'].includes(command.attackMode)
                 ? command.attackMode
                 : undefined,
-            timelineOrder: command.timelineOrder === undefined ? undefined
-                : finiteNumber(command.timelineOrder, `commands[${index}].timelineOrder`, 0, 1e9),
+            ...(operationOrder.isV1 ? { operationOrder: command.operationOrder } : {
+                timelineOrder: command.timelineOrder === undefined ? undefined
+                    : finiteNumber(command.timelineOrder, `commands[${index}].timelineOrder`, 0, 1e9),
+            }),
             sourceOrder: index
         };
     }).sort((left, right) => left.frame - right.frame
-        || left.memberId.localeCompare(right.memberId)
-        || left.sourceOrder - right.sourceOrder)
+        || (operationOrder.isV1 ? operationOrder.compare(left, right)
+            : left.memberId.localeCompare(right.memberId) || left.sourceOrder - right.sourceOrder))
         .map(({ sourceOrder, ...command }) => command);
     const controllerCharacterId = (id, label) => {
         const member = members.find(member => member.characterId === id || member.memberId === id);
@@ -1054,12 +1061,15 @@ function normalizeSquadRequest(input, projectRoot) {
     const operatorSwitches = rawSwitches.map((entry, index) => {
         if (!entry || typeof entry !== 'object') throw new DemoInputError(`operatorSwitches[${index}] 格式不正确。`);
         return {
-            switchId: optionalIdentifier(entry.switchId ?? entry.id, `operatorSwitches[${index}].switchId`, `controller-switch:${index + 1}`),
+            switchId: operationOrder.isV1 ? entry.switchId
+                : optionalIdentifier(entry.switchId ?? entry.id, `operatorSwitches[${index}].switchId`, `controller-switch:${index + 1}`),
             characterId: controllerCharacterId(entry.characterId ?? entry.memberId, `operatorSwitches[${index}]`),
             releaseDependency: entry.releaseDependency ? structuredClone(entry.releaseDependency) : undefined,
             frame: finiteInteger(entry.frame, `operatorSwitches[${index}].frame`, 0, MAX_TIMELINE_FRAME),
-            timelineOrder: entry.timelineOrder === undefined ? undefined
-                : finiteNumber(entry.timelineOrder, `operatorSwitches[${index}].timelineOrder`, 0, 1e9),
+            ...(operationOrder.isV1 ? { operationOrder: entry.operationOrder } : {
+                timelineOrder: entry.timelineOrder === undefined ? undefined
+                    : finiteNumber(entry.timelineOrder, `operatorSwitches[${index}].timelineOrder`, 0, 1e9),
+            }),
         };
     });
     const lastFrame = [...commands, ...operatorSwitches]
@@ -1070,6 +1080,7 @@ function normalizeSquadRequest(input, projectRoot) {
     );
     return {
         catalog,
+        ...(operationOrder.isV1 ? { operationOrderVersion: 1 } : {}),
         members,
         enemy,
         enemyLevel: finiteInteger(input.enemyLevel ?? 1, '敌人等级', 1, 999),
@@ -1177,6 +1188,7 @@ export function simulateSquadDemo(input, {
     const result = runAkeSquadScenario(bundle, {
         runner: { traceSink, maxEventsPerRun: executionEventBudget(request) },
         run: {
+            ...(request.operationOrderVersion === 1 ? { operationOrderVersion: 1 } : {}),
             commands: request.commands,
             initialControllerCharacterId: request.initialControllerCharacterId,
             operatorSwitches: request.operatorSwitches,
@@ -1265,6 +1277,13 @@ export function simulateSquadDemo(input, {
         durationSeconds: result.durationTicks / result.tickRate,
         enemy: structuredClone(request.enemy),
         members,
+        ...(request.operationOrderVersion === 1 ? {
+            operationOrderVersion: 1,
+            operationOrders: [
+                ...request.commands.map(command => ({ commandId: command.commandId, operationOrder: command.operationOrder })),
+                ...request.operatorSwitches.map(change => ({ switchId: change.switchId, operationOrder: change.operationOrder })),
+            ].sort((left, right) => left.operationOrder - right.operationOrder),
+        } : {}),
         commands: structuredClone(timeline.commands),
         attributeSnapshots: structuredClone(result.attributeSnapshots),
         hits,

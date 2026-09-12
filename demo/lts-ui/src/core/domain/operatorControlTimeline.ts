@@ -43,8 +43,7 @@ function orderedSwitches(
 ): ScheduledTimelineOperatorSwitch[] {
   return [...switches].sort((left, right) => (
     left.startFrame - right.startFrame
-    || left.endX - right.endX
-    || left.id.localeCompare(right.id)
+    || requireOperationOrder(left) - requireOperationOrder(right)
   ));
 }
 
@@ -64,20 +63,27 @@ export function resolveInitialControllerLaneId(
   return validLaneIds[0] ?? null;
 }
 
-/**
- * Resolves control at one real/visual position. A zero-time switch takes effect
- * at its right edge, so actions before and after it may share the same frame.
- */
+export function requireOperationOrder(operation: { id: string; operationOrder?: number }): number {
+  if (!Number.isSafeInteger(operation.operationOrder) || Number(operation.operationOrder) < 0) {
+    throw new Error(`OPERATION_ORDER_MISSING: ${operation.id}`);
+  }
+  return operation.operationOrder!;
+}
+
+export type OperatorControlPosition = { frame: number; operationOrder: number; phase: 'before' | 'after' };
+
+/** Query the persisted operation position; geometry cannot establish control. */
 export function controlledOperatorAt(
   initialControllerLaneId: string | null | undefined,
   switches: readonly ScheduledTimelineOperatorSwitch[],
-  frame: number,
-  x: number,
+  position: OperatorControlPosition,
 ): string | null {
   let controlled = initialControllerLaneId?.trim() || null;
   for (const operatorSwitch of orderedSwitches(switches)) {
-    const hasTakenEffect = operatorSwitch.startFrame < frame
-      || (operatorSwitch.startFrame === frame && operatorSwitch.endX <= x);
+    const order = requireOperationOrder(operatorSwitch);
+    const hasTakenEffect = operatorSwitch.startFrame < position.frame
+      || (operatorSwitch.startFrame === position.frame && (order < position.operationOrder
+        || (order === position.operationOrder && position.phase === 'after')));
     if (hasTakenEffect) controlled = operatorSwitch.targetLaneId;
   }
   return controlled;
@@ -112,7 +118,7 @@ export function validateOperatorControlTimeline(
   const switches = orderedSwitches(model.operatorSwitches);
   const occupiedPositions = new Set<string>();
   switches.forEach((operatorSwitch) => {
-    const positionKey = `${operatorSwitch.startFrame}:${operatorSwitch.startX}`;
+    const positionKey = `${requireOperationOrder(operatorSwitch)}`;
     if (occupiedPositions.has(positionKey)) {
       issues.push({
         code: 'DUPLICATE_SWITCH_POSITION',
@@ -122,11 +128,10 @@ export function validateOperatorControlTimeline(
     }
     occupiedPositions.add(positionKey);
 
-    const controlledBefore = controlledOperatorAt(
+    const controlledBefore = model.controlDispatch ? model.controlDispatch[operatorSwitch.id]?.controllerBefore : controlledOperatorAt(
       initialControllerLaneId,
       switches.filter(candidate => candidate.id !== operatorSwitch.id),
-      operatorSwitch.startFrame,
-      operatorSwitch.startX,
+      { frame: operatorSwitch.startFrame, operationOrder: requireOperationOrder(operatorSwitch), phase: 'before' },
     );
     if (controlledBefore !== operatorSwitch.laneId) {
       issues.push({
@@ -155,11 +160,10 @@ export function validateOperatorControlTimeline(
 
   model.actions.forEach((action) => {
     if (!isBasicAttackTimelineAction(action)) return;
-    const controlled = controlledOperatorAt(
+    const controlled = model.controlDispatch ? model.controlDispatch[action.id]?.controllerBefore : controlledOperatorAt(
       initialControllerLaneId,
       switches,
-      action.startFrame,
-      action.startX,
+      { frame: action.startFrame, operationOrder: requireOperationOrder(action), phase: 'before' },
     );
     if (controlled !== action.laneId) {
       issues.push({

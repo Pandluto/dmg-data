@@ -1,0 +1,2 @@
+[run-ts-test] /src/core/repositories/skillButtonReadPurity.test.ts
+Skill button reads: both paths normalize in memory; explicit saves persist once

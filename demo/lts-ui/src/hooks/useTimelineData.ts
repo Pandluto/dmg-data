@@ -14,8 +14,6 @@ import {
   SkillButtonSkillChangePayload,
   TimelineData,
 } from '../types';
-import { STORAGE_KEYS } from '../constants/storage-keys';
-import { setStorageJson } from '../utils/storage';
 import {
   createEmptyTimelineData,
   addSkillButton as addSkillButtonService,
@@ -35,26 +33,35 @@ import {
   loadTimelineData as loadTimelineDataService,
   normalizeTimelineData,
   ensureTimelineDataConsistency,
+  prepareTimelineOperations,
 } from '../core/services/timelineService';
 
 export function useTimelineData(selectedCharacters: { id?: string; name: string }[]) {
-  const [timelineData, setTimelineData] = useState<TimelineData>(() => {
+  const [timelineData, setTimelineDataState] = useState<TimelineData>(() => {
     return createEmptyTimelineData(selectedCharacters);
   });
 
   const timelineDataRef = useRef(timelineData);
   timelineDataRef.current = timelineData;
+  const setTimelineData = useCallback((next: TimelineData) => {
+    timelineDataRef.current = next;
+    setTimelineDataState(next);
+  }, []);
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hydratedTimelineRef = useRef(timelineData);
 
   // Debounce 保存当前工作副本；桌面/本地桥接环境会落到 user.sqlite。
   useEffect(() => {
     if (saveTimerRef.current) {
       clearTimeout(saveTimerRef.current);
     }
+    // Snapshot identity survives StrictMode effect replay and roster re-renders.
+    // Hydration is never converted into an edit by clearing a one-shot flag.
+    if (hydratedTimelineRef.current === timelineData) return;
     saveTimerRef.current = setTimeout(() => {
       const dataToSave = timelineDataRef.current;
-      saveTimelineDataService(dataToSave);
+      saveTimelineDataService(dataToSave, selectedCharacters);
       // timeline.data 与 skill-button 总表分别写入。异步 UI 切换或历史数据
       // 恢复期间，最后一次写入不能让两者留下不一致的快照。
       ensureTimelineDataConsistency(selectedCharacters);
@@ -188,25 +195,25 @@ export function useTimelineData(selectedCharacters: { id?: string; name: string 
 
   const saveTimelineData = useCallback((): TimelineData => {
     const dataToSave = timelineDataRef.current;
-    saveTimelineDataService(dataToSave);
+    saveTimelineDataService(dataToSave, selectedCharacters);
     const consistentData = ensureTimelineDataConsistency(selectedCharacters) ?? dataToSave;
     return consistentData;
   }, [selectedCharacters]);
 
   const loadTimelineData = useCallback((): TimelineData | null => {
-    const parsed = ensureTimelineDataConsistency(selectedCharacters) ?? loadTimelineDataService();
+    const parsed = ensureTimelineDataConsistency(selectedCharacters) ?? loadTimelineDataService(selectedCharacters);
     if (parsed) {
       const normalized = normalizeTimelineData(parsed, selectedCharacters);
-      if (JSON.stringify(parsed) !== JSON.stringify(normalized)) {
-        setStorageJson(STORAGE_KEYS.TIMELINE_DATA, normalized);
-      }
+      hydratedTimelineRef.current = normalized;
       setTimelineData(normalized);
       return normalized;
     }
     return null;
   }, [selectedCharacters]);
 
-  const replaceTimelineData = useCallback((nextTimelineData: TimelineData) => {
+  const replaceTimelineData = useCallback((nextTimelineData: TimelineData, roster = selectedCharacters) => {
+    nextTimelineData = prepareTimelineOperations(nextTimelineData, roster);
+    hydratedTimelineRef.current = nextTimelineData;
     // Checkout/selection hydration is authoritative. Cancel any delayed save
     // created by the previous roster and move the ref synchronously before
     // React renders, otherwise that stale timer can overwrite the freshly
@@ -217,7 +224,7 @@ export function useTimelineData(selectedCharacters: { id?: string; name: string 
     }
     timelineDataRef.current = nextTimelineData;
     setTimelineData(nextTimelineData);
-  }, []);
+  }, [selectedCharacters]);
 
   const getCurrentTimelineData = useCallback(() => timelineDataRef.current, []);
 

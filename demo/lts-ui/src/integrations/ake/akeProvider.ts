@@ -1,4 +1,5 @@
 import type { RdpsAttributionSummary } from '../../core/services/rdpsAttribution.types';
+import { timelineOperationOrder, requireTimelineOperationOrder } from '../../core/domain/timelineOperationSequence';
 import type { AkeRdpsAudit } from '../../../../../src/core/ake-rdps-context.mjs';
 import { getTimelineSessionSnapshot } from '../../agentKernel/timelineRepository/timelineSession';
 import { buildAkeExecutionDigest, resolveAkeCalculationEndFrame } from './akeExecutionIdentity';
@@ -10,6 +11,7 @@ import { getOperatorConfigPageCache, safeSessionStorage } from '../../utils/stor
 import { getInstalledAkeCatalog, type AkeCatalog } from './akeCatalogAdapter';
 import {
   buildAkeRealtimeTimeline,
+  migrateAkeTimelineOperations,
   type AkeRealtimeTimeline,
 } from './akeRealtimeTimeline';
 import { GRID_NODE_COUNT } from '../../core/calculators/gridSnapLayout';
@@ -1078,6 +1080,8 @@ export async function runAkeTeamCalculation(input: {
   const enemyId = input.enemyId ?? DEFAULT_ENEMY_ID;
   const catalog = await loadAkeCatalog();
   ensureCurrent();
+  input = { ...input, timelineData: migrateAkeTimelineOperations({ ...input, catalog, staffCount: 1 }) };
+  const operationOrders = timelineOperationOrder(input.timelineData);
   const snapshots = getOperatorConfigPageCache();
   const weaponLibrary = parseStoredRecord<Record<string, WeaponLibraryItem>>(WEAPON_LIBRARY_STORAGE_KEY);
   const prepared = input.selectedCharacters.map(character => prepareMember({
@@ -1102,7 +1106,6 @@ export async function runAkeTeamCalculation(input: {
   )));
   const releaseDependencyFor = (button: SkillButtonData) => resolveAkeReleaseDependency(button, preview);
   const model = preview.sharedVariableRateTimeline;
-  const scheduledActionById = new Map(model?.actions.map(action => [action.id, action]) ?? []);
   const controllerIdForLane = (laneId: string | null) => supported.find(member => (
     member.character.id === laneId || member.akeCharacterId === laneId
   ))?.akeCharacterId;
@@ -1115,7 +1118,7 @@ export async function runAkeTeamCalculation(input: {
     const button = input.timelineData.staffLines.flatMap(line => line.buttons)
       .find(button => button.id === change.id);
     return { switchId: change.id, characterId, frame: Math.round(change.endFrame),
-      timelineOrder: change.endX, releaseDependency: button ? releaseDependencyFor(button) : undefined };
+      operationOrder: requireTimelineOperationOrder(operationOrders, change.id), releaseDependency: button ? releaseDependencyFor(button) : undefined };
   });
   const commands = supported.flatMap(member => member.buttons.map(button => ({
     commandId: button.id,
@@ -1123,7 +1126,7 @@ export async function runAkeTeamCalculation(input: {
     characterId: member.akeCharacterId,
     commandType: COMMAND_TYPE_BY_SKILL[button.skillType],
     frame: plannedFrameByCommandId.get(button.id) ?? 0,
-    timelineOrder: scheduledActionById.get(button.id)?.startX,
+    operationOrder: requireTimelineOperationOrder(operationOrders, button.id),
     // A supplied landing action is a point in time, not an attack held in queue.
     queueMode: plannedAttackModeByCommandId.get(button.id) === 'plunging-impact'
       ? undefined : 'timeline-sequence' as const,
@@ -1134,6 +1137,7 @@ export async function runAkeTeamCalculation(input: {
   const requestedEndFrame = resolveAkeCalculationEndFrame(preview);
   const executionDigest = buildAkeExecutionDigest({ ...input, catalog, preview });
   const simulationInput = {
+    operationOrderVersion: 1,
     enemyId,
     initialAtb: 300,
     initialControllerCharacterId,

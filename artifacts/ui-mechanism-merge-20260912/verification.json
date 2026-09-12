@@ -1,0 +1,191 @@
+{
+  "parents": [
+    "8e8e7b80f86a4c6f1318b7b3dd117ddafc0dc76b",
+    "26564dbc99d6819301aae934ed3ef4b9e901d60b"
+  ],
+  "verifiedAt": "2026-09-12T03:37:58.492Z",
+  "nodeVersion": "v24.16.0",
+  "testCounts": {
+    "distinctRootTests": 14,
+    "existingFrontendFiles": 5,
+    "addedReadPurityFile": 1,
+    "actualProviderSmoke": 1
+  },
+  "checks": {
+    "runtime": "pass after rebasing one legacy trace hash to independently archived 584c0b3 evidence",
+    "frontend": "pass",
+    "readPurity": "red before fix, green after both read entry points were made pure",
+    "integration": "red on implicit button write before fix, green after fix",
+    "typecheck": "pass after final production change",
+    "build": "pass after final production change"
+  },
+  "traceHashResolution": {
+    "case": "wulfa-camille-appended-ultimate",
+    "previous": "9f0286860556732f497088cf27f37e9491d8c228d6a25c4ddd3ef8899641d212",
+    "archivedMechanismFix": "6fcf1fbbbb678f1e6e021a6999322d0e6bee981843fbf7ac4631fc2746c9a5e4",
+    "archiveSource": "584c0b3cfa74e978689cc3416dc4b242c6244271"
+  },
+  "artifactNote": "Text logs trimmed for trailing whitespace and final blank lines; diagnostic content retained.",
+  "files": [
+    {
+      "path": "demo/demo-service.mjs",
+      "sha256": "4e1fec15cd684a84ffdf8686618e416623351c74f73d76c3f4ebe395c03401d1"
+    },
+    {
+      "path": "demo/lts-ui/src/agentKernel/timelineWorktree/patchDsl.ts",
+      "sha256": "21e350c1225770b9c51433eb3a837b06bf0907b5f24b8a74787cf67d2ea64e40"
+    },
+    {
+      "path": "demo/lts-ui/src/agentKernel/timelineWorktree/validator.ts",
+      "sha256": "2b93f44012ac7c442d2afc974713c5f0b37fa4ff5d7ff683c27ce4d8fe8951cb"
+    },
+    {
+      "path": "demo/lts-ui/src/components/CanvasBoard/hooks/useCanvasDrag.ts",
+      "sha256": "1aefb9518cb2493e69944e70d91b71101cb7518341776539f310e4f949beb48e"
+    },
+    {
+      "path": "demo/lts-ui/src/components/CanvasBoard/index.tsx",
+      "sha256": "c56864c9a7f934de660dbf4c38f111e3c2292b47d975dab5a362adc16608cbf8"
+    },
+    {
+      "path": "demo/lts-ui/src/core/domain/legacyTimelineOperationOrder.ts",
+      "sha256": "029e517b14ab0e09fd09cd5aaf5204ed8566bc4b9eeb3df5881fa2d640182698"
+    },
+    {
+      "path": "demo/lts-ui/src/core/domain/operatorControlTimeline.test.ts",
+      "sha256": "df8fb128c7133e6573058a10317d69138e7de0a5593737471b2920974c75ad94"
+    },
+    {
+      "path": "demo/lts-ui/src/core/domain/operatorControlTimeline.ts",
+      "sha256": "49bf59e79a887e8e3cec2704332246792442626fb761e5aceb1d70a73b111e7c"
+    },
+    {
+      "path": "demo/lts-ui/src/core/domain/sharedVariableRateTimeline.ts",
+      "sha256": "bbede0c2966447953144f8b344a1dfba538f19bb44494364fe5b8c70c2406523"
+    },
+    {
+      "path": "demo/lts-ui/src/core/domain/timelineBatchRemoval.ts",
+      "sha256": "abd2de5f1e72eaaeb166f622d103c4017f2401fd8ff2f6c75c96bcf9dbf83480"
+    },
+    {
+      "path": "demo/lts-ui/src/core/domain/timelineControlDispatch.test.ts",
+      "sha256": "331a54cce5a5c7bf75af03fd6366e47cfb4cb7cdd3e676f6717532ea813fb7a8"
+    },
+    {
+      "path": "demo/lts-ui/src/core/domain/timelineControlDispatch.ts",
+      "sha256": "004dbeee96015044b47d2c5ae860e0a2a38fb3e3c55a337154bd86739856d027"
+    },
+    {
+      "path": "demo/lts-ui/src/core/domain/timelineOperationSequence.test.ts",
+      "sha256": "19da9abb45b1d7abd57b6cb1ad5dc28568cdcdf24a107073aa3b82fa55db96cc"
+    },
+    {
+      "path": "demo/lts-ui/src/core/domain/timelineOperationSequence.ts",
+      "sha256": "0cc06eefd511d1a818b753c6573c362fc165b19b4ae9ba734c9c64a0c1d3fffe"
+    },
+    {
+      "path": "demo/lts-ui/src/core/repositories/skillButtonReadPurity.test.ts",
+      "sha256": "e4e91a07a05356d5546d1532871b24f8305045390f9f0d2f66db291476e51976"
+    },
+    {
+      "path": "demo/lts-ui/src/core/repositories/skillButtonRepository.ts",
+      "sha256": "451fb38bcdecf2c5abb5875d28482239da9133aacfe15673aa863f3ac54c6ce7"
+    },
+    {
+      "path": "demo/lts-ui/src/core/services/timelineService.ts",
+      "sha256": "59ed48e4a08f3ddd7a194da88a89b6ca9c1da52a29effc12397606c9a151d9f9"
+    },
+    {
+      "path": "demo/lts-ui/src/hooks/useTimelineData.ts",
+      "sha256": "c2e5af97fe9b567f6f9f22b080c336a204b0fd1a52ecb2d2c6796752204ebb84"
+    },
+    {
+      "path": "demo/lts-ui/src/integrations/ake/akeExecutionIdentity.ts",
+      "sha256": "884ee010d1bea9606c74fd7912298280541a1391d2869ad1e61dfc1ea63dbf15"
+    },
+    {
+      "path": "demo/lts-ui/src/integrations/ake/akeProvider.ts",
+      "sha256": "ab3b3d9cb88aab55139b6bb123c180fc8db0c8f8dcf694afe590ad903aa8240b"
+    },
+    {
+      "path": "demo/lts-ui/src/integrations/ake/akeRealtimeTimeline.test.ts",
+      "sha256": "dacc2de9f8f57ca51a237daf46c45c79e333d3efce7f0e1274b55994018525e7"
+    },
+    {
+      "path": "demo/lts-ui/src/integrations/ake/akeRealtimeTimeline.ts",
+      "sha256": "c21385860532f66a1a287fbbba38c511133186e4ded56600183d82876d8cfd5f"
+    },
+    {
+      "path": "demo/lts-ui/src/platform/timeline/timelinePayloadCompatibility.ts",
+      "sha256": "52784504e3d5e2131d8b34c27bbfd5747af236f28a85653624a60f29dbd7a5a7"
+    },
+    {
+      "path": "demo/lts-ui/src/types/index.ts",
+      "sha256": "be01d78e42d295ebdefe982cc3c9b6fd2ac46182f467b0401dc3c49e0f6cca07"
+    },
+    {
+      "path": "demo/lts-ui/src/utils/storage.ts",
+      "sha256": "eddd9abe59dfc6e50c0cac6008d67b7561060f7ce17eb0b953305a85e915632c"
+    },
+    {
+      "path": "demo/lts-ui/src/utils/timelineSnapshotStorage.ts",
+      "sha256": "250f29082dea35d31f48bb918385678e34517f811c009bdbbc9b397ae092e477"
+    },
+    {
+      "path": "spec/engine-semantic-mappings.json",
+      "sha256": "b6249deecea5f609aeed309743e34071bcc97f77495dc55111b00132f7f407aa"
+    },
+    {
+      "path": "src/core/ake-action-compiler.mjs",
+      "sha256": "d484dd0c7d8b4f807b4b058e0316d61d18e1aa51ce77b58f03e0704f501250eb"
+    },
+    {
+      "path": "src/core/ake-operation-order.mjs",
+      "sha256": "791793581bba815fdeb9f95bad8e2cc482d77acf16da0fc3605b84e6d2d5ccff"
+    },
+    {
+      "path": "src/core/ake-scenario-assembler.mjs",
+      "sha256": "6e14aecfcf91421917ace8f68a28796f87d6d291a57d1c9c60c960f4b4562169"
+    },
+    {
+      "path": "src/core/ake-scenario-runner.mjs",
+      "sha256": "e727b5a2074e6696ce95d8189cd3f5b4d22b6fe84ad1677cef28b3c3bcf380da"
+    },
+    {
+      "path": "src/core/ake-skill-cast-replacement.mjs",
+      "sha256": "7172f0193b72e3de72561bf401307b8dd1ac7f806dba176b1910fe09bd7e6fd6"
+    },
+    {
+      "path": "src/core/ake-squad-scenario-runner.mjs",
+      "sha256": "afbeae5661ce5fcebbc61185515a55dcd5c250bb06dda62fd53bf4937dedb175"
+    },
+    {
+      "path": "src/core/combat-runtime.mjs",
+      "sha256": "18a0c080412616de60c47025aadb20b39447fb27bf23730913775fee708fdb94"
+    },
+    {
+      "path": "src/core/status-effect-system.mjs",
+      "sha256": "1878d21740a37f487512222930cd8f72656605bf347bdd78852f9c1f49aa9553"
+    },
+    {
+      "path": "test/ake-controller-state.test.mjs",
+      "sha256": "add6e4d9e16a6d89f41144230f3843b3a2e34948f8a615cf296b217a81a4445e"
+    },
+    {
+      "path": "test/ake-operation-order-fixtures.test.mjs",
+      "sha256": "6050db91f41fb5d41c619d7a45322eb9b1221503b21e0753f497be85d6ed7572"
+    },
+    {
+      "path": "test/ake-operation-order.test.mjs",
+      "sha256": "5e710e1392a09c222976d132fdeeb37b2f2ef735a0ab298ddb784532b79d919a"
+    },
+    {
+      "path": "test/ake-release-dependencies.test.mjs",
+      "sha256": "1a1ce475f92b4f1a1826fc1d1bcb581168a9df46d2987d56eb4f135dcff071fb"
+    },
+    {
+      "path": "test/runtime-mechanism-contracts.test.mjs",
+      "sha256": "57b14430651575b39782cebcb1f2cf41fcf979cd2d2321486f8788191d88c034"
+    }
+  ]
+}

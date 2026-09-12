@@ -17,6 +17,26 @@ const members = [T, L].map(characterId => ({ characterId, memberId: characterId,
 const smallRun = overrides => simulateSquadDemo({ members, initialControllerCharacterId: L,
     commands: [], endFrame: 500, ...overrides });
 
+test('v1 actual hit fanout orders ready switches and commands without moving them before the hit', () => {
+    const releaseDependency = { kind: 'damage-hit', sourceCommandId: 'attack',
+        sourceSkillId: `${L}_attack4`, sourceTimelineFrame: 21, delayFrames: 0 };
+    const input = { operationOrderVersion: 1, commands: [
+        { commandId: 'attack', memberId: L, commandType: 'Attack', attackMode: 'full-combo', frame: 0, operationOrder: 9 },
+        { commandId: 'infuse', memberId: L, commandType: 'NormalSkill', frame: 400, operationOrder: 2, releaseDependency },
+    ], operatorSwitches: [
+        { switchId: 'last', characterId: T, frame: 400, operationOrder: 3, releaseDependency },
+        { switchId: 'first', characterId: L, frame: 400, operationOrder: 1, releaseDependency },
+    ] };
+    const result = smallRun(input);
+    assert.equal(executed(result, 'infuse').actualFrame, 106);
+    assert.equal(executed(result, 'infuse').endFrame, 106, 'infusion executes before handoff and preserves the attack');
+    assert.deepEqual(result.controllerEvents.filter(e => e.switchId).map(e => [e.switchId, e.frame]), [['first', 106], ['last', 106]]);
+    const reversed = smallRun({ ...input, commands: [...input.commands].reverse(), operatorSwitches: [...input.operatorSwitches].reverse() });
+    for (const key of ['commands', 'controllerEvents', 'hits', 'statusEvents', 'resourceEvents', 'finalState']) {
+        assert.deepEqual(reversed[key], result[key], key);
+    }
+});
+
 // Real inputs/raw programs through the browser's entry point: an old frame hint
 // must not become a lower bound when moving the whole source sequence earlier.
 test('Camille last impact + 6 follows F395 in both directions and retains two-stack consumption', () => {

@@ -1,0 +1,46 @@
+
+> dmg-end-field@1.8.7 demo:build
+> VITE_AKE_DEMO=1 vite build
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 329 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/akeRdps.worker-BEai0ifn.js                   14.00 kB
+dist/index.html                                          15.01 kB │ gzip:   4.32 kB
+dist/assets/sqlite3-opfs-async-proxy-D_xnb1D8.js         32.29 kB
+dist/assets/sqlite3-worker1-Ydf970DV.js                 213.43 kB
+dist/assets/webDatabase.worker-C7-jQIyI.js              226.25 kB
+dist/assets/sqlite3-BVKGSWc-.wasm                       864.75 kB │ gzip: 401.05 kB
+dist/assets/OperatorConfigPage-CzJAdnkQ.css              35.61 kB │ gzip:   5.71 kB
+dist/assets/mobileShare-C66fFiDU.css                     37.90 kB │ gzip:   7.05 kB
+dist/assets/theme-lieflat-mono-HhlHfvKy.css              38.55 kB │ gzip:   6.77 kB
+dist/assets/theme-apple-variants-BBOHBfdK.css            45.68 kB │ gzip:   5.71 kB
+dist/assets/CanvasBoard-JloFrf31.css                     66.46 kB │ gzip:  11.67 kB
+dist/assets/DamageReportPptPage-CYaxp4Jz.css             68.31 kB │ gzip:  10.69 kB
+dist/assets/WebBootstrap-Blce11uG.css                    72.66 kB │ gzip:  14.15 kB
+dist/assets/index-U2iYu2xu.css                           81.26 kB │ gzip:  14.68 kB
+dist/assets/theme-liquid-tide-Ba7jt-nU.css               86.90 kB │ gzip:  13.51 kB
+dist/assets/theme-apple-business-surfaces-9Wy02fjO.css  114.66 kB │ gzip:  13.14 kB
+dist/assets/mobileShare-BoMFikP4.js                      16.68 kB │ gzip:   6.31 kB
+dist/assets/akeProvider-D3mRDIAO.js                      21.64 kB │ gzip:   7.52 kB
+dist/assets/browser-UN2tJsM5.js                          25.78 kB │ gzip:  10.01 kB
+dist/assets/CanvasBoard-BaUUbFeU.js                      35.22 kB │ gzip:  11.29 kB
+dist/assets/OperatorConfigPage-Bi5L1h_l.js               47.44 kB │ gzip:  12.84 kB
+dist/assets/DamageReportPptPage-C1wkV6Lg.js              80.93 kB │ gzip:  25.74 kB
+dist/assets/theme-liquid-runtime-BBXC1Mbu.js             87.12 kB │ gzip:  26.95 kB
+dist/assets/jsQR-CX8__AdC.js                            130.72 kB │ gzip:  47.27 kB
+dist/assets/index-BBlK-5fo.js                           171.95 kB │ gzip:  57.17 kB
+dist/assets/akeWorkspace-D7863Joi.js                    283.87 kB │ gzip:  79.03 kB
+dist/assets/WebBootstrap-C4TML9l8.js                    289.43 kB │ gzip:  60.88 kB
+dist/assets/index-C3npx20z.js                           863.32 kB │ gzip: 306.69 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.22s

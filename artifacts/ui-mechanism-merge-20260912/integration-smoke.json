@@ -1,0 +1,75 @@
+{
+  "passed": true,
+  "serviceHydrationWrites": 0,
+  "explicitSequenceSaveWrites": 1,
+  "operationOrderVersion": 1,
+  "operationOrders": [
+    {
+      "id": "S",
+      "order": 2
+    },
+    {
+      "id": "C",
+      "order": 0
+    },
+    {
+      "id": "X",
+      "order": 1
+    }
+  ],
+  "previewControl": {
+    "X": {
+      "frame": 0,
+      "dispatchOrdinal": 0,
+      "controllerBefore": "chr_0026_lastrite",
+      "controllerAfter": "chr_0027_tangtang"
+    },
+    "S": {
+      "frame": 0,
+      "dispatchOrdinal": 1,
+      "controllerBefore": "chr_0027_tangtang",
+      "controllerAfter": "chr_0027_tangtang"
+    },
+    "C": {
+      "frame": 0,
+      "dispatchOrdinal": 2,
+      "controllerBefore": "chr_0027_tangtang",
+      "controllerAfter": "chr_0027_tangtang"
+    }
+  },
+  "commands": [
+    {
+      "id": "C",
+      "actualFrame": 0,
+      "success": true
+    },
+    {
+      "id": "S",
+      "actualFrame": 0,
+      "success": true
+    }
+  ],
+  "controllerEvents": [
+    {
+      "stage": "MainCharacterChanged",
+      "frame": 0,
+      "previousCharacterId": null,
+      "characterId": "chr_0026_lastrite",
+      "reason": "InitialController",
+      "switchId": null
+    },
+    {
+      "stage": "MainCharacterChanged",
+      "frame": 0,
+      "previousCharacterId": "chr_0026_lastrite",
+      "characterId": "chr_0027_tangtang",
+      "reason": "TimelineOperatorSwitch",
+      "switchId": "X"
+    }
+  ],
+  "recordingEvents": [
+    "AkeCalculationRequested",
+    "AkeCalculationCompleted"
+  ],
+  "scope": "Synthetic UI input, real catalog/provider/demo/runner; service hydration only, no React effects or browser validation."
+}

@@ -1,0 +1,9 @@
+[run-ts-test] /src/core/domain/timelineControlDispatch.test.ts
+control dispatcher: causal switches, independent switch visibility and ready batch FIFO passed
+[run-ts-test] /src/core/domain/timelineOperationSequence.test.ts
+timeline operation sequence: strict identity, immutable migration, edit and snapshot roundtrip passed
+[run-ts-test] /src/integrations/ake/akeRealtimeTimeline.test.ts
+[run-ts-test] /src/platform/timeline/timelinePayloadCompatibility.test.ts
+Legacy Share Data timeline payload compatibility: PASS
+[run-ts-test] /src/utils/timelineSnapshotStorage.test.ts
+Timeline snapshot JSON boundary normalization: PASS

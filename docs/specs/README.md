@@ -6,7 +6,7 @@
 
 - [技能扣费、冷却归属与独立叠层修复](./runtime-mechanism-contracts/spec.md)：三项修复已实现并完成有限验收和整合审查；范围与证据见 [任务表](./runtime-mechanism-contracts/tasks.md) 和 [实施记录](./runtime-mechanism-contracts/implementation.md)。
 
-- [排轴执行顺序与渲染分离](./timeline-execution-order/spec.md)：时间、因果与同帧操作序号独立于像素；旧存档/RIA 兼容、前端预演与根引擎双线实施。已接受，尚未实现；详见 [任务表](./timeline-execution-order/tasks.md)。
+- [排轴执行顺序与渲染分离](./timeline-execution-order/spec.md)：已将 `codex/ui-0912` 与主库机制修复合并，补齐按钮读取的隐式写回；保留结算后控制流与历史 UI 存档验收边界，见 [主库合并记录](./timeline-execution-order/implementation-main-merge.md) 和 [任务表](./timeline-execution-order/tasks.md)。
 
 - [排轴状态来源与时序](./timeline-state-flow/spec.md)：区分效果来源、触发动作与生效时刻；普通和阅读视图独立显示状态变化与持续。
 

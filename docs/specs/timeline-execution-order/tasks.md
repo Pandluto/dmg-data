@@ -2,7 +2,7 @@
 
 对应 [Spec](spec.md)。基线 `9ff9f94`；共同规格提交 `11ef693b867b83fb733db9db69c186eb8500a702`；状态：2026-09-12 已派发 A/B，实现进行中。任务打勾必须有对应提交与证据，派发不算实现完成。
 
-**当前交付：** B 已回传 `f304315`、`b2f322e`、`b9f0bca`；主任务完成运行时差异审查，并接入隔离集成分支 `codex/timeline-order-integration`（对应 `b4a82f8`、`21f06f1`、`6e65c9d`）。A 仍在补齐来源事件驱动的同帧控制计划、迁移上下文及保存接线；完整前后端验收尚未完成。B 的七类事实对照、既有测试失败及 trace 元数据修订见其交付分支的 implementation-runtime.md，不代表主库已接入业务代码。
+**当前交付：** 已按用户要求集成到本地 `codex/ui-0912`。B 的实现为 `b4a82f8` / `6e65c9d`，A 与主任务的保存、预演及顺序实现为 `b71e537` / `2a0ae61`。类型检查、构建和实际 provider → demo → runner 的离线调用通过；保留的验收缺口见 [集成记录](implementation-integration.md)。浏览器及旧服务未改动；用户新增授权下另开 `43822` 预览端口。
 
 ## 分工与运行约束
 
@@ -10,7 +10,7 @@
 | --- | --- | --- | --- |
 | A：前端逻辑顺序与持久化 | 实现排轴阅读模式，`01a07602-198b-7573-9b51-15b32989b99b` | `/Users/sailstellar/.codex/worktrees/a548/dmg-timeline-order-frontend` | `codex/timeline-order-frontend` |
 | B：小队输入与运行时调度 | 实现排轴批量选择与队尾删除，`01a07602-7aae-7f53-9d87-d74acbf5c20b` | `/Users/sailstellar/.codex/worktrees/b014/dmg-timeline-order-runtime` | `codex/timeline-order-runtime` |
-| 主任务：设计、协调、审查与隔离集成 | 提升项目 UI 与机制，`01a06f92-30c4-7c91-bffc-497fa9aa3564` | `/Users/sailstellar/.codex/worktrees/4c1f/dmg-timeline-order-integration`；主库只写文档 | `codex/timeline-order-integration` |
+| 主任务：设计、协调、审查与隔离集成 | 提升项目 UI 与机制，`01a06f92-30c4-7c91-bffc-497fa9aa3564` | `/Users/sailstellar/.codex/worktrees/4c1f/dmg-timeline-order-integration`；主库只写文档 | `codex/ui-0912` |
 
 保留两个任务现有 GPT-6 / low 配置，不改模型，不另建任务。A/B 都从包含本 Spec/tasks 的同一提交起步，不从各自旧阅读/批量分支继续施工。
 
@@ -147,8 +147,8 @@
 
 ## 主任务后续：审查与隔离集成
 
-- [ ] I-01 收两任务提交/证明与偏离点，检查它们使用同一字段/版本；不要把旧分支所有历史改动一起合并。
-- [ ] I-02 将 A/B 指定提交合到新的隔离集成工作树，保留现有服务器的主库业务代码原样；冲突按 Spec 裁决。
+- [x] I-01 收两任务提交/证明与偏离点，检查它们使用同一字段/版本；只接入本轮指定提交。
+- [x] I-02 将 A/B 指定提交合到隔离集成工作树的 `codex/ui-0912`，保留现有服务器的主库业务代码原样。
 - [ ] I-03 检查 A 的真实请求经 B 的服务/runner/RIA 入口往返；重读原小型 fixture 和合成存档序列，完成 AC-01 至 AC-11 相关离线检查。
 - [ ] I-04 扫描像素进入准入/输入的残留路径，区分合法渲染、明确 legacy 兼容与错误新路径；核对稳定排序字段进入摘要和存档。
 - [ ] I-05 回填 Spec/tasks 的实现与证据，不将 AC-12 浏览器验收标成通过。向用户交付可合并提交、结论与未覆盖项；主库/服务接入按运行约束另行协调。

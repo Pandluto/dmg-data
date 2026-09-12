@@ -4,7 +4,7 @@
 
 ## 当前 Spec
 
-- [排轴执行顺序与渲染分离](./timeline-execution-order/spec.md)：时间、因果与同帧操作序号独立于像素；旧存档/RIA 兼容、前端预演与根引擎双线实施。已接受，尚未实现；详见 [任务表](./timeline-execution-order/tasks.md)。
+- [排轴执行顺序与渲染分离](./timeline-execution-order/spec.md)：时间、因果与同帧操作序号独立于像素；已集成本地 `codex/ui-0912` 预览分支，保留结算后控制流与历史 UI 存档验收边界；详见 [任务表](./timeline-execution-order/tasks.md)。
 
 - [排轴状态来源与时序](./timeline-state-flow/spec.md)：区分效果来源、触发动作与生效时刻；普通和阅读视图独立显示状态变化与持续。
 

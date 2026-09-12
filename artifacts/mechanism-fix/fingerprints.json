@@ -1,0 +1,15 @@
+{
+  "src/core/ake-action-compiler.mjs": "d484dd0c7d8b4f807b4b058e0316d61d18e1aa51ce77b58f03e0704f501250eb",
+  "src/core/ake-scenario-assembler.mjs": "6e14aecfcf91421917ace8f68a28796f87d6d291a57d1c9c60c960f4b4562169",
+  "src/core/ake-scenario-runner.mjs": "e727b5a2074e6696ce95d8189cd3f5b4d22b6fe84ad1677cef28b3c3bcf380da",
+  "src/core/ake-skill-cast-replacement.mjs": "7172f0193b72e3de72561bf401307b8dd1ac7f806dba176b1910fe09bd7e6fd6",
+  "src/core/ake-squad-scenario-runner.mjs": "6f3dcf5c540e6a6b53693a270bb4f524078fb8cc882d7a1387a20d05bf440867",
+  "src/core/combat-runtime.mjs": "18a0c080412616de60c47025aadb20b39447fb27bf23730913775fee708fdb94",
+  "src/core/status-effect-system.mjs": "1878d21740a37f487512222930cd8f72656605bf347bdd78852f9c1f49aa9553",
+  "spec/engine-semantic-mappings.json": "b6249deecea5f609aeed309743e34071bcc97f77495dc55111b00132f7f407aa",
+  "fixtures/runtime-mechanism-contracts/F-enhanced-attack-cooldown.minimal.json": "c9c7e6dd6d7806391b48a14f5337bf8527350ee2d94f07be63148c16c7d04dbd",
+  "fixtures/runtime-mechanism-contracts/F-independent-weapon-stacks.minimal.json": "3ef43de823c11627b2d17382c516d74ac3c4d6394d8c32aa94011cb24f85a7ef",
+  "fixtures/runtime-mechanism-contracts/F-ultimate-cost-event.minimal.json": "bd8e53bed0245682ecdd015f9b0208b4894ffea80df04367d7fba23b4e1f4b53",
+  "reference/public-data/akedata/Json/BuffData/buff_wpn_sword_0019_up.json": "56f40ba5b5dcf657283032a8bb8ca5a33a94d599ac52f59b7f234859fe1cb62c",
+  "reference/public-data/akedata/TableCfg/I18nTextTable_CN.json": "9f71031d4f46bde8ae0acac21d035116502477d8aca4d0fbb701106c9e6672f4"
+}

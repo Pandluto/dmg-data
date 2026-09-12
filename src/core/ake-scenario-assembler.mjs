@@ -313,15 +313,17 @@ function skillCooldownDefinitions(characterId, roles, programs) {
         .filter(([skillId]) => String(skillId).startsWith(ownPrefix))
         .map(([skillId, program]) => {
             const inferredType = SKILL_SPECIFICATION_TYPES[program.skillSpecification] ?? null;
-            const binding = catalog.get(skillId) ?? (inferredType ? {
+            const directoryBinding = catalog.get(skillId) ?? null;
+            const binding = inferredType ? {
                 skillType: inferredType,
-                // Child/alternate SkillData inherits the public command
-                // group's cooldown even when it is absent from skillIdList.
+                // Program identity determines the semantic group. Directory entries
+                // can include attacks used by an ultimate without sharing its
+                // cooldown. Same-type base/alternate programs still share.
                 groupId: `${characterId}:${inferredType}`
-            } : {
+            } : directoryBinding ?? {
                 skillType: null,
                 groupId: skillId
-            });
+            };
             return {
                 actorId: characterId,
                 skillId,
@@ -329,7 +331,9 @@ function skillCooldownDefinitions(characterId, roles, programs) {
                 groupId: binding.groupId,
                 baseDurationTicks: Number(program.cooldownTicks ?? 0),
                 metadata: {
-                    skillSpecification: program.skillSpecification ?? null
+                    skillSpecification: program.skillSpecification ?? null,
+                    directorySkillType: directoryBinding?.skillType ?? null,
+                    bindingSource: inferredType ? 'SkillData.skillSpecification' : 'Character.skillGroupMap'
                 }
             };
         });

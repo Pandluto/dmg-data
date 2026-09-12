@@ -42,6 +42,10 @@ runner 对每个输入依次处理：
 
 同一角色通过 `CastSkill` 启动派生技能后，准入判定跟随实际程序的类型、优先级、局部时间和 AllowNext/独占窗口。`CombatRuntime.getSkillProgramControl` 读取该程序的执行状态；两个 runner 保留原按钮与 root cast 身份，但不再拿入口包装技能的占用时间和优先级判断后续输入。准入 trace 同时记录 `currentInputSkillId / currentInputCommandType / currentCastId`。这防止强化战技已按连携技执行时，仍被下一次连携技当作低优先级战技提前中断。
 
+技能真实扣费由 `CombatRuntime.applySkillCost` 同时提交资源变化和事件通知。单人、小队、派生及替代施法沿用各自准入与显式跳过条件；成功且实际消耗非零才发布 `OnAfterSkillApplyCost`，事件保留当前 cast 与实际技能身份。
+
+冷却装配优先采用程序的 `SkillData.skillSpecification`，缺失时才回退角色目录。角色内同类型普通/替代程序仍共享组；目录收录在终结技下的普通攻击不会因此占用终结技冷却。
+
 ## 条件与值图
 
 AKE 条件不是一组互不相关的布尔 action。compiler 先解释 condition list，再生成运行时谓词：
@@ -87,6 +91,10 @@ start / expire / next trigger
 local and inherited blackboard
 exit reason
 ```
+
+`stacking.lifetimePolicy = Independent` 是显式的逐层寿命声明，仅适用于共享上限的 `AddStack`。每层保留授予来源、计时器与期限；新层不刷新旧层，到期经既有移层/结束生命周期同步属性，并另记 `StatusEffectStackExpired`。暂停和 expiry lease 覆盖每个层计时器，清除或消费后计时器不能使状态复活。摘要 `expireFrame` 是有效层的最晚期限，暂停或无限期时为空；层记录保留各自期限。
+
+当前只有轻芒 Buff 的来源映射启用该策略，依据武器文本明确的独立持续时间。未证实的满层替换顺序不作推定：新层超上限时丢弃并保留 `discarded`，不刷新旧层；显式消费沿用已有后进先出的默认次序。其他 `HighPriorityWithMaxStack` 仍使用原共享寿命，`Independent` 实例策略也保持原义。见 [实施与边界](../specs/runtime-mechanism-contracts/implementation.md)。
 
 同一个 `buffId` 不是全局单例；相同 stacking key 也只是互斥或叠层槽，不等于相同 Buff 身份。
 

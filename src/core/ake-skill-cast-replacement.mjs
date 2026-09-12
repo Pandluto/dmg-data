@@ -16,14 +16,14 @@ export function executeAkeSkillCastReplacement(runtime, skill, context) {
         blackboard: structuredClone(skill.blackboard ?? {}) };
     runtime.registerCastLineage({ castId });
     const amount = Number(skill.costValue ?? 0);
-    if (amount > 0) runtime.resources.spend({ frame,
+    if (amount > 0) runtime.applySkillCost({ frame,
         poolRef: skill.costType === 'Atb'
             ? { resourceType: 'Atb', scope: 'Shared', ownerId: null }
             : { resourceType: skill.costType, scope: 'Entity', ownerId: sourceId },
         amount, sourceId, ownerId: sourceId,
         targetId: skill.costType === 'Atb' ? null : sourceId,
         reason: 'CastCost', commandId, castId, skillId,
-        resourceSourceType: 'Skill', resourceGainMethod: 'Spend' });
+        resourceSourceType: 'Skill', resourceGainMethod: 'Spend' }, castContext);
     if (Number(skill.cooldownTicks) > 0) runtime.cooldowns.start({ frame,
         actorId: sourceId, memberId: context.memberId, skillId,
         skillType: castContext.skillType, durationTicks: Number(skill.cooldownTicks),

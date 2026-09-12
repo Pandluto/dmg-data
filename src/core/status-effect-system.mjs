@@ -141,7 +141,13 @@ function normalizedStacking(definition, input, blackboard = {}) {
     if (!['Id', 'StackingKey'].includes(identifierType)) {
         throw new Error(`Unsupported status-effect stacking identifier: ${identifierType}`);
     }
+    const lifetimePolicy = raw.lifetimePolicy ?? 'Shared';
+    if (!['Shared', 'Independent'].includes(lifetimePolicy)
+        || (lifetimePolicy === 'Independent' && aliases[policy] !== 'AddStack')) {
+        throw new Error('Independent stack lifetime requires an AddStack policy.');
+    }
     return {
+        lifetimePolicy,
         policy: aliases[policy],
         key: configuredKey === undefined || configuredKey === null || configuredKey === ''
             ? input.buffId
@@ -355,7 +361,8 @@ export class StatusEffectSystem {
         }
         if (existing && ['Refresh', 'AddStack', 'TimedGrowingEnhance'].includes(stacking.policy)) {
             const before = existing.stackCount;
-            this.#cancelTimer(existing, frame, 'Refreshed');
+            const independent = existing.stackLifetimePolicy === 'Independent';
+            if (!independent) this.#cancelTimer(existing, frame, 'Refreshed');
             const addsStack = ['AddStack', 'TimedGrowingEnhance'].includes(stacking.policy);
             const eventManagedEnhancement = addsStack
                 && input.triggerEnhancementEvent === true
@@ -371,7 +378,9 @@ export class StatusEffectSystem {
             existing.expireFrame = durationTicks === null ? null : frame + durationTicks;
             Object.assign(existing, attribution);
             existing.actionClockDomainId = actionClockDomainId;
-            this.#scheduleExpiry(existing);
+            if (independent) {
+                if (existing.stackCount > before) this.#addStackLayer(existing, frame, attribution);
+            } else this.#scheduleExpiry(existing);
             this.#schedulePeriodicTrigger(existing, frame);
             this.#scheduleTimedGrowth(existing, frame);
             this.#restoreTimerPauseState(existing, frame, 'StatusEffectRefreshedWhileHeld');
@@ -451,6 +460,9 @@ export class StatusEffectSystem {
             stackingKey: stacking.key,
             stackingIdentifierType: stacking.identifierType,
             stackingPolicy: stacking.policy,
+            stackLifetimePolicy: stacking.lifetimePolicy,
+            stackLayers: [],
+            nextStackLayerId: 0,
             stackingScope: stacking.scope,
             stackCount: Math.min(requestedStackCount, stacking.maxStacks),
             maxStacks: stacking.maxStacks,
@@ -487,7 +499,11 @@ export class StatusEffectSystem {
             count: instance.stackCount
         }];
         this.instances.set(instance.instanceId, instance);
-        this.#scheduleExpiry(instance);
+        if (instance.stackLifetimePolicy === 'Independent') {
+            for (let i = 0; i < instance.stackCount; i += 1) {
+                this.#addStackLayer(instance, frame, attribution);
+            }
+        } else this.#scheduleExpiry(instance);
         const transition = this.#record(instance, frame, 'StatusEffectApplied', {
             before: 0,
             requested: instance.stackCount,
@@ -732,24 +748,13 @@ export class StatusEffectSystem {
                 : null;
 
             let timerTransition = null;
-            if (beforeHeld !== afterHeld && instance.timerId !== null) {
-                if (!this.clockDomains) {
-                    throw new Error('Cannot hold a finite status-effect expiry without clock domains.');
-                }
-                if (afterHeld) {
-                    timerTransition = this.clockDomains.pauseTimer(
-                        instance.clockDomainId,
-                        instance.timerId,
-                        frame,
-                        input.reason ?? 'ExtendBuffAction'
-                    );
-                } else if (!instance.timePaused) {
-                    timerTransition = this.clockDomains.resumeTimer(
-                        instance.clockDomainId,
-                        instance.timerId,
-                        frame,
-                        input.reason ?? 'ExtendBuffActionReleased'
-                    );
+            if (beforeHeld !== afterHeld) {
+                for (const reference of this.#timerReferences(instance).filter(ref => ref.kind === 'expiry')) {
+                    if (!this.clockDomains) throw new Error('Cannot hold expiry without clock domains.');
+                    if (afterHeld) timerTransition = this.clockDomains.pauseTimer(
+                        reference.domainId, reference.timerId, frame, input.reason ?? 'ExtendBuffAction');
+                    else if (!instance.timePaused) timerTransition = this.clockDomains.resumeTimer(
+                        reference.domainId, reference.timerId, frame, input.reason ?? 'ExtendBuffActionReleased');
                 }
             }
 
@@ -1191,7 +1196,7 @@ export class StatusEffectSystem {
                 const before = instance.stackCount;
                 const removedLayers = Math.min(requestedLayers, instance.stackCount);
                 instance.stackCount -= removedLayers;
-                const bySource = this.#consumeStackSources(instance, removedLayers);
+                const bySource = this.#consumeStackSources(instance, removedLayers, frame, input.layerId);
                 const transition = this.#record(instance, frame, 'StatusEffectStackRemoved', {
                     reason: input.reason ?? 'Finished',
                     ...triggerAttribution,
@@ -1227,7 +1232,7 @@ export class StatusEffectSystem {
             instance.active = false;
             instance.generation += 1;
             this.#cancelTimer(instance, frame, input.reason ?? 'Finished');
-            const bySource = this.#consumeStackSources(instance, instance.stackCount);
+            const bySource = this.#consumeStackSources(instance, instance.stackCount, frame, input.layerId);
             const transition = this.#record(instance, frame, 'StatusEffectFinished', {
                 reason: input.reason ?? 'Finished',
                 ...triggerAttribution,
@@ -1449,6 +1454,9 @@ export class StatusEffectSystem {
             references.push({ key, domainId, timerId, kind });
         };
         add(instance.clockDomainId, instance.timerId, 'expiry');
+        for (const layer of instance.stackLayers ?? []) {
+            add(instance.clockDomainId, layer.timerId, 'expiry');
+        }
         for (const timerId of instance.timelineTimerIds ?? []) {
             add(instance.clockDomainId, timerId, 'timeline');
         }
@@ -1491,6 +1499,34 @@ export class StatusEffectSystem {
         instance.expireFrame = expiryTimer?.paused
             ? null
             : expiryTimer?.deadlineFrame ?? instance.expireFrame;
+    }
+
+    // Independent layer clocks survive later applications and instance generations.
+    #addStackLayer(instance, frame, attribution) {
+        const layer = { id: ++instance.nextStackLayerId, sourceId: attribution.sourceId,
+            ownerId: attribution.ownerId, appliedFrame: frame, timerId: null,
+            expireFrame: instance.durationTicks === null ? null : frame + instance.durationTicks };
+        instance.stackLayers.push(layer);
+        if (instance.durationTicks === null) return;
+        const onComplete = expiryFrame => {
+            if (!instance.active || !instance.stackLayers.includes(layer)) return;
+            const before = instance.stackCount;
+            this.finish({ frame: expiryFrame, instanceId: instance.instanceId,
+                finishAll: false, stackCount: 1, layerId: layer.id, reason: 'IndependentLayerExpired' });
+            const transition = this.#record(instance, expiryFrame, 'StatusEffectStackExpired', {
+                layerId: layer.id, before, after: before - 1, stackCount: before - 1, actual: 1,
+                reason: 'IndependentLayerExpired' });
+            this.trace.push(transition);
+            this.onTransition(plainClone(transition));
+        };
+        if (this.clockDomains) {
+            layer.timerId = this.clockDomains.startTimer(instance.clockDomainId, {
+                frame, durationTicks: instance.durationTicks, priority: 90,
+                label: `status-layer:${instance.instanceId}:${layer.id}`, onComplete });
+        } else if (this.schedule) {
+            this.schedule(layer.expireFrame, 90, () => onComplete(layer.expireFrame),
+                `status-layer:${instance.instanceId}:${layer.id}`);
+        } else throw new Error('Independent finite stacks require a scheduler.');
     }
 
     #scheduleExpiry(instance) {
@@ -1797,7 +1833,7 @@ export class StatusEffectSystem {
         instance.growthGeneration = (instance.growthGeneration ?? 0) + 1;
         if (!this.clockDomains) return;
         if (typeof this.clockDomains.cancelTimer === 'function') {
-            for (const timerId of [instance.timerId, ...(instance.timelineTimerIds ?? [])]) {
+            for (const timerId of [instance.timerId, ...(instance.stackLayers ?? []).map(layer => layer.timerId), ...(instance.timelineTimerIds ?? [])]) {
                 if (timerId !== null) {
                     this.clockDomains.cancelTimer(instance.clockDomainId, timerId, frame, reason);
                 }
@@ -1925,6 +1961,7 @@ export class StatusEffectSystem {
     }
 
     #record(instance, frame, stage, extra = {}) {
+        this.#syncStackDeadlines(instance);
         const sequence = this.nextEventSequence++;
         return {
             eventId: `status-event:${sequence}`,
@@ -1977,7 +2014,20 @@ export class StatusEffectSystem {
         };
     }
 
-    #consumeStackSources(instance, requestedCount) {
+    #consumeStackSources(instance, requestedCount, frame, layerId) {
+        if (instance.stackLifetimePolicy === 'Independent') {
+            const selected = layerId === undefined
+                ? instance.stackLayers.slice(-requestedCount)
+                : instance.stackLayers.filter(layer => layer.id === layerId);
+            for (const layer of selected) {
+                if (this.clockDomains && layer.timerId !== null) {
+                    this.clockDomains.cancelTimer(instance.clockDomainId, layer.timerId, frame, 'StackRemoved');
+                }
+            }
+            instance.stackLayers = instance.stackLayers.filter(layer => !selected.includes(layer));
+            instance.stackSources = instance.stackLayers.map(layer => ({ sourceId: layer.sourceId, ownerId: layer.ownerId, count: 1 }));
+            return selected.map(layer => ({ sourceId: layer.sourceId, ownerId: layer.ownerId, count: 1 }));
+        }
         let remaining = Math.max(0, Number(requestedCount) || 0);
         const consumed = new Map();
         for (let index = instance.stackSources.length - 1;
@@ -2001,7 +2051,25 @@ export class StatusEffectSystem {
         return [...consumed.values()];
     }
 
+    #syncStackDeadlines(instance) {
+        if (instance.stackLifetimePolicy !== 'Independent') return;
+        for (const layer of instance.stackLayers) {
+            const timer = this.clockDomains && layer.timerId !== null
+                ? this.clockDomains.timer(instance.clockDomainId, layer.timerId) : null;
+            if (timer) {
+                layer.expireFrame = timer.paused ? null : timer.deadlineFrame;
+                layer.remainingDurationTicks = timer.paused ? timer.remainingTicks : null;
+            }
+        }
+        const deadlines = instance.stackLayers.map(layer => layer.expireFrame);
+        instance.expireFrame = deadlines.length && deadlines.every(Number.isFinite)
+            ? Math.max(...deadlines) : null;
+        instance.remainingDurationTicks = instance.stackLayers.some(layer => layer.remainingDurationTicks != null)
+            ? Math.max(...instance.stackLayers.map(layer => layer.remainingDurationTicks ?? 0)) : null;
+    }
+
     #publicInstance(instance) {
+        this.#syncStackDeadlines(instance);
         const { definition: _definition, generation: _generation, ...publicInstance } = instance;
         return plainClone(publicInstance);
     }

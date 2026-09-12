@@ -1,0 +1,10 @@
+✔ COST-01 successful ultimate pays once and grants the source-defined weapon buff (5428.885542ms)
+✔ skill cost transaction notifies once for success and never for zero or failure (0.496584ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5539.615708

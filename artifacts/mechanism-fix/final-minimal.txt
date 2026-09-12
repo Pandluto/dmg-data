@@ -1,0 +1,13 @@
+✔ COST-01 successful ultimate pays once and grants the source-defined weapon buff (5385.564708ms)
+✔ IDENTITY-01 enhanced normal attack executes after ultimate action end (261.940833ms)
+✔ STACK-01 independently timed weapon stacks expire with their attribute contribution (211.982459ms)
+✔ skill cost transaction notifies once for success and never for zero or failure (0.482833ms)
+✔ stack lifetime preserves shared refresh, independent expiry, consumption and clear (0.998834ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5960.378917

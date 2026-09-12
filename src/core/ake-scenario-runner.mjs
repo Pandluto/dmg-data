@@ -864,7 +864,7 @@ export class AkeScenarioRunner {
 
             const cost = Number(skill.costValue ?? 0);
             if (cost > 0) {
-                runtime.resources.spend({
+                runtime.applySkillCost({
                     frame,
                     poolRef: poolRef(skill.costType, characterId),
                     amount: cost,
@@ -877,6 +877,21 @@ export class AkeScenarioRunner {
                     skillId,
                     resourceSourceType: 'Skill',
                     resourceGainMethod: 'Spend'
+                }, {
+                    frame,
+                    sourceId: characterId,
+                    ownerId: characterId,
+                    targetId: enemyId,
+                    commandId,
+                    castId,
+                    rootCastId: castId,
+                    skillId,
+                    rootSkillId: skillId,
+                    inputSkillId: skillId,
+                    inputCommandType: commandType,
+                    effectiveSkillType: skill.effectiveSkillType ?? commandType,
+                    skillType: skill.effectiveSkillType ?? commandType,
+                    blackboard: clone(skill.blackboard ?? {})
                 });
             }
             if (Number(skill.cooldownTicks) > 0) {

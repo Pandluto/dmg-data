@@ -1737,6 +1737,31 @@
         }
       ],
       "notes": "This mapping fills an omitted entity-prefab value through the generic assembler mapping layer. It is intentionally scoped by compiled skill evidence; the runtime does not branch on Wulfa or on a hard-coded skill id."
+    },
+    {
+      "id": "akedata.sword-0019.independent-stack-lifetime",
+      "actionType": "StatusStackLifetimeRule",
+      "selector": {
+        "buffId": "buff_wpn_sword_0019_up"
+      },
+      "effect": {
+        "lifetimePolicy": "Independent",
+        "overflowPolicy": "DiscardNew"
+      },
+      "confidence": "public-data-inferred",
+      "evidence": [
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/Json/BuffData/buff_wpn_sword_0019_up.json",
+          "observation": "HighPriorityWithMaxStack defines the shared cap and attribute scaling; it does not itself prove lifetime behavior."
+        },
+        {
+          "type": "public-data",
+          "path": "reference/public-data/akedata/TableCfg/I18nTextTable_CN.json",
+          "observation": "Weapon description key -8975329607564179893 explicitly states each layer has independent duration."
+        }
+      ],
+      "notes": "Only this evidenced Buff opts in. At cap, discard new layers without renewing old ones; replacement order is unproven."
     }
   ]
 }

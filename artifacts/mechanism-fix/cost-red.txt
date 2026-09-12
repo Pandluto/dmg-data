@@ -13,9 +13,9 @@
 test at test/runtime-mechanism-contracts.test.mjs:16:1
 ✖ COST-01 successful ultimate pays once and grants the source-defined weapon buff (5665.076458ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
-  
+
   0 !== 1
-  
+
       at TestContext.<anonymous> (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/mechanism-fix-source/test/runtime-mechanism-contracts.test.mjs:20:12)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)

@@ -13,9 +13,9 @@
 test at test/runtime-mechanism-contracts.test.mjs:47:1
 ✖ STACK-01 independently timed weapon stacks expire with their attribute contribution (5385.160875ms)
   AssertionError [ERR_ASSERTION]: F701
-  
+
   3 !== 2
-  
+
       at TestContext.<anonymous> (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/mechanism-fix-source/test/runtime-mechanism-contracts.test.mjs:53:16)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)

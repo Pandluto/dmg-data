@@ -13,9 +13,9 @@
 test at test/runtime-mechanism-contracts.test.mjs:35:1
 ✖ IDENTITY-01 enhanced normal attack executes after ultimate action end (5240.94075ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
-  
+
   false !== true
-  
+
       at TestContext.<anonymous> (file:///Users/sailstellar/.codex/worktrees/4c1f/dmg-data/mechanism-fix-source/test/runtime-mechanism-contracts.test.mjs:38:12)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)

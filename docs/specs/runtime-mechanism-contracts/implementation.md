@@ -2,7 +2,7 @@
 
 状态：2026-09-12 实现及有限验收完成，待主任务审查与整合。对应 [Spec](spec.md) 与 [tasks](tasks.md)。
 
-基线 `0619485d49a473bcf38d98439f5bba03db3ca11f`；分支 `codex/runtime-mechanism-contracts`；工作树 `/Users/sailstellar/.codex/worktrees/4c1f/dmg-data/mechanism-fix-source`。源码提交随本记录一并提交，可用 `git log -1 --format=%H -- src/core/status-effect-system.mjs` 取得；逐文件 SHA-256 见 [指纹](../../../artifacts/mechanism-fix/fingerprints.json)。原 audit-source、results、最小/完整输入及封存 RIA 均未修改。
+基线 `0619485d49a473bcf38d98439f5bba03db3ca11f`；分支 `codex/runtime-mechanism-contracts`；工作树 `/Users/sailstellar/.codex/worktrees/4c1f/dmg-data/mechanism-fix-source`。源码提交 `7f7b6a1248d59c77dd9a7f7f83ee68839ab356d1`；逐文件 SHA-256 见 [指纹](../../../artifacts/mechanism-fix/fingerprints.json)。原 audit-source、results、最小/完整输入及封存 RIA 均未修改。
 
 ## 实现与依据
 
@@ -23,7 +23,7 @@
 | 通用状态对照 | — | 共享刷新、独立到期、暂停恢复、部分移层、清除后不复活 |
 | 既有共享冷却定向用例 | — | 组共享、角色隔离、比例缩短通过 |
 
-红灯日志 [费用](../../../artifacts/mechanism-fix/cost-red.txt)、[身份](../../../artifacts/mechanism-fix/identity-red.txt)、[层数](../../../artifacts/mechanism-fix/stack-red.txt)。最终 [五个新增测试](../../../artifacts/mechanism-fix/final-minimal.txt) 全通过；[既有冷却](../../../artifacts/mechanism-fix/shared-cooldown.txt) 通过。施工中修正过测试代码自身的错误字段访问，非额外产品缺陷；完善属性断言与生命周期实现后重跑本小测试文件。没有扩成角色矩阵。
+红灯日志 [费用](../../../artifacts/mechanism-fix/cost-red.txt)、[身份](../../../artifacts/mechanism-fix/identity-red.txt)、[层数](../../../artifacts/mechanism-fix/stack-red.txt)。最终 [五个新增测试](../../../artifacts/mechanism-fix/final-minimal.txt) 全通过；[既有冷却](../../../artifacts/mechanism-fix/shared-cooldown.txt) 通过。提交后仅清理测试日志空白行尾随空格，不改变日志内容或重新运行用例。施工中修正过测试代码自身的错误字段访问，非额外产品缺陷；完善属性断言与生命周期实现后重跑本小测试文件。没有扩成角色矩阵。
 
 [完整输入重放](../../../artifacts/mechanism-fix/full-replays.jsonl)：三个原完整输入各运行一次，均通过；终结技 Buff 在 F0 授予，强化攻击 F75 成功，轻芒完整样本 F778/F805/F838 为 2/1/0。各次运行 assemblerDiagnostics 为空、运行时 unresolvedEffectCount=0、missingSkill/BuffCount=0；compilerUnresolvedEffectCount 仍为 296，未宣称清零或额外验证这些节点。
 

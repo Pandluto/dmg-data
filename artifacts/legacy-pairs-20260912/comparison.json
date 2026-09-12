@@ -1,0 +1,998 @@
+{
+  "baselineCommit": "9ff9f948436ef26ab7a599b5c4ab11eba27aac90",
+  "currentCommit": "584c0b3cfa74e978689cc3416dc4b242c6244271",
+  "nodeVersion": "v24.16.0",
+  "comparedAt": "2026-09-12T02:38:54.989Z",
+  "normalization": {
+    "removed": [
+      "generatedAt",
+      "hits[].traceIndex",
+      "hits[].statusEventSequenceBeforeHit",
+      "statusEvents[].traceIndex",
+      "statusEvents[].sequence",
+      "teamComboLedger.events[].sequence"
+    ],
+    "statusIds": "Map current status event IDs to baseline IDs by the ordered lifecycle event correspondence; preserve and compare all references after mapping. Full normalized deep equality must pass.",
+    "retained": "All other fields, including command timing, hit order, numbers, modifiers, operands, factors, status ownership, roots, parent references, consumption, resource events, combo ledger, final state and diagnostics."
+  },
+  "cases": [
+    {
+      "name": "lastrite-tangtang-status-provenance",
+      "inputSha256": "b1ffb628c95d53b86d8b546503db401f091997df44945d31820ff25056ca7bb8",
+      "totalDamageBefore": 647779.4031308988,
+      "totalDamageAfter": 647779.4031308988,
+      "damageDelta": 0,
+      "commandCount": 9,
+      "failedCommands": 0,
+      "counts": {
+        "hits": 184,
+        "hpHits": 102,
+        "statusEvents": 162,
+        "resourceEvents": 12
+      },
+      "normalizedDeepEqual": true,
+      "normalizedBeforeSha256": "947b1ecb27462c40251a1165d1d7ec11d6e046fbb320294c6d402d281f0decf6",
+      "normalizedAfterSha256": "947b1ecb27462c40251a1165d1d7ec11d6e046fbb320294c6d402d281f0decf6",
+      "rawDifferenceCounts": {
+        "$.generatedAt": 1
+      },
+      "rawDifferences": [
+        {
+          "path": "$.generatedAt",
+          "before": "2026-09-12T02:36:08.833Z",
+          "after": "2026-09-12T02:35:46.603Z"
+        }
+      ],
+      "diagnostics": {
+        "unresolvedEffectCount": 0,
+        "compilerUnresolvedEffectCount": 186,
+        "dependencySummary": {
+          "memberCount": 2,
+          "programCount": 36,
+          "buffCount": 109,
+          "loadoutEffectCount": 14,
+          "intrinsicPassiveCount": 2,
+          "missingSkillCount": 0,
+          "missingBuffCount": 0
+        },
+        "assemblerDiagnostics": []
+      },
+      "coldApplications": [
+        [
+          23,
+          1
+        ],
+        [
+          126,
+          2
+        ],
+        [
+          137,
+          3
+        ],
+        [
+          194,
+          4
+        ]
+      ],
+      "coldConsumption": [
+        [
+          206,
+          4,
+          0
+        ]
+      ]
+    },
+    {
+      "name": "lastrite-tangtang-hot-start-burst",
+      "inputSha256": "3b741b80aecdfa2f78cdf7fc29e6a562d7b252962de6f824c49b43e2490ae066",
+      "totalDamageBefore": 617673.392435624,
+      "totalDamageAfter": 617673.392435624,
+      "damageDelta": 0,
+      "commandCount": 9,
+      "failedCommands": 0,
+      "counts": {
+        "hits": 182,
+        "hpHits": 101,
+        "statusEvents": 158,
+        "resourceEvents": 13
+      },
+      "normalizedDeepEqual": true,
+      "normalizedBeforeSha256": "49389291b084a034d77a54db7c3fdb943e244802482eabd68ada9f4f1626938c",
+      "normalizedAfterSha256": "49389291b084a034d77a54db7c3fdb943e244802482eabd68ada9f4f1626938c",
+      "rawDifferenceCounts": {
+        "$.generatedAt": 1
+      },
+      "rawDifferences": [
+        {
+          "path": "$.generatedAt",
+          "before": "2026-09-12T02:36:09.594Z",
+          "after": "2026-09-12T02:35:47.376Z"
+        }
+      ],
+      "diagnostics": {
+        "unresolvedEffectCount": 0,
+        "compilerUnresolvedEffectCount": 186,
+        "dependencySummary": {
+          "memberCount": 2,
+          "programCount": 36,
+          "buffCount": 109,
+          "loadoutEffectCount": 14,
+          "intrinsicPassiveCount": 2,
+          "missingSkillCount": 0,
+          "missingBuffCount": 0
+        },
+        "assemblerDiagnostics": []
+      }
+    },
+    {
+      "name": "wulfa-camille-appended-ultimate",
+      "inputSha256": "786e00f3c4ebcbc8b6f6376f6d400026d90a20160041411f3e61fd9529a03951",
+      "totalDamageBefore": 106623.10821334398,
+      "totalDamageAfter": 106623.10821334398,
+      "damageDelta": 0,
+      "commandCount": 8,
+      "failedCommands": 0,
+      "counts": {
+        "hits": 114,
+        "hpHits": 79,
+        "statusEvents": 127,
+        "resourceEvents": 13
+      },
+      "normalizedDeepEqual": true,
+      "normalizedBeforeSha256": "bdf783b32e290f8fe82f49eceee6d0cfe9e7d116c7a76643b8810abc4842826e",
+      "normalizedAfterSha256": "bdf783b32e290f8fe82f49eceee6d0cfe9e7d116c7a76643b8810abc4842826e",
+      "rawDifferenceCounts": {
+        "$.generatedAt": 1,
+        "$.hits.[].statusEventSequenceBeforeHit": 29,
+        "$.hits.[].traceIndex": 29,
+        "$.hits.[].parentEventId": 1,
+        "$.statusEvents.[].traceIndex": 27,
+        "$.statusEvents.[].eventId": 27,
+        "$.statusEvents.[].sequence": 27,
+        "$.statusEvents.[].parentEventId": 9,
+        "$.teamComboLedger.events.[].sequence": 1,
+        "$.teamComboLedger.events.[].sourceEventIds.[]": 4
+      },
+      "rawDifferences": [
+        {
+          "path": "$.generatedAt",
+          "before": "2026-09-12T02:36:10.309Z",
+          "after": "2026-09-12T02:35:48.114Z"
+        },
+        {
+          "path": "$.hits.85.statusEventSequenceBeforeHit",
+          "before": 214,
+          "after": 215
+        },
+        {
+          "path": "$.hits.85.traceIndex",
+          "before": 1004,
+          "after": 1017
+        },
+        {
+          "path": "$.hits.86.statusEventSequenceBeforeHit",
+          "before": 219,
+          "after": 220
+        },
+        {
+          "path": "$.hits.86.traceIndex",
+          "before": 1062,
+          "after": 1075
+        },
+        {
+          "path": "$.hits.87.statusEventSequenceBeforeHit",
+          "before": 221,
+          "after": 222
+        },
+        {
+          "path": "$.hits.87.traceIndex",
+          "before": 1102,
+          "after": 1115
+        },
+        {
+          "path": "$.hits.88.statusEventSequenceBeforeHit",
+          "before": 223,
+          "after": 224
+        },
+        {
+          "path": "$.hits.88.traceIndex",
+          "before": 1139,
+          "after": 1152
+        },
+        {
+          "path": "$.hits.89.statusEventSequenceBeforeHit",
+          "before": 225,
+          "after": 226
+        },
+        {
+          "path": "$.hits.89.traceIndex",
+          "before": 1175,
+          "after": 1188
+        },
+        {
+          "path": "$.hits.90.statusEventSequenceBeforeHit",
+          "before": 227,
+          "after": 228
+        },
+        {
+          "path": "$.hits.90.traceIndex",
+          "before": 1211,
+          "after": 1224
+        },
+        {
+          "path": "$.hits.91.statusEventSequenceBeforeHit",
+          "before": 229,
+          "after": 230
+        },
+        {
+          "path": "$.hits.91.traceIndex",
+          "before": 1247,
+          "after": 1260
+        },
+        {
+          "path": "$.hits.92.statusEventSequenceBeforeHit",
+          "before": 231,
+          "after": 232
+        },
+        {
+          "path": "$.hits.92.traceIndex",
+          "before": 1283,
+          "after": 1296
+        },
+        {
+          "path": "$.hits.93.statusEventSequenceBeforeHit",
+          "before": 233,
+          "after": 234
+        },
+        {
+          "path": "$.hits.93.traceIndex",
+          "before": 1319,
+          "after": 1332
+        },
+        {
+          "path": "$.hits.94.statusEventSequenceBeforeHit",
+          "before": 236,
+          "after": 237
+        },
+        {
+          "path": "$.hits.94.traceIndex",
+          "before": 1361,
+          "after": 1374
+        },
+        {
+          "path": "$.hits.95.statusEventSequenceBeforeHit",
+          "before": 238,
+          "after": 239
+        },
+        {
+          "path": "$.hits.95.traceIndex",
+          "before": 1397,
+          "after": 1410
+        },
+        {
+          "path": "$.hits.96.statusEventSequenceBeforeHit",
+          "before": 240,
+          "after": 241
+        },
+        {
+          "path": "$.hits.96.traceIndex",
+          "before": 1433,
+          "after": 1446
+        },
+        {
+          "path": "$.hits.97.statusEventSequenceBeforeHit",
+          "before": 242,
+          "after": 243
+        },
+        {
+          "path": "$.hits.97.traceIndex",
+          "before": 1469,
+          "after": 1482
+        },
+        {
+          "path": "$.hits.98.statusEventSequenceBeforeHit",
+          "before": 244,
+          "after": 245
+        },
+        {
+          "path": "$.hits.98.traceIndex",
+          "before": 1505,
+          "after": 1518
+        },
+        {
+          "path": "$.hits.99.statusEventSequenceBeforeHit",
+          "before": 246,
+          "after": 247
+        },
+        {
+          "path": "$.hits.99.traceIndex",
+          "before": 1541,
+          "after": 1554
+        },
+        {
+          "path": "$.hits.100.statusEventSequenceBeforeHit",
+          "before": 248,
+          "after": 249
+        },
+        {
+          "path": "$.hits.100.traceIndex",
+          "before": 1577,
+          "after": 1590
+        },
+        {
+          "path": "$.hits.101.statusEventSequenceBeforeHit",
+          "before": 250,
+          "after": 251
+        },
+        {
+          "path": "$.hits.101.traceIndex",
+          "before": 1613,
+          "after": 1626
+        },
+        {
+          "path": "$.hits.102.statusEventSequenceBeforeHit",
+          "before": 253,
+          "after": 254
+        },
+        {
+          "path": "$.hits.102.traceIndex",
+          "before": 1651,
+          "after": 1664
+        },
+        {
+          "path": "$.hits.103.statusEventSequenceBeforeHit",
+          "before": 255,
+          "after": 256
+        },
+        {
+          "path": "$.hits.103.traceIndex",
+          "before": 1687,
+          "after": 1700
+        },
+        {
+          "path": "$.hits.104.statusEventSequenceBeforeHit",
+          "before": 257,
+          "after": 258
+        },
+        {
+          "path": "$.hits.104.traceIndex",
+          "before": 1723,
+          "after": 1736
+        },
+        {
+          "path": "$.hits.105.statusEventSequenceBeforeHit",
+          "before": 259,
+          "after": 260
+        },
+        {
+          "path": "$.hits.105.traceIndex",
+          "before": 1759,
+          "after": 1772
+        },
+        {
+          "path": "$.hits.106.statusEventSequenceBeforeHit",
+          "before": 261,
+          "after": 262
+        },
+        {
+          "path": "$.hits.106.traceIndex",
+          "before": 1795,
+          "after": 1808
+        },
+        {
+          "path": "$.hits.107.statusEventSequenceBeforeHit",
+          "before": 263,
+          "after": 264
+        },
+        {
+          "path": "$.hits.107.traceIndex",
+          "before": 1831,
+          "after": 1844
+        },
+        {
+          "path": "$.hits.108.statusEventSequenceBeforeHit",
+          "before": 265,
+          "after": 266
+        },
+        {
+          "path": "$.hits.108.traceIndex",
+          "before": 1867,
+          "after": 1880
+        },
+        {
+          "path": "$.hits.109.statusEventSequenceBeforeHit",
+          "before": 268,
+          "after": 269
+        },
+        {
+          "path": "$.hits.109.traceIndex",
+          "before": 1905,
+          "after": 1918
+        },
+        {
+          "path": "$.hits.110.statusEventSequenceBeforeHit",
+          "before": 271,
+          "after": 272
+        },
+        {
+          "path": "$.hits.110.traceIndex",
+          "before": 1951,
+          "after": 1964
+        },
+        {
+          "path": "$.hits.111.statusEventSequenceBeforeHit",
+          "before": 278,
+          "after": 279
+        },
+        {
+          "path": "$.hits.111.traceIndex",
+          "before": 1996,
+          "after": 2009
+        },
+        {
+          "path": "$.hits.112.statusEventSequenceBeforeHit",
+          "before": 278,
+          "after": 279
+        },
+        {
+          "path": "$.hits.112.traceIndex",
+          "before": 1996,
+          "after": 2009
+        },
+        {
+          "path": "$.hits.113.statusEventSequenceBeforeHit",
+          "before": 286,
+          "after": 287
+        },
+        {
+          "path": "$.hits.113.parentEventId",
+          "before": "status-event:273",
+          "after": "status-event:274"
+        },
+        {
+          "path": "$.hits.113.traceIndex",
+          "before": 2027,
+          "after": 2040
+        },
+        {
+          "path": "$.statusEvents.100.traceIndex",
+          "before": 202,
+          "after": 203
+        },
+        {
+          "path": "$.statusEvents.100.eventId",
+          "before": "status-event:203",
+          "after": "status-event:204"
+        },
+        {
+          "path": "$.statusEvents.100.sequence",
+          "before": 203,
+          "after": 204
+        },
+        {
+          "path": "$.statusEvents.101.traceIndex",
+          "before": 203,
+          "after": 204
+        },
+        {
+          "path": "$.statusEvents.101.eventId",
+          "before": "status-event:204",
+          "after": "status-event:205"
+        },
+        {
+          "path": "$.statusEvents.101.sequence",
+          "before": 204,
+          "after": 205
+        },
+        {
+          "path": "$.statusEvents.102.traceIndex",
+          "before": 204,
+          "after": 205
+        },
+        {
+          "path": "$.statusEvents.102.eventId",
+          "before": "status-event:205",
+          "after": "status-event:206"
+        },
+        {
+          "path": "$.statusEvents.102.sequence",
+          "before": 205,
+          "after": 206
+        },
+        {
+          "path": "$.statusEvents.103.traceIndex",
+          "before": 205,
+          "after": 206
+        },
+        {
+          "path": "$.statusEvents.103.eventId",
+          "before": "status-event:206",
+          "after": "status-event:207"
+        },
+        {
+          "path": "$.statusEvents.103.sequence",
+          "before": 206,
+          "after": 207
+        },
+        {
+          "path": "$.statusEvents.104.traceIndex",
+          "before": 206,
+          "after": 207
+        },
+        {
+          "path": "$.statusEvents.104.eventId",
+          "before": "status-event:207",
+          "after": "status-event:208"
+        },
+        {
+          "path": "$.statusEvents.104.sequence",
+          "before": 207,
+          "after": 208
+        },
+        {
+          "path": "$.statusEvents.105.traceIndex",
+          "before": 208,
+          "after": 209
+        },
+        {
+          "path": "$.statusEvents.105.eventId",
+          "before": "status-event:209",
+          "after": "status-event:210"
+        },
+        {
+          "path": "$.statusEvents.105.sequence",
+          "before": 209,
+          "after": 210
+        },
+        {
+          "path": "$.statusEvents.106.traceIndex",
+          "before": 209,
+          "after": 210
+        },
+        {
+          "path": "$.statusEvents.106.eventId",
+          "before": "status-event:210",
+          "after": "status-event:211"
+        },
+        {
+          "path": "$.statusEvents.106.sequence",
+          "before": 210,
+          "after": 211
+        },
+        {
+          "path": "$.statusEvents.107.traceIndex",
+          "before": 210,
+          "after": 211
+        },
+        {
+          "path": "$.statusEvents.107.eventId",
+          "before": "status-event:211",
+          "after": "status-event:212"
+        },
+        {
+          "path": "$.statusEvents.107.sequence",
+          "before": 211,
+          "after": 212
+        },
+        {
+          "path": "$.statusEvents.108.traceIndex",
+          "before": 214,
+          "after": 215
+        },
+        {
+          "path": "$.statusEvents.108.eventId",
+          "before": "status-event:215",
+          "after": "status-event:216"
+        },
+        {
+          "path": "$.statusEvents.108.sequence",
+          "before": 215,
+          "after": 216
+        },
+        {
+          "path": "$.statusEvents.109.traceIndex",
+          "before": 268,
+          "after": 269
+        },
+        {
+          "path": "$.statusEvents.109.eventId",
+          "before": "status-event:269",
+          "after": "status-event:270"
+        },
+        {
+          "path": "$.statusEvents.109.sequence",
+          "before": 269,
+          "after": 270
+        },
+        {
+          "path": "$.statusEvents.110.traceIndex",
+          "before": 272,
+          "after": 273
+        },
+        {
+          "path": "$.statusEvents.110.eventId",
+          "before": "status-event:273",
+          "after": "status-event:274"
+        },
+        {
+          "path": "$.statusEvents.110.sequence",
+          "before": 273,
+          "after": 274
+        },
+        {
+          "path": "$.statusEvents.111.traceIndex",
+          "before": 273,
+          "after": 274
+        },
+        {
+          "path": "$.statusEvents.111.eventId",
+          "before": "status-event:274",
+          "after": "status-event:275"
+        },
+        {
+          "path": "$.statusEvents.111.sequence",
+          "before": 274,
+          "after": 275
+        },
+        {
+          "path": "$.statusEvents.111.parentEventId",
+          "before": "status-event:273",
+          "after": "status-event:274"
+        },
+        {
+          "path": "$.statusEvents.112.traceIndex",
+          "before": 274,
+          "after": 275
+        },
+        {
+          "path": "$.statusEvents.112.eventId",
+          "before": "status-event:275",
+          "after": "status-event:276"
+        },
+        {
+          "path": "$.statusEvents.112.sequence",
+          "before": 275,
+          "after": 276
+        },
+        {
+          "path": "$.statusEvents.112.parentEventId",
+          "before": "status-event:273",
+          "after": "status-event:274"
+        },
+        {
+          "path": "$.statusEvents.113.traceIndex",
+          "before": 280,
+          "after": 281
+        },
+        {
+          "path": "$.statusEvents.113.eventId",
+          "before": "status-event:281",
+          "after": "status-event:282"
+        },
+        {
+          "path": "$.statusEvents.113.sequence",
+          "before": 281,
+          "after": 282
+        },
+        {
+          "path": "$.statusEvents.114.traceIndex",
+          "before": 281,
+          "after": 282
+        },
+        {
+          "path": "$.statusEvents.114.eventId",
+          "before": "status-event:282",
+          "after": "status-event:283"
+        },
+        {
+          "path": "$.statusEvents.114.sequence",
+          "before": 282,
+          "after": 283
+        },
+        {
+          "path": "$.statusEvents.115.traceIndex",
+          "before": 282,
+          "after": 283
+        },
+        {
+          "path": "$.statusEvents.115.eventId",
+          "before": "status-event:283",
+          "after": "status-event:284"
+        },
+        {
+          "path": "$.statusEvents.115.sequence",
+          "before": 283,
+          "after": 284
+        },
+        {
+          "path": "$.statusEvents.115.parentEventId",
+          "before": "status-event:282",
+          "after": "status-event:283"
+        },
+        {
+          "path": "$.statusEvents.116.traceIndex",
+          "before": 283,
+          "after": 284
+        },
+        {
+          "path": "$.statusEvents.116.eventId",
+          "before": "status-event:284",
+          "after": "status-event:285"
+        },
+        {
+          "path": "$.statusEvents.116.sequence",
+          "before": 284,
+          "after": 285
+        },
+        {
+          "path": "$.statusEvents.116.parentEventId",
+          "before": "status-event:282",
+          "after": "status-event:283"
+        },
+        {
+          "path": "$.statusEvents.117.traceIndex",
+          "before": 284,
+          "after": 285
+        },
+        {
+          "path": "$.statusEvents.117.eventId",
+          "before": "status-event:285",
+          "after": "status-event:286"
+        },
+        {
+          "path": "$.statusEvents.117.sequence",
+          "before": 285,
+          "after": 286
+        },
+        {
+          "path": "$.statusEvents.118.traceIndex",
+          "before": 285,
+          "after": 286
+        },
+        {
+          "path": "$.statusEvents.118.eventId",
+          "before": "status-event:286",
+          "after": "status-event:287"
+        },
+        {
+          "path": "$.statusEvents.118.sequence",
+          "before": 286,
+          "after": 287
+        },
+        {
+          "path": "$.statusEvents.119.traceIndex",
+          "before": 286,
+          "after": 287
+        },
+        {
+          "path": "$.statusEvents.119.eventId",
+          "before": "status-event:287",
+          "after": "status-event:288"
+        },
+        {
+          "path": "$.statusEvents.119.sequence",
+          "before": 287,
+          "after": 288
+        },
+        {
+          "path": "$.statusEvents.119.parentEventId",
+          "before": "status-event:273",
+          "after": "status-event:274"
+        },
+        {
+          "path": "$.statusEvents.120.traceIndex",
+          "before": 288,
+          "after": 289
+        },
+        {
+          "path": "$.statusEvents.120.eventId",
+          "before": "status-event:289",
+          "after": "status-event:290"
+        },
+        {
+          "path": "$.statusEvents.120.sequence",
+          "before": 289,
+          "after": 290
+        },
+        {
+          "path": "$.statusEvents.121.traceIndex",
+          "before": 290,
+          "after": 291
+        },
+        {
+          "path": "$.statusEvents.121.eventId",
+          "before": "status-event:291",
+          "after": "status-event:292"
+        },
+        {
+          "path": "$.statusEvents.121.sequence",
+          "before": 291,
+          "after": 292
+        },
+        {
+          "path": "$.statusEvents.122.traceIndex",
+          "before": 292,
+          "after": 293
+        },
+        {
+          "path": "$.statusEvents.122.eventId",
+          "before": "status-event:293",
+          "after": "status-event:294"
+        },
+        {
+          "path": "$.statusEvents.122.sequence",
+          "before": 293,
+          "after": 294
+        },
+        {
+          "path": "$.statusEvents.122.parentEventId",
+          "before": "status-event:273",
+          "after": "status-event:274"
+        },
+        {
+          "path": "$.statusEvents.123.traceIndex",
+          "before": 299,
+          "after": 300
+        },
+        {
+          "path": "$.statusEvents.123.eventId",
+          "before": "status-event:300",
+          "after": "status-event:301"
+        },
+        {
+          "path": "$.statusEvents.123.sequence",
+          "before": 300,
+          "after": 301
+        },
+        {
+          "path": "$.statusEvents.123.parentEventId",
+          "before": "status-event:273",
+          "after": "status-event:274"
+        },
+        {
+          "path": "$.statusEvents.124.traceIndex",
+          "before": 304,
+          "after": 305
+        },
+        {
+          "path": "$.statusEvents.124.eventId",
+          "before": "status-event:305",
+          "after": "status-event:306"
+        },
+        {
+          "path": "$.statusEvents.124.sequence",
+          "before": 305,
+          "after": 306
+        },
+        {
+          "path": "$.statusEvents.125.traceIndex",
+          "before": 305,
+          "after": 306
+        },
+        {
+          "path": "$.statusEvents.125.eventId",
+          "before": "status-event:306",
+          "after": "status-event:307"
+        },
+        {
+          "path": "$.statusEvents.125.sequence",
+          "before": 306,
+          "after": 307
+        },
+        {
+          "path": "$.statusEvents.125.parentEventId",
+          "before": "status-event:305",
+          "after": "status-event:306"
+        },
+        {
+          "path": "$.statusEvents.126.traceIndex",
+          "before": 308,
+          "after": 309
+        },
+        {
+          "path": "$.statusEvents.126.eventId",
+          "before": "status-event:309",
+          "after": "status-event:310"
+        },
+        {
+          "path": "$.statusEvents.126.sequence",
+          "before": 309,
+          "after": 310
+        },
+        {
+          "path": "$.statusEvents.126.parentEventId",
+          "before": "status-event:305",
+          "after": "status-event:306"
+        },
+        {
+          "path": "$.teamComboLedger.events.2.sequence",
+          "before": 203,
+          "after": 204
+        },
+        {
+          "path": "$.teamComboLedger.events.2.sourceEventIds.0",
+          "before": "status-event:203",
+          "after": "status-event:204"
+        },
+        {
+          "path": "$.teamComboLedger.events.2.sourceEventIds.1",
+          "before": "status-event:204",
+          "after": "status-event:205"
+        },
+        {
+          "path": "$.teamComboLedger.events.2.sourceEventIds.2",
+          "before": "status-event:205",
+          "after": "status-event:206"
+        },
+        {
+          "path": "$.teamComboLedger.events.2.sourceEventIds.3",
+          "before": "status-event:206",
+          "after": "status-event:207"
+        }
+      ],
+      "diagnostics": {
+        "unresolvedEffectCount": 0,
+        "compilerUnresolvedEffectCount": 498,
+        "dependencySummary": {
+          "memberCount": 2,
+          "programCount": 43,
+          "buffCount": 132,
+          "loadoutEffectCount": 10,
+          "intrinsicPassiveCount": 4,
+          "missingSkillCount": 0,
+          "missingBuffCount": 0
+        },
+        "assemblerDiagnostics": []
+      },
+      "comboEvents": [
+        [
+          364,
+          "grant",
+          0,
+          1
+        ],
+        [
+          427,
+          "grant",
+          1,
+          2
+        ],
+        [
+          433,
+          "consume",
+          2,
+          0
+        ]
+      ],
+      "enhancedHits": [
+        [
+          314,
+          "chr_0033_camille_combo_skill_2",
+          "ComboSkill"
+        ],
+        [
+          327,
+          "chr_0033_camille_combo_skill_2",
+          "ComboSkill"
+        ],
+        [
+          343,
+          "chr_0033_camille_combo_skill_2",
+          "ComboSkill"
+        ],
+        [
+          364,
+          "chr_0033_camille_combo_skill_2",
+          "ComboSkill"
+        ]
+      ],
+      "release": {
+        "enhancedStart": 294,
+        "comboStart": 380,
+        "lastComboHit": 427,
+        "ultimateStart": 433
+      }
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: a real Tangtang battle skill enables and consumes its combo through command admission
+ok 1 - a real Tangtang battle skill enables and consumes its combo through command admission
+  ---
+  duration_ms: 93.731333
+  type: 'test'
+  ...
+# Subtest: three real battle skills enable Last Rite combo, whose raw hit consumes the cold layers
+ok 2 - three real battle skills enable Last Rite combo, whose raw hit consumes the cold layers
+  ---
+  duration_ms: 121.285875
+  type: 'test'
+  ...
+# Subtest: Last Rite combo converts three or four actual cold layers into its finishing hit and energy
+ok 3 - Last Rite combo converts three or four actual cold layers into its finishing hit and energy
+  ---
+  duration_ms: 549.064833
+  type: 'test'
+  ...
+# Subtest: one real battle skill consuming two whirlpools deals three tornado streams but applies one cold layer
+ok 4 - one real battle skill consuming two whirlpools deals three tornado streams but applies one cold layer
+  ---
+  duration_ms: 145.364333
+  type: 'test'
+  ...
+# Subtest: Last Rite phantom inflicts the enemy found by its Buff and combines cold with Tangtang
+ok 5 - Last Rite phantom inflicts the enemy found by its Buff and combines cold with Tangtang
+  ---
+  duration_ms: 207.270167
+  type: 'test'
+  ...
+# Subtest: only the current controller consumes Last Rite infusion, including mid-attack switches
+ok 6 - only the current controller consumes Last Rite infusion, including mid-attack switches
+  ---
+  duration_ms: 5930.281916
+  type: 'test'
+  ...
+# Subtest: raw Buff-cast replacement preserves all original attack hits and charges its own resources once
+ok 7 - raw Buff-cast replacement preserves all original attack hits and charges its own resources once
+  ---
+  duration_ms: 124.214208
+  type: 'test'
+  ...
+# Subtest: a zero-time switch before or after the same-frame infusion has different real effects
+ok 8 - a zero-time switch before or after the same-frame infusion has different real effects
+  ---
+  duration_ms: 64.749833
+  type: 'test'
+  ...
+# Subtest: a switch anchored to a real heavy impact waits for the resolved hit
+ok 9 - a switch anchored to a real heavy impact waits for the resolved hit
+  ---
+  duration_ms: 30.015291
+  type: 'test'
+  ...
+# Subtest: Last Rite accepts her tagged skill recovery and rejects generic teammate recovery
+ok 10 - Last Rite accepts her tagged skill recovery and rejects generic teammate recovery
+  ---
+  duration_ms: 81.034125
+  type: 'test'
+  ...
+# Subtest: infusion only replaces the cast strictly before the real attack occupation ends
+ok 11 - infusion only replaces the cast strictly before the real attack occupation ends
+  ---
+  duration_ms: 205.532333
+  type: 'test'
+  ...
+# Subtest: Camille enhanced battle-skill input executes the derived combo skill and grants combo on its real final hit
+ok 12 - Camille enhanced battle-skill input executes the derived combo skill and grants combo on its real final hit
+  ---
+  duration_ms: 285.077959
+  type: 'test'
+  ...
+# Subtest: a following same-actor combo waits for the derived cast and preserves both real combo grants
+ok 13 - a following same-actor combo waits for the derived cast and preserves both real combo grants
+  ---
+  duration_ms: 264.488583
+  type: 'test'
+  ...
+# Subtest: real Wulfa-Camille axis re-resolves a buffered B against the active form
+ok 14 - real Wulfa-Camille axis re-resolves a buffered B against the active form
+  ---
+  duration_ms: 610.209083
+  type: 'test'
+  ...
+# Subtest: appending Wulfa Q after the actual Camille E hit preserves the preceding two combo grants
+ok 15 - appending Wulfa Q after the actual Camille E hit preserves the preceding two combo grants
+  ---
+  duration_ms: 870.243209
+  type: 'test'
+  ...
+# Subtest: Camille last impact + 6 follows F395 in both directions and retains two-stack consumption
+ok 16 - Camille last impact + 6 follows F395 in both directions and retains two-stack consumption
+  ---
+  duration_ms: 6286.291125
+  type: 'test'
+  ...
+# Subtest: action end, same-frame switch, and landing resolve as one causal chain
+ok 17 - action end, same-frame switch, and landing resolve as one causal chain
+  ---
+  duration_ms: 410.398125
+  type: 'test'
+  ...
+# Subtest: precision input follows the source cast and validates the actual half-open window
+ok 18 - precision input follows the source cast and validates the actual half-open window
+  ---
+  duration_ms: 1084.279292
+  type: 'test'
+  ...
+# Subtest: broad input stays non-precise and does not drift to the later precision interval
+ok 19 - broad input stays non-precise and does not drift to the later precision interval
+  ---
+  duration_ms: 250.661375
+  type: 'test'
+  ...
+# Subtest: a tornado born from a self-targeted Buff channels at its hostile finder targets
+ok 20 - a tornado born from a self-targeted Buff channels at its hostile finder targets
+  ---
+  duration_ms: 44.381708
+  type: 'test'
+  ...
+# Subtest: natural Tangtang ultimate completes once without entering the plunge-only branch
+ok 21 - natural Tangtang ultimate completes once without entering the plunge-only branch
+  ---
+  duration_ms: 33.627083
+  type: 'test'
+  ...
+# Subtest: overlapping tornado entities from one skill cast share its cold-application limit
+ok 22 - overlapping tornado entities from one skill cast share its cold-application limit
+  ---
+  duration_ms: 27.996291
+  type: 'test'
+  ...
+# Subtest: a real plunge inside Tangtang ultimate replaces its natural ending with the enhanced wave
+ok 23 - a real plunge inside Tangtang ultimate replaces its natural ending with the enhanced wave
+  ---
+  duration_ms: 43.019709
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18802.957708

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "adapter": "ake-squad-demo",
+  "input": {
+    "enemyId": "eny_0007_mimicw",
+    "enemyLevel": 90,
+    "initialAtb": 300,
+    "endFrame": 900,
+    "tickRate": 30,
+    "members": [
+      {
+        "memberId": "chr_0019_karin",
+        "characterId": "chr_0019_karin",
+        "weaponId": "wpn_sword_0019",
+        "level": 90,
+        "skillLevel": 12,
+        "potentialLevel": 5,
+        "weaponLevel": 90,
+        "weaponPotential": 6,
+        "weaponSkillLevels": {
+          "skill1": 9,
+          "skill2": 9,
+          "skill3": 9
+        },
+        "initialUltimateSp": 120,
+        "equipment": []
+      }
+    ],
+    "initialControllerCharacterId": "chr_0019_karin",
+    "commands": [
+      {
+        "commandId": "cmd-0",
+        "memberId": "chr_0019_karin",
+        "commandType": "NormalSkill",
+        "frame": 0,
+        "queueMode": "timeline-sequence",
+        "timelineOrder": 0
+      },
+      {
+        "commandId": "cmd-1",
+        "memberId": "chr_0019_karin",
+        "commandType": "UltimateSkill",
+        "frame": 0,
+        "queueMode": "timeline-sequence",
+        "timelineOrder": 1,
+        "releaseDependency": {
+          "kind": "action-end",
+          "sourceCommandId": "cmd-0",
+          "delayFrames": 1
+        }
+      }
+    ]
+  }
+}

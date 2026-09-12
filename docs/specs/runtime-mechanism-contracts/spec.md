@@ -4,7 +4,7 @@
 
 **Status:** Accepted
 
-**Implementation:** In progress in an isolated worktree
+**Implementation:** Implemented; scoped verification and integration review complete
 
 **Updated:** 2026-09-12
 

@@ -725,6 +725,29 @@ export class CombatRuntime {
         }
     }
 
+    /** Pay one actual skill cost and publish its resource notifications together.
+     * Callers retain admission/skip decisions; a failed or zero spend never emits
+     * a successful-cost event. The event context describes the executing cast,
+     * independently of the resource pool's target.
+     */
+    applySkillCost(input, eventContext = {}) {
+        const context = this.context.createEventContext(eventContext, {
+            frame: input.frame,
+            sourceId: input.sourceId,
+            ownerId: input.ownerId,
+            skillId: input.skillId,
+            castId: input.castId
+        });
+        const record = this.resources.spend({
+            reason: 'CastCost',
+            resourceSourceType: 'Skill',
+            resourceGainMethod: 'Spend',
+            ...input
+        });
+        const abilityEvents = this.#notifyResourceEvent(record, context);
+        return abilityEvents.length === 0 ? record : { ...record, abilityEvents };
+    }
+
     executeTransaction(actions, eventContext = {}) {
         const context = this.context.createEventContext(eventContext);
         this.activeActionContexts.push(context);
@@ -5346,7 +5369,7 @@ export class CombatRuntime {
                             costValue
                         };
                     }
-                    cost = this.resources.spend({
+                    cost = this.applySkillCost({
                         frame: launchFrame,
                         poolRef,
                         amount: costValue,
@@ -5359,6 +5382,21 @@ export class CombatRuntime {
                         skillId: childSkillId,
                         resourceSourceType: 'Skill',
                         resourceGainMethod: 'Spend'
+                    }, {
+                        ...eventContext,
+                        frame: launchFrame,
+                        sourceId: casterId,
+                        ownerId: casterId,
+                        targetId,
+                        skillId: childSkillId,
+                        castId: childCastId,
+                        rootCastId,
+                        parentCastId,
+                        inputCommandType,
+                        inputSkillId,
+                        effectiveSkillType,
+                        skillType: effectiveSkillType,
+                        blackboard: cloneValue(program.blackboard ?? {})
                     });
                 }
                 const scheduled = this.scheduleProgram(program, {

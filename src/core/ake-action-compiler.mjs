@@ -403,6 +403,8 @@ export class AkeActionCompiler {
         if (!isRecord(raw)) throw new TypeError('compileBuff requires raw BuffData.');
         const parsed = parseBuff(raw, { tickRate: options.tickRate ?? this.tickRate });
         const { values: blackboard } = parseBlackboard(raw.blackboard);
+        const stackLifetimeMapping = this.#findMapping('StatusStackLifetimeRule',
+            mapping => mapping.selector?.buffId === raw.id);
         const triggerTimingMapping = this.#findMapping(
             'StatusTriggerTimingRule',
             mapping => mapping.selector?.buffId === raw.id
@@ -563,6 +565,9 @@ export class AkeActionCompiler {
         );
         const definition = {
             ...parsed,
+            stacking: { ...parsed.stacking,
+                lifetimePolicy: stackLifetimeMapping?.effect?.lifetimePolicy ?? 'Shared',
+                lifetimeEvidence: stackLifetimeMapping?.id ?? null },
             blackboard,
             duration: clone(raw.duration),
             triggerInterval: clone(raw.triggerInterval),

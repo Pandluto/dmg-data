@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "adapter": "ake-squad-demo",
+  "input": {
+    "enemyId": "eny_0007_mimicw",
+    "enemyLevel": 90,
+    "initialAtb": 300,
+    "endFrame": 900,
+    "tickRate": 30,
+    "members": [
+      {
+        "memberId": "chr_0016_laevat",
+        "characterId": "chr_0016_laevat",
+        "weaponId": "wpn_sword_0006",
+        "level": 90,
+        "skillLevel": 12,
+        "potentialLevel": 0,
+        "weaponLevel": 90,
+        "weaponPotential": 1,
+        "weaponSkillLevels": {
+          "skill1": 9,
+          "skill2": 9,
+          "skill3": 4
+        },
+        "initialUltimateSp": 300,
+        "equipment": []
+      }
+    ],
+    "initialControllerCharacterId": "chr_0016_laevat",
+    "commands": [
+      {
+        "commandId": "cmd-0",
+        "memberId": "chr_0016_laevat",
+        "commandType": "UltimateSkill",
+        "frame": 0
+      }
+    ]
+  }
+}
